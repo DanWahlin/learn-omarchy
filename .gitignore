@@ -1,0 +1,4 @@
+node_modules/
+pkg/
+src/*.tar.*
+*.pkg.tar.*

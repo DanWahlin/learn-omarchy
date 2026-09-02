@@ -1,0 +1,15 @@
+pkgname=learn-omarchy
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Interactive, theme-aware courses for learning Omarchy"
+arch=('any')
+url="https://github.com/DanWahlin/learn-omarchy"
+license=('custom')
+depends=('hyprland' 'mpv' 'nodejs' 'omarchy' 'quickshell')
+options=('!strip')
+source=()
+sha256sums=()
+
+package() {
+  make -C "$startdir/.." DESTDIR="$pkgdir" PREFIX=/usr install
+}

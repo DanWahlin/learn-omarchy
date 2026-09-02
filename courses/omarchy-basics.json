@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "omarchy-basics",
+  "title": "Learn Omarchy",
+  "description": "Learn essential Omarchy actions directly on your desktop.",
+  "lessons": [
+    {
+      "id": "finding-apps",
+      "title": "Finding your apps",
+      "steps": [
+        {
+          "id": "open-apps",
+          "instruction": "Let's open the Apps menu.",
+          "keys": ["SUPER", "+", "ALT", "+", "SPACE"],
+          "audio": null,
+          "help": {
+            "label": "Open Apps for me",
+            "command": ["omarchy", "menu", "summon", "apps"]
+          },
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 340,
+            "height": 880,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2400
+          },
+          "completionMessage": "That's the Apps menu. Start typing to find any installed app."
+        }
+      ]
+    }
+  ]
+}

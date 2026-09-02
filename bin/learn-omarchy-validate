@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source_root="$(cd -- "$script_dir/.." && pwd)"
+if [[ -f "$source_root/app/shell.qml" ]]; then
+  default_root="$source_root"
+else
+  default_root="$(cd -- "$script_dir/../share/learn-omarchy" && pwd)"
+fi
+app_root="${LEARN_OMARCHY_ROOT:-$default_root}"
+course="${1:-$app_root/courses/omarchy-basics.json}"
+
+exec node --experimental-strip-types "$app_root/tools/validate-course.ts" "$course"

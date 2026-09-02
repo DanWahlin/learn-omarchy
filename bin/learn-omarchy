@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source_root="$(cd -- "$script_dir/.." && pwd)"
+if [[ -f "$source_root/app/shell.qml" ]]; then
+  default_root="$source_root"
+else
+  default_root="$(cd -- "$script_dir/../share/learn-omarchy" && pwd)"
+fi
+app_root="${LEARN_OMARCHY_ROOT:-$default_root}"
+course="${LEARN_OMARCHY_COURSE:-$app_root/courses/omarchy-basics.json}"
+
+while (($# > 0)); do
+  case "$1" in
+    --course)
+      [[ $# -ge 2 ]] || { echo "learn-omarchy: --course requires a path" >&2; exit 2; }
+      course="$2"
+      shift 2
+      ;;
+    -h|--help)
+      cat <<'USAGE'
+Usage: learn-omarchy [--course PATH]
+
+Run an interactive, theme-aware Omarchy course.
+USAGE
+      exit 0
+      ;;
+    *)
+      echo "learn-omarchy: unknown argument '$1'" >&2
+      exit 2
+      ;;
+  esac
+done
+
+for command in node qs mpv; do
+  command -v "$command" >/dev/null 2>&1 || {
+    echo "learn-omarchy: required command not found: $command" >&2
+    exit 1
+  }
+done
+
+course="$(realpath -- "$course")"
+course_dir="$(dirname -- "$course")"
+node --experimental-strip-types "$app_root/tools/validate-course.ts" "$course"
+
+export LEARN_OMARCHY_ROOT="$app_root"
+export LEARN_OMARCHY_COURSE="$course"
+export LEARN_OMARCHY_COURSE_DIR="$course_dir"
+exec qs --no-duplicate --path "$app_root/app"
