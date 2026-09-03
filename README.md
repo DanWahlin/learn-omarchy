@@ -1,39 +1,39 @@
 # Learn Omarchy
 
-Learn Omarchy is a metadata-driven, interactive desktop course runner for
-Omarchy 4 and Hyprland. It teaches an action, shows the shortcut as themed
-keycaps, lights up each expected key as it's pressed, detects the resulting
-desktop state, and highlights the relevant UI.
+Learn Omarchy is an interactive, theme-aware desktop course for Omarchy 4. It
+teaches real shortcuts and system surfaces in short modules, responds as each
+expected key is pressed, performs an action on request, narrates every
+activity, and highlights the result on screen.
 
-The first lesson teaches the current Omarchy Apps binding:
+The bundled course contains 7 modules and 21 hands-on activities:
 
-```text
-SUPER + ALT + SPACE
-```
+| Module | What it covers |
+|---|---|
+| Menus and apps | Omarchy, Apps, and keybindings menus |
+| Everyday apps | Terminal, browser, and file manager |
+| Workspaces | Moving forward and back between workspaces |
+| Menu bar | Audio, network, power, and calendar panels |
+| Personalization | Backgrounds, themes, and theme cycling |
+| Capture and share | Capture, sharing, and clipboard history |
+| Setup and install | Setup, software installation, and updates |
 
-`SUPER + SPACE` opens the root Omarchy menu on current Omarchy releases.
+Progress is saved automatically, and any module can be repeated independently.
 
-## Why QML and TypeScript?
+## Why Quickshell and TypeScript?
 
-The visible application uses Quickshell/QML because Omarchy already ships it
-and it provides native Wayland layer-shell surfaces. This gives accurate
-per-monitor logical coordinates, HiDPI scaling, click-through overlays, and
-direct Hyprland events without Electron or X11.
+The visible app uses Quickshell/QML, the native shell toolkit already included
+with Omarchy. Its Wayland layer-shell surfaces provide accurate logical screen
+coordinates, HiDPI scaling, compositor events, and overlays without Electron
+or X11.
 
-TypeScript defines and validates the course format. Course JSON is read
-directly by the running app, so content and geometry changes don't require a
-compile step.
+TypeScript defines and validates the JSON course format. The QML runtime reads
+the JSON directly, so instructions, actions, narration, and highlight geometry
+can change without compiling the app.
 
-## Run it
+## Run from the repository
 
-Requirements are already present on a normal Omarchy 4 installation:
-
-- Hyprland
-- Quickshell 0.3 or newer
-- Node.js 22.6 or newer
-- mpv
-
-From this repository:
+Learn Omarchy expects a normal Omarchy 4 installation with Hyprland,
+Quickshell 0.3 or newer, Node.js 22.6 or newer, and mpv.
 
 ```bash
 ./bin/learn-omarchy
@@ -45,13 +45,31 @@ Run a different course:
 ./bin/learn-omarchy --course /path/to/course.json
 ```
 
-Validate metadata without opening the UI:
+Validate the bundled course and run its tests:
 
 ```bash
-./bin/learn-omarchy-validate courses/omarchy-basics.json
+npm run check
+npm test
 ```
 
-## Install it
+## Course controls
+
+- Select a module with the mouse or arrow keys and `Enter`.
+- Press the displayed shortcut. Each keycap lights up while its key is held.
+- For menu-driven activities, select the large action button.
+- Select **Help** to perform the current action for you.
+- Use the speaker control to mute or unmute narration.
+- Use the play control beside the instruction to replay it.
+- Select **Skip** to move past an activity or **Topics** to return to the
+  module picker.
+- Press `Escape` to return to Topics during a module.
+
+Learn Omarchy holds keyboard focus while teaching a shortcut so it can provide
+immediate key-by-key feedback. When the complete combination is held, it runs
+the configured semantic Omarchy action and verifies the result. It doesn't
+inject privileged synthetic input.
+
+## Install
 
 Install for one user:
 
@@ -62,39 +80,51 @@ make install PREFIX="$HOME/.local"
 Ensure `~/.local/bin` is on `PATH`, then run `learn-omarchy` or open **Learn
 Omarchy** from the Apps menu.
 
-Build an Arch package directly from this working tree:
+Build and install an Arch package from this working tree:
 
 ```bash
 cd packaging
 makepkg -si
 ```
 
-The local `PKGBUILD` is development scaffolding. Set its final project URL and
-license before publishing it to a package repository.
+The included `PKGBUILD` is local development scaffolding. A release package
+should use a tagged source archive and its checksum.
+
+Progress is stored at:
+
+```text
+${XDG_STATE_HOME:-$HOME/.local/state}/learn-omarchy/progress.json
+```
 
 ## Course metadata
 
-Courses use schema version 1:
+Courses use schema version 2:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "example",
   "title": "Example course",
+  "description": "A short hands-on course.",
   "lessons": [
     {
-      "id": "apps",
-      "title": "Apps",
+      "id": "menus",
+      "title": "Menus",
+      "description": "Learn the primary Omarchy menus.",
+      "icon": "01",
+      "estimatedMinutes": 2,
       "steps": [
         {
           "id": "open-apps",
-          "instruction": "Let's open the Apps menu.",
+          "instruction": "Open the Apps menu.",
+          "detail": "Start typing an app name when it opens.",
           "keys": ["SUPER", "+", "ALT", "+", "SPACE"],
-          "audio": "audio/open-apps.opus",
+          "audio": "audio/open-apps.mp3",
           "help": {
             "label": "Open Apps for me",
             "command": ["omarchy", "menu", "summon", "apps"]
           },
+          "cleanup": ["omarchy", "menu", "close"],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -108,8 +138,9 @@ Courses use schema version 1:
             "height": 880,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2400
-          }
+            "durationMs": 2200
+          },
+          "completionMessage": "Apps is ready. Type to search."
         }
       ]
     }
@@ -117,60 +148,125 @@ Courses use schema version 1:
 }
 ```
 
-### Geometry
+### Actions and completion
 
-Highlight values use Wayland logical pixels, not physical display pixels.
-Quickshell applies the monitor scale automatically. `x` and `y` are offsets
-from the selected anchor.
+`help.command` and optional `cleanup` values are argument arrays, not shell
+strings. They execute directly without shell evaluation.
+
+Two completion detectors are supported:
+
+- `hyprland-layer-open` waits for a matching Wayland layer namespace, such as
+  `omarchy-menu` or `omarchy-clipboard`.
+- `action-success` waits for the configured command to exit successfully,
+  then applies an optional `delayMs` before highlighting.
+
+Set `actionLabel` on a step to replace shortcut keycaps with a large action
+button. This works well for nested menu activities where asking a learner to
+press a shortcut would be misleading.
+
+Shortcut labels use canonical uppercase names. Supported labels are `SUPER`,
+`ALT`, `CTRL`, `SHIFT`, `SPACE`, `RETURN`, `TAB`, individual letters and
+digits, plus `+` as a visual separator.
+
+`cleanup` runs before advancing, skipping, returning to Topics, or restarting a
+module. It should close any surface or undo any temporary state introduced by
+the activity.
+
+### Highlight geometry
+
+Highlight values use Wayland logical pixels. Quickshell applies each monitor's
+scale automatically. `x` and `y` are offsets from the selected anchor.
 
 Supported anchors are `top-left`, `top`, `top-right`, `left`, `center`,
-`right`, `bottom-left`, `bottom`, and `bottom-right`.
+`right`, `bottom-left`, `bottom`, and `bottom-right`. Highlights are clamped
+inside the selected screen.
 
-Set `shape` to `rectangle` or `circle`. Circles require equal width and height.
-The border and keycaps use the active Omarchy theme's accent and foreground
-colors from:
+`shape` can be `rectangle` or `circle`; circles require equal width and height.
+The active Omarchy theme provides the border, foreground, background, muted,
+and instruction colors from:
 
 ```text
 ~/.local/state/omarchy/current/theme/colors.toml
 ```
 
-### Completion and Help
+### Narration
 
-The first detector listens to Hyprland's native `openlayer` event and matches
-the configured layer namespace. This verifies the desktop outcome without
-capturing arbitrary keyboard input.
+Narration begins with each activity and stops during transitions or when the
+app exits. MP3, Opus, Ogg, FLAC, and WAV work through mpv. Audio paths must be
+safe paths relative to the course file.
 
-While a step is waiting for its shortcut, the teaching surface receives
-keyboard focus but doesn't accept the events. Expected keycaps light up on
-press and return to normal on release, while Hyprland can still handle its
-global shortcut.
+The repository includes Ryan-voice MP3 narration for all bundled activities.
+To regenerate it with Edge TTS:
 
-Help actions are argument arrays, not shell strings. The app executes the
-semantic Omarchy command directly. This avoids privileged synthetic input,
-shell injection, and differences between keyboard layouts.
+```bash
+python -m pip install edge-tts
+npm run audio:generate
+```
 
-### Audio
+Generate only missing files or choose another voice:
 
-Audio starts when a step begins and stops when the step completes or the app
-closes. Opus is recommended for narration, and mpv also supports MP3, Ogg,
-FLAC, and WAV. Omit `audio` or set it to `null` for a silent step.
+```bash
+EDGE_TTS_BIN=/path/to/edge-tts \
+LEARN_OMARCHY_TTS_VOICE=en-GB-RyanNeural \
+node --experimental-strip-types tools/generate-course-audio.ts \
+  courses/omarchy-basics.json --missing
+```
+
+## Runtime diagnostics
+
+While the app is running, Quickshell IPC can report or drive its state:
+
+```bash
+qs --path "$PWD/app" ipc call learn status
+qs --path "$PWD/app" ipc call learn start 0
+qs --path "$PWD/app" ipc call learn activate
+```
+
+`start` uses a zero-based module index. `activate` performs the current
+activity's configured action and is intended for diagnostics.
+
+## HEXON character lab
+
+The standalone character lab previews the experimental HEXON sprite pipeline
+without changing the tutorial runtime:
+
+```bash
+./bin/hexon-lab
+```
+
+Use `1`, `2`, `3`, `4`, and `5` to switch between idle, talk, horizontal
+flight, vertical flight, and the fly-and-point teaching sequence. Press `D`
+to play every state in sequence, `M` to move, `S` to cycle through 0.5×, 1×,
+1.5×, and 2× scaling, `R` to toggle reduced motion, and `Escape` to close.
+The same controls are available as clearly labeled buttons.
+
+The generated concept art is under `assets/characters/hexon/concepts/`.
+Normalized runtime assets are under `assets/characters/hexon/sprites/`.
+Idle and talk use packed 192×192 frames. Flight uses a wider 256×192 frame
+that preserves the exhaust trail, and guided interactions add a dedicated
+224×192 pointing pose. Rebuild the assets after changing the source artwork:
+
+```bash
+npm run character:prepare
+```
+
+The preparation command requires ImageMagick during asset development.
 
 ## Project layout
 
 | Path | Purpose |
 |---|---|
 | `app/shell.qml` | Native layer-shell UI and course runtime |
-| `courses/` | Editable course metadata and packaged narration |
-| `src/course.ts` | Metadata types and runtime validator |
-| `tools/validate-course.ts` | Validation CLI |
-| `tests/` | Validator tests |
+| `assets/characters/` | Character concepts and prepared sprite strips |
+| `courses/` | Editable curriculum and packaged narration |
+| `experiments/hexon-lab/` | Standalone sprite and movement test surface |
+| `src/course.ts` | Schema-v2 types and runtime validator |
+| `tools/validate-course.ts` | Course validation CLI |
+| `tools/generate-course-audio.ts` | Bulk Edge TTS narration generator |
+| `tests/` | Metadata and safety tests |
 | `bin/` | Repository and installed launchers |
 | `packaging/` | Arch Linux package scaffolding |
-| `.plans/plan.md` | Researched architecture and phased plan |
+| `.plans/plan.md` | Architecture, implementation phases, and acceptance criteria |
 
-## Current boundary
-
-Version 0.1 supports ordered lessons, rectangle/circle highlights, narration,
-Help actions, and Hyprland layer-open completion. Future lessons can add
-detectors for focused applications, workspaces, and other shell state without
-changing the metadata safety model.
+Learn Omarchy reads Omarchy's theme and desktop state but doesn't modify files
+under `/usr/share/omarchy` or the user's Hyprland configuration.

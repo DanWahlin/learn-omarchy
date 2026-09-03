@@ -1,195 +1,150 @@
-# Learn Omarchy implementation plan
+# Learn Omarchy product plan
 
 ## Goal
 
-Build a packageable, metadata-driven, interactive Omarchy course runner that:
+Ship a packageable, metadata-driven Omarchy learning app that lets someone
+choose a topic, practice real desktop actions, hear each instruction, receive
+immediate key feedback, and see the resulting interface highlighted.
 
-- teaches real desktop actions;
-- renders precise, theme-aware screen highlights and key hints;
-- plays optional narrated audio;
-- detects whether the learner reached the intended desktop state;
-- offers a visible Help action that performs the semantic action safely; and
-- keeps lesson content in editable JSON.
+## Product principles
 
-## Researched technical direction
+- **Hands on:** every activity opens or changes a real Omarchy surface.
+- **Short modules:** topics are independently selectable and take a few
+  minutes.
+- **Safe assistance:** Help runs semantic argument-vector commands, never
+  privileged synthetic keyboard input.
+- **Outcome based:** completion verifies a compositor surface or a successful
+  action rather than logging arbitrary input.
+- **Theme native:** colors come from the active Omarchy theme.
+- **Content driven:** lessons, narration, actions, and geometry live in JSON.
+- **Non-invasive:** the app doesn't edit Omarchy or Hyprland configuration.
 
-### UI: standalone Quickshell/QML application
+## Researched architecture
 
-Omarchy 4 uses Quickshell 0.3.1 for its bar, menus, notifications, and overlays.
-Quickshell is therefore the smallest native dependency and the most accurate
-Wayland integration:
+### Native UI: Quickshell/QML
 
-- `PanelWindow` plus `WlrLayershell.layer: WlrLayer.Overlay` renders above
-  normal windows without screen capture or X11 compatibility layers.
-- Logical QML coordinates automatically account for each monitor's Wayland
-  scale, so a configured 10 px border stays visually consistent on HiDPI.
-- `mask: Region` keeps the full-screen teaching surface click-through except
-  for the Help button.
-- One overlay is created per `Quickshell.screens` entry for multi-monitor
-  correctness.
-- `Hyprland.rawEvent` reads compositor events directly over Hyprland IPC. It
-  avoids polling and avoids intercepting or logging arbitrary keyboard input.
+Omarchy 4 already uses Quickshell for its bar, menus, notifications, and
+overlays. A standalone Quickshell application is therefore the smallest native
+Wayland solution.
 
-### Course engine and tooling: TypeScript
+- `PanelWindow` with the overlay layer renders highlights above normal windows.
+- Wayland logical coordinates account for monitor scale automatically.
+- A shaped input region leaves non-interactive areas click-through.
+- Hyprland events expose layer lifecycle without screen scraping.
+- Conditional exclusive keyboard focus enables live expected-key feedback.
 
-TypeScript will own metadata types, validation, and command-line tooling.
-QML remains responsible for the native surface because a TypeScript GUI stack
-would add Chromium/Electron or a custom Wayland binding without improving the
-result.
+The visual surface is remapped only when a result needs to be highlighted
+above a newly opened shell layer. Avoiding unnecessary remaps preserves
+keyboard focus.
 
-The runtime UI reads the same JSON directly, so authors don't need a build
-step after editing a course. The TypeScript validator catches authoring errors
-before packaging or launching.
+### Metadata and tooling: TypeScript
 
-### Completion detection
+TypeScript owns schema-v2 types, runtime validation, validation tooling, and
+tests. QML reads the validated JSON directly, so course authors don't need a
+build step.
 
-Lessons should verify outcomes rather than spy on keystrokes. For the first
-lesson:
+Schema v2 models:
 
-1. Show `SUPER + ALT + SPACE`, the binding on current Omarchy 4 systems.
-2. Listen for Hyprland's `openlayer` event.
-3. Complete the action when the `omarchy-menu` layer appears.
-4. Remap the passive teaching overlay so the configured highlight appears
-   above the newly opened menu.
+- course identity and description;
+- topic cards with icon, description, duration, and ordered activities;
+- shortcut-driven or button-driven activities;
+- optional details and narration;
+- semantic Help and cleanup commands;
+- `hyprland-layer-open` and `action-success` completion;
+- anchored rectangle or circle highlights;
+- completion messaging.
 
-Future detectors can cover toplevel windows, active workspaces, focused apps,
-and shell IPC states while preserving this outcome-based model.
+### Safe actions
 
-### Help action
+Wayland intentionally prevents ordinary applications from synthesizing global
+input. The course uses the same semantic Omarchy commands as the desktop's
+bindings. Commands are argv arrays and bypass shell parsing. Cleanup commands
+close opened surfaces or restore temporary state before progression.
 
-Wayland intentionally prevents arbitrary applications from synthesizing global
-key presses. Although tools such as `ydotool` can bypass that boundary, they
-require a privileged daemon and create unnecessary security risk.
+Hyprland 0.56 moved dispatch configuration to Lua. Workspace actions therefore
+use the supported `hyprctl eval` API with `hl.dsp.focus`.
 
-Each lesson will instead configure an argument-vector action such as:
+### Narration
 
-```json
-["omarchy", "menu", "summon", "apps"]
-```
+mpv provides format-independent local playback. The bundled curriculum has one
+Ryan-voice MP3 per activity. Audio can be muted, unmuted, or replayed from the
+teaching card. Course authors can bulk-generate missing narration with Edge
+TTS.
 
-That performs the exact semantic result of the taught shortcut without shell
-evaluation, quoting bugs, or elevated input injection.
+### Progress
 
-### Audio
+Completed module IDs are persisted under the XDG state directory. The topic
+picker displays completion without coupling progress to course ordering.
 
-An optional relative audio path is played through `mpv`, which is already
-available on the target Omarchy system. `--no-video` and a dedicated player
-process provide MP3, Opus, Ogg, FLAC, and WAV support. Missing audio is a
-visible course error rather than a silent failure.
+## Curriculum
 
-### Theme integration
+The initial release includes seven modules and 21 activities:
 
-The app watches:
+1. **Menus and apps:** root menu, Apps, searchable keybindings.
+2. **Everyday apps:** terminal, browser, file manager.
+3. **Workspaces:** next workspace and return to the original workspace.
+4. **Menu bar:** audio, network, power, and calendar panels.
+5. **Personalization:** background switcher, theme menu, theme cycling.
+6. **Capture and share:** capture, sharing, and clipboard history.
+7. **Setup and install:** Setup, Install, and Update menu routes.
 
-```text
-~/.local/state/omarchy/current/theme/colors.toml
-~/.local/state/omarchy/current/theme/shell.toml
-```
+Bindings and routes are based on the installed Omarchy 4.0.2 Lua bindings and
+menu definitions. Destructive, privileged, or configuration-changing actions
+aren't performed automatically.
 
-It uses `accent`, `foreground`, `background`, and `muted` from the active
-theme, with safe fallbacks. Theme files are read-only; the learning app never
-edits packaged Omarchy files or the user's Hyprland configuration.
+## Delivery phases
 
-## Metadata v1
+### Phase 1: foundation — complete
 
-Each course contains ordered lessons. Each lesson contains ordered steps with:
+- TypeScript schema and field-specific validation.
+- Quickshell layer-shell app.
+- Theme loading and safe command execution.
+- First interactive Apps activity.
+- Repository and Arch packaging scaffolding.
 
-- stable IDs and instructional text;
-- visual key tokens;
-- optional relative narration audio;
-- a detector (`hyprland-layer-open` in the first slice);
-- an optional argument-vector Help action;
-- a highlight shape (`rectangle` or `circle`);
-- logical dimensions, border width, and an anchor/offset;
-- display timing and an optional completion message.
+### Phase 2: teaching interaction — complete
 
-No metadata field is treated as a shell command string.
+- Large opaque keycaps.
+- Live press and release feedback.
+- Automatic semantic action after the expected combination is held.
+- Help, mute/unmute, and replay controls.
+- Result highlights and timed progression.
 
-## Implementation phases
+### Phase 3: course platform — complete
 
-### Phase 1: foundation and metadata
+- Two-column topic picker.
+- Keyboard and pointer navigation.
+- Module descriptions, estimates, progress, skip, restart, and Topics.
+- Button-driven activities.
+- Persistent module completion.
+- Runtime IPC diagnostics.
 
-- Create the dependency-light TypeScript project.
-- Define strict metadata types and runtime validation.
-- Add a sample "Open Apps" course.
-- Add validator tests for valid and unsafe/invalid courses.
+### Phase 4: full curriculum — complete
 
-**Checkpoint:** `npm test` passes and the sample course validates.
+- Seven researched modules and 21 activities.
+- Outcome detection and cleanup for Omarchy menus and panels.
+- Workspace round trip.
+- Narration for every activity.
 
-### Phase 2: native overlay
+### Phase 5: shipping quality — complete
 
-- Build a standalone Quickshell entry point.
-- Load and watch course JSON.
-- Render the instruction card, themed keycaps, and top-right Help button.
-- Render rectangle/circle highlights from logical metadata coordinates.
-- Keep all non-interactive overlay areas click-through.
-- Replicate the surface across monitors and select the focused monitor.
-
-**Checkpoint:** the QML process starts cleanly and displays the first prompt.
-
-### Phase 3: interaction, audio, and progression
-
-- Connect to `Hyprland.rawEvent`.
-- Match configured layer-open outcomes.
-- Invoke Help with a safe argv array.
-- Play/stop narration with `mpv`.
-- Transition from prompt to success highlight, then advance or finish.
-- Surface metadata, audio, and action failures in the UI.
-
-**Checkpoint:** both the real shortcut and Help button open Apps, trigger the
-highlight, and complete the step.
-
-### Phase 4: packaging and author experience
-
-- Add `learn-omarchy` and validation launchers.
-- Add install/uninstall targets that use user-owned XDG locations.
-- Add a desktop entry and Arch `PKGBUILD` as package scaffolding.
-- Document metadata authoring, geometry, audio, and extension points.
-
-**Checkpoint:** the app can run from the repository and from the staged package
-layout without modifying Omarchy system files.
-
-### Phase 5: verification
-
-- Run TypeScript checks and metadata tests.
-- Validate the bundled course.
-- Run a short Quickshell startup smoke test and inspect its logs.
-- Exercise live Hyprland layer detection and Help behavior.
-
-## First-slice boundaries
-
-Included now:
-
-- rectangle and circle highlights;
-- exact logical size, offset, and border width;
-- active-theme colors;
-- visual key combinations;
-- optional audio-file playback;
-- top-right Help action;
-- Hyprland layer-open completion;
-- ordered course progression;
-- TypeScript metadata validation;
-- user-local and Arch package scaffolding.
-
-Deferred until a concrete lesson needs it:
-
-- recorded narration content;
-- branching lessons and quizzes;
-- persistence/resume;
-- translations;
-- detectors for arbitrary application internals;
-- an Omarchy bar plugin (the top-right in-course Help button is less invasive
-  and works even when the bar is hidden).
+- Schema-v2 documentation and authoring examples.
+- Curriculum breadth and command-safety tests.
+- Audio existence and media validation.
+- Staged installation and installed-layout smoke tests.
+- Representative end-to-end compositor checks.
 
 ## Acceptance criteria
 
-1. Editing `courses/omarchy-basics.json` changes lesson content without a
-   rebuild.
-2. Invalid metadata fails with a field-specific message.
-3. The prompt shows theme-colored `SUPER`, `+`, `ALT`, `+`, `SPACE` keycaps.
-4. The overlay doesn't block normal desktop input outside the Help button.
-5. Opening Apps emits a match, displays the configured 10 px highlight, and
-   progresses the course.
-6. Help reaches the same outcome without synthetic input or privilege.
-7. Optional audio can be replayed and is stopped during transitions/exit.
-8. No file under `/usr/share/omarchy` or `~/.config/hypr` is modified.
+1. The topic picker exposes all seven modules and preserves completion.
+2. Every bundled activity is metadata-driven and validates before launch.
+3. Expected keycaps highlight individually and the full shortcut performs the
+   configured semantic action.
+4. Help reaches the same outcome without shell evaluation or synthetic input.
+5. Button activities are available for nested menu routes.
+6. Opened surfaces are detected, highlighted, and cleaned up before advancing.
+7. Workspace teaching returns the learner to the starting workspace.
+8. All 21 activities have valid playable narration.
+9. Highlights use active-theme colors, logical coordinates, and screen bounds.
+10. The source and installed launchers work without modifying Omarchy system
+    files or Hyprland configuration.

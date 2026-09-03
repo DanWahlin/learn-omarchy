@@ -1,22 +1,27 @@
 {
-  "schemaVersion": 1,
-  "id": "omarchy-basics",
+  "schemaVersion": 2,
+  "id": "omarchy-essentials",
   "title": "Learn Omarchy",
-  "description": "Learn essential Omarchy actions directly on your desktop.",
+  "description": "Choose a short, hands-on module. Learn the shortcuts and surfaces that make Omarchy fast.",
   "lessons": [
     {
-      "id": "finding-apps",
-      "title": "Finding your apps",
+      "id": "menus-and-apps",
+      "title": "Menus and apps",
+      "description": "Find commands, installed apps, and the built-in shortcut guide.",
+      "icon": "01",
+      "estimatedMinutes": 3,
       "steps": [
         {
-          "id": "open-apps",
-          "instruction": "Let's open the Apps menu.",
-          "keys": ["SUPER", "+", "ALT", "+", "SPACE"],
-          "audio": null,
+          "id": "open-root-menu",
+          "instruction": "Open the Omarchy menu.",
+          "detail": "This is the starting point for setup, styling, installation, updates, and system actions.",
+          "keys": ["SUPER", "+", "SPACE"],
+          "audio": "audio/open-root-menu.mp3",
           "help": {
-            "label": "Open Apps for me",
-            "command": ["omarchy", "menu", "summon", "apps"]
+            "label": "Open the menu for me",
+            "command": ["omarchy", "menu", "summon", "root"]
           },
+          "cleanup": ["omarchy", "menu", "close"],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -30,9 +35,622 @@
             "height": 880,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2400
+            "durationMs": 2200
           },
-          "completionMessage": "That's the Apps menu. Start typing to find any installed app."
+          "completionMessage": "This is the Omarchy menu. Type to search or use the arrow keys to explore."
+        },
+        {
+          "id": "open-apps",
+          "instruction": "Now open the Apps menu.",
+          "detail": "Start typing an app name as soon as the menu opens.",
+          "keys": ["SUPER", "+", "ALT", "+", "SPACE"],
+          "audio": "audio/open-apps.mp3",
+          "help": {
+            "label": "Open Apps for me",
+            "command": ["omarchy", "menu", "summon", "apps"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 340,
+            "height": 880,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2200
+          },
+          "completionMessage": "Apps searches everything installed on the system and launches the selected result."
+        },
+        {
+          "id": "open-keybindings",
+          "instruction": "Open the searchable keybindings guide.",
+          "detail": "Use this any time you forget a shortcut.",
+          "keys": ["SUPER", "+", "K"],
+          "audio": "audio/open-keybindings.mp3",
+          "help": {
+            "label": "Show keybindings for me",
+            "command": ["omarchy", "menu", "keybindings"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 620,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2200
+          },
+          "completionMessage": "Search by action or shortcut. This guide reflects the bindings on your machine."
+        }
+      ]
+    },
+    {
+      "id": "everyday-apps",
+      "title": "Everyday apps",
+      "description": "Launch the terminal, browser, and file manager without reaching for a menu.",
+      "icon": "02",
+      "estimatedMinutes": 3,
+      "steps": [
+        {
+          "id": "launch-terminal",
+          "instruction": "Launch your default terminal.",
+          "detail": "Omarchy opens whichever terminal you selected as your default.",
+          "keys": ["SUPER", "+", "RETURN"],
+          "audio": "audio/launch-terminal.mp3",
+          "help": {
+            "label": "Launch the terminal for me",
+            "command": ["omarchy", "launch", "terminal"]
+          },
+          "completion": {
+            "type": "action-success",
+            "delayMs": 700
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Your terminal is one shortcut away from anywhere in Omarchy."
+        },
+        {
+          "id": "launch-browser",
+          "instruction": "Launch your default browser.",
+          "detail": "The shortcut follows your Omarchy default-browser setting.",
+          "keys": ["SUPER", "+", "SHIFT", "+", "RETURN"],
+          "audio": "audio/launch-browser.mp3",
+          "help": {
+            "label": "Launch the browser for me",
+            "command": ["omarchy", "launch", "browser"]
+          },
+          "completion": {
+            "type": "action-success",
+            "delayMs": 900
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1500,
+            "height": 900,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Omarchy can change the default browser later without changing the shortcut."
+        },
+        {
+          "id": "launch-files",
+          "instruction": "Launch the Files app.",
+          "detail": "This opens Nautilus, Omarchy's graphical file manager.",
+          "keys": ["SUPER", "+", "SHIFT", "+", "F"],
+          "audio": "audio/launch-files.mp3",
+          "help": {
+            "label": "Launch Files for me",
+            "command": ["omarchy", "launch", "nautilus"]
+          },
+          "completion": {
+            "type": "action-success",
+            "delayMs": 800
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1200,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Files gives you quick access to folders, drives, recent files, and network locations."
+        }
+      ]
+    },
+    {
+      "id": "workspaces",
+      "title": "Workspaces",
+      "description": "Move between virtual desktops while keeping your hands on the keyboard.",
+      "icon": "03",
+      "estimatedMinutes": 2,
+      "steps": [
+        {
+          "id": "next-workspace",
+          "instruction": "Move to the next workspace.",
+          "detail": "Workspaces keep projects and activities separated without minimizing windows.",
+          "keys": ["SUPER", "+", "TAB"],
+          "audio": "audio/next-workspace.mp3",
+          "help": {
+            "label": "Move forward for me",
+            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.focus({ workspace = \"e+1\" }))"]
+          },
+          "completion": {
+            "type": "action-success",
+            "delayMs": 300
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 4,
+            "width": 420,
+            "height": 54,
+            "borderWidth": 8,
+            "radius": 10,
+            "durationMs": 1700
+          },
+          "completionMessage": "The workspace indicator in the bar follows you to the next virtual desktop."
+        },
+        {
+          "id": "previous-workspace",
+          "instruction": "Return to the previous workspace.",
+          "detail": "Adding Shift reverses the direction of the workspace shortcut.",
+          "keys": ["SUPER", "+", "SHIFT", "+", "TAB"],
+          "audio": "audio/previous-workspace.mp3",
+          "help": {
+            "label": "Move back for me",
+            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.focus({ workspace = \"e-1\" }))"]
+          },
+          "completion": {
+            "type": "action-success",
+            "delayMs": 300
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 4,
+            "width": 420,
+            "height": 54,
+            "borderWidth": 8,
+            "radius": 10,
+            "durationMs": 1700
+          },
+          "completionMessage": "You're back where you started. Number shortcuts such as Super plus 1 jump directly."
+        }
+      ]
+    },
+    {
+      "id": "bar-panels",
+      "title": "Menu bar",
+      "description": "Open the most useful quick panels for audio, networking, power, and time.",
+      "icon": "04",
+      "estimatedMinutes": 4,
+      "steps": [
+        {
+          "id": "audio-panel",
+          "instruction": "Open the Audio panel.",
+          "detail": "Adjust volume, choose an output, and control audio per application.",
+          "keys": ["SUPER", "+", "CTRL", "+", "A"],
+          "audio": "audio/audio-panel.mp3",
+          "help": {
+            "label": "Open Audio for me",
+            "command": ["omarchy-shell", "shell", "summon", "omarchy.audio"]
+          },
+          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.audio"],
+          "completion": {
+            "type": "action-success",
+            "delayMs": 350
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-right",
+            "x": -18,
+            "y": 34,
+            "width": 520,
+            "height": 540,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1900
+          },
+          "completionMessage": "The Audio panel includes device selection, master volume, and an application mixer."
+        },
+        {
+          "id": "network-panel",
+          "instruction": "Open the Network panel.",
+          "detail": "Connect to Wi-Fi and review network status without opening Settings.",
+          "keys": ["SUPER", "+", "CTRL", "+", "W"],
+          "audio": "audio/network-panel.mp3",
+          "help": {
+            "label": "Open Network for me",
+            "command": ["omarchy-shell", "shell", "summon", "omarchy.network"]
+          },
+          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.network"],
+          "completion": {
+            "type": "action-success",
+            "delayMs": 350
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-right",
+            "x": -18,
+            "y": 34,
+            "width": 520,
+            "height": 600,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1900
+          },
+          "completionMessage": "Network shows nearby Wi-Fi, connection strength, and DNS choices."
+        },
+        {
+          "id": "power-panel",
+          "instruction": "Open the Power panel.",
+          "detail": "See battery health, charging details, and power-profile controls.",
+          "keys": ["SUPER", "+", "CTRL", "+", "P"],
+          "audio": "audio/power-panel.mp3",
+          "help": {
+            "label": "Open Power for me",
+            "command": ["omarchy-shell", "shell", "summon", "omarchy.power"]
+          },
+          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.power"],
+          "completion": {
+            "type": "action-success",
+            "delayMs": 350
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-right",
+            "x": -18,
+            "y": 34,
+            "width": 520,
+            "height": 580,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1900
+          },
+          "completionMessage": "Power combines battery information, performance profiles, and useful system details."
+        },
+        {
+          "id": "calendar-panel",
+          "instruction": "Open the Calendar panel.",
+          "detail": "The clock panel includes a month view and timezone tools.",
+          "keys": ["SUPER", "+", "CTRL", "+", "ALT", "+", "D"],
+          "audio": "audio/calendar-panel.mp3",
+          "help": {
+            "label": "Open Calendar for me",
+            "command": ["omarchy-shell", "shell", "summon", "omarchy.clock"]
+          },
+          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.clock"],
+          "completion": {
+            "type": "action-success",
+            "delayMs": 350
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top",
+            "x": 0,
+            "y": 34,
+            "width": 520,
+            "height": 500,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1900
+          },
+          "completionMessage": "Clicking the bar clock opens the same panel; right-click cycles its display format."
+        }
+      ]
+    },
+    {
+      "id": "personalization",
+      "title": "Personalization",
+      "description": "Discover backgrounds, themes, and fonts without editing configuration files.",
+      "icon": "05",
+      "estimatedMinutes": 3,
+      "steps": [
+        {
+          "id": "background-menu",
+          "instruction": "Open the Background switcher.",
+          "detail": "Preview available wallpapers before selecting one.",
+          "keys": ["SUPER", "+", "CTRL", "+", "SPACE"],
+          "audio": "audio/background-menu.mp3",
+          "help": {
+            "label": "Show backgrounds for me",
+            "command": ["omarchy", "menu", "summon", "background"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 620,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2000
+          },
+          "completionMessage": "Backgrounds are grouped with your current theme and can be extended with your own images."
+        },
+        {
+          "id": "theme-menu",
+          "instruction": "Open the Theme menu.",
+          "detail": "A theme coordinates colors across the desktop, terminal, editor, and shell.",
+          "keys": ["SUPER", "+", "SHIFT", "+", "CTRL", "+", "SPACE"],
+          "audio": "audio/theme-menu.mp3",
+          "help": {
+            "label": "Show themes for me",
+            "command": ["omarchy", "menu", "summon", "theme"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 620,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2000
+          },
+          "completionMessage": "Selecting a theme updates supported applications together. Escape leaves your theme unchanged."
+        },
+        {
+          "id": "font-menu",
+          "instruction": "Explore Omarchy's font choices.",
+          "detail": "This guided action opens the font section without changing your current font.",
+          "keys": [],
+          "actionLabel": "Open font choices",
+          "audio": "audio/font-menu.mp3",
+          "help": {
+            "label": "Open font choices",
+            "command": ["omarchy", "menu", "summon", "style.font"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 420,
+            "height": 720,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2000
+          },
+          "completionMessage": "Font choices update the Omarchy typography system. Escape closes the menu without changing anything."
+        }
+      ]
+    },
+    {
+      "id": "capture-and-share",
+      "title": "Capture and share",
+      "description": "Reach screenshots, screen recording, sharing, and clipboard history quickly.",
+      "icon": "06",
+      "estimatedMinutes": 3,
+      "steps": [
+        {
+          "id": "capture-menu",
+          "instruction": "Open the Capture menu.",
+          "detail": "Choose screenshots, recordings, OCR text extraction, QR scanning, or color picking.",
+          "keys": ["SUPER", "+", "CTRL", "+", "C"],
+          "audio": "audio/capture-menu.mp3",
+          "help": {
+            "label": "Open Capture for me",
+            "command": ["omarchy", "menu", "summon", "capture"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 400,
+            "height": 740,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2000
+          },
+          "completionMessage": "Print Screen starts a screenshot directly; this menu exposes the complete capture toolkit."
+        },
+        {
+          "id": "share-menu",
+          "instruction": "Open the Share menu.",
+          "detail": "Send clipboard text, a file, or a folder to another device with LocalSend.",
+          "keys": ["SUPER", "+", "CTRL", "+", "S"],
+          "audio": "audio/share-menu.mp3",
+          "help": {
+            "label": "Open Share for me",
+            "command": ["omarchy", "menu", "summon", "share"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 400,
+            "height": 520,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2000
+          },
+          "completionMessage": "Share uses LocalSend for private transfers across your local network."
+        },
+        {
+          "id": "clipboard-history",
+          "instruction": "Open your clipboard history.",
+          "detail": "Search and reuse items you've copied recently.",
+          "keys": ["SUPER", "+", "CTRL", "+", "V"],
+          "audio": "audio/clipboard-history.mp3",
+          "help": {
+            "label": "Open clipboard history for me",
+            "command": ["omarchy-shell", "shell", "summon", "omarchy.clipboard"]
+          },
+          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.clipboard"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-clipboard"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 760,
+            "height": 780,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2000
+          },
+          "completionMessage": "Clipboard history is searchable. Select an item to copy it back to the active clipboard."
+        }
+      ]
+    },
+    {
+      "id": "setup-and-install",
+      "title": "Setup and install",
+      "description": "Know where to configure defaults, add software, update, and find safe system actions.",
+      "icon": "07",
+      "estimatedMinutes": 3,
+      "steps": [
+        {
+          "id": "setup-menu",
+          "instruction": "Explore Omarchy's Setup section.",
+          "detail": "Setup covers monitors, input, networking, defaults, plugins, security, and configuration.",
+          "keys": [],
+          "actionLabel": "Open Setup",
+          "audio": "audio/setup-menu.mp3",
+          "help": {
+            "label": "Open Setup",
+            "command": ["omarchy", "menu", "summon", "setup"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 420,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2100
+          },
+          "completionMessage": "Setup centralizes defaults and configuration. Security changes may request authentication."
+        },
+        {
+          "id": "install-menu",
+          "instruction": "Explore Omarchy's curated installers.",
+          "detail": "Install offers development tools, editors, databases, creative apps, games, and services.",
+          "keys": [],
+          "actionLabel": "Open Install",
+          "audio": "audio/install-menu.mp3",
+          "help": {
+            "label": "Open Install",
+            "command": ["omarchy", "menu", "summon", "install"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 440,
+            "height": 800,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2100
+          },
+          "completionMessage": "Installers may download packages or request authentication. Review the selected tool before continuing."
+        },
+        {
+          "id": "update-menu",
+          "instruction": "Find updates and system maintenance.",
+          "detail": "The Update section includes Omarchy updates, refresh actions, and migrations.",
+          "keys": [],
+          "actionLabel": "Open Update",
+          "audio": "audio/update-menu.mp3",
+          "help": {
+            "label": "Open Update",
+            "command": ["omarchy", "menu", "summon", "update"]
+          },
+          "cleanup": ["omarchy", "menu", "close"],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 420,
+            "height": 620,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2100
+          },
+          "completionMessage": "Use Omarchy Update for normal upgrades. Refresh resets specific configuration and creates a backup first."
         }
       ]
     }

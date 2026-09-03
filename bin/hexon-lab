@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+source_root="$(cd -- "$script_dir/.." && pwd)"
+if [[ -f "$source_root/experiments/hexon-lab/shell.qml" ]]; then
+  app_root="$source_root"
+else
+  app_root="$(cd -- "$script_dir/../share/learn-omarchy" && pwd)"
+fi
+
+command -v qs >/dev/null 2>&1 || {
+  echo "hexon-lab: required command not found: qs" >&2
+  exit 1
+}
+
+export HEXON_ASSET_ROOT="$app_root/assets/characters/hexon"
+exec qs --no-duplicate --path "$app_root/experiments/hexon-lab"

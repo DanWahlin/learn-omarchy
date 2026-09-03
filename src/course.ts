@@ -22,21 +22,31 @@ export interface Highlight {
   durationMs?: number;
 }
 
-export interface LayerOpenCompletion {
-  type: "hyprland-layer-open";
-  namespace: string;
+export type Completion =
+  | {
+      type: "hyprland-layer-open";
+      namespace: string;
+    }
+  | {
+      type: "action-success";
+      delayMs?: number;
+    };
+
+export interface CommandAction {
+  label: string;
+  command: string[];
 }
 
 export interface CourseStep {
   id: string;
   instruction: string;
+  detail?: string;
   keys: string[];
+  actionLabel?: string;
   audio?: string | null;
-  help?: {
-    label: string;
-    command: string[];
-  };
-  completion: LayerOpenCompletion;
+  help: CommandAction;
+  cleanup?: string[];
+  completion: Completion;
   highlight: Highlight;
   completionMessage?: string;
 }
@@ -44,14 +54,17 @@ export interface CourseStep {
 export interface CourseLesson {
   id: string;
   title: string;
+  description: string;
+  icon: string;
+  estimatedMinutes: number;
   steps: CourseStep[];
 }
 
 export interface Course {
-  schemaVersion: 1;
+  schemaVersion: 2;
   id: string;
   title: string;
-  description?: string;
+  description: string;
   lessons: CourseLesson[];
 }
 
@@ -66,6 +79,19 @@ const anchors = new Set<HighlightAnchor>([
   "bottom",
   "bottom-right",
 ]);
+
+const namedKeyLabels = new Set([
+  "SUPER",
+  "ALT",
+  "CTRL",
+  "SHIFT",
+  "SPACE",
+  "RETURN",
+  "TAB",
+]);
+
+const isSupportedKeyLabel = (value: string): boolean =>
+  value === "+" || namedKeyLabels.has(value) || /^[A-Z0-9]$/.test(value);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -85,11 +111,24 @@ const addPositiveNumberError = (
   value: unknown,
   path: string,
 ): value is number => {
-  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
-    return true;
-  }
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) return true;
   errors.push(`${path} must be a positive number`);
   return false;
+};
+
+const isCommand = (value: unknown): value is string[] =>
+  Array.isArray(value) &&
+  value.length > 0 &&
+  value.every((part) => typeof part === "string" && part.length > 0);
+
+const validateCommand = (
+  errors: string[],
+  value: unknown,
+  path: string,
+): void => {
+  if (!isCommand(value)) {
+    errors.push(`${path} must be a non-empty array of non-empty strings`);
+  }
 };
 
 const validateRelativePath = (
@@ -156,30 +195,30 @@ const validateCompletion = (
     errors.push(`${path} must be an object`);
     return;
   }
-  if (value.type !== "hyprland-layer-open") {
-    errors.push(`${path}.type must be "hyprland-layer-open"`);
+  if (value.type === "hyprland-layer-open") {
+    addStringError(errors, value.namespace, `${path}.namespace`);
+    return;
   }
-  addStringError(errors, value.namespace, `${path}.namespace`);
+  if (value.type === "action-success") {
+    if (value.delayMs !== undefined) {
+      addPositiveNumberError(errors, value.delayMs, `${path}.delayMs`);
+    }
+    return;
+  }
+  errors.push(`${path}.type must be "hyprland-layer-open" or "action-success"`);
 };
 
-const validateHelp = (
+const validateAction = (
   errors: string[],
   value: unknown,
   path: string,
 ): void => {
-  if (value === undefined) return;
   if (!isRecord(value)) {
     errors.push(`${path} must be an object`);
     return;
   }
   addStringError(errors, value.label, `${path}.label`);
-  if (
-    !Array.isArray(value.command) ||
-    value.command.length === 0 ||
-    !value.command.every((part) => typeof part === "string" && part.length > 0)
-  ) {
-    errors.push(`${path}.command must be a non-empty array of non-empty strings`);
-  }
+  validateCommand(errors, value.command, `${path}.command`);
 };
 
 const validateStep = (
@@ -198,15 +237,27 @@ const validateStep = (
     seenIds.add(value.id);
   }
   addStringError(errors, value.instruction, `${path}.instruction`);
-  if (
-    !Array.isArray(value.keys) ||
-    value.keys.length === 0 ||
-    !value.keys.every((key) => typeof key === "string" && key.trim().length > 0)
-  ) {
-    errors.push(`${path}.keys must be a non-empty array of key labels`);
+  if (value.detail !== undefined) addStringError(errors, value.detail, `${path}.detail`);
+  if (!Array.isArray(value.keys) || !value.keys.every((key) => typeof key === "string" && key.trim().length > 0)) {
+    errors.push(`${path}.keys must be an array of non-empty key labels`);
+  } else {
+    value.keys.forEach((key, keyIndex) => {
+      if (key !== key.toUpperCase()) {
+        errors.push(`${path}.keys[${keyIndex}] must use its canonical uppercase label`);
+      } else if (!isSupportedKeyLabel(key)) {
+        errors.push(`${path}.keys[${keyIndex}] "${key}" is not supported`);
+      }
+    });
+    if (value.keys.length === 0) {
+      addStringError(errors, value.actionLabel, `${path}.actionLabel`);
+    }
+  }
+  if (value.actionLabel !== undefined) {
+    addStringError(errors, value.actionLabel, `${path}.actionLabel`);
   }
   validateRelativePath(errors, value.audio, `${path}.audio`);
-  validateHelp(errors, value.help, `${path}.help`);
+  validateAction(errors, value.help, `${path}.help`);
+  if (value.cleanup !== undefined) validateCommand(errors, value.cleanup, `${path}.cleanup`);
   validateCompletion(errors, value.completion, `${path}.completion`);
   validateHighlight(errors, value.highlight, `${path}.highlight`);
   if (value.completionMessage !== undefined) {
@@ -218,12 +269,10 @@ export function validateCourse(value: unknown): string[] {
   const errors: string[] = [];
   if (!isRecord(value)) return ["course must be an object"];
 
-  if (value.schemaVersion !== 1) errors.push("course.schemaVersion must be 1");
+  if (value.schemaVersion !== 2) errors.push("course.schemaVersion must be 2");
   addStringError(errors, value.id, "course.id");
   addStringError(errors, value.title, "course.title");
-  if (value.description !== undefined) {
-    addStringError(errors, value.description, "course.description");
-  }
+  addStringError(errors, value.description, "course.description");
 
   if (!Array.isArray(value.lessons) || value.lessons.length === 0) {
     errors.push("course.lessons must be a non-empty array");
@@ -239,12 +288,13 @@ export function validateCourse(value: unknown): string[] {
       return;
     }
     if (addStringError(errors, lesson.id, `${path}.id`)) {
-      if (seenLessonIds.has(lesson.id)) {
-        errors.push(`${path}.id "${lesson.id}" is duplicated`);
-      }
+      if (seenLessonIds.has(lesson.id)) errors.push(`${path}.id "${lesson.id}" is duplicated`);
       seenLessonIds.add(lesson.id);
     }
     addStringError(errors, lesson.title, `${path}.title`);
+    addStringError(errors, lesson.description, `${path}.description`);
+    addStringError(errors, lesson.icon, `${path}.icon`);
+    addPositiveNumberError(errors, lesson.estimatedMinutes, `${path}.estimatedMinutes`);
     if (!Array.isArray(lesson.steps) || lesson.steps.length === 0) {
       errors.push(`${path}.steps must be a non-empty array`);
       return;
@@ -273,7 +323,5 @@ export function parseCourseJson(json: string): {
   }
 
   const errors = validateCourse(value);
-  return errors.length === 0
-    ? { course: value as Course, errors }
-    : { errors };
+  return errors.length === 0 ? { course: value as Course, errors } : { errors };
 }

@@ -43,6 +43,7 @@ done
 course="$(realpath -- "$course")"
 course_dir="$(dirname -- "$course")"
 node --experimental-strip-types "$app_root/tools/validate-course.ts" "$course"
+mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/learn-omarchy"
 
 export LEARN_OMARCHY_ROOT="$app_root"
 export LEARN_OMARCHY_COURSE="$course"

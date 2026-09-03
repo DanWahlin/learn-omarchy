@@ -7,6 +7,8 @@
     "node": ">=22.6"
   },
   "scripts": {
+    "audio:generate": "node --experimental-strip-types tools/generate-course-audio.ts courses/omarchy-basics.json",
+    "character:prepare": "tools/prepare-hexon-sprites.sh",
     "check": "node --experimental-strip-types tools/validate-course.ts courses/omarchy-basics.json",
     "test": "node --experimental-strip-types --test tests/*.test.ts"
   }
