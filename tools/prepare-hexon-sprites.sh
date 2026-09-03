@@ -110,4 +110,18 @@ magick "$point_source" \
   -define png:exclude-chunks=date,time \
   "$output_dir/hexon-point.png"
 
+# Upward point: lift the outstretched arm from the pointing pose, turn it to
+# point up, mirror it so it leans away from the head, lengthen it a little,
+# and reattach it at the shoulder. Used when HEXON stands beneath a target.
+magick "$output_dir/hexon-point.png" -crop 40x34+130+66 +repage "$work/point-arm.png"
+magick "$work/point-arm.png" -rotate -90 -flop -filter point -resize 100%x130% "$work/point-arm-up.png"
+magick "$output_dir/hexon-point.png" \
+  -alpha set \
+  \( -size "${point_frame_width}x${frame_size}" xc:none -fill white -draw "rectangle 131,62 200,104" \) \
+  -compose DstOut -composite \
+  "$work/point-arm-up.png" -geometry +121+36 -compose Over -composite \
+  -strip \
+  -define png:exclude-chunks=date,time \
+  "$output_dir/hexon-point-up.png"
+
 echo "Prepared HEXON sprite strips in $output_dir"

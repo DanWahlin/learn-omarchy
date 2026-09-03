@@ -18,6 +18,7 @@ export interface Highlight {
   width: number;
   height: number;
   borderWidth: number;
+  dynamic?: "workspaces";
   radius?: number;
   durationMs?: number;
 }
@@ -30,6 +31,17 @@ export type Completion =
   | {
       type: "action-success";
       delayMs?: number;
+    }
+  | {
+      type: "hyprland-workspace-change";
+    }
+  | {
+      type: "hyprland-window-activated";
+    }
+  | {
+      type: "narration-complete";
+      delayMs?: number;
+      durationMs?: number;
     };
 
 export interface CommandAction {
@@ -41,10 +53,11 @@ export interface CourseStep {
   id: string;
   instruction: string;
   detail?: string;
+  kind?: "tour";
   keys: string[];
   actionLabel?: string;
   audio?: string | null;
-  help: CommandAction;
+  help?: CommandAction;
   cleanup?: string[];
   completion: Completion;
   highlight: Highlight;
@@ -88,6 +101,7 @@ const namedKeyLabels = new Set([
   "SPACE",
   "RETURN",
   "TAB",
+  "ESCAPE",
 ]);
 
 const isSupportedKeyLabel = (value: string): boolean =>
@@ -167,6 +181,9 @@ const validateHighlight = (
   for (const key of ["width", "height", "borderWidth"] as const) {
     addPositiveNumberError(errors, value[key], `${path}.${key}`);
   }
+  if (value.dynamic !== undefined && value.dynamic !== "workspaces") {
+    errors.push(`${path}.dynamic must be "workspaces" when present`);
+  }
   if (
     value.shape === "circle" &&
     typeof value.width === "number" &&
@@ -205,7 +222,16 @@ const validateCompletion = (
     }
     return;
   }
-  errors.push(`${path}.type must be "hyprland-layer-open" or "action-success"`);
+  if (value.type === "hyprland-workspace-change") return;
+  if (value.type === "hyprland-window-activated") return;
+  if (value.type === "narration-complete") {
+    if (value.delayMs !== undefined) addPositiveNumberError(errors, value.delayMs, `${path}.delayMs`);
+    if (value.durationMs !== undefined) addPositiveNumberError(errors, value.durationMs, `${path}.durationMs`);
+    return;
+  }
+  errors.push(
+    `${path}.type must be "hyprland-layer-open", "hyprland-window-activated", "hyprland-workspace-change", "narration-complete", or "action-success"`,
+  );
 };
 
 const validateAction = (
@@ -238,6 +264,26 @@ const validateStep = (
   }
   addStringError(errors, value.instruction, `${path}.instruction`);
   if (value.detail !== undefined) addStringError(errors, value.detail, `${path}.detail`);
+  const isTour = value.kind === "tour";
+  if (value.kind !== undefined && !isTour) {
+    errors.push(`${path}.kind must be "tour" when present`);
+  }
+  if (isTour) {
+    if (!Array.isArray(value.keys) || value.keys.length !== 0) {
+      errors.push(`${path}.keys must be empty for tour steps`);
+    }
+    if (typeof value.audio !== "string") errors.push(`${path}.audio is required for tour steps`);
+    if (value.help !== undefined) errors.push(`${path}.help is not allowed for tour steps`);
+    if (value.actionLabel !== undefined) errors.push(`${path}.actionLabel is not allowed for tour steps`);
+    if (!isRecord(value.completion) || value.completion.type !== "narration-complete") {
+      errors.push(`${path}.completion.type must be "narration-complete" for tour steps`);
+    }
+    validateRelativePath(errors, value.audio, `${path}.audio`);
+    if (value.cleanup !== undefined) validateCommand(errors, value.cleanup, `${path}.cleanup`);
+    validateCompletion(errors, value.completion, `${path}.completion`);
+    validateHighlight(errors, value.highlight, `${path}.highlight`);
+    return;
+  }
   if (!Array.isArray(value.keys) || !value.keys.every((key) => typeof key === "string" && key.trim().length > 0)) {
     errors.push(`${path}.keys must be an array of non-empty key labels`);
   } else {
@@ -259,6 +305,9 @@ const validateStep = (
   validateAction(errors, value.help, `${path}.help`);
   if (value.cleanup !== undefined) validateCommand(errors, value.cleanup, `${path}.cleanup`);
   validateCompletion(errors, value.completion, `${path}.completion`);
+  if (isRecord(value.completion) && value.completion.type === "narration-complete") {
+    errors.push(`${path}.completion.type "narration-complete" is only valid for tour steps`);
+  }
   validateHighlight(errors, value.highlight, `${path}.highlight`);
   if (value.completionMessage !== undefined) {
     addStringError(errors, value.completionMessage, `${path}.completionMessage`);

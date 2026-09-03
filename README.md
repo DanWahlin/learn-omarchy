@@ -9,13 +9,14 @@ The bundled course contains 7 modules and 21 hands-on activities:
 
 | Module | What it covers |
 |---|---|
+| Omarchy tour | HEXON introduces the bar, then Super + Space opens the Omarchy menu |
 | Menus and apps | Omarchy, Apps, and keybindings menus |
 | Everyday apps | Terminal, browser, and file manager |
 | Workspaces | Moving forward and back between workspaces |
 | Menu bar | Audio, network, power, and calendar panels |
-| Personalization | Backgrounds, themes, and theme cycling |
+| Personalization | Backgrounds, themes, and the Toggle menu |
 | Capture and share | Capture, sharing, and clipboard history |
-| Setup and install | Setup, software installation, and updates |
+| Setup and system | Hardware menu, Display panel, and System menu |
 
 Progress is saved automatically, and any module can be repeated independently.
 
@@ -54,20 +55,51 @@ npm test
 
 ## Course controls
 
-- Select a module with the mouse or arrow keys and `Enter`.
+- Select a module with the mouse or arrow keys and `Enter`. Each card previews
+  its first shortcut.
 - Press the displayed shortcut. Each keycap lights up while its key is held.
-- For menu-driven activities, select the large action button.
+  Every bundled activity is driven by a real Omarchy hotkey; there are no
+  click-only steps.
 - Select **Help** to perform the current action for you.
 - Use the speaker control to mute or unmute narration.
+- The speaker and exit controls remain available above the module picker.
 - Use the play control beside the instruction to replay it.
 - Select **Skip** to move past an activity or **Topics** to return to the
   module picker.
 - Press `Escape` to return to Topics during a module.
 
-Learn Omarchy holds keyboard focus while teaching a shortcut so it can provide
-immediate key-by-key feedback. When the complete combination is held, it runs
+The visual overlay keeps keyboard focus while Learn Omarchy teaches a shortcut
+and remains continuously mapped during success animations. When the complete
+combination is held, it runs
 the configured semantic Omarchy action and verifies the result. It doesn't
 inject privileged synthetic input.
+
+Activity changes cross-fade the outgoing instruction and controls into the
+next success or teaching state. Workspace activities also verify that
+Hyprland's focused workspace actually changed before reporting success.
+
+HEXON coaches each activity alongside the existing keycap feedback. He flies
+into position when a step begins, talks with narration, reacts to correct and
+incorrect keys, celebrates completed shortcuts, and flies toward the controls
+before performing a requested Help action. He waits beside the keycaps during
+an activity, follows selected cards in the lesson picker, and travels to the
+configured target after a shortcut succeeds. For left-column lessons he stays
+beside the dialog; for right-column lessons he makes a short flight into the
+center gap. He always points right toward the selected card. Moving within one
+column uses a shorter vertical pointing-pose transition. Click HEXON for a
+reaction, or drag him to another position and release him to let gravity return
+him to the lower screen boundary.
+Completion guidance scales and positions HEXON from the available screen
+space, keeps him outside the target, and points at its vertical center. Travel
+uses eased movement with an upright pose and stronger boot thrust. Settled and
+pointing poses hover by a few pixels with smaller animated boot flames, and a
+brief leveling pause keeps coaching and pointing from snapping into place. At
+module completion, HEXON flies beside the summary panel before celebrating.
+Targets use a small pulsing reticle instead of attempting to
+outline an entire external window whose inner geometry isn't exposed by
+Wayland. Set
+`LEARN_OMARCHY_REDUCED_MOTION=1` before launching to keep the character
+feedback while disabling nonessential movement.
 
 ## Install
 
@@ -157,6 +189,21 @@ Two completion detectors are supported:
 
 - `hyprland-layer-open` waits for a matching Wayland layer namespace, such as
   `omarchy-menu` or `omarchy-clipboard`.
+- `narration-complete` is used by tour steps (`"kind": "tour"`). HEXON flies to
+  the step's highlight, shows the instruction as a caption beneath him, plays
+  the narration, and advances `delayMs` after it ends. With narration muted or
+  unavailable the step advances after `durationMs` instead. Enter continues a
+  tour step early. Tour stops draw a pulsing rectangle around the highlight;
+  a highlight with `"dynamic": "workspaces"` sizes itself from the number of
+  workspace pills the bar is showing.
+- `hyprland-window-activated` waits for an application window to open or gain
+  focus, which verifies global launch shortcuts even when Hyprland consumes the
+  final key. A newly opened window always counts. A focus-only change counts
+  only after the expected modifier keys were observed or a Help action ran, and
+  only for a window other than the one that was active when the step began.
+  The window's exact geometry is read from `hyprctl clients -j` in logical
+  coordinates, retried briefly while Hyprland finishes tiling, and refreshed
+  once before HEXON flies to it.
 - `action-success` waits for the configured command to exit successfully,
   then applies an optional `delayMs` before highlighting.
 
@@ -218,17 +265,24 @@ While the app is running, Quickshell IPC can report or drive its state:
 
 ```bash
 qs --path "$PWD/app" ipc call learn status
+qs --path "$PWD/app" ipc call learn select 1
 qs --path "$PWD/app" ipc call learn start 0
 qs --path "$PWD/app" ipc call learn activate
+qs --path "$PWD/app" ipc call learn react SUPER
+qs --path "$PWD/app" ipc call learn target
 ```
 
-`start` uses a zero-based module index. `activate` performs the current
-activity's configured action and is intended for diagnostics.
+`select` previews menu selection with a zero-based module index, and `start`
+opens that module. `activate` previews HEXON's Help sequence before performing
+the current activity's configured action. `react` previews a key reaction
+without injecting input, and `target` previews the post-completion flight
+without launching the external action. These methods are intended for
+diagnostics.
 
 ## HEXON character lab
 
-The standalone character lab previews the experimental HEXON sprite pipeline
-without changing the tutorial runtime:
+The standalone character lab previews HEXON's reusable animation assets and
+movement sequences independently from the tutorial:
 
 ```bash
 ./bin/hexon-lab
@@ -242,9 +296,10 @@ The same controls are available as clearly labeled buttons.
 
 The generated concept art is under `assets/characters/hexon/concepts/`.
 Normalized runtime assets are under `assets/characters/hexon/sprites/`.
-Idle and talk use packed 192×192 frames. Flight uses a wider 256×192 frame
-that preserves the exhaust trail, and guided interactions add a dedicated
-224×192 pointing pose. Rebuild the assets after changing the source artwork:
+Idle and talk use packed 192×192 frames. Showcase flight uses a wider 256×192
+frame, and guided interactions add a dedicated 224×192 pointing pose plus an
+upward-pointing variant derived from it for tour stops beneath the bar. Rebuild
+the assets after changing the source artwork:
 
 ```bash
 npm run character:prepare

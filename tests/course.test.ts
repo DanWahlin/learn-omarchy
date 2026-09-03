@@ -15,6 +15,65 @@ test("bundled course is valid and covers the core curriculum", async () => {
   assert.ok(
     (result.course?.lessons.reduce((total, lesson) => total + lesson.steps.length, 0) ?? 0) >= 18,
   );
+
+  const barPanels = result.course?.lessons.find((lesson) => lesson.id === "bar-panels");
+  assert.ok(barPanels);
+  assert.ok(
+    barPanels.steps.every(
+      (step) =>
+        step.completion.type === "hyprland-layer-open" &&
+        step.completion.namespace === "omarchy-keyboard-panel",
+    ),
+  );
+
+  const expectedShortcuts = new Map([
+    ["tour-omarchy-menu", "SUPER + SPACE"],
+    ["open-root-menu", "SUPER + SPACE"],
+    ["open-apps", "SUPER + ALT + SPACE"],
+    ["open-keybindings", "SUPER + K"],
+    ["launch-terminal", "SUPER + RETURN"],
+    ["launch-browser", "SUPER + SHIFT + RETURN"],
+    ["launch-files", "SUPER + SHIFT + F"],
+    ["next-workspace", "SUPER + TAB"],
+    ["previous-workspace", "SUPER + SHIFT + TAB"],
+    ["audio-panel", "SUPER + CTRL + A"],
+    ["network-panel", "SUPER + CTRL + W"],
+    ["power-panel", "SUPER + CTRL + P"],
+    ["calendar-panel", "SUPER + CTRL + ALT + D"],
+    ["background-menu", "SUPER + CTRL + SPACE"],
+    ["theme-menu", "SUPER + SHIFT + CTRL + SPACE"],
+    ["capture-menu", "SUPER + CTRL + C"],
+    ["share-menu", "SUPER + CTRL + S"],
+    ["clipboard-history", "SUPER + CTRL + V"],
+    ["toggle-menu", "SUPER + CTRL + O"],
+    ["hardware-menu", "SUPER + CTRL + H"],
+    ["display-panel", "SUPER + CTRL + D"],
+    ["system-menu", "SUPER + ESCAPE"],
+  ]);
+  const allSteps = result.course?.lessons.flatMap((lesson) => lesson.steps) ?? [];
+  const tourSteps = allSteps.filter((step) => step.kind === "tour");
+  assert.equal(result.course?.lessons[0]?.id, "omarchy-tour");
+  assert.ok(tourSteps.length >= 3);
+  assert.ok(
+    tourSteps.every(
+      (step) => step.completion.type === "narration-complete" && typeof step.audio === "string",
+    ),
+  );
+  const keyedSteps = allSteps.filter((step) => step.kind !== "tour");
+  assert.ok(keyedSteps.every((step) => step.keys.length > 0), "every non-tour activity teaches a real hotkey");
+
+  assert.equal(keyedSteps?.length, expectedShortcuts.size);
+  keyedSteps?.forEach((step) => {
+    assert.equal(step.keys.join(" "), expectedShortcuts.get(step.id), step.id);
+  });
+
+  const appLaunches = result.course?.lessons.find((lesson) => lesson.id === "everyday-apps");
+  assert.ok(appLaunches);
+  assert.ok(
+    appLaunches.steps.every(
+      (step) => step.completion.type === "hyprland-window-activated",
+    ),
+  );
 });
 
 test("rejects shell strings and unsafe audio paths", () => {
