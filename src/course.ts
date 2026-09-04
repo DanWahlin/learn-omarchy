@@ -39,6 +39,15 @@ export type Completion =
       type: "hyprland-window-activated";
     }
   | {
+      // Completes when Hyprland emits one of `events` (e.g. "closewindow",
+      // "changefloatingmode") after the taught keys or Help were observed.
+      // `dataPattern` is an optional regular expression the event payload
+      // must match.
+      type: "hyprland-event";
+      events: string[];
+      dataPattern?: string;
+    }
+  | {
       type: "narration-complete";
       delayMs?: number;
       durationMs?: number;
@@ -103,8 +112,7 @@ const namedKeyLabels = new Set([
   "SPACE",
   "RETURN",
   "TAB",
-  "ESCAPE",
-]);
+  "ESCAPE",, "LEFT", "RIGHT", "UP", "DOWN"]);
 
 const isSupportedKeyLabel = (value: string): boolean =>
   value === "+" || namedKeyLabels.has(value) || /^[A-Z0-9]$/.test(value);
@@ -226,13 +234,29 @@ const validateCompletion = (
   }
   if (value.type === "hyprland-workspace-change") return;
   if (value.type === "hyprland-window-activated") return;
+  if (value.type === "hyprland-event") {
+    if (!Array.isArray(value.events) || value.events.length === 0 || !value.events.every((name) => typeof name === "string" && name.length > 0)) {
+      errors.push(`${path}.events must be a non-empty array of event names`);
+    }
+    if (value.dataPattern !== undefined) {
+      addStringError(errors, value.dataPattern, `${path}.dataPattern`);
+      if (typeof value.dataPattern === "string") {
+        try {
+          new RegExp(value.dataPattern);
+        } catch {
+          errors.push(`${path}.dataPattern must be a valid regular expression`);
+        }
+      }
+    }
+    return;
+  }
   if (value.type === "narration-complete") {
     if (value.delayMs !== undefined) addPositiveNumberError(errors, value.delayMs, `${path}.delayMs`);
     if (value.durationMs !== undefined) addPositiveNumberError(errors, value.durationMs, `${path}.durationMs`);
     return;
   }
   errors.push(
-    `${path}.type must be "hyprland-layer-open", "hyprland-window-activated", "hyprland-workspace-change", "narration-complete", or "action-success"`,
+    `${path}.type must be "hyprland-layer-open", "hyprland-window-activated", "hyprland-workspace-change", "hyprland-event", "narration-complete", or "action-success"`,
   );
 };
 

@@ -64,21 +64,21 @@
         {
           "id": "tour-clock",
           "kind": "tour",
-          "instruction": "Front and center, you've got the date and time. Click there later and it turns into your calendar.",
+          "instruction": "Front and center, you've got the date, the time, and today's weather. Click there later and it turns into your calendar. And here's a secret: hover over that area and a row of quick tools appears, like dictation, screen recording, reminders, night light, and more.",
           "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
           "keys": [],
           "audio": "audio/tour-clock.mp3",
           "completion": {
             "type": "narration-complete",
             "delayMs": 900,
-            "durationMs": 5000
+            "durationMs": 16000
           },
           "highlight": {
             "shape": "rectangle",
             "anchor": "top",
             "x": 0,
             "y": 1,
-            "width": 230,
+            "width": 330,
             "height": 27,
             "borderWidth": 3,
             "radius": 8,
@@ -162,7 +162,7 @@
       "steps": [
         {
           "id": "open-root-menu",
-          "instruction": "Let's start with the big one. Press Super and Space to open the Omarchy menu.",
+          "instruction": "You met this one on the tour, so it's a quick warm-up. Press Super and Space to open the Omarchy menu, or hit Skip if you've already got it.",
           "detail": "Everything in Omarchy is reachable from this menu, so it's worth making this shortcut muscle memory.",
           "keys": [
             "SUPER",
@@ -292,7 +292,7 @@
     {
       "id": "everyday-apps",
       "title": "Everyday apps",
-      "description": "Launch the terminal, browser, and file manager without reaching for a menu.",
+      "description": "Launch the terminal, browser, and file manager, and learn to close what you open.",
       "icon": "03",
       "estimatedMinutes": 3,
       "steps": [
@@ -330,6 +330,44 @@
           },
           "completionMessage": "That's your terminal, one shortcut away from anywhere in Omarchy.",
           "completionAudio": "audio/launch-terminal-done.mp3"
+        },
+        {
+          "id": "close-terminal",
+          "instruction": "Now let's tidy up. Press Super and W to close that terminal.",
+          "detail": "Super plus W closes whatever window has focus. You'll use it constantly, so it's worth learning right away.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/close-terminal.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close())"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Gone. Open with a shortcut, close with a shortcut. That's the rhythm of Omarchy.",
+          "completionAudio": "audio/close-terminal-done.mp3"
         },
         {
           "id": "launch-browser",
@@ -404,16 +442,472 @@
           },
           "completionMessage": "There are your files. Same trick, different letter.",
           "completionAudio": "audio/launch-files-done.mp3"
+        },
+        {
+          "id": "close-files",
+          "instruction": "Same move again. Press Super and W to close the file manager.",
+          "detail": "Closing windows is just as quick as opening them, so there's no reason to let clutter build up.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/close-files.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close())"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Nice and clean. You can leave the browser open; we'll come back to it.",
+          "completionAudio": "audio/close-files-done.mp3"
+        }
+      ]
+    },
+    {
+      "id": "windows",
+      "title": "Windows",
+      "description": "Tile, focus, float, and fullscreen windows without touching the mouse.",
+      "icon": "04",
+      "estimatedMinutes": 4,
+      "steps": [
+        {
+          "id": "windows-open-first",
+          "instruction": "Let's see how tiling works. Press Super and Return to open a terminal.",
+          "detail": "Omarchy tiles every new window automatically. One window gets the whole screen.",
+          "keys": [
+            "SUPER",
+            "+",
+            "RETURN"
+          ],
+          "audio": "audio/windows-open-first.mp3",
+          "help": {
+            "label": "Launch the terminal for me",
+            "command": [
+              "omarchy",
+              "launch",
+              "terminal"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-window-activated"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "There's the first one, filling the space it has. Now watch what happens when we add another.",
+          "completionAudio": "audio/windows-open-first-done.mp3"
+        },
+        {
+          "id": "windows-open-second",
+          "instruction": "Press Super and Return once more to open a second terminal.",
+          "detail": "Tiling means no overlapping and no manual arranging. Omarchy splits the space for you.",
+          "keys": [
+            "SUPER",
+            "+",
+            "RETURN"
+          ],
+          "audio": "audio/windows-open-second.mp3",
+          "help": {
+            "label": "Launch the terminal for me",
+            "command": [
+              "omarchy",
+              "launch",
+              "terminal"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-window-activated"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "See that? The screen split in two, side by side, with no dragging involved. That's tiling.",
+          "completionAudio": "audio/windows-open-second-done.mp3"
+        },
+        {
+          "id": "windows-focus-next",
+          "instruction": "Two windows, one keyboard. Press Alt and Tab to hop to the other terminal.",
+          "detail": "Alt plus Tab cycles through the windows on this workspace. Super plus an arrow key moves focus in that direction instead. The highlighted border shows where you are.",
+          "keys": [
+            "ALT",
+            "+",
+            "TAB"
+          ],
+          "audio": "audio/windows-focus-next.mp3",
+          "help": {
+            "label": "Switch for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.cycle_next())"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activewindowv2"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "You just switched windows without reaching for the mouse. Try Super plus Left or Right later and you'll feel the tiling.",
+          "completionAudio": "audio/windows-focus-next-done.mp3"
+        },
+        {
+          "id": "windows-float",
+          "instruction": "Sometimes you want a window to float free. Press Super and T to toggle floating.",
+          "detail": "A floating window sits on top of the tiles and can be dragged around with Super and the mouse. Press Super and T again to tile it back.",
+          "keys": [
+            "SUPER",
+            "+",
+            "T"
+          ],
+          "audio": "audio/windows-float.mp3",
+          "help": {
+            "label": "Float it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.float({ action = \"toggle\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "changefloatingmode"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "It's floating now. Handy for a calculator or a chat window you want to keep in view.",
+          "completionAudio": "audio/windows-float-done.mp3"
+        },
+        {
+          "id": "windows-fullscreen",
+          "instruction": "Need to focus on one thing? Press Super and F for fullscreen.",
+          "detail": "Fullscreen hides everything else, including the bar. The same shortcut brings you back.",
+          "keys": [
+            "SUPER",
+            "+",
+            "F"
+          ],
+          "audio": "audio/windows-fullscreen.mp3",
+          "help": {
+            "label": "Go fullscreen for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.fullscreen({ mode = \"fullscreen\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "fullscreen"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Full screen, no distractions. Super plus F again takes you right back to the tiles.",
+          "completionAudio": "audio/windows-fullscreen-done.mp3"
+        },
+        {
+          "id": "windows-close-one",
+          "instruction": "Let's clean up. Press Super and W to close this window.",
+          "detail": "Closing a tiled window gives its space back to the others instantly.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/windows-close-one.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close())"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "One down. Notice how the other terminal grew to fill the gap.",
+          "completionAudio": "audio/windows-close-one-done.mp3"
+        },
+        {
+          "id": "windows-close-two",
+          "instruction": "And once more. Press Super and W to close the last terminal.",
+          "detail": "That's the whole loop: open, arrange, focus, close. All from the keyboard.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/windows-close-two.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close())"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Spotless. You now know more about window management than most people learn in a month.",
+          "completionAudio": "audio/windows-close-two-done.mp3"
         }
       ]
     },
     {
       "id": "workspaces",
       "title": "Workspaces",
-      "description": "Move between virtual desktops while keeping your hands on the keyboard.",
-      "icon": "04",
-      "estimatedMinutes": 2,
+      "description": "Jump between desktops, send windows where they belong, and stash things in the scratchpad.",
+      "icon": "05",
+      "estimatedMinutes": 4,
       "steps": [
+        {
+          "id": "workspaces-open-terminal",
+          "instruction": "We'll need a window to move around. Press Super and Return to open a terminal.",
+          "detail": "Workspaces are separate desktops. Each one holds its own set of tiled windows.",
+          "keys": [
+            "SUPER",
+            "+",
+            "RETURN"
+          ],
+          "audio": "audio/workspaces-open-terminal.mp3",
+          "help": {
+            "label": "Launch the terminal for me",
+            "command": [
+              "omarchy",
+              "launch",
+              "terminal"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-window-activated"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Perfect. Keep an eye on the numbers in the bar as we go.",
+          "completionAudio": "audio/workspaces-open-terminal-done.mp3"
+        },
+        {
+          "id": "workspaces-jump",
+          "instruction": "Press Super and 2 to jump straight to workspace two.",
+          "detail": "Super plus a number goes directly to that workspace. Empty workspaces are created the moment you visit them.",
+          "keys": [
+            "SUPER",
+            "+",
+            "2"
+          ],
+          "audio": "audio/workspaces-jump.mp3",
+          "help": {
+            "label": "Switch for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ workspace = \"2\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-workspace-change"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800
+          },
+          "completionMessage": "There you are, on a fresh empty desktop. Your terminal is still waiting back on workspace one.",
+          "completionAudio": "audio/workspaces-jump-done.mp3"
+        },
+        {
+          "id": "workspaces-back",
+          "instruction": "Press Super and 1 to head back to your terminal.",
+          "detail": "Jumping by number becomes second nature fast. One for chat, two for code, three for the browser, whatever suits you.",
+          "keys": [
+            "SUPER",
+            "+",
+            "1"
+          ],
+          "audio": "audio/workspaces-back.mp3",
+          "help": {
+            "label": "Switch for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ workspace = \"1\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-workspace-change"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800
+          },
+          "completionMessage": "And you're back. Now let's move the terminal instead of ourselves.",
+          "completionAudio": "audio/workspaces-back-done.mp3"
+        },
+        {
+          "id": "workspaces-send",
+          "instruction": "Hold Super and Shift, then press 2 to send this terminal to workspace two.",
+          "detail": "Super, Shift, and a number moves the focused window to that workspace and follows it there.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "2"
+          ],
+          "audio": "audio/workspaces-send.mp3",
+          "help": {
+            "label": "Move it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.move({ workspace = \"2\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "movewindowv2",
+              "movewindow"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800
+          },
+          "completionMessage": "The terminal came along for the ride. That's how you sort windows onto the desktops where they belong.",
+          "completionAudio": "audio/workspaces-send-done.mp3"
+        },
         {
           "id": "next-workspace",
           "instruction": "Let's hop desktops. Press Super and Tab to move to the next workspace.",
@@ -485,6 +979,84 @@
           },
           "completionMessage": "And you're back. By the way, Super plus any number jumps straight to that workspace.",
           "completionAudio": "audio/previous-workspace-done.mp3"
+        },
+        {
+          "id": "workspaces-scratchpad",
+          "instruction": "One more trick. Press Super and S to open the scratchpad.",
+          "detail": "The scratchpad is a hidden workspace that slides over the top of whatever you're doing. Super plus S shows and hides it.",
+          "keys": [
+            "SUPER",
+            "+",
+            "S"
+          ],
+          "audio": "audio/workspaces-scratchpad.mp3",
+          "help": {
+            "label": "Show it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.workspace.toggle_special(\"scratchpad\"))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activespecialv2",
+              "activespecial"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "That's the scratchpad. Park a notes window or a music player there and pull it up from anywhere.",
+          "completionAudio": "audio/workspaces-scratchpad-done.mp3"
+        },
+        {
+          "id": "workspaces-scratchpad-hide",
+          "instruction": "Press Super and S again to tuck the scratchpad away.",
+          "detail": "Anything you leave in the scratchpad stays there until you call it back.",
+          "keys": [
+            "SUPER",
+            "+",
+            "S"
+          ],
+          "audio": "audio/workspaces-scratchpad-hide.mp3",
+          "help": {
+            "label": "Hide it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.workspace.toggle_special(\"scratchpad\"))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activespecialv2",
+              "activespecial"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Hidden again, and still there whenever you need it. You can close the terminal whenever you like with Super plus W.",
+          "completionAudio": "audio/workspaces-scratchpad-hide-done.mp3"
         }
       ]
     },
@@ -492,7 +1064,7 @@
       "id": "bar-panels",
       "title": "Menu bar",
       "description": "Open the most useful quick panels for audio, networking, power, and time.",
-      "icon": "05",
+      "icon": "06",
       "estimatedMinutes": 4,
       "steps": [
         {
@@ -683,7 +1255,7 @@
       "id": "personalization",
       "title": "Personalization",
       "description": "Discover backgrounds, themes, and quick toggles without editing configuration files.",
-      "icon": "06",
+      "icon": "07",
       "estimatedMinutes": 3,
       "steps": [
         {
@@ -734,7 +1306,7 @@
         {
           "id": "theme-menu",
           "instruction": "Let's go bigger. Hold Super, Shift, and Control, then press Space to open the Theme menu.",
-          "detail": "A theme recolors the desktop, terminal, editor, and shell together.",
+          "detail": "A theme recolors the whole desktop at once: terminal, editor, bar, and this course too. Pick one you like, and you can always come back here to change it.",
           "keys": [
             "SUPER",
             "+",
@@ -775,7 +1347,7 @@
             "radius": 12,
             "durationMs": 2000
           },
-          "completionMessage": "Choose a theme and everything changes together. Escape leaves things as they are.",
+          "completionMessage": "Choose a theme and everything changes together. If you're not sure, Escape leaves things exactly as they are.",
           "completionAudio": "audio/theme-menu-done.mp3"
         },
         {
@@ -825,10 +1397,178 @@
       ]
     },
     {
+      "id": "clipboard-and-helpers",
+      "title": "Clipboard and helpers",
+      "description": "Universal copy and paste, clipboard history, emoji, and reminders.",
+      "icon": "08",
+      "estimatedMinutes": 3,
+      "steps": [
+        {
+          "id": "helpers-universal-copy",
+          "kind": "tour",
+          "instruction": "Here's a small thing you'll love. In Omarchy, Super and C copies and Super and V pastes, everywhere. Terminal, browser, editor, it doesn't matter. One shortcut for all of them.",
+          "detail": "HEXON is talking you through this one. Press Enter to continue early, or Skip to jump ahead.",
+          "keys": [],
+          "audio": "audio/helpers-universal-copy.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 9000
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "center",
+            "x": 0,
+            "y": -60,
+            "width": 12,
+            "height": 12,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000
+          },
+          "pose": "talk"
+        },
+        {
+          "id": "clipboard-history",
+          "instruction": "Copied something earlier? Hold Super and Control, then press V to open your clipboard history.",
+          "detail": "Everything you've copied recently is here. Pick an entry to paste it again.",
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "V"
+          ],
+          "audio": "audio/clipboard-history.mp3",
+          "help": {
+            "label": "Open clipboard history for me",
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.clipboard"
+            ]
+          },
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.clipboard"
+          ],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-clipboard"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 760,
+            "height": 780,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2000
+          },
+          "completionMessage": "Your clipboard remembers. Choose an entry and it's ready to paste.",
+          "completionAudio": "audio/clipboard-history-done.mp3"
+        },
+        {
+          "id": "helpers-emoji",
+          "instruction": "Need an emoji? Hold Super and Control, then press E to open the emoji picker.",
+          "detail": "Type a word to search, press Enter, and the emoji lands in whatever you were typing.",
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "E"
+          ],
+          "audio": "audio/helpers-emoji.mp3",
+          "help": {
+            "label": "Open it for me",
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.emojis"
+            ]
+          },
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.emojis"
+          ],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-emojis"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 620,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2200
+          },
+          "completionMessage": "There they all are. Search, Enter, done. No more hunting through menus.",
+          "completionAudio": "audio/helpers-emoji-done.mp3"
+        },
+        {
+          "id": "helpers-reminder",
+          "instruction": "Last helper. Hold Super and Control, then press R to set a reminder.",
+          "detail": "Type something like 'stand up in 20 minutes' and Omarchy will nudge you with a notification.",
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "R"
+          ],
+          "audio": "audio/helpers-reminder.mp3",
+          "help": {
+            "label": "Open it for me",
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "reminder-set"
+            ]
+          },
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 620,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2200
+          },
+          "completionMessage": "That's your reminder prompt. It's the easiest way to stop forgetting the little things.",
+          "completionAudio": "audio/helpers-reminder-done.mp3"
+        }
+      ]
+    },
+    {
       "id": "capture-and-share",
       "title": "Capture and share",
-      "description": "Reach screenshots, screen recording, sharing, and clipboard history quickly.",
-      "icon": "07",
+      "description": "Reach screenshots, screen recording, and sharing quickly.",
+      "icon": "09",
       "estimatedMinutes": 3,
       "steps": [
         {
@@ -918,51 +1658,6 @@
           },
           "completionMessage": "That's the Share menu. Pick a file and a device, and off it goes.",
           "completionAudio": "audio/share-menu-done.mp3"
-        },
-        {
-          "id": "clipboard-history",
-          "instruction": "Copied something earlier? Hold Super and Control, then press V to open your clipboard history.",
-          "detail": "Everything you've copied recently is here. Pick an entry to paste it again.",
-          "keys": [
-            "SUPER",
-            "+",
-            "CTRL",
-            "+",
-            "V"
-          ],
-          "audio": "audio/clipboard-history.mp3",
-          "help": {
-            "label": "Open clipboard history for me",
-            "command": [
-              "omarchy-shell",
-              "shell",
-              "summon",
-              "omarchy.clipboard"
-            ]
-          },
-          "cleanup": [
-            "omarchy-shell",
-            "shell",
-            "hide",
-            "omarchy.clipboard"
-          ],
-          "completion": {
-            "type": "hyprland-layer-open",
-            "namespace": "omarchy-clipboard"
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "center",
-            "x": 0,
-            "y": 0,
-            "width": 760,
-            "height": 780,
-            "borderWidth": 10,
-            "radius": 12,
-            "durationMs": 2000
-          },
-          "completionMessage": "Your clipboard remembers. Choose an entry and it's ready to paste.",
-          "completionAudio": "audio/clipboard-history-done.mp3"
         }
       ]
     },
@@ -970,7 +1665,7 @@
       "id": "setup-and-install",
       "title": "Setup and system",
       "description": "Reach hardware setup, display settings, and safe system actions from the keyboard.",
-      "icon": "08",
+      "icon": "10",
       "estimatedMinutes": 3,
       "steps": [
         {
@@ -1101,8 +1796,329 @@
             "radius": 12,
             "durationMs": 2100
           },
-          "completionMessage": "Nothing happens until you choose an entry, so Escape closes it safely.",
+          "completionMessage": "Nothing happens until you choose an entry, so Escape closes it safely. Lock, suspend, and shutdown all live here when you need them.",
           "completionAudio": "audio/system-menu-done.mp3"
+        }
+      ]
+    },
+    {
+      "id": "first-real-session",
+      "title": "Your first real session",
+      "description": "Put it all together: open, arrange, sort onto workspaces, and clean up like a pro.",
+      "icon": "11",
+      "estimatedMinutes": 4,
+      "steps": [
+        {
+          "id": "finale-intro",
+          "kind": "tour",
+          "instruction": "Time to put it all together. No new shortcuts here, just the ones you already know, used the way you'll use them every day. Ready? Let's go.",
+          "detail": "HEXON is talking you through this one. Press Enter to continue early, or Skip to jump ahead.",
+          "keys": [],
+          "audio": "audio/finale-intro.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 8000
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "center",
+            "x": 0,
+            "y": -60,
+            "width": 12,
+            "height": 12,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000
+          },
+          "pose": "talk"
+        },
+        {
+          "id": "finale-terminal",
+          "instruction": "Start with a terminal. Press Super and Return.",
+          "detail": "Every session starts somewhere. For most Omarchy users, it's here.",
+          "keys": [
+            "SUPER",
+            "+",
+            "RETURN"
+          ],
+          "audio": "audio/finale-terminal.mp3",
+          "help": {
+            "label": "Launch the terminal for me",
+            "command": [
+              "omarchy",
+              "launch",
+              "terminal"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-window-activated"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Terminal's up.",
+          "completionAudio": "audio/finale-terminal-done.mp3"
+        },
+        {
+          "id": "finale-browser",
+          "instruction": "Now a browser. Hold Super and Shift, then press Return.",
+          "detail": "Watch the tiling put them side by side.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "RETURN"
+          ],
+          "audio": "audio/finale-browser.mp3",
+          "help": {
+            "label": "Open the browser for me",
+            "command": [
+              "omarchy",
+              "launch",
+              "browser"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-window-activated"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Two windows, tiled, zero dragging.",
+          "completionAudio": "audio/finale-browser-done.mp3"
+        },
+        {
+          "id": "finale-send-browser",
+          "instruction": "Let's give the browser its own desktop. Hold Super and Shift, then press 2.",
+          "detail": "The browser moves to workspace two and you go with it.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "2"
+          ],
+          "audio": "audio/finale-send-browser.mp3",
+          "help": {
+            "label": "Move it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.move({ workspace = \"2\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "movewindowv2",
+              "movewindow"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800
+          },
+          "completionMessage": "Browser on two, terminal on one. Now your work has rooms.",
+          "completionAudio": "audio/finale-send-browser-done.mp3"
+        },
+        {
+          "id": "finale-back-to-one",
+          "instruction": "Press Super and 1 to pop back to the terminal.",
+          "detail": "Jumping by number is the fastest way around.",
+          "keys": [
+            "SUPER",
+            "+",
+            "1"
+          ],
+          "audio": "audio/finale-back-to-one.mp3",
+          "help": {
+            "label": "Switch for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ workspace = \"1\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-workspace-change"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800
+          },
+          "completionMessage": "And there's the terminal, right where you left it.",
+          "completionAudio": "audio/finale-back-to-one-done.mp3"
+        },
+        {
+          "id": "finale-close-terminal",
+          "instruction": "Done with the terminal for now. Press Super and W.",
+          "detail": "Clean as you go and the desktop never gets messy.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/finale-close-terminal.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close())"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "Closed. One more to go.",
+          "completionAudio": "audio/finale-close-terminal-done.mp3"
+        },
+        {
+          "id": "finale-to-two",
+          "instruction": "Press Super and 2 to head over to the browser.",
+          "detail": "You already know this one.",
+          "keys": [
+            "SUPER",
+            "+",
+            "2"
+          ],
+          "audio": "audio/finale-to-two.mp3",
+          "help": {
+            "label": "Switch for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ workspace = \"2\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-workspace-change"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800
+          },
+          "completionMessage": "There it is.",
+          "completionAudio": "audio/finale-to-two-done.mp3"
+        },
+        {
+          "id": "finale-close-browser",
+          "instruction": "And close it. Press Super and W.",
+          "detail": "That's a full session: open, arrange, sort, close.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/finale-close-browser.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close())"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ]
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800
+          },
+          "completionMessage": "That's the whole loop, and you did every bit of it from the keyboard.",
+          "completionAudio": "audio/finale-close-browser-done.mp3"
+        },
+        {
+          "id": "finale-graduate",
+          "kind": "tour",
+          "instruction": "That's it. You just ran a real Omarchy session, start to finish, without touching the mouse. Everything else builds on what you did today. Super and K is your cheat sheet whenever you need it, and I'm always here in the Learn menu. Go make something.",
+          "detail": "HEXON is talking you through this one. Press Enter to continue early, or Skip to jump ahead.",
+          "keys": [],
+          "audio": "audio/finale-graduate.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 14000
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "center",
+            "x": 0,
+            "y": -60,
+            "width": 12,
+            "height": 12,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000
+          },
+          "pose": "talk"
         }
       ]
     }

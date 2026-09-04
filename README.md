@@ -5,18 +5,21 @@ teaches real shortcuts and system surfaces in short modules, responds as each
 expected key is pressed, performs an action on request, narrates every
 activity, and highlights the result on screen.
 
-The bundled course contains 7 modules and 21 hands-on activities:
+The bundled course contains 11 modules and 53 activities:
 
 | Module | What it covers |
 |---|---|
-| Omarchy tour | HEXON introduces the bar, then Super + Space opens the Omarchy menu |
+| Omarchy tour | Your coach introduces the bar, then Super + Space opens the Omarchy menu |
 | Menus and apps | Omarchy, Apps, and keybindings menus |
-| Everyday apps | Terminal, browser, and file manager |
-| Workspaces | Moving forward and back between workspaces |
+| Everyday apps | Terminal, browser, and file manager, and closing what you open |
+| Windows | Tiling, switching focus, floating, fullscreen, and closing |
+| Workspaces | Jumping by number, sending windows, next and previous, the scratchpad |
 | Menu bar | Audio, network, power, and calendar panels |
 | Personalization | Backgrounds, themes, and the Toggle menu |
-| Capture and share | Capture, sharing, and clipboard history |
+| Clipboard and helpers | Universal copy and paste, clipboard history, emoji, reminders |
+| Capture and share | Capture and sharing menus |
 | Setup and system | Hardware menu, Display panel, and System menu |
+| Your first real session | A finale that strings the shortcuts together, then a send-off |
 
 Progress is saved automatically, and any module can be repeated independently.
 
@@ -65,7 +68,9 @@ The tour opens with a short pixel-art scene before the first stop: HEXON's
 rocket drops down the middle of the screen, lands on a pad at the bottom, and
 he steps out of the lit hatch; OLLIE's tree grows from the ground and she
 takes off from its branch. The desktop dims and the instruction panel fades
-while it plays, and `Enter` or Skip cuts it short. It is skipped entirely
+while it plays, a booster rumble (synthesized with ffmpeg into
+`assets/sounds/`) plays for the landing and liftoff, and `Enter` or Skip
+cuts it short. It is skipped entirely
 under `LEARN_OMARCHY_REDUCED_MOTION=1`. The top-right controls also fade out
 during tour stops that put the coach under the right end of the bar, so they
 never compete with what he is pointing at.
@@ -74,7 +79,9 @@ never compete with what he is pointing at.
   its first shortcut.
 - Press the displayed shortcut. Each keycap lights up while its key is held.
   Every bundled activity is driven by a real Omarchy hotkey; there are no
-  click-only steps.
+  click-only steps. Steps are verified against what Hyprland reports: a layer
+  or window opening, the workspace changing, or a named Hyprland event such
+  as a window closing or floating (the `hyprland-event` completion type).
 - Select **Help** to perform the current action for you.
 - Use the speaker control to mute or unmute narration.
 - The speaker and exit controls remain available above the module picker.

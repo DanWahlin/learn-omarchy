@@ -16,10 +16,11 @@ test:
 	npm test
 
 install:
-	install -d "$(APP_DIR)" "$(APP_DIR)/assets/characters" "$(BIN_DIR)" "$(DESKTOP_DIR)" "$(ICON_DIR)"
+	install -d "$(APP_DIR)" "$(APP_DIR)/assets/characters" "$(APP_DIR)/assets/sounds" "$(BIN_DIR)" "$(DESKTOP_DIR)" "$(ICON_DIR)"
 	install -m 644 share/icons/hicolor/256x256/apps/learn-omarchy.png "$(ICON_DIR)/learn-omarchy.png"
 	install -m 644 assets/characters/index.json "$(APP_DIR)/assets/characters/index.json"
 	cp -R app courses experiments src tools package.json "$(APP_DIR)/"
+	cp -R assets/sounds "$(APP_DIR)/assets/"
 	for character in assets/characters/*/; do \
 		name="$$(basename "$$character")"; \
 		install -d "$(APP_DIR)/assets/characters/$$name"; \

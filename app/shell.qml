@@ -285,6 +285,8 @@ ShellRoot {
   property real shortcutArmedUntil: 0
   property real characterX: 0
   property real characterY: 0
+  // True while the coach is sitting at his waiting spot beside the panel.
+  property bool characterParked: false
   property int externalLayerTick: 0
 
   readonly property int windowGeometryMaxAttempts: 6
@@ -304,7 +306,8 @@ ShellRoot {
   property color instruction: "#e0af68"
 
   onSelectedLessonIndexChanged: {
-    var nextColumn = selectedLessonIndex % 2
+    // The picker is a single column now; no lateral hop between cards.
+    var nextColumn = 0
     var crossesColumn = nextColumn !== characterMenuColumn
     characterMenuColumn = nextColumn
     if (phase !== "menu" || !course) return
@@ -616,6 +619,8 @@ ShellRoot {
   property bool introRequested: false
   property bool introActive: false
   property string introStage: ""
+  // Descent and liftoff share this duration so the ship leaves as it arrived.
+  readonly property int introRocketTravelMs: 1600
   // Fades the instruction panel away while the scene owns the bottom of the screen.
   property real introPanelOpacity: introActive ? 0 : 1
 
@@ -637,6 +642,7 @@ ShellRoot {
   function cancelIntro() {
     introStartTimer.stop()
     introTimer.stop()
+    introLandTimer.stop()
     introRequested = false
     introActive = false
     introStage = ""
@@ -652,16 +658,36 @@ ShellRoot {
       setCharacterState("intro-stand", "HELLO!")
       introTimer.interval = introKind === "rocket" ? 800 : 1500
     } else if (introStage === "reveal" && introKind === "rocket") {
+      // Fly out of the hatch and land beside the pad.
       introStage = "exit"
-      introTimer.interval = 1400
+      setCharacterState("intro-exit", "")
+      introLandTimer.restart()
+      introTimer.interval = 1600
     } else if (introStage === "reveal" || introStage === "exit") {
+      // Rocket: the ship lifts off at the pace it came in while the coach
+      // watches from beside the pad, so he never crosses its path.
+      // Tree: the coach takes off straight away.
       introStage = "launch"
-      setCharacterState("tour-fly", "FOLLOW ME")
-      characterTourArrivalTimer.restart()
-      introTimer.interval = 950
+      if (introKind === "rocket") {
+        introTimer.interval = introRocketTravelMs + 150
+      } else {
+        setCharacterState("tour-fly", "FOLLOW ME")
+        characterTourArrivalTimer.restart()
+        introTimer.interval = 950
+      }
+    } else if (introStage === "launch") {
+      // Ship gone: now the coach heads for the welcome stop as the scene fades.
+      introStage = "clear"
+      if (introKind === "rocket") {
+        setCharacterState("tour-fly", "FOLLOW ME")
+        characterTourArrivalTimer.restart()
+      }
+      introTimer.interval = 650
     } else {
       introActive = false
       introStage = ""
+      // The coach has been waiting at the welcome stop; now he can talk.
+      if (characterState === tourRestingState) beginTourNarration()
       return
     }
     introTimer.restart()
@@ -686,6 +712,12 @@ ShellRoot {
     if (reducedMotion) {
       setCharacterState("coach", "YOUR TURN")
       Qt.callLater(playCurrentAudio)
+    } else if (characterParked) {
+      // Already beside the panel (Skip, or one hotkey step after another):
+      // a flight would just be the flying pose hovering in place, which
+      // reads as a false dash sideways. A short landing bounce is enough.
+      setCharacterState("step-settle", "READY")
+      characterTravelSettleTimer.restart()
     } else {
       setCharacterState("step-fly", "ON MY WAY!")
       characterStepArrivalTimer.restart()
@@ -735,6 +767,10 @@ ShellRoot {
     if (key === Qt.Key_Return || key === Qt.Key_Enter) return "RETURN"
     if (key === Qt.Key_Tab || key === Qt.Key_Backtab) return "TAB"
     if (key === Qt.Key_Escape) return "ESCAPE"
+    if (key === Qt.Key_Left) return "LEFT"
+    if (key === Qt.Key_Right) return "RIGHT"
+    if (key === Qt.Key_Up) return "UP"
+    if (key === Qt.Key_Down) return "DOWN"
     if (key >= Qt.Key_A && key <= Qt.Key_Z) return String.fromCharCode(key)
     if (key >= Qt.Key_0 && key <= Qt.Key_9) return String.fromCharCode(key)
     return ""
@@ -780,8 +816,20 @@ ShellRoot {
     )
   }
 
+  // Steps verified by a generic Hyprland event only count the event once the
+  // taught keys (or Help) have been seen, so unrelated desktop activity
+  // doesn't complete them.
+  function usesArmedDetection() {
+    return Boolean(
+      currentStep &&
+      currentStep.completion &&
+      (currentStep.completion.type === "hyprland-window-activated" ||
+        currentStep.completion.type === "hyprland-event")
+    )
+  }
+
   function armShortcutDetection(keys) {
-    if (phase !== "waiting" || !usesWindowActivation()) return
+    if (phase !== "waiting" || !usesArmedDetection()) return
     var expected = expectedKeyMap()
     var matched = 0
     for (var key in keys) {
@@ -794,12 +842,12 @@ ShellRoot {
   }
 
   function armHelpDetection() {
-    if (!usesWindowActivation()) return
+    if (!usesArmedDetection()) return
     shortcutArmedUntil = Math.max(shortcutArmedUntil, Date.now() + helpArmWindowMs)
   }
 
   function windowDetectionArmed() {
-    if (!usesWindowActivation()) return false
+    if (!usesArmedDetection()) return false
     if (actionRunning && currentStep && actionStepId === currentStep.id) return true
     return Date.now() <= shortcutArmedUntil
   }
@@ -1169,6 +1217,7 @@ ShellRoot {
     workspaceCompletionTimer.stop()
     introStartTimer.stop()
     introTimer.stop()
+    introLandTimer.stop()
     introActive = false
     introStage = ""
     actionRunning = false
@@ -1454,6 +1503,17 @@ ShellRoot {
       String(event.data).trim() === completion.namespace
     ) {
       confirmDetectedShortcut()
+      return
+    }
+    if (completion && completion.type === "hyprland-event" && Array.isArray(completion.events)) {
+      if (completion.events.indexOf(String(event.name)) === -1) return
+      var payload = String(event.data || "")
+      if (completion.dataPattern && !(new RegExp(String(completion.dataPattern))).test(payload)) return
+      if (!windowDetectionArmed()) {
+        console.info("learn-omarchy: ignoring", event.name, "because no shortcut or Help action is pending")
+        return
+      }
+      confirmDetectedShortcut()
     }
   }
 
@@ -1485,10 +1545,8 @@ ShellRoot {
       return
     }
     if (phase === "menu") {
-      if (event.key === Qt.Key_Left) moveMenuSelection(-1)
-      else if (event.key === Qt.Key_Right) moveMenuSelection(1)
-      else if (event.key === Qt.Key_Up) moveMenuSelection(-2)
-      else if (event.key === Qt.Key_Down) moveMenuSelection(2)
+      if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) moveMenuSelection(-1)
+      else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) moveMenuSelection(1)
       else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) startLesson(selectedLessonIndex)
       else if (isPlainEscape(event)) Qt.quit()
       else return
@@ -1698,6 +1756,25 @@ ShellRoot {
       root.completeCurrentStep()
       return "ok"
     }
+
+    function skip(): string {
+      if (root.phase !== "waiting" || !root.currentStep) return "not-waiting"
+      root.skipCurrentStep()
+      return "ok"
+    }
+  }
+
+  // Short sound effects (booster rumble for the rocket scene). Independent of
+  // narration so the two never interrupt each other; muted with the speaker.
+  Process {
+    id: sfxProcess
+  }
+
+  function playSound(name) {
+    if (!audioEnabled || reducedMotion) return
+    if (sfxProcess.running) sfxProcess.running = false
+    sfxProcess.command = ["mpv", "--no-video", "--really-quiet", "--volume=70", "--", appRoot + "/assets/sounds/" + name]
+    sfxProcess.running = true
   }
 
   Process {
@@ -1947,6 +2024,13 @@ ShellRoot {
     onTriggered: root.advanceIntro()
   }
 
+  Timer {
+    id: introLandTimer
+    interval: root.characterTravelDuration + 120
+    repeat: false
+    onTriggered: if (root.characterState === "intro-exit") root.setCharacterState("intro-land", "")
+  }
+
   Behavior on introPanelOpacity {
     NumberAnimation { duration: root.reducedMotion ? 0 : 450; easing.type: Easing.InOutSine }
   }
@@ -2061,7 +2145,8 @@ ShellRoot {
         else root.settleCharacter()
       } else if (root.phase === "waiting" && root.characterState === "tour-settle") {
         root.setCharacterState(root.tourRestingState, root.tourRestingMessage)
-        root.beginTourNarration()
+        // During the opening scene the narration waits for the ship to leave.
+        if (!root.introActive) root.beginTourNarration()
       } else if (root.phase === "waiting" && root.characterState === "help-settle") {
         root.setCharacterState("help", "RIGHT HERE")
       } else if (root.phase === "menu" && root.characterState === "menu-settle") {
@@ -2340,9 +2425,9 @@ ShellRoot {
           anchors.fill: parent
           visible: opacity > 0
           color: root.background
-          opacity: root.introActive && root.introStage !== "launch" ? 0.6 : 0
+          opacity: root.introActive && root.introStage !== "clear" ? 0.6 : 0
           Behavior on opacity {
-            NumberAnimation { duration: root.introStage === "launch" ? 900 : 600; easing.type: Easing.InOutSine }
+            NumberAnimation { duration: 600; easing.type: Easing.InOutSine }
           }
         }
 
@@ -2574,8 +2659,8 @@ ShellRoot {
           id: topicPanel
           visible: root.phase === "menu" && root.course
           anchors.centerIn: parent
-          width: Math.min(980, parent.width - 64)
-          height: Math.min(850, parent.height - 64)
+          width: Math.min(860, parent.width - 64)
+          height: Math.min(900, parent.height - 80)
           radius: 18
           stripe: root.accent
 
@@ -2653,150 +2738,195 @@ ShellRoot {
               }
             }
 
-            GridLayout {
+            // One module per row, scrolling when the screen is short. The
+            // selected row is kept in view for keyboard navigation.
+            Flickable {
+              id: lessonList
               Layout.fillWidth: true
               Layout.fillHeight: true
-              columns: 2
-              columnSpacing: 14
-              rowSpacing: 14
+              clip: true
+              contentWidth: width
+              contentHeight: lessonColumn.implicitHeight
+              boundsBehavior: Flickable.StopAtBounds
+              flickableDirection: Flickable.VerticalFlick
 
-              Repeater {
-                model: root.course ? root.course.lessons : []
+              function revealSelected() {
+                var rowHeight = lessonColumn.rowHeight + lessonColumn.spacing
+                var top = root.selectedLessonIndex * rowHeight
+                var bottom = top + lessonColumn.rowHeight
+                if (top < contentY) contentY = Math.max(0, top)
+                else if (bottom > contentY + height) contentY = Math.min(contentHeight - height, bottom - height)
+              }
 
-                Rectangle {
-                  id: lessonCard
-                  required property int index
-                  required property var modelData
-                  readonly property bool selected: index === root.selectedLessonIndex
-                  readonly property bool completed: root.completedLessons[modelData.id] === true
+              Connections {
+                target: root
+                function onSelectedLessonIndexChanged() { if (root.phase === "menu") lessonList.revealSelected() }
+              }
 
-                  Layout.fillWidth: true
-                  Layout.fillHeight: true
-                  Layout.minimumHeight: 108
-                  color: cardMouse.containsMouse || selected
-                    ? root.colorWithAlpha(root.accent, 0.14)
-                    : root.subtleFill
-                  border.color: selected ? root.colorWithAlpha(root.accent, 0.8) : root.colorWithAlpha(root.foreground, 0.12)
-                  border.width: 1
-                  radius: 12
-                  Behavior on color { ColorAnimation { duration: 120 } }
+              Behavior on contentY {
+                enabled: !lessonList.moving && !root.reducedMotion
+                NumberAnimation { duration: 180; easing.type: Easing.OutCubic }
+              }
 
-                  function syncCharacterTarget() {
-                    if (selected) overlay.updateMenuSelectionTarget(lessonCard, index)
-                  }
+              ColumnLayout {
+                id: lessonColumn
+                width: lessonList.width
+                spacing: 8
+                readonly property int rowHeight: 76
 
-                  onSelectedChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                  onXChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                  onYChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                  onWidthChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                  onHeightChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                  Component.onCompleted: if (selected) Qt.callLater(syncCharacterTarget)
+                Repeater {
+                  model: root.course ? root.course.lessons : []
 
                   Rectangle {
-                    // Selection stripe on the leading edge.
-                    visible: lessonCard.selected
-                    anchors {
-                      left: parent.left
-                      top: parent.top
-                      bottom: parent.bottom
-                      margins: 1
-                      topMargin: 12
-                      bottomMargin: 12
-                    }
-                    width: 4
-                    radius: 2
-                    color: root.instruction
-                  }
+                    id: lessonCard
+                    required property int index
+                    required property var modelData
+                    readonly property bool selected: index === root.selectedLessonIndex
+                    readonly property bool completed: root.completedLessons[modelData.id] === true
 
-                  RowLayout {
-                    anchors {
-                      fill: parent
-                      margins: 18
-                      leftMargin: 20
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: lessonColumn.rowHeight
+                    Layout.rightMargin: 6
+                    color: cardMouse.containsMouse || selected
+                      ? root.colorWithAlpha(root.accent, 0.14)
+                      : root.subtleFill
+                    border.color: selected ? root.colorWithAlpha(root.accent, 0.8) : root.colorWithAlpha(root.foreground, 0.1)
+                    border.width: 1
+                    radius: 12
+                    Behavior on color { ColorAnimation { duration: 120 } }
+
+                    function syncCharacterTarget() {
+                      if (selected) overlay.updateMenuSelectionTarget(lessonCard, index)
                     }
-                    spacing: 16
+
+                    onSelectedChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                    onXChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                    onYChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                    onWidthChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                    onHeightChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                    Component.onCompleted: if (selected) Qt.callLater(syncCharacterTarget)
+
+                    Connections {
+                      target: lessonList
+                      function onContentYChanged() { if (lessonCard.selected) Qt.callLater(lessonCard.syncCharacterTarget) }
+                    }
 
                     Rectangle {
-                      Layout.alignment: Qt.AlignTop
-                      implicitWidth: 44
-                      implicitHeight: 44
-                      color: lessonCard.completed ? root.accent : root.colorWithAlpha(root.accent, 0.16)
-                      border.color: root.colorWithAlpha(root.accent, lessonCard.completed ? 1 : 0.5)
-                      border.width: 1
-                      radius: 10
-
-                      Text {
-                        anchors.centerIn: parent
-                        text: lessonCard.completed ? "✓" : lessonCard.modelData.icon
-                        color: lessonCard.completed ? root.background : root.accent
-                        font.family: "monospace"
-                        font.pixelSize: 16
-                        font.weight: Font.Bold
+                      visible: lessonCard.selected
+                      anchors {
+                        left: parent.left
+                        top: parent.top
+                        bottom: parent.bottom
+                        margins: 1
+                        topMargin: 12
+                        bottomMargin: 12
                       }
+                      width: 4
+                      radius: 2
+                      color: root.instruction
                     }
 
-                    ColumnLayout {
-                      Layout.fillWidth: true
-                      spacing: 5
-
-                      Text {
-                        Layout.fillWidth: true
-                        text: lessonCard.modelData.title
-                        color: lessonCard.selected ? root.instruction : root.foreground
-                        font.family: "sans-serif"
-                        font.pixelSize: 17
-                        font.weight: Font.Bold
-                        elide: Text.ElideRight
+                    RowLayout {
+                      anchors {
+                        fill: parent
+                        leftMargin: 20
+                        rightMargin: 18
                       }
-                      Text {
+                      spacing: 16
+
+                      Rectangle {
+                        implicitWidth: 42
+                        implicitHeight: 42
+                        color: lessonCard.completed ? root.accent : root.colorWithAlpha(root.accent, 0.16)
+                        border.color: root.colorWithAlpha(root.accent, lessonCard.completed ? 1 : 0.5)
+                        border.width: 1
+                        radius: 10
+
+                        Text {
+                          anchors.centerIn: parent
+                          text: lessonCard.completed ? "✓" : lessonCard.modelData.icon
+                          color: lessonCard.completed ? root.background : root.accent
+                          font.family: "monospace"
+                          font.pixelSize: 15
+                          font.weight: Font.Bold
+                        }
+                      }
+
+                      ColumnLayout {
                         Layout.fillWidth: true
-                        text: root.characterText(lessonCard.modelData.description)
-                        color: root.foreground
-                        opacity: 0.75
-                        font.family: "sans-serif"
-                        font.pixelSize: 13
-                        wrapMode: Text.WordWrap
-                        maximumLineCount: 2
-                        elide: Text.ElideRight
+                        spacing: 3
+
+                        Text {
+                          Layout.fillWidth: true
+                          text: lessonCard.modelData.title
+                          color: lessonCard.selected ? root.instruction : root.foreground
+                          font.family: "sans-serif"
+                          font.pixelSize: 16
+                          font.weight: Font.Bold
+                          elide: Text.ElideRight
+                        }
+                        Text {
+                          Layout.fillWidth: true
+                          text: root.characterText(lessonCard.modelData.description)
+                          color: root.foreground
+                          opacity: 0.72
+                          font.family: "sans-serif"
+                          font.pixelSize: 13
+                          elide: Text.ElideRight
+                          maximumLineCount: 1
+                        }
                       }
 
                       RowLayout {
-                        Layout.topMargin: 4
-                        spacing: 10
-
-                        RowLayout {
-                          spacing: 5
-                          Repeater {
-                            model: root.lessonShortcutLabel(lessonCard.modelData).split(" ")
-                            Keycap {
-                              required property string modelData
-                              label: modelData
-                              small: true
-                            }
+                        spacing: 5
+                        Repeater {
+                          model: root.lessonShortcutLabel(lessonCard.modelData).split(" ")
+                          Keycap {
+                            required property string modelData
+                            label: modelData
+                            small: true
                           }
                         }
+                      }
 
-                        Text {
-                          text: lessonCard.modelData.estimatedMinutes + " MIN  ·  " + lessonCard.modelData.steps.length + " ACTIVITIES"
-                          color: root.muted
-                          font.family: "monospace"
-                          font.pixelSize: 10
-                          font.weight: Font.Bold
-                          font.letterSpacing: 0.8
-                        }
+                      Text {
+                        Layout.preferredWidth: 96
+                        horizontalAlignment: Text.AlignRight
+                        text: lessonCard.completed
+                          ? "DONE"
+                          : lessonCard.modelData.estimatedMinutes + " MIN · " + lessonCard.modelData.steps.length + " STEPS"
+                        color: lessonCard.completed ? root.accent : root.muted
+                        font.family: "monospace"
+                        font.pixelSize: 10
+                        font.weight: Font.Bold
+                        font.letterSpacing: 0.8
                       }
                     }
-                  }
 
-                  MouseArea {
-                    id: cardMouse
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onEntered: root.selectedLessonIndex = lessonCard.index
-                    onClicked: root.startLesson(lessonCard.index)
+                    MouseArea {
+                      id: cardMouse
+                      anchors.fill: parent
+                      hoverEnabled: true
+                      cursorShape: Qt.PointingHandCursor
+                      // Select on real mouse movement only. A pointer merely
+                      // resting over the panel when it appears must not steal
+                      // the selection from the next unfinished module.
+                      onPositionChanged: root.selectedLessonIndex = lessonCard.index
+                      onClicked: root.startLesson(lessonCard.index)
+                    }
                   }
                 }
+              }
+
+              // Slim scrollbar, only when the list overflows.
+              Rectangle {
+                visible: lessonList.contentHeight > lessonList.height
+                anchors.right: parent.right
+                width: 4
+                radius: 2
+                color: root.colorWithAlpha(root.foreground, 0.3)
+                y: lessonList.height * (lessonList.contentY / Math.max(1, lessonList.contentHeight))
+                height: Math.max(24, lessonList.height * (lessonList.height / Math.max(1, lessonList.contentHeight)))
               }
             }
 
@@ -3478,9 +3608,9 @@ ShellRoot {
           z: 8
           anchors.fill: parent
           visible: opacity > 0
-          opacity: root.introActive && root.introStage !== "launch" ? 1 : 0
+          opacity: root.introActive && root.introStage !== "clear" ? 1 : 0
           Behavior on opacity {
-            NumberAnimation { duration: root.introStage === "launch" ? 900 : 450; easing.type: Easing.InOutSine }
+            NumberAnimation { duration: root.introStage === "clear" ? 600 : 450; easing.type: Easing.InOutSine }
           }
 
           readonly property bool rocket: root.introKind === "rocket"
@@ -3655,17 +3785,20 @@ ShellRoot {
                     rocketArt.landed = true
                   } else {
                     descent.restart()
+                    root.playSound("rocket-land.opus")
                   }
                 } else if (root.introStage === "launch" && !root.reducedMotion) {
                   liftoff.from = rocketArt.y
                   liftoff.to = -rocketArt.height - 120
                   liftoff.restart()
+                  root.playSound("rocket-liftoff.opus")
                 }
               }
               function onIntroActiveChanged() {
                 if (!root.introActive) {
                   descent.stop()
                   liftoff.stop()
+                  if (sfxProcess.running) sfxProcess.running = false
                 }
               }
             }
@@ -3674,7 +3807,7 @@ ShellRoot {
               id: descent
               target: rocketArt
               property: "y"
-              duration: 1600
+              duration: root.introRocketTravelMs
               easing.type: Easing.OutQuad
               onFinished: rocketArt.landed = true
             }
@@ -3683,7 +3816,7 @@ ShellRoot {
               id: liftoff
               target: rocketArt
               property: "y"
-              duration: 900
+              duration: root.introRocketTravelMs
               easing.type: Easing.InQuad
             }
 
@@ -3899,7 +4032,9 @@ ShellRoot {
           readonly property bool isPointingUp: root.characterState === "tour-point"
           readonly property bool targetsIntro:
             root.characterState === "intro" ||
-            root.characterState === "intro-stand"
+            root.characterState === "intro-stand" ||
+            root.characterState === "intro-exit" ||
+            root.characterState === "intro-land"
           readonly property bool targetsMenu:
             root.characterState === "menu-fly" ||
             root.characterState === "menu-settle" ||
@@ -3935,7 +4070,8 @@ ShellRoot {
             root.characterState === "menu-fly" ||
             root.characterState === "menu-settle" ||
             root.characterState === "module-fly" ||
-            root.characterState === "module-settle"
+            root.characterState === "module-settle" ||
+            root.characterState === "intro-exit"
           readonly property bool isSettledHover:
             visible && !isFlying && root.characterState !== "hidden"
           readonly property real pointPoseScale: root.pointPoseScale
@@ -4008,6 +4144,16 @@ ShellRoot {
             if (!isSettledHover) characterImageArea.hoverOffset = 0
           }
 
+          Binding {
+            target: root
+            property: "characterParked"
+            when: overlay.shouldShow
+            value: hexonCoach.visible &&
+              !hexonCoach.userPlaced &&
+              Math.abs(hexonCoach.x - hexonCoach.waitingX) < 12 &&
+              Math.abs(hexonCoach.y - hexonCoach.waitingY) < 12
+          }
+
           onXChanged: {
             if (overlay.shouldShow) root.characterX = x
             // Face the way we are actually moving; destinations can update a
@@ -4066,7 +4212,8 @@ ShellRoot {
                 root.characterState === "target-fly" ||
                 root.characterState === "tour-fly" ||
                 root.characterState === "menu-fly" ||
-                root.characterState === "module-fly"
+                root.characterState === "module-fly" ||
+                root.characterState === "intro-exit"
               ) {
                 landingAnimation.stop()
                 takeoffAnimation.restart()
@@ -4081,7 +4228,8 @@ ShellRoot {
                 root.characterState === "target-settle" ||
                 root.characterState === "tour-settle" ||
                 root.characterState === "menu-settle" ||
-                root.characterState === "module-settle"
+                root.characterState === "module-settle" ||
+                root.characterState === "intro-land"
               ) {
                 takeoffAnimation.stop()
                 landingAnimation.restart()
@@ -4105,7 +4253,9 @@ ShellRoot {
                 root.characterState === "module-fly" ||
                 root.characterState === "module-settle" ||
                 root.characterState === "intro" ||
-                root.characterState === "intro-stand"
+                root.characterState === "intro-stand" ||
+                root.characterState === "intro-exit" ||
+                root.characterState === "intro-land"
               ) {
                 fallAnimation.stop()
                 hexonCoach.userPlaced = false
