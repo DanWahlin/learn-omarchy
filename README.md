@@ -82,6 +82,12 @@ never compete with what he is pointing at.
   click-only steps. Steps are verified against what Hyprland reports: a layer
   or window opening, the workspace changing, or a named Hyprland event such
   as a window closing or floating (the `hyprland-event` completion type).
+  Close steps target only windows the course itself opened (`target:
+  "tutorial-window"`, and `{tutorialWindow}` in a Help command), so neither
+  a stray keypress nor Help can act on the learner's own windows. Modules
+  that depend on a workspace open with a `hyprland-workspace-is`
+  prerequisite step, which is skipped silently when the learner is already
+  there.
 - Select **Help** to perform the current action for you.
 - Use the speaker control to mute or unmute narration.
 - The speaker and exit controls remain available above the module picker.
@@ -308,14 +314,15 @@ npm run audio:generate
 
 Narration is recorded once per coach, under `courses/audio/<character>/`:
 the spoken text says the coach's name where the course text says HEXON, and
-each coach's `character.json` names its `voice` (HEXON uses Andrew, OLLIE
-uses Ada, both Azure HD voices). With no `--character` flag every coach in
+each coach's `character.json` names its Azure `voice` (HEXON uses Andrew,
+OLLIE uses Ada, both HD voices) and an `edgeVoice` for the Edge backend.
+`LEARN_OMARCHY_TTS_VOICE` overrides both. With no `--character` flag every coach in
 `assets/characters/index.json` is generated. "Omarchy" is respelled for the
-voice as "Omaaachi" (oh-MAH-chee); set `LEARN_OMARCHY_PRONUNCIATION` to try
+voice as "Omaachi" (oh-MAH-chee); set `LEARN_OMARCHY_PRONUNCIATION` to try
 another spelling, then regenerate just the lines that mention it:
 
 ```bash
-LEARN_OMARCHY_PRONUNCIATION=Omaaachi \
+LEARN_OMARCHY_PRONUNCIATION=Omaachi \
 node --experimental-strip-types tools/generate-course-audio.ts \
   courses/omarchy-basics.json --backend azure --match Omarchy --character owl
 ```

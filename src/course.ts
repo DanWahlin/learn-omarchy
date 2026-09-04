@@ -39,13 +39,23 @@ export type Completion =
       type: "hyprland-window-activated";
     }
   | {
+      // Completes when the focused workspace has the given id. If the learner
+      // is already there when the step starts, the step is skipped.
+      type: "hyprland-workspace-is";
+      id: number;
+    }
+  | {
       // Completes when Hyprland emits one of `events` (e.g. "closewindow",
       // "changefloatingmode") after the taught keys or Help were observed.
       // `dataPattern` is an optional regular expression the event payload
-      // must match.
+      // must match. `target: "tutorial-window"` additionally requires the
+      // event to concern a window the course itself launched earlier in the
+      // module, so a stray keypress can't complete a step on the learner's
+      // own windows.
       type: "hyprland-event";
       events: string[];
       dataPattern?: string;
+      target?: "tutorial-window";
     }
   | {
       type: "narration-complete";
@@ -234,9 +244,18 @@ const validateCompletion = (
   }
   if (value.type === "hyprland-workspace-change") return;
   if (value.type === "hyprland-window-activated") return;
+  if (value.type === "hyprland-workspace-is") {
+    if (typeof value.id !== "number" || !Number.isInteger(value.id) || value.id < 1 || value.id > 10) {
+      errors.push(`${path}.id must be a workspace number from 1 to 10`);
+    }
+    return;
+  }
   if (value.type === "hyprland-event") {
     if (!Array.isArray(value.events) || value.events.length === 0 || !value.events.every((name) => typeof name === "string" && name.length > 0)) {
       errors.push(`${path}.events must be a non-empty array of event names`);
+    }
+    if (value.target !== undefined && value.target !== "tutorial-window") {
+      errors.push(`${path}.target must be "tutorial-window" when present`);
     }
     if (value.dataPattern !== undefined) {
       addStringError(errors, value.dataPattern, `${path}.dataPattern`);
@@ -256,7 +275,7 @@ const validateCompletion = (
     return;
   }
   errors.push(
-    `${path}.type must be "hyprland-layer-open", "hyprland-window-activated", "hyprland-workspace-change", "hyprland-event", "narration-complete", or "action-success"`,
+    `${path}.type must be "hyprland-layer-open", "hyprland-window-activated", "hyprland-workspace-change", "hyprland-workspace-is", "hyprland-event", "narration-complete", or "action-success"`,
   );
 };
 

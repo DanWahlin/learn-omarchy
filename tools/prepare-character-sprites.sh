@@ -44,6 +44,10 @@ talk_face_x=""
 talk_face_y=""
 talk_face_width=""
 talk_face_height=""
+# Optional frame order for the talk strip, as space-separated column indexes
+# (e.g. "0 1 0 3 0 1 0 3"). Lets a strip alternate between a few clean copies
+# instead of using every generated column.
+talk_frame_order=""
 point_source="$character_dir/concepts/$character-point-v1.png"
 point_up_source="$character_dir/concepts/$character-point-up-v1.png"
 # Optional closed-eye versions of the pointing poses (edits of the same
@@ -189,6 +193,11 @@ if [[ -n "$talk_source" ]]; then
       -geometry "+${tf_x}+${tf_y}" -composite "$work/talk-${index}.png"
     talk_frames+=("$work/talk-${index}.png")
   done
+  if [[ -n "$talk_frame_order" ]]; then
+    ordered=()
+    for index in $talk_frame_order; do ordered+=("${talk_frames[$index]}"); done
+    talk_frames=("${ordered[@]}")
+  fi
   magick "${talk_frames[@]}" +append -strip -define png:exclude-chunks=date,time "$output_dir/$character-talk.png"
 else
   magick \

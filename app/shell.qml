@@ -282,6 +282,9 @@ ShellRoot {
   property int windowGeometryGeneration: 0
   property int windowGeometryAttempts: 0
   property string stepStartWindowAddress: ""
+  // Windows the course itself launched in the current module (Hyprland
+  // addresses, oldest first). Close steps only act on and accept these.
+  property var tutorialWindows: []
   property real shortcutArmedUntil: 0
   property real characterX: 0
   property real characterY: 0
@@ -559,12 +562,13 @@ ShellRoot {
   }
 
   function checkWorkspaceCompletion() {
-    if (
-      phase !== "waiting" ||
-      !currentStep ||
-      currentStep.completion.type !== "hyprland-workspace-change" ||
-      workspaceStartId < 0
-    ) return
+    if (phase !== "waiting" || !currentStep) return
+    if (currentStep.completion.type === "hyprland-workspace-is") {
+      if (currentWorkspaceId() === Number(currentStep.completion.id)) completeCurrentStep()
+      else if (++workspaceCheckAttempts < 5) workspaceCompletionTimer.restart()
+      return
+    }
+    if (currentStep.completion.type !== "hyprland-workspace-change" || workspaceStartId < 0) return
     var activeWorkspaceId = currentWorkspaceId()
     if (activeWorkspaceId >= 0 && activeWorkspaceId !== workspaceStartId) {
       completeCurrentStep()
@@ -937,8 +941,25 @@ ShellRoot {
     finishWindowDetection(null, null)
   }
 
+  function rememberTutorialWindow(address) {
+    var normalized = normalizedWindowAddress(address)
+    if (normalized === "" || tutorialWindows.indexOf(normalized) !== -1) return
+    tutorialWindows = tutorialWindows.concat([normalized])
+  }
+
+  function forgetTutorialWindow(address) {
+    var normalized = normalizedWindowAddress(address)
+    if (tutorialWindows.indexOf(normalized) === -1) return
+    tutorialWindows = tutorialWindows.filter(function(entry) { return entry !== normalized })
+  }
+
+  function latestTutorialWindow() {
+    return tutorialWindows.length > 0 ? tutorialWindows[tutorialWindows.length - 1] : ""
+  }
+
   function finishWindowDetection(windowData, monitorData) {
     windowGeometryPending = false
+    rememberTutorialWindow(targetWindowAddress)
     windowGeometryRetryTimer.stop()
     targetWindowGeometry = windowData
     targetMonitorGeometry = monitorData
@@ -1098,11 +1119,13 @@ ShellRoot {
       fail("Course metadata is invalid. Run learn-omarchy-validate for details.")
       return
     }
+    // A reload is a lifecycle boundary: nothing from the old course may keep
+    // running, or a pending transition would dereference a step that is gone.
+    resetLessonRuntime()
     course = parsed
     lessonIndex = -1
     selectedLessonIndex = 0
     stepIndex = 0
-    clearActiveKeys()
     errorMessage = ""
     applyCourseProgress()
     if (settingsResolved && !characterChosen()) {
@@ -1169,10 +1192,14 @@ ShellRoot {
     persistProgress()
   }
 
-  function startLesson(index) {
-    if (!course || index < 0 || index >= course.lessons.length) return
+  // Common teardown for leaving whatever lesson state is active: outgoing
+  // transitions, timers, actions, geometry requests, keys, and narration.
+  // Callers then decide where to go (a lesson, the menu, a reloaded course).
+  function resetLessonRuntime() {
     runCleanup()
+    cancelAction()
     stopAudio()
+    resetWindowTarget()
     actionCompletionTimer.stop()
     completionTimer.stop()
     lessonTransitionAnimation.stop()
@@ -1180,6 +1207,13 @@ ShellRoot {
     lessonContentOpacity = 1
     pendingLessonTransition = ""
     pendingTransitionStepIndex = -1
+    clearActiveKeys()
+    tutorialWindows = []
+  }
+
+  function startLesson(index) {
+    if (!course || index < 0 || index >= course.lessons.length) return
+    resetLessonRuntime()
     selectedLessonIndex = index
     lessonIndex = index
     stepIndex = 0
@@ -1189,11 +1223,29 @@ ShellRoot {
     startCurrentStep()
   }
 
+  // "hyprland-workspace-is" steps are prerequisites; when the learner is
+  // already on that workspace the step has nothing to teach and is skipped
+  // without a transition.
+  function stepAlreadySatisfied() {
+    var completion = currentStep ? currentStep.completion : null
+    return Boolean(completion && completion.type === "hyprland-workspace-is" && currentWorkspaceId() === Number(completion.id))
+  }
+
   function startCurrentStep() {
     cancelAction()
     stopAudio()
     clearActiveKeys()
     resetWindowTarget()
+    if (stepAlreadySatisfied()) {
+      if (currentLesson && stepIndex + 1 < currentLesson.steps.length) {
+        stepIndex++
+        startCurrentStep()
+      } else {
+        phase = "waiting"
+        beginLessonTransition("lesson-complete")
+      }
+      return
+    }
     phase = "waiting"
     captureWorkspaceStart()
     captureStepStartWindow()
@@ -1238,17 +1290,7 @@ ShellRoot {
   }
 
   function returnToMenu() {
-    runCleanup()
-    cancelAction()
-    stopAudio()
-    resetWindowTarget()
-    completionTimer.stop()
-    lessonTransitionAnimation.stop()
-    lessonTransitionRunning = false
-    lessonContentOpacity = 1
-    pendingLessonTransition = ""
-    pendingTransitionStepIndex = -1
-    clearActiveKeys()
+    resetLessonRuntime()
     lessonIndex = -1
     stepIndex = 0
     phase = "menu"
@@ -1438,7 +1480,19 @@ ShellRoot {
     actionCompletionType = currentStep.completion.type
     actionCompletionDelay = Number(currentStep.completion.delayMs || 250)
     armHelpDetection()
-    helpProcess.command = currentStep.help.command
+    var command = currentStep.help.command.map(function(part) {
+      return String(part).replace("{tutorialWindow}", "address:" + latestTutorialWindow())
+    })
+    if (currentStep.help.command.join(" ").indexOf("{tutorialWindow}") !== -1 && latestTutorialWindow() === "") {
+      // Nothing the course opened is left to act on; never fall back to
+      // whatever the learner has focused.
+      console.warn("learn-omarchy: Help skipped because no course-opened window is available")
+      actionRunning = false
+      actionStepId = ""
+      settleCharacter()
+      return
+    }
+    helpProcess.command = command
     helpProcess.running = true
   }
 
@@ -1458,6 +1512,9 @@ ShellRoot {
       // A newer overlay-level surface stacks above ours; re-map HEXON's window so he stays visible.
       externalLayerTick++
     }
+    var eventWindow = event.name === "closewindow" ? normalizedWindowAddress(String(event.data || "").split(",")[0]) : ""
+    var eventWindowWasTutorial = eventWindow !== "" && tutorialWindows.indexOf(eventWindow) !== -1
+    if (eventWindow !== "") forgetTutorialWindow(eventWindow)
     if (!currentStep || phase !== "waiting") return
     var completion = currentStep.completion
     if (
@@ -1487,7 +1544,7 @@ ShellRoot {
     }
     if (
       completion &&
-      completion.type === "hyprland-workspace-change" &&
+      (completion.type === "hyprland-workspace-change" || completion.type === "hyprland-workspace-is") &&
       (event.name === "workspace" ||
         event.name === "workspacev2" ||
         event.name === "focusedmon" ||
@@ -1509,6 +1566,14 @@ ShellRoot {
       if (completion.events.indexOf(String(event.name)) === -1) return
       var payload = String(event.data || "")
       if (completion.dataPattern && !(new RegExp(String(completion.dataPattern))).test(payload)) return
+      if (completion.target === "tutorial-window") {
+        var subject = normalizedWindowAddress(payload.split(",")[0])
+        var isTutorial = subject === eventWindow ? eventWindowWasTutorial : tutorialWindows.indexOf(subject) !== -1
+        if (!isTutorial) {
+          console.info("learn-omarchy: ignoring", event.name, "for", subject, "because the course didn't open that window")
+          return
+        }
+      }
       if (!windowDetectionArmed()) {
         console.info("learn-omarchy: ignoring", event.name, "because no shortcut or Help action is pending")
         return
@@ -1824,6 +1889,16 @@ ShellRoot {
         return
       }
       if (
+        exitCode !== 0 &&
+        root.phase === "waiting" &&
+        root.currentStepIsTour &&
+        finishedPath === root.currentAudioPath()
+      ) {
+        // The instruction stays on screen; the tour just uses its timed fallback.
+        console.warn("learn-omarchy: tour narration failed with exit code", exitCode, "; using the fallback duration")
+        tourAdvanceTimer.interval = root.tourFallbackDuration()
+        tourAdvanceTimer.restart()
+      } else if (
         exitCode !== 0 &&
         root.phase === "waiting" &&
         root.audioEnabled &&
@@ -4778,75 +4853,103 @@ ShellRoot {
             readonly property bool showsFlight: root.flightFrames > 0 && !root.reducedMotion &&
               hexonCoach.isFlying && root.characterState.indexOf("-fly") !== -1
 
-            SpriteSequence {
-              anchors.centerIn: parent
-              z: 1
-              visible: root.flightFrames > 0
-              opacity: characterImageArea.showsFlight ? 1 : 0
-              width: 256
-              height: 192
-              interpolate: false
-              running: characterImageArea.showsFlight
-              transform: Scale {
-                origin.x: 128
-                xScale: hexonCoach.flightDirection
-              }
-              sprites: [
-                Sprite {
-                  name: "fly"
-                  source: root.spriteSource("flight")
-                  frameCount: Math.max(1, root.flightFrames)
-                  frameWidth: 256
-                  frameHeight: 192
-                  frameRate: root.flightFrameRate
-                }
-              ]
+            // SpriteSequence bakes its strips into a sprite engine when it is
+            // created and ignores later source changes, so a coach switch
+            // rebuilds these through a Loader instead of rebinding sources.
+            Loader {
+              id: coachSpriteLoader
+              anchors.fill: parent
+              sourceComponent: coachSpritesComponent
 
-              Behavior on opacity {
-                NumberAnimation {
-                  duration: root.characterPoseFadeDuration
-                  easing.type: Easing.InOutSine
-                }
+              function rebuild() {
+                active = false
+                active = true
+              }
+
+              Connections {
+                target: root
+                function onCharacterNameChanged() { coachSpriteLoader.rebuild() }
+                function onCharacterConfigChanged() { coachSpriteLoader.rebuild() }
               }
             }
 
-            SpriteSequence {
-              anchors.centerIn: parent
-              z: 1
-              opacity: hexonCoach.poseStage > 0 || characterImageArea.showsFlight ? 0 : 1
-              width: 192
-              height: 192
-              interpolate: false
-              goalSprite: root.characterState === "talk" ||
-                (root.characterState === "tour-talk" && audioProcess.running)
-                ? "talk" : "idle"
-              onGoalSpriteChanged: jumpTo(goalSprite)
+            Component {
+              id: coachSpritesComponent
 
-              sprites: [
-                Sprite {
-                  name: "idle"
-                  source: root.spriteSource("idle")
-                  frameCount: 16
-                  frameWidth: 192
-                  frameHeight: 192
-                  frameRate: root.reducedMotion ? 2 : 6
-                  to: { "idle": 1, "talk": 1 }
-                },
-                Sprite {
-                  name: "talk"
-                  source: root.spriteSource("talk")
-                  frameCount: 8
-                  frameWidth: 192
-                  frameHeight: 192
-                  frameRate: root.reducedMotion ? 2 : 8
-                  to: { "idle": 1, "talk": 1 }
+              Item {
+                anchors.fill: parent
+
+                SpriteSequence {
+                  anchors.centerIn: parent
+                  z: 1
+                  visible: root.flightFrames > 0
+                  opacity: characterImageArea.showsFlight ? 1 : 0
+                  width: 256
+                  height: 192
+                  interpolate: false
+                  running: characterImageArea.showsFlight
+                  transform: Scale {
+                    origin.x: 128
+                    xScale: hexonCoach.flightDirection
+                  }
+                  sprites: [
+                    Sprite {
+                      name: "fly"
+                      source: root.spriteSource("flight")
+                      frameCount: Math.max(1, root.flightFrames)
+                      frameWidth: 256
+                      frameHeight: 192
+                      frameRate: root.flightFrameRate
+                    }
+                  ]
+
+                  Behavior on opacity {
+                    NumberAnimation {
+                      duration: root.characterPoseFadeDuration
+                      easing.type: Easing.InOutSine
+                    }
+                  }
                 }
-              ]
 
-              Behavior on opacity {
-                NumberAnimation {
-                  duration: root.characterPoseFadeDuration
-                  easing.type: Easing.InOutSine
+                SpriteSequence {
+                  anchors.centerIn: parent
+                  z: 1
+                  opacity: hexonCoach.poseStage > 0 || characterImageArea.showsFlight ? 0 : 1
+                  width: 192
+                  height: 192
+                  interpolate: false
+                  goalSprite: root.characterState === "talk" ||
+                    (root.characterState === "tour-talk" && audioProcess.running)
+                    ? "talk" : "idle"
+                  onGoalSpriteChanged: jumpTo(goalSprite)
+
+                  sprites: [
+                    Sprite {
+                      name: "idle"
+                      source: root.spriteSource("idle")
+                      frameCount: 16
+                      frameWidth: 192
+                      frameHeight: 192
+                      frameRate: root.reducedMotion ? 2 : 6
+                      to: { "idle": 1, "talk": 1 }
+                    },
+                    Sprite {
+                      name: "talk"
+                      source: root.spriteSource("talk")
+                      frameCount: 8
+                      frameWidth: 192
+                      frameHeight: 192
+                      frameRate: root.reducedMotion ? 2 : 8
+                      to: { "idle": 1, "talk": 1 }
+                    }
+                  ]
+
+                  Behavior on opacity {
+                    NumberAnimation {
+                      duration: root.characterPoseFadeDuration
+                      easing.type: Easing.InOutSine
+                    }
+                  }
                 }
               }
             }

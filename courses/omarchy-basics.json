@@ -346,14 +346,15 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.close())"
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "closewindow"
-            ]
+            ],
+            "target": "tutorial-window"
           },
           "highlight": {
             "shape": "rectangle",
@@ -458,14 +459,15 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.close())"
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "closewindow"
-            ]
+            ],
+            "target": "tutorial-window"
           },
           "highlight": {
             "shape": "rectangle",
@@ -689,14 +691,15 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.close())"
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "closewindow"
-            ]
+            ],
+            "target": "tutorial-window"
           },
           "highlight": {
             "shape": "rectangle",
@@ -727,14 +730,15 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.close())"
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "closewindow"
-            ]
+            ],
+            "target": "tutorial-window"
           },
           "highlight": {
             "shape": "rectangle",
@@ -759,6 +763,43 @@
       "icon": "05",
       "estimatedMinutes": 4,
       "steps": [
+        {
+          "id": "workspaces-home",
+          "instruction": "First, let's start from workspace one. Press Super and 1.",
+          "detail": "If you're already on workspace one, this step takes care of itself.",
+          "keys": [
+            "SUPER",
+            "+",
+            "1"
+          ],
+          "audio": "audio/workspaces-home.mp3",
+          "help": {
+            "label": "Take me there",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ workspace = \"1\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-workspace-is",
+            "id": 1
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800
+          },
+          "completionMessage": "Workspace one. That's home base for this module.",
+          "completionAudio": "audio/workspaces-home-done.mp3"
+        },
         {
           "id": "workspaces-open-terminal",
           "instruction": "We'll need a window to move around. Press Super and Return to open a terminal.",
@@ -813,7 +854,8 @@
             ]
           },
           "completion": {
-            "type": "hyprland-workspace-change"
+            "type": "hyprland-workspace-is",
+            "id": 2
           },
           "highlight": {
             "shape": "rectangle",
@@ -849,7 +891,8 @@
             ]
           },
           "completion": {
-            "type": "hyprland-workspace-change"
+            "type": "hyprland-workspace-is",
+            "id": 1
           },
           "highlight": {
             "shape": "rectangle",
@@ -1834,6 +1877,43 @@
           "pose": "talk"
         },
         {
+          "id": "finale-home",
+          "instruction": "Let's begin on workspace one. Press Super and 1.",
+          "detail": "If you're already on workspace one, this step takes care of itself.",
+          "keys": [
+            "SUPER",
+            "+",
+            "1"
+          ],
+          "audio": "audio/finale-home.mp3",
+          "help": {
+            "label": "Take me there",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ workspace = \"1\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-workspace-is",
+            "id": 1
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800
+          },
+          "completionMessage": "Good. Everything starts from here.",
+          "completionAudio": "audio/finale-home-done.mp3"
+        },
+        {
           "id": "finale-terminal",
           "instruction": "Start with a terminal. Press Super and Return.",
           "detail": "Every session starts somewhere. For most Omarchy users, it's here.",
@@ -1966,7 +2046,8 @@
             ]
           },
           "completion": {
-            "type": "hyprland-workspace-change"
+            "type": "hyprland-workspace-is",
+            "id": 1
           },
           "highlight": {
             "shape": "rectangle",
@@ -1998,14 +2079,15 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.close())"
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "closewindow"
-            ]
+            ],
+            "target": "tutorial-window"
           },
           "highlight": {
             "shape": "rectangle",
@@ -2040,7 +2122,8 @@
             ]
           },
           "completion": {
-            "type": "hyprland-workspace-change"
+            "type": "hyprland-workspace-is",
+            "id": 2
           },
           "highlight": {
             "shape": "rectangle",
@@ -2072,14 +2155,15 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.close())"
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "closewindow"
-            ]
+            ],
+            "target": "tutorial-window"
           },
           "highlight": {
             "shape": "rectangle",

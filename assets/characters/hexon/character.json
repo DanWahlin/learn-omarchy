@@ -41,5 +41,6 @@
     "anchorX": 0.5,
     "anchorY": 0.7
   },
-  "voice": "en-US-Andrew:DragonHDLatestNeural"
+  "voice": "en-US-Andrew:DragonHDLatestNeural",
+  "edgeVoice": "en-US-GuyNeural"
 }

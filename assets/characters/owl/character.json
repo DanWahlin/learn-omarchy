@@ -21,5 +21,6 @@
     "anchorX": 0.84,
     "anchorY": 0.63
   },
-  "voice": "en-GB-Ada:DragonHDLatestNeural"
+  "voice": "en-GB-Ada:DragonHDLatestNeural",
+  "edgeVoice": "en-GB-SoniaNeural"
 }

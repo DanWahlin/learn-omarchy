@@ -10,8 +10,9 @@ import { parseCourseJson } from "../src/course.ts";
 //
 // Narration is recorded once per coach: "audio/x.mp3" in the course is written
 // to audio/<character>/x.mp3, "HEXON" in the text becomes the coach's display
-// name, and the voice comes from "voice" in the coach's character.json (falling
-// back to the environment). Without --character every coach in
+// name, and the voice is LEARN_OMARCHY_TTS_VOICE when set, otherwise "voice"
+// (Azure) or "edgeVoice" (Edge) from the coach's character.json, otherwise a
+// backend default. Without --character every coach in
 // assets/characters/index.json is generated.
 //
 // --match regenerates only narration whose spoken text contains TEXT (case
@@ -75,7 +76,7 @@ const escapeXml = (text: string): string =>
 // "oh-MAH-chee"; override the respelling with LEARN_OMARCHY_PRONUNCIATION if
 // a different voice needs another spelling.
 const pronunciations: Record<string, string> = {
-  Omarchy: process.env.LEARN_OMARCHY_PRONUNCIATION ?? "Omaaachi",
+  Omarchy: process.env.LEARN_OMARCHY_PRONUNCIATION ?? "Omaachi",
 };
 
 const toSsmlText = (text: string): string =>
@@ -86,7 +87,9 @@ const toSsmlText = (text: string): string =>
     ),
   );
 
-type Character = { id: string; displayName: string; voice?: string };
+// Manifest voices are backend-specific: "voice" names an Azure voice and
+// "edgeVoice" an Edge TTS voice. LEARN_OMARCHY_TTS_VOICE always wins.
+type Character = { id: string; displayName: string; voice?: string; edgeVoice?: string };
 
 async function loadCharacters(): Promise<Character[]> {
   const index = JSON.parse(await readFile(resolve(charactersDir, "index.json"), "utf8")) as {
@@ -96,7 +99,7 @@ async function loadCharacters(): Promise<Character[]> {
   for (const entry of index.characters ?? []) {
     if (typeof entry.id !== "string") continue;
     if (onlyCharacter && entry.id !== onlyCharacter) continue;
-    let manifest: { displayName?: string; voice?: string } = {};
+    let manifest: { displayName?: string; voice?: string; edgeVoice?: string } = {};
     try {
       manifest = JSON.parse(await readFile(resolve(charactersDir, entry.id, "character.json"), "utf8"));
     } catch {
@@ -106,6 +109,7 @@ async function loadCharacters(): Promise<Character[]> {
       id: entry.id,
       displayName: manifest.displayName ?? entry.displayName ?? entry.id.toUpperCase(),
       voice: manifest.voice,
+      edgeVoice: manifest.edgeVoice,
     });
   }
   if (characters.length === 0) throw new Error(`No characters found under ${charactersDir}${onlyCharacter ? ` matching ${onlyCharacter}` : ""}`);
@@ -114,8 +118,8 @@ async function loadCharacters(): Promise<Character[]> {
 
 type Synthesizer = { voice: string; synthesize: (text: string, output: string) => Promise<void> };
 
-async function createEdgeSynthesizer(preferredVoice?: string): Promise<Synthesizer> {
-  const voice = preferredVoice ?? process.env.LEARN_OMARCHY_TTS_VOICE ?? "en-GB-RyanNeural";
+async function createEdgeSynthesizer(manifestVoice?: string): Promise<Synthesizer> {
+  const voice = process.env.LEARN_OMARCHY_TTS_VOICE ?? manifestVoice ?? "en-GB-RyanNeural";
   const edgeTts = process.env.EDGE_TTS_BIN ?? "edge-tts";
   return {
     voice,
@@ -130,12 +134,12 @@ async function createEdgeSynthesizer(preferredVoice?: string): Promise<Synthesiz
   };
 }
 
-async function createAzureSynthesizer(preferredVoice?: string): Promise<Synthesizer> {
+async function createAzureSynthesizer(manifestVoice?: string): Promise<Synthesizer> {
   const env = { ...(await loadEnvFile(envFile)), ...process.env } as Record<string, string | undefined>;
   const key = env.AZURE_SPEECH_KEY;
   const region = env.AZURE_SPEECH_REGION;
   const configuredEndpoint = env.AZURE_SPEECH_ENDPOINT;
-  const voice = preferredVoice ?? env.LEARN_OMARCHY_TTS_VOICE ?? env.AZURE_SPEECH_MALE_VOICE_US ?? "en-US-AndrewMultilingualNeural";
+  const voice = env.LEARN_OMARCHY_TTS_VOICE ?? manifestVoice ?? env.AZURE_SPEECH_MALE_VOICE_US ?? "en-US-AndrewMultilingualNeural";
   if (!key) throw new Error(`AZURE_SPEECH_KEY is not set (looked in ${envFile})`);
   if (!region && !configuredEndpoint) {
     throw new Error(`AZURE_SPEECH_REGION or AZURE_SPEECH_ENDPOINT is not set (looked in ${envFile})`);
@@ -190,7 +194,9 @@ function characterOutputPath(relativePath: string, character: Character): string
 
 let generated = 0;
 for (const character of await loadCharacters()) {
-  const synthesizer = backend === "azure" ? await createAzureSynthesizer(character.voice) : await createEdgeSynthesizer(character.voice);
+  const synthesizer = backend === "azure"
+    ? await createAzureSynthesizer(character.voice)
+    : await createEdgeSynthesizer(character.edgeVoice);
   const generate = async (text: string, relativePath: string): Promise<void> => {
     const spoken = text.replace(/HEXON/g, character.displayName);
     const relative = characterOutputPath(relativePath, character);
