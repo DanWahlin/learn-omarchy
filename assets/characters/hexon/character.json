@@ -1,0 +1,39 @@
+{
+  "displayName": "HEXON",
+  "prefix": "hexon",
+  "flames": true,
+  "idleFlames": [
+    [
+      96,
+      181
+    ],
+    [
+      130,
+      181
+    ]
+  ],
+  "pointFlames": [
+    [
+      80,
+      153
+    ],
+    [
+      122,
+      150
+    ]
+  ],
+  "pointPoseScale": 1.13,
+  "pointUpPoseScale": 1.13,
+  "pointTip": {
+    "x": 165,
+    "y": 75
+  },
+  "upTip": {
+    "x": 147,
+    "y": 42
+  },
+  "pointBlink": true,
+  "flightFrames": 1,
+  "flightFrameRate": 1,
+  "poseMid": true
+}

@@ -55,6 +55,12 @@ npm test
 
 ## Course controls
 
+On the very first run, after you choose a coach, the Omarchy tour opens
+straight away instead of the module picker. Completed modules are recorded
+per course in `~/.local/state/learn-omarchy/progress.json`, and the fact that
+the tour has been opened once is recorded in `settings.json` next to it, so a
+skipped tour is never forced again; it stays available from the picker.
+
 - Select a module with the mouse or arrow keys and `Enter`. Each card previews
   its first shortcut.
 - Press the displayed shortcut. Each keycap lights up while its key is held.
@@ -63,6 +69,10 @@ npm test
 - Select **Help** to perform the current action for you.
 - Use the speaker control to mute or unmute narration.
 - The speaker and exit controls remain available above the module picker.
+- The gear control opens Settings: choose a coach or reset progress.
+- The keyboard control beside them releases the keyboard to your other
+  windows so you can keep working while the course stays open. A pill at the
+  top of the screen brings the keys back; so does the control itself.
 - Use the play control beside the instruction to replay it.
 - Select **Skip** to move past an activity or **Topics** to return to the
   module picker.
@@ -92,8 +102,12 @@ him to the lower screen boundary.
 Completion guidance scales and positions HEXON from the available screen
 space, keeps him outside the target, and points at its vertical center. Travel
 uses eased movement with an upright pose and stronger boot thrust. Settled and
-pointing poses hover by a few pixels with smaller animated boot flames, and a
-brief leveling pause keeps coaching and pointing from snapping into place. At
+pointing poses hover by a few pixels with smaller animated boot flames, blink
+at irregular intervals, and a brief leveling pause keeps coaching and pointing
+from snapping into place. Takeoffs and landings squash and stretch slightly,
+and a short trail of fading pixels follows each flight. Coaches travel in
+their flying pose facing the direction of travel, land in the standing pose,
+and raise or lower the pointing limb through a halfway frame. At
 module completion, HEXON flies beside the summary panel before celebrating.
 Targets use a small pulsing reticle instead of attempting to
 outline an entire external window whose inner geometry isn't exposed by
@@ -102,6 +116,16 @@ Wayland. Set
 feedback while disabling nonessential movement.
 
 ## Install
+
+To put this checkout in Omarchy's Apps menu without copying it anywhere:
+
+```bash
+make dev-launcher
+```
+
+That writes a user desktop entry whose `Exec` points at `bin/learn-omarchy`
+in the repository, plus the HEXON icon, so edits apply on the next launch.
+`make dev-launcher-remove` takes it out again.
 
 Install for one user:
 
@@ -193,7 +217,9 @@ Two completion detectors are supported:
   the step's highlight, shows the instruction as a caption beneath him, plays
   the narration, and advances `delayMs` after it ends. With narration muted or
   unavailable the step advances after `durationMs` instead. Enter continues a
-  tour step early. Tour stops draw a pulsing rectangle around the highlight;
+  tour step early. A tour step with `"pose": "talk"` flies HEXON to the
+  highlight's center and animates his mouth instead of pointing, which the
+  tour uses for its welcome. Pointing stops draw a pulsing rectangle around the highlight;
   a highlight with `"dynamic": "workspaces"` sizes itself from the number of
   workspace pills the bar is showing.
 - `hyprland-window-activated` waits for an application window to open or gain
@@ -239,11 +265,25 @@ and instruction colors from:
 ### Narration
 
 Narration begins with each activity and stops during transitions or when the
-app exits. MP3, Opus, Ogg, FLAC, and WAV work through mpv. Audio paths must be
+app exits. An optional `completionAudio` file narrates the activity's
+`completionMessage` while HEXON points at the result; the next activity
+starts shortly after it finishes, or right away on Enter. MP3, Opus, Ogg, FLAC, and WAV work through mpv. Audio paths must be
 safe paths relative to the course file.
 
-The repository includes Ryan-voice MP3 narration for all bundled activities.
-To regenerate it with Edge TTS:
+The repository includes MP3 narration for all bundled activities, spoken by
+the Azure Speech HD Andrew voice from each activity's instruction text. To
+regenerate it with the same service, put `AZURE_SPEECH_KEY` and either
+`AZURE_SPEECH_REGION` or `AZURE_SPEECH_ENDPOINT` in `~/.env` (or pass
+`--env-file`), optionally `AZURE_SPEECH_MALE_VOICE_US` or
+`LEARN_OMARCHY_TTS_VOICE` for the voice, and run:
+
+```bash
+node --experimental-strip-types tools/generate-course-audio.ts \
+  courses/omarchy-basics.json --backend azure
+```
+
+Credential values are read from the file and never printed. Edge TTS remains
+available as a free fallback:
 
 ```bash
 python -m pip install edge-tts
@@ -278,6 +318,53 @@ the current activity's configured action. `react` previews a key reaction
 without injecting input, and `target` previews the post-completion flight
 without launching the external action. These methods are intended for
 diagnostics.
+
+## Characters
+
+HEXON is the default coach. On first launch a "Choose your coach" screen
+shows every character side by side; pick with the arrow keys or the mouse and
+confirm with Enter. The choice is saved to
+`~/.local/state/learn-omarchy/settings.json`. The gear button beside the
+speaker and exit controls opens Settings, where you can switch coaches and
+reset progress (two clicks, or press R twice); a reset clears every module
+checkmark and starts the tour again. The coach list comes from
+`assets/characters/index.json`.
+
+Alternative characters live under `assets/characters/<name>/` with the same
+asset set: `concepts/` (generated sheets), `sprites.conf` (pipeline geometry),
+`character.json` (runtime geometry: sprite prefix, display name, pointing
+tips, pose scales, boot flames, flight frames), and `sprites/` (built strips).
+A launch flag overrides the saved choice and skips the picker:
+
+```bash
+./bin/learn-omarchy --character owl
+```
+
+The bundled owl, OLLIE, was generated from a single concept with the image
+model configured in `~/.env` (`AI_IMAGE_ENDPOINT`, `AI_IMAGE_API_KEY`,
+`AI_IMAGE_MODEL`), then edited into the idle strip and poses:
+
+```bash
+node --experimental-strip-types tools/generate-character-art.ts generate \
+  --prompt "16-bit pixel art mascot sprite of ..." \
+  --out assets/characters/owl/concepts/owl-concept-v1.png
+node --experimental-strip-types tools/generate-character-art.ts edit \
+  --image assets/characters/owl/concepts/owl-concept-v1.png \
+  --prompt "Sprite sheet of this exact owl: 8 identical copies ..." \
+  --out assets/characters/owl/concepts/owl-idle-blink-strip-v1.png
+tools/prepare-character-sprites.sh owl
+```
+
+Credential values are never printed. The idle strip must hold eight copies in
+192 px columns with expressions in the order neutral, half blink, closed,
+happy; `sprites.conf` sets the eye region that is swapped between frames plus
+an optional alpha cutoff and column-locked alignment for generated art whose
+copies vary slightly. A character whose mouth is what moves (a beak, say) can
+add a `talk_source` strip with eight mouth variations, and characters with
+wings can list `flight_extra_sources` (a wing down-stroke) to build a
+multi-frame flight strip that `character.json` enables with `flightFrames`;
+those characters fly with their wings instead of HEXON's boot flames. Displayed text that names HEXON switches to the selected
+character's display name automatically.
 
 ## HEXON character lab
 

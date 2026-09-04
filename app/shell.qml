@@ -13,7 +13,194 @@ ShellRoot {
   readonly property string appRoot: Quickshell.env("LEARN_OMARCHY_ROOT") || (Quickshell.shellDir + "/..")
   readonly property string coursePath: Quickshell.env("LEARN_OMARCHY_COURSE") || (appRoot + "/courses/omarchy-basics.json")
   readonly property string courseDir: Quickshell.env("LEARN_OMARCHY_COURSE_DIR") || (appRoot + "/courses")
-  readonly property string characterAssetRoot: appRoot + "/assets/characters/hexon"
+  readonly property string characterOverride: String(Quickshell.env("LEARN_OMARCHY_CHARACTER") || "").toLowerCase()
+  readonly property string settingsPath: stateHome + "/learn-omarchy/settings.json"
+  property string characterName: characterOverride !== "" ? characterOverride : "hexon"
+  property string savedCharacter: ""
+  property bool settingsResolved: false
+  property bool progressResolved: false
+  // Set once the tour has been opened automatically, so a skipped tour is not
+  // forced again; completion itself lives in the progress file like any lesson.
+  property bool tourSeen: false
+  property var characterIndex: []
+  property int characterPick: 0
+  // "first-run" asks for a coach and proceeds on pick; "settings" stays open.
+  property string settingsMode: "settings"
+  property bool resetConfirmPending: false
+  property bool resetJustDone: false
+  readonly property string characterAssetRoot: appRoot + "/assets/characters/" + characterName
+  // Per-character geometry from assets/characters/<name>/character.json.
+  // Defaults describe HEXON so an incomplete manifest still works.
+  property var characterConfig: ({})
+  readonly property string characterPrefix: String(characterConfig.prefix || characterName)
+  readonly property string characterDisplayName: String(characterConfig.displayName || characterName.toUpperCase())
+  readonly property bool characterFlames: characterConfig.flames !== false
+  readonly property real pointPoseScale: Number(characterConfig.pointPoseScale) > 0 ? Number(characterConfig.pointPoseScale) : 1.13
+  readonly property real pointUpPoseScale: Number(characterConfig.pointUpPoseScale) > 0 ? Number(characterConfig.pointUpPoseScale) : pointPoseScale
+  readonly property var pointTip: characterConfig.pointTip || ({ "x": 165, "y": 75 })
+  readonly property var upTip: characterConfig.upTip || ({ "x": 147, "y": 42 })
+  readonly property var idleFlames: characterConfig.idleFlames || [[96, 181], [130, 181]]
+  readonly property var pointFlames: characterConfig.pointFlames || [[80, 153], [122, 150]]
+  // Characters with wings supply a flight strip (256px frames) shown while travelling.
+  readonly property int flightFrames: Math.max(0, Math.floor(Number(characterConfig.flightFrames) || 0))
+  // Closed-eye variants of the pointing poses (<prefix>-point-blink.png etc.).
+  readonly property bool pointBlink: characterConfig.pointBlink === true
+  // Halfway pointing frames (<prefix>-point-mid.png etc.) shown while the limb raises or lowers.
+  readonly property bool poseMid: characterConfig.poseMid === true
+  readonly property real flightFrameRate: Number(characterConfig.flightFrameRate) > 0 ? Number(characterConfig.flightFrameRate) : 5
+
+  // One expression per path so a coach switch never mixes the new folder
+  // with the previous manifest's sprite prefix mid-update.
+  function spriteSource(kind) {
+    var prefix = characterConfig.prefix ? String(characterConfig.prefix) : characterName
+    return appRoot + "/assets/characters/" + characterName + "/sprites/" + prefix + "-" + kind + ".png"
+  }
+
+  function characterText(text) {
+    return String(text || "").replace(/HEXON/g, characterDisplayName)
+  }
+
+  function characterChosen() {
+    return characterOverride !== "" || savedCharacter !== ""
+  }
+
+  function loadCharacterIndex(raw) {
+    try {
+      var parsed = JSON.parse(String(raw || "{}"))
+      var list = parsed && Array.isArray(parsed.characters) ? parsed.characters : []
+      characterIndex = list.filter(function(entry) { return entry && typeof entry.id === "string" })
+    } catch (error) {
+      console.warn("learn-omarchy: character index couldn't be parsed:", error)
+      characterIndex = []
+    }
+    syncCharacterPick()
+  }
+
+  function syncCharacterPick() {
+    for (var i = 0; i < characterIndex.length; i++) {
+      if (characterIndex[i].id === characterName) {
+        characterPick = i
+        return
+      }
+    }
+    characterPick = 0
+  }
+
+  function loadSettings(raw) {
+    try {
+      var parsed = JSON.parse(String(raw || "{}"))
+      savedCharacter = parsed && typeof parsed.character === "string" ? parsed.character.toLowerCase() : ""
+      tourSeen = Boolean(parsed && parsed.tourSeen === true)
+    } catch (error) {
+      console.warn("learn-omarchy: settings file couldn't be parsed:", error)
+      savedCharacter = ""
+      tourSeen = false
+    }
+    if (characterOverride === "" && savedCharacter !== "") applyCharacter(savedCharacter)
+    settingsResolved = true
+    if (phase === "menu" && lessonIndex < 0) {
+      if (!characterChosen()) openCharacterPicker()
+      else maybeAutoStartTour()
+    }
+  }
+
+  function persistSettings() {
+    settingsFile.setText(JSON.stringify({
+      schemaVersion: 1,
+      character: savedCharacter,
+      tourSeen: tourSeen
+    }, null, 2) + "\n")
+  }
+
+  // First run: open the tour straight away instead of the topic menu. Only
+  // when progress is known, the tour was never completed, and it was never
+  // auto-opened before.
+  function maybeAutoStartTour() {
+    if (!course || !settingsResolved || !progressResolved || tourSeen) return false
+    if (phase !== "menu" || lessonIndex >= 0 || course.lessons.length === 0) return false
+    if (completedLessons[course.lessons[0].id]) return false
+    tourSeen = true
+    persistSettings()
+    startLesson(0)
+    return true
+  }
+
+  function enterHome() {
+    phase = "menu"
+    setCharacterState("menu-point", "CHOOSE A LESSON")
+    maybeAutoStartTour()
+  }
+
+  function applyCharacter(id) {
+    var next = String(id || "").toLowerCase()
+    if (next === "" || next === characterName) return
+    characterConfig = {}
+    characterName = next
+    characterFile.reload()
+    syncCharacterPick()
+  }
+
+  function chooseCharacter(id) {
+    applyCharacter(id)
+    savedCharacter = characterName
+    persistSettings()
+    if (phase === "settings" && settingsMode === "first-run") enterHome()
+  }
+
+  function openCharacterPicker() {
+    openSettings("first-run")
+  }
+
+  function openSettings(mode) {
+    if (phase !== "menu" && phase !== "settings") return
+    settingsMode = mode || "settings"
+    resetConfirmPending = false
+    syncCharacterPick()
+    stopAudio()
+    phase = "settings"
+    setCharacterState("hidden", "")
+  }
+
+  function closeSettings() {
+    if (phase !== "settings") return
+    resetConfirmPending = false
+    if (!characterChosen()) {
+      Qt.quit()
+      return
+    }
+    enterHome()
+  }
+
+  function requestResetProgress() {
+    if (!resetConfirmPending) {
+      resetConfirmPending = true
+      resetConfirmTimer.restart()
+      return
+    }
+    resetConfirmTimer.stop()
+    resetConfirmPending = false
+    completedLessons = ({})
+    persistProgress()
+    tourSeen = false
+    persistSettings()
+    resetJustDone = true
+    resetDoneTimer.restart()
+  }
+
+  function moveCharacterPick(delta) {
+    if (characterIndex.length === 0) return
+    characterPick = Math.max(0, Math.min(characterIndex.length - 1, characterPick + delta))
+  }
+
+  function loadCharacterConfig(raw) {
+    try {
+      var parsed = JSON.parse(String(raw || "{}"))
+      characterConfig = parsed && typeof parsed === "object" ? parsed : {}
+    } catch (error) {
+      console.warn("learn-omarchy: character manifest couldn't be parsed:", error)
+      characterConfig = {}
+    }
+  }
   readonly property string progressPath: stateHome + "/learn-omarchy/progress.json"
   readonly property string themePath: stateHome + "/omarchy/current/theme"
   readonly property string themeNamePath: stateHome + "/omarchy/current/theme.name"
@@ -39,6 +226,15 @@ ShellRoot {
   property int actionGeneration: 0
   property int actionProcessGeneration: -1
   property bool keyboardFocused: false
+  // The overlay holds the keyboard exclusively so shortcuts light up the
+  // keycaps. The keyboard button (or IPC "keys") releases it to other
+  // windows; the hint pill or the button takes it back.
+  property bool keyboardExclusive: true
+
+  function setKeyboardExclusive(exclusive) {
+    keyboardExclusive = Boolean(exclusive)
+    if (keyboardExclusive) Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+  }
   property string actionStepId: ""
   property string actionCompletionType: ""
   property int actionCompletionDelay: 250
@@ -66,13 +262,16 @@ ShellRoot {
   property real shortcutArmedUntil: 0
   property real characterX: 0
   property real characterY: 0
+  property int externalLayerTick: 0
 
   readonly property int windowGeometryMaxAttempts: 6
   readonly property int shortcutArmWindowMs: 8000
   readonly property int helpArmWindowMs: 10000
 
   readonly property int characterTravelDuration: reducedMotion ? 0 : 1050
-  readonly property int characterPoseFadeDuration: reducedMotion ? 0 : 420
+  // Coaches with halfway frames switch poses with hard cuts, like sprite
+  // animation; the landing squash and the halfway frame do the smoothing.
+  readonly property int characterPoseFadeDuration: reducedMotion || poseMid ? 0 : 420
 
   property color accent: "#7aa2f7"
   property color foreground: "#a9b1d6"
@@ -98,6 +297,9 @@ ShellRoot {
   readonly property var currentLesson: course && lessonIndex >= 0 ? course.lessons[lessonIndex] : null
   readonly property var currentStep: currentLesson ? currentLesson.steps[stepIndex] : null
   readonly property bool currentStepIsTour: Boolean(currentStep && currentStep.kind === "tour")
+  readonly property bool currentTourTalks: currentStepIsTour && currentStep.pose === "talk"
+  readonly property string tourRestingState: currentTourTalks ? "tour-talk" : "tour-point"
+  readonly property string tourRestingMessage: currentTourTalks ? "HELLO!" : "LOOK HERE"
   readonly property int completedCount: {
     if (!course) return 0
     var count = 0
@@ -245,7 +447,7 @@ ShellRoot {
   function startCharacterStep() {
     if (currentStepIsTour) {
       if (reducedMotion) {
-        setCharacterState("tour-point", "LOOK HERE")
+        setCharacterState(tourRestingState, tourRestingMessage)
         Qt.callLater(beginTourNarration)
       } else {
         setCharacterState("tour-fly", "FOLLOW ME")
@@ -626,9 +828,14 @@ ShellRoot {
     stepIndex = 0
     clearActiveKeys()
     errorMessage = ""
-    phase = "menu"
-    setCharacterState("menu-point", "CHOOSE A LESSON")
     applyCourseProgress()
+    if (settingsResolved && !characterChosen()) {
+      settingsMode = "first-run"
+      phase = "settings"
+      setCharacterState("hidden", "")
+    } else {
+      enterHome()
+    }
   }
 
   function applyCourseProgress() {
@@ -656,6 +863,8 @@ ShellRoot {
     }
     progressByCourse = nextByCourse
     applyCourseProgress()
+    progressResolved = true
+    if (phase === "menu" && lessonIndex < 0 && characterChosen()) maybeAutoStartTour()
   }
 
   function persistProgress() {
@@ -803,8 +1012,39 @@ ShellRoot {
     return currentStep && currentStep.audio ? courseDir + "/" + currentStep.audio : ""
   }
 
+  function completionAudioPath() {
+    return currentStep && currentStep.completionAudio ? courseDir + "/" + currentStep.completionAudio : ""
+  }
+
+  function playCompletionNarration() {
+    if (phase !== "highlight") return
+    var path = completionAudioPath()
+    if (!audioEnabled || path === "") return
+    if (audioProcess.running || audioStopRequested) {
+      if (audioProcessPath === path && !audioStopRequested) return
+      pendingAudioPath = path
+      pendingAudioPreserveCharacterState = true
+      audioStopRequested = true
+      if (audioProcess.running) audioProcess.running = false
+      return
+    }
+    completionTimer.stop()
+    startAudioPath(path, true)
+  }
+
+  function finishCompletionNarration() {
+    if (phase !== "highlight") return
+    completionTimer.interval = 900
+    completionTimer.restart()
+  }
+
   function startAudioPath(path, preserveCharacterState) {
-    if (!audioEnabled || path === "" || path !== currentAudioPath()) return
+    if (!audioEnabled || path === "") return
+    if (path !== currentAudioPath() && path !== completionAudioPath()) return
+    if (path === completionAudioPath() && path !== currentAudioPath()) {
+      if (phase !== "highlight") return
+      completionTimer.stop()
+    }
     audioStopRequested = false
     pendingAudioPath = ""
     pendingAudioPreserveCharacterState = false
@@ -847,7 +1087,9 @@ ShellRoot {
   function toggleAudio() {
     audioEnabled = !audioEnabled
     if (audioEnabled) {
-      if (currentStepIsTour) {
+      if (phase === "highlight") {
+        playCompletionNarration()
+      } else if (currentStepIsTour) {
         tourAdvanceTimer.stop()
         playCurrentAudio(true)
       } else {
@@ -856,7 +1098,9 @@ ShellRoot {
       return
     }
     var wasPlayingTour = currentStepIsTour && audioProcess.running
+    var wasPlayingCompletion = phase === "highlight" && audioProcess.running
     stopAudio()
+    if (phase === "highlight" && !wasPlayingCompletion && !completionTimer.running) finishCompletionNarration()
     if (currentStepIsTour && !wasPlayingTour && phase === "waiting" && !tourAdvanceTimer.running) {
       tourAdvanceTimer.interval = tourFallbackDuration()
       tourAdvanceTimer.restart()
@@ -915,6 +1159,10 @@ ShellRoot {
   }
 
   function handleHyprlandEvent(event) {
+    if (event.name === "openlayer" && String(event.data || "").trim().indexOf("learn-omarchy") !== 0) {
+      // A newer overlay-level surface stacks above ours; re-map HEXON's window so he stays visible.
+      externalLayerTick++
+    }
     if (!currentStep || phase !== "waiting") return
     var completion = currentStep.completion
     if (
@@ -978,6 +1226,18 @@ ShellRoot {
       event.accepted = true
       return
     }
+    if (phase === "settings") {
+      if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) moveCharacterPick(-1)
+      else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down || event.key === Qt.Key_Tab) moveCharacterPick(1)
+      else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+        if (characterIndex.length > 0) chooseCharacter(characterIndex[characterPick].id)
+        if (settingsMode !== "first-run") closeSettings()
+      } else if (event.key === Qt.Key_R && settingsMode !== "first-run") requestResetProgress()
+      else if (isPlainEscape(event)) closeSettings()
+      else return
+      event.accepted = true
+      return
+    }
     if (phase === "menu") {
       if (event.key === Qt.Key_Left) moveMenuSelection(-1)
       else if (event.key === Qt.Key_Right) moveMenuSelection(1)
@@ -998,6 +1258,16 @@ ShellRoot {
     }
     if (phase === "error") {
       if (isPlainEscape(event)) returnToMenu()
+      event.accepted = true
+      return
+    }
+    if (phase === "highlight") {
+      if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space) {
+        stopAudio()
+        advance()
+      } else if (isPlainEscape(event)) {
+        returnToMenu()
+      }
       event.accepted = true
       return
     }
@@ -1035,6 +1305,31 @@ ShellRoot {
   }
 
   FileView {
+    id: characterFile
+    path: root.characterAssetRoot + "/character.json"
+    printErrors: false
+    onLoaded: root.loadCharacterConfig(text())
+    onLoadFailed: console.warn("learn-omarchy: no character manifest at", path, "- using HEXON defaults")
+  }
+
+  FileView {
+    id: characterIndexFile
+    path: root.appRoot + "/assets/characters/index.json"
+    printErrors: false
+    onLoaded: root.loadCharacterIndex(text())
+    onLoadFailed: console.warn("learn-omarchy: no character index at", path)
+  }
+
+  FileView {
+    id: settingsFile
+    path: root.settingsPath
+    atomicWrites: true
+    printErrors: false
+    onLoaded: root.loadSettings(text())
+    onLoadFailed: root.loadSettings("{}")
+  }
+
+  FileView {
     id: progressFile
     path: root.progressPath
     watchChanges: true
@@ -1042,7 +1337,7 @@ ShellRoot {
     printErrors: false
     onLoaded: root.loadProgress(text())
     onFileChanged: reload()
-    onLoadFailed: root.completedLessons = ({})
+    onLoadFailed: root.loadProgress("{}")
   }
 
   FileView {
@@ -1076,12 +1371,16 @@ ShellRoot {
     function status(): string {
       return JSON.stringify({
         phase: root.phase,
+        character: root.characterName,
         lessonIndex: root.lessonIndex,
         selectedLessonIndex: root.selectedLessonIndex,
         stepIndex: root.stepIndex,
         lessonId: root.currentLesson ? root.currentLesson.id : "",
         stepId: root.currentStep ? root.currentStep.id : "",
         keyboardFocused: root.keyboardFocused,
+        keyboardExclusive: root.keyboardExclusive,
+        tourSeen: root.tourSeen,
+        completedLessons: root.completedLessons,
         characterState: root.characterState,
         characterMessage: root.characterMessage,
         lessonContentOpacity: root.lessonContentOpacity,
@@ -1129,6 +1428,25 @@ ShellRoot {
       return "ok"
     }
 
+    function keys(mode: string): string {
+      root.setKeyboardExclusive(String(mode) !== "release")
+      return root.keyboardExclusive ? "exclusive" : "released"
+    }
+
+    function settings(action: string): string {
+      var what = String(action)
+      if (what === "open") { root.openSettings("settings"); return root.phase }
+      if (what === "close") { root.closeSettings(); return root.phase }
+      if (what === "reset") { root.requestResetProgress(); root.requestResetProgress(); return "reset" }
+      return "unknown-action"
+    }
+
+    function coach(id: string): string {
+      if (root.phase !== "menu" && root.phase !== "settings") return "not-in-menu"
+      root.chooseCharacter(String(id))
+      return root.characterName
+    }
+
     function target(): string {
       if (root.phase !== "waiting" || !root.currentStep) return "not-waiting"
       root.completeCurrentStep()
@@ -1148,7 +1466,8 @@ ShellRoot {
       root.pendingAudioPath = ""
       root.pendingAudioPreserveCharacterState = false
       if (stopped) {
-        if (queuedPath !== "" && root.audioEnabled && queuedPath === root.currentAudioPath()) {
+        if (queuedPath !== "" && root.audioEnabled &&
+            (queuedPath === root.currentAudioPath() || queuedPath === root.completionAudioPath())) {
           Qt.callLater(function() {
             root.startAudioPath(queuedPath, preserveQueuedCharacterState)
           })
@@ -1160,9 +1479,16 @@ ShellRoot {
         ) {
           tourAdvanceTimer.interval = root.tourFallbackDuration()
           tourAdvanceTimer.restart()
+        } else if (root.phase === "highlight" && finishedPath === root.completionAudioPath()) {
+          root.finishCompletionNarration()
         } else if (root.phase === "waiting" && root.characterState === "talk") {
           root.settleCharacter()
         }
+        return
+      }
+      if (root.phase === "highlight" && finishedPath === root.completionAudioPath()) {
+        if (exitCode !== 0) console.warn("learn-omarchy: completion narration failed with exit code", exitCode)
+        root.finishCompletionNarration()
         return
       }
       if (
@@ -1440,6 +1766,7 @@ ShellRoot {
       if (root.phase === "highlight" && root.currentStep) {
         if (root.reducedMotion) {
           root.setCharacterState("target-point", "HERE IT IS!")
+          root.playCompletionNarration()
         } else {
           root.setCharacterState("target-fly", "LET'S TAKE A LOOK")
           characterTargetPointTimer.restart()
@@ -1470,7 +1797,7 @@ ShellRoot {
         if (root.audioEnabled && root.currentAudioPath() !== "") root.playCurrentAudio()
         else root.settleCharacter()
       } else if (root.phase === "waiting" && root.characterState === "tour-settle") {
-        root.setCharacterState("tour-point", "LOOK HERE")
+        root.setCharacterState(root.tourRestingState, root.tourRestingMessage)
         root.beginTourNarration()
       } else if (root.phase === "waiting" && root.characterState === "help-settle") {
         root.setCharacterState("help", "RIGHT HERE")
@@ -1478,10 +1805,27 @@ ShellRoot {
         root.setCharacterState("menu-point", "CHOOSE A LESSON")
       } else if (root.phase === "highlight" && root.characterState === "target-settle") {
         root.setCharacterState("target-point", "HERE IT IS!")
+        root.playCompletionNarration()
       } else if (root.phase === "lesson-complete" && root.characterState === "module-settle") {
         root.setCharacterState("celebrate", "MODULE COMPLETE!")
       }
     }
+  }
+
+  Timer {
+    // A pending reset confirmation expires on its own rather than on mouse
+    // movement, since the button resizes under the cursor when its label changes.
+    id: resetConfirmTimer
+    interval: 6000
+    repeat: false
+    onTriggered: root.resetConfirmPending = false
+  }
+
+  Timer {
+    id: resetDoneTimer
+    interval: 4000
+    repeat: false
+    onTriggered: root.resetJustDone = false
   }
 
   Timer {
@@ -1513,1593 +1857,733 @@ ShellRoot {
   Variants {
     model: Quickshell.screens
 
-    delegate: PanelWindow {
-      id: overlay
+    delegate: Scope {
+      id: screenScope
 
       required property var modelData
-      property real menuSelectionX: width / 2
-      property real menuSelectionY: height / 2
-      readonly property bool isFocusedScreen: {
-        var monitor = Hyprland.monitorFor(modelData)
-        return monitor && monitor === Hyprland.focusedMonitor
-      }
-      readonly property bool shouldShow: root.phase !== "loading" && isFocusedScreen
-      readonly property var highlight: root.currentStep ? root.currentStep.highlight : null
-      readonly property var hyprlandMonitor: Hyprland.monitorFor(modelData)
-      readonly property bool windowOnThisMonitor:
-        Boolean(root.targetWindowGeometry && root.targetMonitorGeometry) &&
-        (!hyprlandMonitor || Number(hyprlandMonitor.id) === Number(root.targetMonitorGeometry.id))
-      readonly property bool usesWindowTarget:
-        Boolean(root.currentStep) &&
-        root.currentStep.completion.type === "hyprland-window-activated" &&
-        windowOnThisMonitor
-      readonly property real monitorLogicalWidth: usesWindowTarget
-        ? logicalMonitorSize(root.targetMonitorGeometry).width
-        : width
-      readonly property real monitorLogicalHeight: usesWindowTarget
-        ? logicalMonitorSize(root.targetMonitorGeometry).height
-        : height
-      readonly property real windowScaleX: monitorLogicalWidth > 0 ? width / monitorLogicalWidth : 1
-      readonly property real windowScaleY: monitorLogicalHeight > 0 ? height / monitorLogicalHeight : 1
-      readonly property real minimumLeftPointX: 213
-      readonly property real windowTargetX: usesWindowTarget
-        ? (Number(root.targetWindowGeometry.at[0]) - Number(root.targetMonitorGeometry.x)) * windowScaleX
-        : 0
-      readonly property real windowTargetY: usesWindowTarget
-        ? (Number(root.targetWindowGeometry.at[1]) - Number(root.targetMonitorGeometry.y)) * windowScaleY
-        : 0
-      readonly property real windowTargetWidth: usesWindowTarget
-        ? Number(root.targetWindowGeometry.size[0]) * windowScaleX
-        : 0
-      readonly property real windowTargetHeight: usesWindowTarget
-        ? Number(root.targetWindowGeometry.size[1]) * windowScaleY
-        : 0
-      readonly property real dynamicHighlightWidth: {
-        if (!highlight || highlight.dynamic !== "workspaces") return highlight ? highlight.width : 0
-        // One 27px pill plus a 1px gap per workspace, with the bar's edge padding.
-        return 12 + (root.barWorkspaceCount() * 28)
-      }
-      readonly property real fittedHighlightWidth: {
-        if (!highlight) return 0
-        if (highlight.shape === "circle") {
-          return Math.max(0, Math.min(highlight.width, width - 20, height - 20))
+
+      PanelWindow {
+        id: overlay
+
+        property real menuSelectionX: width / 2
+        property real menuSelectionY: height / 2
+        readonly property bool isFocusedScreen: {
+          var monitor = Hyprland.monitorFor(screenScope.modelData)
+          return monitor && monitor === Hyprland.focusedMonitor
         }
-        return Math.max(0, Math.min(dynamicHighlightWidth, width - 20))
-      }
-      readonly property real fittedHighlightHeight: {
-        if (!highlight) return 0
-        if (highlight.shape === "circle") return fittedHighlightWidth
-        return Math.max(0, Math.min(highlight.height, height - 20))
-      }
-      readonly property real targetBoundsX: usesWindowTarget
-        ? windowTargetX
-        : highlight
-        ? anchoredX(highlight.anchor, fittedHighlightWidth, highlight.x)
-        : width / 2
-      readonly property real targetBoundsY: usesWindowTarget
-        ? windowTargetY
-        : highlight
-        ? anchoredY(highlight.anchor, fittedHighlightHeight, highlight.y)
-        : height / 2
-      readonly property real targetPointX: {
-        var value
-        if (usesWindowTarget) {
-          value = leftEdgePointX(windowTargetX, windowTargetWidth)
-        } else if (highlight) {
-          value = highlight.shape === "circle"
-            ? targetBoundsX + (fittedHighlightWidth / 2)
-            : leftEdgePointX(targetBoundsX, fittedHighlightWidth)
-        } else {
-          value = width / 2
+        readonly property bool shouldShow: root.phase !== "loading" && isFocusedScreen
+        readonly property var highlight: root.currentStep ? root.currentStep.highlight : null
+        readonly property var hyprlandMonitor: Hyprland.monitorFor(screenScope.modelData)
+        readonly property bool windowOnThisMonitor:
+          Boolean(root.targetWindowGeometry && root.targetMonitorGeometry) &&
+          (!hyprlandMonitor || Number(hyprlandMonitor.id) === Number(root.targetMonitorGeometry.id))
+        readonly property bool usesWindowTarget:
+          Boolean(root.currentStep) &&
+          root.currentStep.completion.type === "hyprland-window-activated" &&
+          windowOnThisMonitor
+        readonly property real monitorLogicalWidth: usesWindowTarget
+          ? logicalMonitorSize(root.targetMonitorGeometry).width
+          : width
+        readonly property real monitorLogicalHeight: usesWindowTarget
+          ? logicalMonitorSize(root.targetMonitorGeometry).height
+          : height
+        readonly property real windowScaleX: monitorLogicalWidth > 0 ? width / monitorLogicalWidth : 1
+        readonly property real windowScaleY: monitorLogicalHeight > 0 ? height / monitorLogicalHeight : 1
+        readonly property real minimumLeftPointX: 213
+        readonly property real windowTargetX: usesWindowTarget
+          ? (Number(root.targetWindowGeometry.at[0]) - Number(root.targetMonitorGeometry.x)) * windowScaleX
+          : 0
+        readonly property real windowTargetY: usesWindowTarget
+          ? (Number(root.targetWindowGeometry.at[1]) - Number(root.targetMonitorGeometry.y)) * windowScaleY
+          : 0
+        readonly property real windowTargetWidth: usesWindowTarget
+          ? Number(root.targetWindowGeometry.size[0]) * windowScaleX
+          : 0
+        readonly property real windowTargetHeight: usesWindowTarget
+          ? Number(root.targetWindowGeometry.size[1]) * windowScaleY
+          : 0
+        readonly property real dynamicHighlightWidth: {
+          if (!highlight || highlight.dynamic !== "workspaces") return highlight ? highlight.width : 0
+          // One 27px pill plus a 1px gap per workspace, with the bar's edge padding.
+          return 12 + (root.barWorkspaceCount() * 28)
         }
-        return Math.max(0, Math.min(width, value))
-      }
-      readonly property real targetPointY: {
-        var value
-        if (usesWindowTarget) value = windowTargetY + (windowTargetHeight / 2)
-        else if (highlight) value = targetBoundsY + (fittedHighlightHeight / 2)
-        else value = height / 2
-        return Math.max(0, Math.min(height, value))
-      }
-
-      readonly property real tourPointX: highlight ? targetBoundsX + (fittedHighlightWidth / 2) : width / 2
-      // Fingertip target sits ~44px under the box so the antennas (about 38px
-      // above the fingertip) stay clear of the bar area being discussed.
-      readonly property real tourPointY: highlight ? targetBoundsY + fittedHighlightHeight + 44 : 80
-
-      function logicalMonitorSize(monitor) {
-        var scale = Number(monitor.scale) > 0 ? Number(monitor.scale) : 1
-        var transform = Number(monitor.transform) || 0
-        var logicalWidth = Number(monitor.width) / scale
-        var logicalHeight = Number(monitor.height) / scale
-        if (transform % 2 === 1) return { width: logicalHeight, height: logicalWidth }
-        return { width: logicalWidth, height: logicalHeight }
-      }
-
-      function leftEdgePointX(left, itemWidth) {
-        if (left >= minimumLeftPointX) return left
-        return Math.min(left + itemWidth, minimumLeftPointX)
-      }
-
-      screen: modelData
-      visible: shouldShow
-      anchors {
-        top: true
-        bottom: true
-        left: true
-        right: true
-      }
-      color: "transparent"
-      exclusionMode: ExclusionMode.Ignore
-      WlrLayershell.namespace: "learn-omarchy"
-      WlrLayershell.layer: WlrLayer.Overlay
-      WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-      mask: Region {
-        Region { item: topicPanel }
-        Region { item: lessonNavigation }
-        Region { item: controls }
-        Region { item: replayButton }
-        Region { item: actionButton }
-        Region { item: hexonCoach }
-        Region { item: completionPanel }
-        Region { item: errorPanel }
-      }
-
-      Item {
-        id: keyCatcher
-        anchors.fill: parent
-        focus: true
-        onActiveFocusChanged: root.keyboardFocused = activeFocus
-
-        Keys.priority: Keys.BeforeItem
-        Keys.onPressed: function(event) { root.handleKeyPressed(event) }
-        Keys.onReleased: function(event) {
-          if (root.phase === "waiting") {
-            root.updateActiveKeys(event, false)
-            event.accepted = false
+        readonly property real fittedHighlightWidth: {
+          if (!highlight) return 0
+          if (highlight.shape === "circle") {
+            return Math.max(0, Math.min(highlight.width, width - 20, height - 20))
           }
+          return Math.max(0, Math.min(dynamicHighlightWidth, width - 20))
+        }
+        readonly property real fittedHighlightHeight: {
+          if (!highlight) return 0
+          if (highlight.shape === "circle") return fittedHighlightWidth
+          return Math.max(0, Math.min(highlight.height, height - 20))
+        }
+        readonly property real targetBoundsX: usesWindowTarget
+          ? windowTargetX
+          : highlight
+          ? anchoredX(highlight.anchor, fittedHighlightWidth, highlight.x)
+          : width / 2
+        readonly property real targetBoundsY: usesWindowTarget
+          ? windowTargetY
+          : highlight
+          ? anchoredY(highlight.anchor, fittedHighlightHeight, highlight.y)
+          : height / 2
+        readonly property real targetPointX: {
+          var value
+          if (usesWindowTarget) {
+            value = leftEdgePointX(windowTargetX, windowTargetWidth)
+          } else if (highlight) {
+            value = highlight.shape === "circle"
+              ? targetBoundsX + (fittedHighlightWidth / 2)
+              : leftEdgePointX(targetBoundsX, fittedHighlightWidth)
+          } else {
+            value = width / 2
+          }
+          return Math.max(0, Math.min(width, value))
+        }
+        readonly property real targetPointY: {
+          var value
+          if (usesWindowTarget) value = windowTargetY + (windowTargetHeight / 2)
+          else if (highlight) value = targetBoundsY + (fittedHighlightHeight / 2)
+          else value = height / 2
+          return Math.max(0, Math.min(height, value))
         }
 
-        Component.onCompleted: Qt.callLater(function() { keyCatcher.forceActiveFocus() })
-      }
+        readonly property real tourCenterX: highlight ? targetBoundsX + (fittedHighlightWidth / 2) : width / 2
+        readonly property real tourCenterY: highlight ? targetBoundsY + (fittedHighlightHeight / 2) : height / 2
+        readonly property real tourPointX: highlight ? targetBoundsX + (fittedHighlightWidth / 2) : width / 2
+        // Fingertip target sits ~44px under the box so the antennas (about 38px
+        // above the fingertip) stay clear of the bar area being discussed.
+        readonly property real tourPointY: highlight ? targetBoundsY + fittedHighlightHeight + 44 : 80
 
-      function anchoredX(anchor, itemWidth, offset) {
-        var normalizedAnchor = String(anchor || "center")
-        var value
-        if (normalizedAnchor.indexOf("left") !== -1 || normalizedAnchor === "left") value = offset
-        else if (normalizedAnchor.indexOf("right") !== -1 || normalizedAnchor === "right") value = width - itemWidth + offset
-        else value = Math.round((width - itemWidth) / 2) + offset
-        return Math.max(0, Math.min(width - itemWidth, value))
-      }
+        function logicalMonitorSize(monitor) {
+          var scale = Number(monitor.scale) > 0 ? Number(monitor.scale) : 1
+          var transform = Number(monitor.transform) || 0
+          var logicalWidth = Number(monitor.width) / scale
+          var logicalHeight = Number(monitor.height) / scale
+          if (transform % 2 === 1) return { width: logicalHeight, height: logicalWidth }
+          return { width: logicalWidth, height: logicalHeight }
+        }
 
-      function anchoredY(anchor, itemHeight, offset) {
-        var normalizedAnchor = String(anchor || "center")
-        var value
-        if (normalizedAnchor.indexOf("top") !== -1 || normalizedAnchor === "top") value = offset
-        else if (normalizedAnchor.indexOf("bottom") !== -1 || normalizedAnchor === "bottom") value = height - itemHeight + offset
-        else value = Math.round((height - itemHeight) / 2) + offset
-        return Math.max(0, Math.min(height - itemHeight, value))
-      }
+        function leftEdgePointX(left, itemWidth) {
+          if (left >= minimumLeftPointX) return left
+          return Math.min(left + itemWidth, minimumLeftPointX)
+        }
 
-      function updateMenuSelectionTarget(item, index) {
-        if (!item || index !== root.selectedLessonIndex) return
-        var point = item.mapToItem(
-          topicPanel,
-          0,
-          item.height / 2
-        )
-        var nextX = topicPanel.x + point.x
-        var nextY = topicPanel.y + point.y
-        menuSelectionX = nextX
-        menuSelectionY = nextY
-      }
-
-      Rectangle {
-        anchors.fill: parent
-        visible: root.phase === "menu" || root.phase === "lesson-complete" || root.phase === "error"
-        color: root.colorWithAlpha(root.background, 0.72)
-      }
-
-      Rectangle {
-        id: targetMarker
-        z: 9
-        visible: root.phase === "highlight" &&
-          root.characterState === "target-point" &&
-          overlay.highlight
-        opacity: root.lessonContentOpacity
-        width: 38
-        height: 38
-        x: Math.round(overlay.targetPointX - (width / 2))
-        y: Math.round(overlay.targetPointY - (height / 2))
+        screen: screenScope.modelData
+        visible: shouldShow
+        anchors {
+          top: true
+          bottom: true
+          left: true
+          right: true
+        }
         color: "transparent"
-        border.color: root.accent
-        border.width: 4
-        radius: 19
-
-        SequentialAnimation on scale {
-          running: targetMarker.visible && !root.reducedMotion
-          loops: Animation.Infinite
-          NumberAnimation { from: 0.72; to: 1.18; duration: 520; easing.type: Easing.OutCubic }
-          NumberAnimation { from: 1.18; to: 0.72; duration: 520; easing.type: Easing.InCubic }
+        exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.namespace: "learn-omarchy"
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: root.keyboardExclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand
+        mask: Region {
+          Region { item: topicPanel }
+          Region { item: keyboardHint }
+          Region { item: characterPanel }
+          Region { item: lessonNavigation }
+          Region { item: controls }
+          Region { item: replayButton }
+          Region { item: actionButton }
+          Region { item: completionPanel }
+          Region { item: errorPanel }
         }
-      }
 
-      Rectangle {
-        id: tourOutline
-        z: 9
-        visible: root.phase === "waiting" &&
-          root.currentStepIsTour &&
-          (root.characterState === "tour-point" || root.characterState === "tour-settle") &&
-          overlay.highlight
-        opacity: root.lessonContentOpacity
-        x: Math.round(overlay.targetBoundsX)
-        y: Math.round(overlay.targetBoundsY)
-        width: Math.round(overlay.fittedHighlightWidth)
-        height: Math.round(overlay.fittedHighlightHeight)
-        color: root.colorWithAlpha(root.accent, 0.12)
-        border.color: root.accent
-        border.width: overlay.highlight ? Math.max(2, Math.min(4, Number(overlay.highlight.borderWidth) || 3)) : 3
-        radius: overlay.highlight ? Number(overlay.highlight.radius) || 8 : 8
+        Item {
+          id: keyCatcher
+          anchors.fill: parent
+          focus: true
+          onActiveFocusChanged: root.keyboardFocused = activeFocus
 
-        SequentialAnimation on border.color {
-          running: tourOutline.visible && !root.reducedMotion
-          loops: Animation.Infinite
-          ColorAnimation { to: root.instruction; duration: 600 }
-          ColorAnimation { to: root.accent; duration: 600 }
+          Keys.priority: Keys.BeforeItem
+          Keys.onPressed: function(event) { root.handleKeyPressed(event) }
+          Keys.onReleased: function(event) {
+            if (root.phase === "waiting") {
+              root.updateActiveKeys(event, false)
+              event.accepted = false
+            }
+          }
+
+          Component.onCompleted: Qt.callLater(function() { keyCatcher.forceActiveFocus() })
         }
-      }
 
-      Rectangle {
-        id: tourCaption
-        z: 11
-        visible: hexonCoach.visible && root.phase === "waiting" && root.currentStepIsTour
-        opacity: root.lessonContentOpacity
-        width: Math.min(400, overlay.width - 24, Math.max(200, tourCaptionText.implicitWidth + 32))
-        height: tourCaptionText.implicitHeight + 24
-        // Centre under HEXON, but never leave the screen.
-        x: Math.round(Math.max(12, Math.min(overlay.width - width - 12,
-          hexonCoach.x + (hexonCoach.width / 2) - (width / 2))))
-        y: Math.round(Math.min(overlay.height - height - 12, hexonCoach.y + hexonCoach.height + 8))
-        radius: 12
-        color: root.background
-        border.color: root.instruction
-        border.width: 2
+        function anchoredX(anchor, itemWidth, offset) {
+          var normalizedAnchor = String(anchor || "center")
+          var value
+          if (normalizedAnchor.indexOf("left") !== -1 || normalizedAnchor === "left") value = offset
+          else if (normalizedAnchor.indexOf("right") !== -1 || normalizedAnchor === "right") value = width - itemWidth + offset
+          else value = Math.round((width - itemWidth) / 2) + offset
+          return Math.max(0, Math.min(width - itemWidth, value))
+        }
 
-        Text {
-          id: tourCaptionText
-          width: Math.min(tourCaption.width - 32, implicitWidth)
+        function anchoredY(anchor, itemHeight, offset) {
+          var normalizedAnchor = String(anchor || "center")
+          var value
+          if (normalizedAnchor.indexOf("top") !== -1 || normalizedAnchor === "top") value = offset
+          else if (normalizedAnchor.indexOf("bottom") !== -1 || normalizedAnchor === "bottom") value = height - itemHeight + offset
+          else value = Math.round((height - itemHeight) / 2) + offset
+          return Math.max(0, Math.min(height - itemHeight, value))
+        }
+
+        function updateMenuSelectionTarget(item, index) {
+          if (!item || index !== root.selectedLessonIndex) return
+          var point = item.mapToItem(
+            topicPanel,
+            0,
+            item.height / 2
+          )
+          var nextX = topicPanel.x + point.x
+          var nextY = topicPanel.y + point.y
+          menuSelectionX = nextX
+          menuSelectionY = nextY
+        }
+
+        Rectangle {
+          anchors.fill: parent
+          visible: root.phase === "menu" || root.phase === "settings" || root.phase === "lesson-complete" || root.phase === "error"
+          color: root.colorWithAlpha(root.background, 0.72)
+        }
+
+        Rectangle {
+          id: characterPanel
+          visible: root.phase === "settings"
           anchors.centerIn: parent
-          text: root.currentStep ? root.currentStep.instruction : ""
-          textFormat: Text.PlainText
-          horizontalAlignment: Text.AlignHCenter
-          wrapMode: Text.WordWrap
-          color: root.instruction
-          font.family: "sans-serif"
-          font.pixelSize: 15
-          font.weight: Font.Bold
-        }
-      }
-
-      Item {
-        id: hexonCoach
-        z: 10
-
-        property real effectScale: 1
-        property real effectRotation: 0
-        property real effectOpacity: 1
-        property bool userPlaced: false
-        property real userX: 0
-        property real userY: 0
-        property string interactionMessage: ""
-        readonly property bool targetsCompletion:
-          root.characterState === "target-fly" ||
-          root.characterState === "target-settle" ||
-          root.characterState === "target-point"
-        readonly property bool targetsTour:
-          root.characterState === "tour-fly" ||
-          root.characterState === "tour-settle" ||
-          root.characterState === "tour-point"
-        readonly property bool isPointingUp: root.characterState === "tour-point"
-        readonly property bool targetsMenu:
-          root.characterState === "menu-fly" ||
-          root.characterState === "menu-settle" ||
-          root.characterState === "menu-point"
-        readonly property bool targetsModuleComplete: root.phase === "lesson-complete"
-        readonly property bool isPointing:
-          root.characterState === "help" ||
-          root.characterState === "target-point" ||
-          root.characterState === "tour-point" ||
-          root.characterState === "menu-point"
-        // Fingertip of the upward pose inside the 224x192 image (before the 1.13 pose scale).
-        readonly property real upTipImageX: 147
-        readonly property real upTipImageY: 42
-        readonly property real upTipLocalX: 8 + 112 + ((upTipImageX - 112) * pointPoseScale)
-        readonly property real upTipLocalY: (height - 192) + 96 + ((upTipImageY - 96) * pointPoseScale)
-        readonly property real tourTipX:
-          Math.max(18 + upTipLocalX, Math.min(overlay.width - 18 - (width - upTipLocalX), overlay.tourPointX))
-        readonly property real tourX: tourTipX - upTipLocalX
-        readonly property real tourY: Math.max(-(height - 192) - 4, overlay.tourPointY - upTipLocalY)
-        readonly property bool isFlying:
-          root.characterState === "step-fly" ||
-          root.characterState === "step-settle" ||
-          root.characterState === "help-fly" ||
-          root.characterState === "help-settle" ||
-          root.characterState === "target-fly" ||
-          root.characterState === "target-settle" ||
-          root.characterState === "tour-fly" ||
-          root.characterState === "tour-settle" ||
-          root.characterState === "menu-fly" ||
-          root.characterState === "menu-settle" ||
-          root.characterState === "module-fly" ||
-          root.characterState === "module-settle"
-        readonly property bool isSettledHover:
-          visible && !isFlying && root.characterState !== "hidden"
-        readonly property real pointPoseScale: 1.13
-        readonly property real waitingX:
-          Math.max(28, teachingContent.x - width - 22)
-        readonly property real waitingY:
-          Math.max(70, overlay.height - height - 28)
-        readonly property real menuTargetX: overlay.menuSelectionX
-        readonly property real menuTargetY: overlay.menuSelectionY
-        readonly property real moduleTargetX:
-          Math.max(18, completionPanel.x - width - 22)
-        readonly property real moduleTargetY:
-          Math.max(50, Math.min(bottomY,
-            completionPanel.y + (completionPanel.height / 2) - (height * 0.55)))
-        readonly property real targetScale: targetsCompletion
-          ? Math.max(0.5, Math.min(1, (overlay.targetPointX - 18) / 195))
-          : 1
-        readonly property real responsiveScale: targetsCompletion ? targetScale : 1
-        property real presentationScale: responsiveScale
-        readonly property real targetX:
-          overlay.targetPointX - (width / 2) - (75 * targetScale)
-        readonly property real targetY:
-          overlay.targetPointY - height + (117 * targetScale)
-        readonly property real bottomY: overlay.height - height - 28
-        readonly property real contextX: targetsMenu
-          ? Math.max(18, Math.min(overlay.width - width - 18, menuTargetX - width + 45))
-          : targetsTour
-            ? tourX
-          : targetsCompletion
-            ? Math.max(18 - (width * (1 - targetScale) / 2), Math.min(overlay.width - width - 18, targetX))
-            : targetsModuleComplete
-              ? moduleTargetX
-            : waitingX
-        readonly property real contextY: targetsMenu
-          ? Math.max(50, menuTargetY - (height * 0.55))
-          : targetsTour
-            ? tourY
-          : targetsCompletion
-            ? Math.max(50, Math.min(bottomY, targetY))
-            : targetsModuleComplete
-              ? moduleTargetY
-            : waitingY
-
-        visible: (root.phase === "menu" ||
-          root.phase === "waiting" ||
-          root.phase === "highlight" ||
-          root.phase === "lesson-complete") &&
-          root.characterState !== "hidden"
-        width: 240
-        height: 260
-        x: userPlaced ? userX : contextX
-        y: userPlaced ? userY : contextY
-        scale: effectScale * presentationScale
-        rotation: effectRotation
-        opacity: effectOpacity
-        transformOrigin: Item.Bottom
-
-        onIsSettledHoverChanged: {
-          if (!isSettledHover) characterImageArea.hoverOffset = 0
-        }
-
-        onXChanged: if (overlay.shouldShow) root.characterX = x
-        onYChanged: if (overlay.shouldShow) root.characterY = y
-
-        Behavior on presentationScale {
-          enabled: hexonCoach.visible && !root.reducedMotion
-          NumberAnimation {
-            duration: 320
-            easing.type: Easing.InOutSine
-          }
-        }
-
-        // The pin (userPlaced) must not gate these Behaviors: when the pin is
-        // released the x/y bindings can re-evaluate before `enabled` does,
-        // which made HEXON jump to the target instead of flying there. Only
-        // direct manipulation (dragging, the gravity fall) bypasses them.
-        Behavior on x {
-          enabled: hexonCoach.visible && !root.reducedMotion && !characterMouse.pressed
-          NumberAnimation {
-            duration: root.characterTravelDuration
-            easing.type: Easing.InOutSine
-          }
-        }
-
-        Behavior on y {
-          enabled: hexonCoach.visible && !root.reducedMotion && !characterMouse.pressed && !fallAnimation.running
-          NumberAnimation {
-            duration: root.characterState === "menu-point" ? 620 : root.characterTravelDuration
-            easing.type: Easing.InOutSine
-          }
-        }
-
-        Connections {
-          target: root
-
-          function onPendingLessonTransitionChanged() {
-            if (root.pendingLessonTransition !== "highlight" || !hexonCoach.visible) return
-            fallAnimation.stop()
-            hexonCoach.userX = hexonCoach.x
-            hexonCoach.userY = hexonCoach.y
-            hexonCoach.userPlaced = true
-          }
-
-          function onCharacterCueChanged() {
-            if (
-              root.characterState === "step-fly" ||
-              root.characterState === "step-settle" ||
-              root.characterState === "help-fly" ||
-              root.characterState === "help-settle" ||
-              root.characterState === "help" ||
-              root.characterState === "target-fly" ||
-              root.characterState === "target-settle" ||
-              root.characterState === "target-point" ||
-              root.characterState === "tour-fly" ||
-              root.characterState === "tour-settle" ||
-              root.characterState === "tour-point" ||
-              root.characterState === "menu-fly" ||
-              root.characterState === "menu-settle" ||
-              root.characterState === "menu-point" ||
-              root.characterState === "module-fly" ||
-              root.characterState === "module-settle"
-            ) {
-              fallAnimation.stop()
-              hexonCoach.userPlaced = false
-            }
-            if (root.reducedMotion) {
-              hexonCoach.effectScale = 1
-              hexonCoach.effectRotation = 0
-              hexonCoach.effectOpacity = 1
-              return
-            }
-            if (root.characterState === "correct") correctAnimation.restart()
-            else if (root.characterState === "incorrect") incorrectAnimation.restart()
-            else if (root.characterState === "celebrate") {
-              celebrateAnimation.restart()
-              confettiAnimation.restart()
-            }
-            else {
-              hexonCoach.effectScale = 1
-              hexonCoach.effectRotation = 0
-              hexonCoach.effectOpacity = 1
-            }
-          }
-
-          function onSelectedLessonIndexChanged() {
-            if (root.phase === "menu") {
-              fallAnimation.stop()
-              hexonCoach.userPlaced = false
-            }
-          }
-        }
-
-        SequentialAnimation {
-          id: correctAnimation
-          PropertyAction {
-            target: hexonCoach
-            property: "effectScale"
-            value: 1
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectScale"
-            to: 1.06
-            duration: 220
-            easing.type: Easing.InOutSine
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectScale"
-            to: 1
-            duration: 280
-            easing.type: Easing.InOutSine
-          }
-        }
-
-        SequentialAnimation {
-          id: incorrectAnimation
-          PropertyAction {
-            target: hexonCoach
-            property: "effectRotation"
-            value: 0
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectRotation"
-            to: -3
-            duration: 160
-            easing.type: Easing.InOutSine
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectRotation"
-            to: 3
-            duration: 240
-            easing.type: Easing.InOutSine
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectRotation"
-            to: 0
-            duration: 220
-            easing.type: Easing.InOutSine
-          }
-        }
-
-        SequentialAnimation {
-          id: celebrateAnimation
-          PropertyAction {
-            target: hexonCoach
-            property: "effectScale"
-            value: 1
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectScale"
-            to: 1.1
-            duration: 260
-            easing.type: Easing.InOutSine
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectScale"
-            to: 1
-            duration: 360
-            easing.type: Easing.InOutSine
-          }
-        }
-
-        SequentialAnimation {
-          id: clickAnimation
-          PropertyAction {
-            target: hexonCoach
-            property: "effectScale"
-            value: 1
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectScale"
-            to: 1.07
-            duration: 180
-            easing.type: Easing.InOutSine
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectScale"
-            to: 0.98
-            duration: 160
-            easing.type: Easing.InOutSine
-          }
-          NumberAnimation {
-            target: hexonCoach
-            property: "effectScale"
-            to: 1
-            duration: 220
-            easing.type: Easing.InOutSine
-          }
-        }
-
-        NumberAnimation {
-          id: fallAnimation
-          target: hexonCoach
-          property: "userY"
-          to: hexonCoach.bottomY
-          duration: root.reducedMotion ? 0 : 850
-          easing.type: Easing.OutCubic
-        }
-
-        Timer {
-          id: interactionMessageTimer
-          interval: 900
-          repeat: false
-          onTriggered: hexonCoach.interactionMessage = ""
-        }
-
-        Rectangle {
-          anchors {
-            horizontalCenter: parent.horizontalCenter
-            verticalCenter: characterImageArea.verticalCenter
-          }
-          visible: root.characterState === "correct"
-          width: 164
-          height: 164
-          radius: 82
-          color: "transparent"
+          width: Math.min(880, parent.width - 64)
+          height: characterColumn.implicitHeight + 64
+          color: root.background
           border.color: root.accent
-          border.width: 4
-          opacity: 0.42
-
-          SequentialAnimation on scale {
-            running: root.characterState === "correct" && !root.reducedMotion
-            loops: Animation.Infinite
-            NumberAnimation { from: 0.86; to: 1.18; duration: 620; easing.type: Easing.OutCubic }
-            NumberAnimation { from: 1.18; to: 0.86; duration: 620; easing.type: Easing.InCubic }
-          }
-        }
-
-        Item {
-          id: confettiBurst
-
-          // 0 -> 1 over one burst. Every piece derives its own arc from this
-          // single value, so the whole effect is one animation.
-          property real progress: 1
-          readonly property bool active: progress < 1
-          readonly property real originX: hexonCoach.width / 2
-          readonly property real originY: hexonCoach.height - 120
-
-          anchors.fill: parent
-          visible: active
-
-          NumberAnimation {
-            id: confettiAnimation
-            target: confettiBurst
-            property: "progress"
-            from: 0
-            to: 1
-            duration: 1100
-            easing.type: Easing.Linear
-          }
-
-          Repeater {
-            model: 20
-
-            Rectangle {
-              required property int index
-              readonly property real seed: ((index * 7919) % 97) / 97
-              readonly property real seed2: ((index * 104729) % 89) / 89
-              // Fan the pieces across the upper half so they fly up and out.
-              readonly property real angle: (Math.PI * 0.12) + (index / 20) * (Math.PI * 0.76)
-              readonly property real speed: 200 + (seed * 140)
-              readonly property real vx: Math.cos(angle) * speed
-              readonly property real vy: Math.sin(angle) * speed
-              readonly property real t: confettiBurst.progress
-              readonly property real px: confettiBurst.originX + (vx * t)
-              readonly property real py: confettiBurst.originY - (vy * t) + (300 * t * t)
-
-              width: 5 + Math.round(seed2 * 5)
-              height: width
-              x: px - (width / 2)
-              y: py - (height / 2)
-              rotation: t * 540 * (index % 2 === 0 ? 1 : -1)
-              opacity: t < 0.55 ? 1 : Math.max(0, 1 - ((t - 0.55) / 0.45))
-              color: index % 4 === 0
-                ? root.accent
-                : index % 4 === 1
-                  ? root.instruction
-                  : index % 4 === 2
-                    ? root.urgent
-                    : root.foreground
-            }
-          }
-        }
-
-        Rectangle {
-          visible: !hexonCoach.isPointingUp
-          anchors {
-            top: parent.top
-          }
-          x: hexonCoach.isPointing
-            ? 195 - width
-            : (parent.width - width) / 2
-          width: Math.min(230, Math.max(112, characterMessageText.implicitWidth + 24))
-          height: Math.max(38, characterMessageText.implicitHeight + 16)
-          radius: 10
-          color: root.foreground
-          border.color: root.characterState === "incorrect" ? root.urgent : root.accent
           border.width: 2
+          radius: 18
 
-          Text {
-            id: characterMessageText
-            anchors {
-              fill: parent
-              margins: 8
-            }
-            text: hexonCoach.interactionMessage !== ""
-              ? hexonCoach.interactionMessage
-              : root.characterMessage
-            textFormat: Text.PlainText
-            horizontalAlignment: Text.AlignHCenter
-            verticalAlignment: Text.AlignVCenter
-            wrapMode: Text.WordWrap
-            color: root.background
-            font.family: "monospace"
-            font.pixelSize: 12
-            font.weight: Font.Bold
-          }
-        }
-
-        Item {
-          id: characterImageArea
-
-          property real hoverOffset: 0
-
-          anchors {
-            horizontalCenter: parent.horizontalCenter
-            bottom: parent.bottom
-            bottomMargin: hoverOffset
-          }
-          width: 224
-          height: 192
-
-          SequentialAnimation on hoverOffset {
-            running: hexonCoach.isSettledHover && !root.reducedMotion
-            loops: Animation.Infinite
-            NumberAnimation {
-              from: 0
-              to: 4
-              duration: 900
-              easing.type: Easing.InOutSine
-            }
-            NumberAnimation {
-              from: 4
-              to: 0
-              duration: 900
-              easing.type: Easing.InOutSine
-            }
-          }
-
-          Repeater {
-            model: hexonCoach.isPointing
-              ? [{ "x": 80, "y": 153 }, { "x": 122, "y": 150 }]
-              : [{ "x": 96, "y": 181 }, { "x": 130, "y": 181 }]
-
-            delegate: Item {
-              required property var modelData
-
-              property real flamePulse: 1
-
-              visible: hexonCoach.visible && !root.reducedMotion
-              x: modelData.x - 6
-              y: modelData.y
-              width: 12
-              height: 26
-              z: 0
-              scale: (hexonCoach.isFlying ? 1.35 : 1) * flamePulse
-              transformOrigin: Item.Top
-
-              Rectangle {
-                x: 4
-                width: 4
-                height: 6
-                color: root.foreground
-              }
-
-              Rectangle {
-                x: 2
-                y: 5
-                width: 8
-                height: 7
-                color: root.instruction
-              }
-
-              Rectangle {
-                x: 3
-                y: 12
-                width: 6
-                height: 8
-                color: root.urgent
-              }
-
-              Rectangle {
-                x: 5
-                y: 20
-                width: 2
-                height: 6
-                color: root.accent
-              }
-
-              SequentialAnimation on flamePulse {
-                running: parent.visible
-                loops: Animation.Infinite
-                NumberAnimation {
-                  from: 0.72
-                  to: 1.08
-                  duration: 150
-                  easing.type: Easing.InOutSine
-                }
-                NumberAnimation {
-                  from: 1.08
-                  to: 0.82
-                  duration: 190
-                  easing.type: Easing.InOutSine
-                }
-              }
-
-              SequentialAnimation on opacity {
-                running: parent.visible
-                loops: Animation.Infinite
-                NumberAnimation { from: 0.72; to: 1; duration: 170 }
-                NumberAnimation { from: 1; to: 0.76; duration: 170 }
-              }
-            }
-          }
-
-          SpriteSequence {
+          ColumnLayout {
+            id: characterColumn
             anchors.centerIn: parent
-            z: 1
-            opacity: hexonCoach.isPointing ? 0 : 1
-            width: 192
-            height: 192
-            interpolate: false
-            goalSprite: root.characterState === "talk" ? "talk" : "idle"
-            onGoalSpriteChanged: jumpTo(goalSprite)
+            width: parent.width - 64
+            spacing: 16
 
-            sprites: [
-              Sprite {
-                name: "idle"
-                source: root.characterAssetRoot + "/sprites/hexon-idle.png"
-                frameCount: 16
-                frameWidth: 192
-                frameHeight: 192
-                frameRate: root.reducedMotion ? 2 : 6
-                to: { "idle": 1, "talk": 1 }
-              },
-              Sprite {
-                name: "talk"
-                source: root.characterAssetRoot + "/sprites/hexon-talk.png"
-                frameCount: 8
-                frameWidth: 192
-                frameHeight: 192
-                frameRate: root.reducedMotion ? 2 : 8
-                to: { "idle": 1, "talk": 1 }
-              }
-            ]
-
-            Behavior on opacity {
-              NumberAnimation {
-                duration: root.characterPoseFadeDuration
-                easing.type: Easing.InOutSine
-              }
+            Text {
+              Layout.alignment: Qt.AlignHCenter
+              text: root.settingsMode === "first-run" ? "Choose your coach" : "Settings"
+              color: root.instruction
+              font.family: "sans-serif"
+              font.pixelSize: 30
+              font.weight: Font.Bold
             }
-          }
-
-          Image {
-            anchors.fill: parent
-            z: 1
-            opacity: hexonCoach.isPointingUp ? 1 : 0
-            source: root.characterAssetRoot + "/sprites/hexon-point-up.png"
-            fillMode: Image.PreserveAspectFit
-            smooth: false
-            mipmap: false
-            scale: hexonCoach.pointPoseScale
-
-            Behavior on opacity {
-              NumberAnimation {
-                duration: root.characterPoseFadeDuration
-                easing.type: Easing.InOutSine
-              }
-            }
-          }
-
-          Image {
-            anchors.fill: parent
-            z: 1
-            opacity: hexonCoach.isPointing && !hexonCoach.isPointingUp ? 1 : 0
-            source: root.characterAssetRoot + "/sprites/hexon-point.png"
-            fillMode: Image.PreserveAspectFit
-            smooth: false
-            mipmap: false
-            scale: hexonCoach.pointPoseScale
-
-            Behavior on opacity {
-              NumberAnimation {
-                duration: root.characterPoseFadeDuration
-                easing.type: Easing.InOutSine
-              }
-            }
-          }
-
-        }
-
-        MouseArea {
-          id: characterMouse
-
-          property real pressSceneX: 0
-          property real pressSceneY: 0
-          property real startX: 0
-          property real startY: 0
-          property bool moved: false
-
-          anchors.fill: parent
-          z: 20
-          enabled: root.phase !== "menu"
-          hoverEnabled: true
-          cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
-          preventStealing: true
-
-          onPressed: function(mouse) {
-            var scenePosition = hexonCoach.mapToItem(overlay.contentItem, mouse.x, mouse.y)
-            fallAnimation.stop()
-            pressSceneX = scenePosition.x
-            pressSceneY = scenePosition.y
-            startX = hexonCoach.x
-            startY = hexonCoach.y
-            moved = false
-            hexonCoach.userX = startX
-            hexonCoach.userY = startY
-            hexonCoach.userPlaced = true
-          }
-
-          onPositionChanged: function(mouse) {
-            if (!pressed) return
-            var scenePosition = hexonCoach.mapToItem(overlay.contentItem, mouse.x, mouse.y)
-            var deltaX = scenePosition.x - pressSceneX
-            var deltaY = scenePosition.y - pressSceneY
-            if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) moved = true
-            hexonCoach.userX = Math.max(
-              18,
-              Math.min(overlay.width - hexonCoach.width - 18, startX + deltaX)
-            )
-            hexonCoach.userY = Math.max(
-              28,
-              Math.min(hexonCoach.bottomY, startY + deltaY)
-            )
-          }
-
-          onReleased: {
-            if (moved) {
-              hexonCoach.interactionMessage = "WHEE!"
-              interactionMessageTimer.restart()
-              if (root.reducedMotion) hexonCoach.userY = hexonCoach.bottomY
-              else fallAnimation.restart()
-            } else {
-              hexonCoach.userPlaced = false
-              hexonCoach.interactionMessage = "BEEP BOOP!"
-              interactionMessageTimer.restart()
-              if (!root.reducedMotion) clickAnimation.restart()
-            }
-          }
-
-          onCanceled: {
-            if (hexonCoach.userPlaced) {
-              if (root.reducedMotion) hexonCoach.userY = hexonCoach.bottomY
-              else fallAnimation.restart()
-            }
-          }
-        }
-      }
-
-      Rectangle {
-        id: topicPanel
-        visible: root.phase === "menu" && root.course
-        anchors.centerIn: parent
-        width: Math.min(980, parent.width - 64)
-        height: Math.min(850, parent.height - 64)
-        color: root.background
-        border.color: root.accent
-        border.width: 2
-        radius: 18
-
-        ColumnLayout {
-          anchors {
-            fill: parent
-            margins: 28
-          }
-          spacing: 12
-
-          RowLayout {
-            Layout.fillWidth: true
-
-            ColumnLayout {
+            Text {
               Layout.fillWidth: true
-              spacing: 4
-
-              Text {
-                text: root.course ? root.course.title : ""
-                color: root.instruction
-                font.family: "sans-serif"
-                font.pixelSize: 30
-                font.weight: Font.Bold
-              }
-              Text {
-                Layout.maximumWidth: topicPanel.width - 150
-                text: root.course ? root.course.description : ""
-                color: root.foreground
-                opacity: 0.82
-                font.family: "sans-serif"
-                font.pixelSize: 15
-                wrapMode: Text.WordWrap
-              }
+              horizontalAlignment: Text.AlignHCenter
+              text: root.settingsMode === "first-run"
+                ? "Your coach flies around the screen, points things out, and talks you through every shortcut. You can change coaches later from the settings button in the top right."
+                : "Pick who coaches you and manage your progress."
+              color: root.foreground
+              opacity: 0.8
+              wrapMode: Text.WordWrap
+              font.family: "sans-serif"
+              font.pixelSize: 14
             }
 
-            Rectangle {
-              implicitWidth: progressText.implicitWidth + 24
-              implicitHeight: 36
-              color: root.colorWithAlpha(root.accent, 0.18)
-              border.color: root.accent
-              border.width: 1
-              radius: 18
-
-              Text {
-                id: progressText
-                anchors.centerIn: parent
-                text: root.completedCount + " / " + (root.course ? root.course.lessons.length : 0) + " complete"
-                color: root.foreground
-                font.family: "sans-serif"
-                font.pixelSize: 13
-                font.weight: Font.DemiBold
-              }
+            Text {
+              visible: root.settingsMode !== "first-run"
+              text: "COACH"
+              color: root.muted
+              font.family: "monospace"
+              font.pixelSize: 11
+              font.weight: Font.Bold
             }
-          }
 
-          Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 1
-            color: root.colorWithAlpha(root.foreground, 0.18)
-          }
+            RowLayout {
+              Layout.alignment: Qt.AlignHCenter
+              spacing: 22
 
-          GridLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            columns: 2
-            columnSpacing: 14
-            rowSpacing: 14
+              Repeater {
+                model: root.characterIndex
 
-            Repeater {
-              model: root.course ? root.course.lessons : []
+                Rectangle {
+                  id: characterCard
+                  required property int index
+                  required property var modelData
+                  readonly property bool selected: index === root.characterPick
+                  readonly property bool active: modelData.id === root.characterName
 
-              Rectangle {
-                id: lessonCard
-                required property int index
-                required property var modelData
-                readonly property bool selected: index === root.selectedLessonIndex
-                readonly property bool completed: root.completedLessons[modelData.id] === true
+                  implicitWidth: 300
+                  implicitHeight: 340
+                  color: characterCardMouse.containsMouse || selected
+                    ? root.colorWithAlpha(root.accent, 0.18)
+                    : root.colorWithAlpha(root.foreground, 0.045)
+                  border.color: selected ? root.accent : root.colorWithAlpha(root.foreground, 0.22)
+                  border.width: selected ? 3 : 1
+                  radius: 14
+                  scale: selected ? 1.03 : 1
 
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.minimumHeight: 105
-                color: cardMouse.containsMouse || selected
-                  ? root.colorWithAlpha(root.accent, 0.18)
-                  : root.colorWithAlpha(root.foreground, 0.045)
-                border.color: selected ? root.accent : root.colorWithAlpha(root.foreground, 0.22)
-                border.width: selected ? 2 : 1
-                radius: 12
-
-                function syncCharacterTarget() {
-                  if (selected) overlay.updateMenuSelectionTarget(lessonCard, index)
-                }
-
-                onSelectedChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                onXChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                onYChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                onWidthChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                onHeightChanged: if (selected) Qt.callLater(syncCharacterTarget)
-                Component.onCompleted: if (selected) Qt.callLater(syncCharacterTarget)
-
-                RowLayout {
-                  anchors {
-                    fill: parent
-                    margins: 16
-                  }
-                  spacing: 14
-
-                  Rectangle {
-                    implicitWidth: 48
-                    implicitHeight: 48
-                    color: lessonCard.completed ? root.accent : root.colorWithAlpha(root.accent, 0.16)
-                    border.color: root.accent
-                    border.width: 1
-                    radius: 24
-
-                    Text {
-                      anchors.centerIn: parent
-                      text: lessonCard.completed ? "✓" : lessonCard.modelData.icon
-                      color: lessonCard.completed ? root.background : root.foreground
-                      font.family: "monospace"
-                      font.pixelSize: 16
-                      font.weight: Font.Bold
-                    }
+                  Behavior on scale {
+                    NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
                   }
 
                   ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 4
+                    anchors {
+                      fill: parent
+                      margins: 18
+                    }
+                    spacing: 8
+
+                    Item {
+                      Layout.alignment: Qt.AlignHCenter
+                      Layout.preferredWidth: 192
+                      Layout.preferredHeight: 192
+
+                      Image {
+                        anchors.centerIn: parent
+                        width: 192
+                        height: 192
+                        source: root.appRoot + "/assets/characters/" + characterCard.modelData.id +
+                          "/sprites/" + characterCard.modelData.id + "-idle.png"
+                        sourceClipRect: Qt.rect(0, 0, 192, 192)
+                        fillMode: Image.Pad
+                        smooth: false
+                        mipmap: false
+                        scale: characterCard.selected ? 1.12 : 1
+
+                        Behavior on scale {
+                          NumberAnimation { duration: 140; easing.type: Easing.OutCubic }
+                        }
+                      }
+                    }
 
                     Text {
-                      Layout.fillWidth: true
-                      text: lessonCard.modelData.title
-                      color: lessonCard.selected ? root.instruction : root.foreground
-                      font.family: "sans-serif"
-                      font.pixelSize: 17
+                      Layout.alignment: Qt.AlignHCenter
+                      text: characterCard.modelData.displayName || characterCard.modelData.id.toUpperCase()
+                      color: characterCard.selected ? root.instruction : root.foreground
+                      font.family: "monospace"
+                      font.pixelSize: 20
                       font.weight: Font.Bold
-                      elide: Text.ElideRight
                     }
                     Text {
                       Layout.fillWidth: true
-                      text: lessonCard.modelData.description
+                      horizontalAlignment: Text.AlignHCenter
+                      text: characterCard.modelData.tagline || ""
                       color: root.foreground
-                      opacity: 0.72
+                      opacity: 0.75
+                      wrapMode: Text.WordWrap
                       font.family: "sans-serif"
                       font.pixelSize: 12
-                      wrapMode: Text.WordWrap
-                      maximumLineCount: 2
-                      elide: Text.ElideRight
                     }
                     Text {
-                      text: lessonCard.modelData.estimatedMinutes + " min  ·  " + lessonCard.modelData.steps.length + " activities"
-                      color: root.muted
-                      font.family: "sans-serif"
-                      font.pixelSize: 11
-                    }
-                    Text {
-                      text: root.lessonShortcutLabel(lessonCard.modelData)
-                      color: root.accent
+                      Layout.alignment: Qt.AlignHCenter
+                      text: characterCard.active && root.settingsMode !== "first-run"
+                        ? "CURRENT COACH"
+                        : (characterCard.modelData.id === "hexon" ? "DEFAULT" : "")
+                      color: characterCard.active && root.settingsMode !== "first-run" ? root.accent : root.muted
                       font.family: "monospace"
-                      font.pixelSize: 11
-                      font.weight: Font.DemiBold
+                      font.pixelSize: 10
+                      font.weight: Font.Bold
                     }
                   }
-                }
 
-                MouseArea {
-                  id: cardMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onEntered: root.selectedLessonIndex = lessonCard.index
-                  onClicked: root.startLesson(lessonCard.index)
+                  MouseArea {
+                    id: characterCardMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onEntered: root.characterPick = characterCard.index
+                    onClicked: root.chooseCharacter(characterCard.modelData.id)
+                  }
                 }
               }
             }
 
-          }
+            Rectangle {
+              visible: root.settingsMode !== "first-run"
+              Layout.fillWidth: true
+              Layout.preferredHeight: 1
+              color: root.colorWithAlpha(root.foreground, 0.18)
+            }
 
-          Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: "Arrow keys choose  ·  Enter starts  ·  Escape closes"
-            color: root.muted
-            font.family: "sans-serif"
-            font.pixelSize: 12
+            Text {
+              visible: root.settingsMode !== "first-run"
+              text: "PROGRESS"
+              color: root.muted
+              font.family: "monospace"
+              font.pixelSize: 11
+              font.weight: Font.Bold
+            }
+
+            RowLayout {
+              visible: root.settingsMode !== "first-run"
+              Layout.fillWidth: true
+              spacing: 14
+
+              Text {
+                Layout.fillWidth: true
+                text: root.resetJustDone
+                  ? "Progress reset. The tour will start again when you close Settings."
+                  : root.completedCount + " of " + (root.course ? root.course.lessons.length : 0) +
+                    " modules complete. Resetting clears every checkmark and starts the tour again when you close Settings."
+                color: root.resetJustDone ? root.instruction : root.foreground
+                opacity: 0.85
+                wrapMode: Text.WordWrap
+                font.family: "sans-serif"
+                font.pixelSize: 13
+              }
+
+              Rectangle {
+                // Fixed width so the label change never moves the button under the cursor.
+                implicitWidth: Math.max(resetLabel.implicitWidth, resetConfirmMetrics.implicitWidth) + 30
+                implicitHeight: 42
+                color: root.resetConfirmPending
+                  ? root.colorWithAlpha(root.urgent, 0.32)
+                  : (resetMouse.containsMouse ? root.colorWithAlpha(root.urgent, 0.18) : root.background)
+                border.color: root.urgent
+                border.width: root.resetConfirmPending ? 2 : 1
+                radius: 21
+
+                Text {
+                  id: resetConfirmMetrics
+                  visible: false
+                  text: "Click again to confirm"
+                  font.family: "sans-serif"
+                  font.pixelSize: 13
+                  font.weight: Font.DemiBold
+                }
+
+                Text {
+                  id: resetLabel
+                  anchors.centerIn: parent
+                  text: root.resetConfirmPending ? "Click again to confirm" : "Reset progress"
+                  color: root.foreground
+                  font.family: "sans-serif"
+                  font.pixelSize: 13
+                  font.weight: Font.DemiBold
+                }
+
+                MouseArea {
+                  id: resetMouse
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.requestResetProgress()
+                }
+              }
+            }
+
+            RowLayout {
+              Layout.alignment: Qt.AlignHCenter
+              spacing: 14
+
+              Text {
+                text: root.settingsMode === "first-run"
+                  ? "Arrow keys choose  ·  Enter confirms"
+                  : "Arrow keys choose a coach  ·  R resets progress  ·  Escape closes"
+                color: root.muted
+                font.family: "sans-serif"
+                font.pixelSize: 12
+              }
+
+              Rectangle {
+                visible: root.settingsMode !== "first-run"
+                implicitWidth: doneLabel.implicitWidth + 30
+                implicitHeight: 40
+                color: doneMouse.containsMouse ? root.accent : root.colorWithAlpha(root.accent, 0.22)
+                border.color: root.accent
+                border.width: 2
+                radius: 10
+
+                Text {
+                  id: doneLabel
+                  anchors.centerIn: parent
+                  text: "Done"
+                  color: doneMouse.containsMouse ? root.background : root.foreground
+                  font.family: "sans-serif"
+                  font.pixelSize: 14
+                  font.weight: Font.Bold
+                }
+                MouseArea {
+                  id: doneMouse
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.closeSettings()
+                }
+              }
+            }
           }
         }
-      }
-
-      RowLayout {
-        id: lessonNavigation
-        visible: root.phase === "waiting" || root.phase === "highlight"
-        opacity: root.lessonContentOpacity
-        anchors {
-          top: parent.top
-          left: parent.left
-          topMargin: 42
-          leftMargin: 24
-        }
-        spacing: 10
 
         Rectangle {
-          implicitWidth: topicsLabel.implicitWidth + 24
-          implicitHeight: 42
-          color: topicsMouse.containsMouse
-            ? root.colorWithAlpha(root.accent, 0.32)
-            : root.background
+          id: topicPanel
+          visible: root.phase === "menu" && root.course
+          anchors.centerIn: parent
+          width: Math.min(980, parent.width - 64)
+          height: Math.min(850, parent.height - 64)
+          color: root.background
           border.color: root.accent
-          border.width: 1
+          border.width: 2
+          radius: 18
+
+          ColumnLayout {
+            anchors {
+              fill: parent
+              margins: 28
+            }
+            spacing: 12
+
+            RowLayout {
+              Layout.fillWidth: true
+
+              ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 4
+
+                Text {
+                  text: root.course ? root.course.title : ""
+                  color: root.instruction
+                  font.family: "sans-serif"
+                  font.pixelSize: 30
+                  font.weight: Font.Bold
+                }
+                Text {
+                  Layout.maximumWidth: topicPanel.width - 150
+                  text: root.course ? root.course.description : ""
+                  color: root.foreground
+                  opacity: 0.82
+                  font.family: "sans-serif"
+                  font.pixelSize: 15
+                  wrapMode: Text.WordWrap
+                }
+              }
+
+              Rectangle {
+                implicitWidth: progressText.implicitWidth + 24
+                implicitHeight: 36
+                color: root.colorWithAlpha(root.accent, 0.18)
+                border.color: root.accent
+                border.width: 1
+                radius: 18
+
+                Text {
+                  id: progressText
+                  anchors.centerIn: parent
+                  text: root.completedCount + " / " + (root.course ? root.course.lessons.length : 0) + " complete"
+                  color: root.foreground
+                  font.family: "sans-serif"
+                  font.pixelSize: 13
+                  font.weight: Font.DemiBold
+                }
+              }
+            }
+
+            Rectangle {
+              Layout.fillWidth: true
+              Layout.preferredHeight: 1
+              color: root.colorWithAlpha(root.foreground, 0.18)
+            }
+
+            GridLayout {
+              Layout.fillWidth: true
+              Layout.fillHeight: true
+              columns: 2
+              columnSpacing: 14
+              rowSpacing: 14
+
+              Repeater {
+                model: root.course ? root.course.lessons : []
+
+                Rectangle {
+                  id: lessonCard
+                  required property int index
+                  required property var modelData
+                  readonly property bool selected: index === root.selectedLessonIndex
+                  readonly property bool completed: root.completedLessons[modelData.id] === true
+
+                  Layout.fillWidth: true
+                  Layout.fillHeight: true
+                  Layout.minimumHeight: 105
+                  color: cardMouse.containsMouse || selected
+                    ? root.colorWithAlpha(root.accent, 0.18)
+                    : root.colorWithAlpha(root.foreground, 0.045)
+                  border.color: selected ? root.accent : root.colorWithAlpha(root.foreground, 0.22)
+                  border.width: selected ? 2 : 1
+                  radius: 12
+
+                  function syncCharacterTarget() {
+                    if (selected) overlay.updateMenuSelectionTarget(lessonCard, index)
+                  }
+
+                  onSelectedChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                  onXChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                  onYChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                  onWidthChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                  onHeightChanged: if (selected) Qt.callLater(syncCharacterTarget)
+                  Component.onCompleted: if (selected) Qt.callLater(syncCharacterTarget)
+
+                  RowLayout {
+                    anchors {
+                      fill: parent
+                      margins: 16
+                    }
+                    spacing: 14
+
+                    Rectangle {
+                      implicitWidth: 48
+                      implicitHeight: 48
+                      color: lessonCard.completed ? root.accent : root.colorWithAlpha(root.accent, 0.16)
+                      border.color: root.accent
+                      border.width: 1
+                      radius: 24
+
+                      Text {
+                        anchors.centerIn: parent
+                        text: lessonCard.completed ? "✓" : lessonCard.modelData.icon
+                        color: lessonCard.completed ? root.background : root.foreground
+                        font.family: "monospace"
+                        font.pixelSize: 16
+                        font.weight: Font.Bold
+                      }
+                    }
+
+                    ColumnLayout {
+                      Layout.fillWidth: true
+                      spacing: 4
+
+                      Text {
+                        Layout.fillWidth: true
+                        text: lessonCard.modelData.title
+                        color: lessonCard.selected ? root.instruction : root.foreground
+                        font.family: "sans-serif"
+                        font.pixelSize: 17
+                        font.weight: Font.Bold
+                        elide: Text.ElideRight
+                      }
+                      Text {
+                        Layout.fillWidth: true
+                        text: root.characterText(lessonCard.modelData.description)
+                        color: root.foreground
+                        opacity: 0.72
+                        font.family: "sans-serif"
+                        font.pixelSize: 12
+                        wrapMode: Text.WordWrap
+                        maximumLineCount: 2
+                        elide: Text.ElideRight
+                      }
+                      Text {
+                        text: lessonCard.modelData.estimatedMinutes + " min  ·  " + lessonCard.modelData.steps.length + " activities"
+                        color: root.muted
+                        font.family: "sans-serif"
+                        font.pixelSize: 11
+                      }
+                      Text {
+                        text: root.lessonShortcutLabel(lessonCard.modelData)
+                        color: root.accent
+                        font.family: "monospace"
+                        font.pixelSize: 11
+                        font.weight: Font.DemiBold
+                      }
+                    }
+                  }
+
+                  MouseArea {
+                    id: cardMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onEntered: root.selectedLessonIndex = lessonCard.index
+                    onClicked: root.startLesson(lessonCard.index)
+                  }
+                }
+              }
+
+            }
+
+            Text {
+              Layout.alignment: Qt.AlignHCenter
+              text: "Arrow keys choose  ·  Enter starts  ·  Escape closes"
+              color: root.muted
+              font.family: "sans-serif"
+              font.pixelSize: 12
+            }
+          }
+        }
+
+        Rectangle {
+          id: keyboardHint
+          visible: !root.keyboardExclusive && !root.keyboardFocused && root.phase !== "loading"
+          anchors {
+            top: parent.top
+            horizontalCenter: parent.horizontalCenter
+            topMargin: 42
+          }
+          width: keyboardHintText.implicitWidth + 32
+          height: 42
           radius: 21
+          color: keyboardHintMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
+          border.color: root.instruction
+          border.width: 2
 
           Text {
-            id: topicsLabel
+            id: keyboardHintText
             anchors.centerIn: parent
-            text: "← Topics"
+            text: "⌨  Keys are going to your other windows  ·  click to bring them back"
             color: root.foreground
             font.family: "sans-serif"
-            font.pixelSize: 14
+            font.pixelSize: 13
             font.weight: Font.DemiBold
           }
 
           MouseArea {
-            id: topicsMouse
+            id: keyboardHintMouse
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.returnToMenu()
+            onClicked: root.setKeyboardExclusive(true)
           }
         }
-
-        Rectangle {
-          implicitWidth: lessonStatus.implicitWidth + 24
-          implicitHeight: 42
-          color: root.background
-          border.color: root.colorWithAlpha(root.foreground, 0.3)
-          border.width: 1
-          radius: 21
-
-          Text {
-            id: lessonStatus
-            anchors.centerIn: parent
-            text: root.currentLesson
-              ? root.currentLesson.title + "  ·  " + (root.stepIndex + 1) + " / " + root.currentLesson.steps.length
-              : ""
-            color: root.foreground
-            font.family: "sans-serif"
-            font.pixelSize: 13
-          }
-        }
-
-        Rectangle {
-          visible: root.phase === "waiting"
-          implicitWidth: skipLabel.implicitWidth + 24
-          implicitHeight: 42
-          color: skipMouse.containsMouse
-            ? root.colorWithAlpha(root.foreground, 0.14)
-            : root.background
-          border.color: root.muted
-          border.width: 1
-          radius: 21
-
-          Text {
-            id: skipLabel
-            anchors.centerIn: parent
-            text: "Skip"
-            color: root.foreground
-            opacity: 0.8
-            font.family: "sans-serif"
-            font.pixelSize: 13
-          }
-
-          MouseArea {
-            id: skipMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.skipCurrentStep()
-          }
-        }
-      }
-
-      ColumnLayout {
-        id: teachingContent
-        visible: root.phase === "waiting" || root.phase === "highlight"
-        opacity: root.lessonContentOpacity
-        anchors {
-          horizontalCenter: parent.horizontalCenter
-          bottom: parent.bottom
-          bottomMargin: 42
-        }
-        spacing: 12
-
-        Rectangle {
-          Layout.alignment: Qt.AlignHCenter
-          Layout.preferredWidth: Math.min(820, overlay.width - 48)
-          Layout.preferredHeight: messageColumn.implicitHeight + 28
-          color: root.background
-          border.color: root.accent
-          border.width: 2
-          radius: 12
-
-          ColumnLayout {
-            id: messageColumn
-            anchors {
-              left: parent.left
-              right: replayButton.visible ? replayButton.left : parent.right
-              verticalCenter: parent.verticalCenter
-              leftMargin: 22
-              rightMargin: replayButton.visible ? 14 : 22
-            }
-            spacing: 5
-
-            Text {
-              Layout.fillWidth: true
-              horizontalAlignment: Text.AlignHCenter
-              wrapMode: Text.WordWrap
-              textFormat: Text.PlainText
-              color: root.phase === "waiting" ? root.instruction : root.foreground
-              font.family: "sans-serif"
-              font.pixelSize: 19
-              font.weight: Font.Bold
-              text: {
-                if (root.phase === "highlight" && root.currentStep && root.currentStep.completionMessage)
-                  return root.currentStep.completionMessage
-                if (root.currentStepIsTour && root.currentStep && root.currentStep.detail)
-                  return root.currentStep.detail
-                return root.currentStep ? root.currentStep.instruction : ""
-              }
-            }
-
-            Text {
-              visible: Boolean(root.phase === "waiting" && !root.currentStepIsTour && root.currentStep && root.currentStep.detail)
-              Layout.fillWidth: true
-              horizontalAlignment: Text.AlignHCenter
-              wrapMode: Text.WordWrap
-              textFormat: Text.PlainText
-              color: root.foreground
-              opacity: 0.72
-              font.family: "sans-serif"
-              font.pixelSize: 13
-              text: root.currentStep ? root.currentStep.detail || "" : ""
-            }
-          }
-
-          Rectangle {
-            id: replayButton
-            visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.audio)
-            anchors {
-              right: parent.right
-              verticalCenter: parent.verticalCenter
-              rightMargin: 12
-            }
-            width: 38
-            height: 38
-            color: replayMouse.containsMouse
-              ? root.colorWithAlpha(root.accent, 0.4)
-              : root.colorWithAlpha(root.accent, 0.18)
-            border.color: root.accent
-            border.width: 1
-            radius: 19
-
-            Text {
-              anchors.centerIn: parent
-              text: "▶"
-              color: root.foreground
-              font.family: "sans-serif"
-              font.pixelSize: 16
-            }
-
-            MouseArea {
-              id: replayMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.replayCurrentAudio()
-            }
-          }
-        }
-
-        RowLayout {
-          visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.keys.length > 0)
-          Layout.alignment: Qt.AlignHCenter
-          spacing: 16
-
-          Repeater {
-            model: root.currentStep ? root.currentStep.keys : []
-
-            Rectangle {
-              required property string modelData
-              readonly property string normalizedKey: modelData.toUpperCase()
-              readonly property bool keyActive: normalizedKey !== "+" && root.activeKeys[normalizedKey] === true
-              implicitWidth: keyLabel.implicitWidth + (normalizedKey === "+" ? 24 : 36)
-              implicitHeight: 54
-              scale: keyActive ? 1.08 : 1
-              color: keyActive ? root.accent : root.background
-              border.color: keyActive ? root.foreground : (normalizedKey === "+" ? root.muted : root.accent)
-              border.width: keyActive ? 3 : (normalizedKey === "+" ? 1 : 2)
-              radius: 8
-
-              Behavior on scale {
-                NumberAnimation { duration: 90; easing.type: Easing.OutCubic }
-              }
-              Behavior on color { ColorAnimation { duration: 90 } }
-
-              Text {
-                id: keyLabel
-                anchors.centerIn: parent
-                text: normalizedKey
-                textFormat: Text.PlainText
-                color: keyActive ? root.background : root.foreground
-                font.family: "monospace"
-                font.pixelSize: normalizedKey === "+" ? 19 : 18
-                font.weight: Font.Bold
-              }
-            }
-          }
-        }
-
-        Rectangle {
-          id: actionButton
-          visible: Boolean(root.phase === "waiting" && root.currentStep && !root.currentStepIsTour && root.currentStep.keys.length === 0)
-          Layout.alignment: Qt.AlignHCenter
-          implicitWidth: actionLabelText.implicitWidth + 42
-          implicitHeight: 52
-          color: actionMouse.containsMouse ? root.accent : root.colorWithAlpha(root.accent, 0.24)
-          border.color: root.accent
-          border.width: 2
-          radius: 10
-
-          Text {
-            id: actionLabelText
-            anchors.centerIn: parent
-            text: root.currentStep ? root.currentStep.actionLabel || "Continue" : ""
-            color: actionMouse.containsMouse ? root.background : root.foreground
-            font.family: "sans-serif"
-            font.pixelSize: 16
-            font.weight: Font.Bold
-          }
-
-          MouseArea {
-            id: actionMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.runStepAction("action")
-          }
-        }
-      }
-
-      RowLayout {
-        id: controls
-        z: 100
-        visible: root.phase !== "loading"
-        anchors {
-          top: parent.top
-          right: parent.right
-          topMargin: 42
-          rightMargin: 24
-        }
-        spacing: 8
-
-        Rectangle {
-          implicitWidth: 42
-          implicitHeight: 42
-          color: audioMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
-          border.color: root.audioEnabled ? root.accent : root.muted
-          border.width: root.audioEnabled ? 2 : 1
-          radius: 21
-
-          Text {
-            anchors.centerIn: parent
-            text: root.audioEnabled ? "🔊" : "🔇"
-            color: root.foreground
-            font.family: "sans-serif"
-            font.pixelSize: 18
-          }
-
-          MouseArea {
-            id: audioMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.toggleAudio()
-          }
-        }
-
-        Rectangle {
-          visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.help)
-          implicitWidth: helpRow.implicitWidth + 24
-          implicitHeight: 42
-          color: helpMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
-          border.color: root.accent
-          border.width: 2
-          radius: 21
-
-          RowLayout {
-            id: helpRow
-            anchors.centerIn: parent
-            spacing: 8
-
-            Text {
-              text: "?"
-              color: root.accent
-              font.family: "sans-serif"
-              font.pixelSize: 20
-              font.weight: Font.Bold
-            }
-            Text {
-              text: "Help"
-              color: root.foreground
-              font.family: "sans-serif"
-              font.pixelSize: 14
-              font.weight: Font.DemiBold
-            }
-          }
-
-          MouseArea {
-            id: helpMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.requestHelpAction()
-          }
-        }
-
-        Rectangle {
-          implicitWidth: 42
-          implicitHeight: 42
-          color: closeMouse.containsMouse ? root.colorWithAlpha(root.urgent, 0.3) : root.background
-          border.color: closeMouse.containsMouse ? root.urgent : root.muted
-          border.width: 1
-          radius: 21
-
-          Text {
-            anchors.centerIn: parent
-            text: "X"
-            color: root.foreground
-            font.family: "sans-serif"
-            font.pixelSize: 17
-            font.weight: Font.Bold
-          }
-
-          MouseArea {
-            id: closeMouse
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: {
-              root.runCleanup()
-              root.stopAudio()
-              Qt.quit()
-            }
-          }
-        }
-      }
-
-      Rectangle {
-        id: completionPanel
-        visible: root.phase === "lesson-complete" && root.currentLesson
-        opacity: root.lessonContentOpacity
-        anchors.centerIn: parent
-        width: Math.min(620, parent.width - 48)
-        height: completionColumn.implicitHeight + 56
-        color: root.background
-        border.color: root.accent
-        border.width: 2
-        radius: 18
 
         ColumnLayout {
-          id: completionColumn
-          anchors.centerIn: parent
-          width: parent.width - 56
-          spacing: 14
+          id: teachingContent
+          visible: root.phase === "waiting" || root.phase === "highlight"
+          opacity: root.lessonContentOpacity
+          anchors {
+            horizontalCenter: parent.horizontalCenter
+            bottom: parent.bottom
+            bottomMargin: 42
+          }
+          spacing: 12
 
-          Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: "✓"
-            color: root.accent
-            font.family: "sans-serif"
-            font.pixelSize: 42
-            font.weight: Font.Bold
-          }
-          Text {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            text: root.currentLesson ? root.currentLesson.title + " complete" : "Module complete"
-            color: root.instruction
-            font.family: "sans-serif"
-            font.pixelSize: 26
-            font.weight: Font.Bold
-          }
-          Text {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            text: "Nice work. Choose another topic or replay this module whenever you want."
-            color: root.foreground
-            opacity: 0.8
-            wrapMode: Text.WordWrap
-            font.family: "sans-serif"
-            font.pixelSize: 14
-          }
           RowLayout {
+            id: lessonNavigation
+            visible: root.phase === "waiting" || root.phase === "highlight"
+            opacity: root.lessonContentOpacity
             Layout.alignment: Qt.AlignHCenter
-            spacing: 12
+            spacing: 10
 
             Rectangle {
-              implicitWidth: topicsCompleteLabel.implicitWidth + 30
-              implicitHeight: 46
-              color: completeTopicsMouse.containsMouse ? root.accent : root.colorWithAlpha(root.accent, 0.22)
+              implicitWidth: topicsLabel.implicitWidth + 24
+              implicitHeight: 42
+              color: topicsMouse.containsMouse
+                ? root.colorWithAlpha(root.accent, 0.32)
+                : root.background
               border.color: root.accent
-              border.width: 2
-              radius: 10
+              border.width: 1
+              radius: 21
 
               Text {
-                id: topicsCompleteLabel
+                id: topicsLabel
                 anchors.centerIn: parent
-                text: "Choose another topic"
-                color: completeTopicsMouse.containsMouse ? root.background : root.foreground
+                text: "← Topics"
+                color: root.foreground
                 font.family: "sans-serif"
                 font.pixelSize: 14
-                font.weight: Font.Bold
+                font.weight: Font.DemiBold
               }
+
               MouseArea {
-                id: completeTopicsMouse
+                id: topicsMouse
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
@@ -3108,81 +2592,1656 @@ ShellRoot {
             }
 
             Rectangle {
-              implicitWidth: replayLessonLabel.implicitWidth + 30
-              implicitHeight: 46
-              color: replayLessonMouse.containsMouse
+              implicitWidth: lessonStatus.implicitWidth + 24
+              implicitHeight: 42
+              color: root.background
+              border.color: root.colorWithAlpha(root.foreground, 0.3)
+              border.width: 1
+              radius: 21
+
+              Text {
+                id: lessonStatus
+                anchors.centerIn: parent
+                text: root.currentLesson
+                  ? root.currentLesson.title + "  ·  " + (root.stepIndex + 1) + " / " + root.currentLesson.steps.length
+                  : ""
+                color: root.foreground
+                font.family: "sans-serif"
+                font.pixelSize: 13
+              }
+            }
+
+            Rectangle {
+              visible: root.phase === "waiting"
+              implicitWidth: skipLabel.implicitWidth + 24
+              implicitHeight: 42
+              color: skipMouse.containsMouse
                 ? root.colorWithAlpha(root.foreground, 0.14)
                 : root.background
               border.color: root.muted
               border.width: 1
-              radius: 10
+              radius: 21
 
               Text {
-                id: replayLessonLabel
+                id: skipLabel
                 anchors.centerIn: parent
-                text: "Replay module"
+                text: "Skip"
                 color: root.foreground
+                opacity: 0.8
                 font.family: "sans-serif"
-                font.pixelSize: 14
+                font.pixelSize: 13
               }
+
               MouseArea {
-                id: replayLessonMouse
+                id: skipMouse
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                onClicked: root.startLesson(root.lessonIndex)
+                onClicked: root.skipCurrentStep()
+              }
+            }
+          }
+
+          Rectangle {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.preferredWidth: Math.min(820, overlay.width - 48)
+            Layout.preferredHeight: messageColumn.implicitHeight + 28
+            color: root.background
+            border.color: root.accent
+            border.width: 2
+            radius: 12
+
+            ColumnLayout {
+              id: messageColumn
+              anchors {
+                left: parent.left
+                right: replayButton.visible ? replayButton.left : parent.right
+                verticalCenter: parent.verticalCenter
+                leftMargin: 22
+                rightMargin: replayButton.visible ? 14 : 22
+              }
+              spacing: 5
+
+              Text {
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                textFormat: Text.PlainText
+                color: root.phase === "waiting" ? root.instruction : root.foreground
+                font.family: "sans-serif"
+                font.pixelSize: 19
+                font.weight: Font.Bold
+                text: {
+                  if (root.phase === "highlight" && root.currentStep && root.currentStep.completionMessage)
+                    return root.currentStep.completionMessage
+                  if (root.currentStepIsTour && root.currentStep && root.currentStep.detail)
+                    return root.characterText(root.currentStep.detail)
+                  return root.currentStep ? root.currentStep.instruction : ""
+                }
+              }
+
+              Text {
+                visible: Boolean(root.phase === "waiting" && !root.currentStepIsTour && root.currentStep && root.currentStep.detail)
+                Layout.fillWidth: true
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                textFormat: Text.PlainText
+                color: root.foreground
+                opacity: 0.72
+                font.family: "sans-serif"
+                font.pixelSize: 13
+                text: root.currentStep ? root.currentStep.detail || "" : ""
+              }
+            }
+
+            Rectangle {
+              id: replayButton
+              visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.audio)
+              anchors {
+                right: parent.right
+                verticalCenter: parent.verticalCenter
+                rightMargin: 12
+              }
+              width: 38
+              height: 38
+              color: replayMouse.containsMouse
+                ? root.colorWithAlpha(root.accent, 0.4)
+                : root.colorWithAlpha(root.accent, 0.18)
+              border.color: root.accent
+              border.width: 1
+              radius: 19
+
+              Text {
+                anchors.centerIn: parent
+                text: "▶"
+                color: root.foreground
+                font.family: "sans-serif"
+                font.pixelSize: 16
+              }
+
+              MouseArea {
+                id: replayMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: root.replayCurrentAudio()
+              }
+            }
+          }
+
+          RowLayout {
+            visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.keys.length > 0)
+            Layout.alignment: Qt.AlignHCenter
+            spacing: 16
+
+            Repeater {
+              model: root.currentStep ? root.currentStep.keys : []
+
+              Rectangle {
+                required property string modelData
+                readonly property string normalizedKey: modelData.toUpperCase()
+                readonly property bool keyActive: normalizedKey !== "+" && root.activeKeys[normalizedKey] === true
+                implicitWidth: keyLabel.implicitWidth + (normalizedKey === "+" ? 24 : 36)
+                implicitHeight: 54
+                scale: keyActive ? 1.08 : 1
+                color: keyActive ? root.accent : root.background
+                border.color: keyActive ? root.foreground : (normalizedKey === "+" ? root.muted : root.accent)
+                border.width: keyActive ? 3 : (normalizedKey === "+" ? 1 : 2)
+                radius: 8
+
+                Behavior on scale {
+                  NumberAnimation { duration: 90; easing.type: Easing.OutCubic }
+                }
+                Behavior on color { ColorAnimation { duration: 90 } }
+
+                Text {
+                  id: keyLabel
+                  anchors.centerIn: parent
+                  text: normalizedKey
+                  textFormat: Text.PlainText
+                  color: keyActive ? root.background : root.foreground
+                  font.family: "monospace"
+                  font.pixelSize: normalizedKey === "+" ? 19 : 18
+                  font.weight: Font.Bold
+                }
+              }
+            }
+          }
+
+          Rectangle {
+            id: actionButton
+            visible: Boolean(root.phase === "waiting" && root.currentStep && !root.currentStepIsTour && root.currentStep.keys.length === 0)
+            Layout.alignment: Qt.AlignHCenter
+            implicitWidth: actionLabelText.implicitWidth + 42
+            implicitHeight: 52
+            color: actionMouse.containsMouse ? root.accent : root.colorWithAlpha(root.accent, 0.24)
+            border.color: root.accent
+            border.width: 2
+            radius: 10
+
+            Text {
+              id: actionLabelText
+              anchors.centerIn: parent
+              text: root.currentStep ? root.currentStep.actionLabel || "Continue" : ""
+              color: actionMouse.containsMouse ? root.background : root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 16
+              font.weight: Font.Bold
+            }
+
+            MouseArea {
+              id: actionMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: root.runStepAction("action")
+            }
+          }
+        }
+
+        RowLayout {
+          id: controls
+          z: 100
+          visible: root.phase !== "loading"
+          anchors {
+            top: parent.top
+            right: parent.right
+            topMargin: 42
+            rightMargin: 24
+          }
+          spacing: 8
+
+          Rectangle {
+            visible: root.phase !== "settings"
+            implicitWidth: 42
+            implicitHeight: 42
+            color: settingsMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
+            border.color: root.accent
+            border.width: 1
+            radius: 21
+
+            Text {
+              anchors.centerIn: parent
+              text: "⚙"
+              color: root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 20
+            }
+
+            MouseArea {
+              id: settingsMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: {
+                if (root.phase === "menu") root.openSettings("settings")
+                else if (root.phase !== "loading" && root.phase !== "error") {
+                  root.returnToMenu()
+                  root.openSettings("settings")
+                }
+              }
+            }
+          }
+
+          Rectangle {
+            implicitWidth: 42
+            implicitHeight: 42
+            color: keysMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
+            border.color: root.keyboardExclusive ? root.accent : root.instruction
+            border.width: root.keyboardExclusive ? 2 : 2
+            radius: 21
+
+            Text {
+              anchors.centerIn: parent
+              text: "⌨"
+              color: root.keyboardExclusive ? root.foreground : root.instruction
+              font.family: "sans-serif"
+              font.pixelSize: 19
+            }
+
+            MouseArea {
+              id: keysMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: root.setKeyboardExclusive(!root.keyboardExclusive)
+            }
+          }
+
+          Rectangle {
+            implicitWidth: 42
+            implicitHeight: 42
+            color: audioMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
+            border.color: root.audioEnabled ? root.accent : root.muted
+            border.width: root.audioEnabled ? 2 : 1
+            radius: 21
+
+            Text {
+              anchors.centerIn: parent
+              text: root.audioEnabled ? "🔊" : "🔇"
+              color: root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 18
+            }
+
+            MouseArea {
+              id: audioMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: root.toggleAudio()
+            }
+          }
+
+          Rectangle {
+            visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.help)
+            implicitWidth: helpRow.implicitWidth + 24
+            implicitHeight: 42
+            color: helpMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
+            border.color: root.accent
+            border.width: 2
+            radius: 21
+
+            RowLayout {
+              id: helpRow
+              anchors.centerIn: parent
+              spacing: 8
+
+              Text {
+                text: "?"
+                color: root.accent
+                font.family: "sans-serif"
+                font.pixelSize: 20
+                font.weight: Font.Bold
+              }
+              Text {
+                text: "Help"
+                color: root.foreground
+                font.family: "sans-serif"
+                font.pixelSize: 14
+                font.weight: Font.DemiBold
+              }
+            }
+
+            MouseArea {
+              id: helpMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: root.requestHelpAction()
+            }
+          }
+
+          Rectangle {
+            implicitWidth: 42
+            implicitHeight: 42
+            color: closeMouse.containsMouse ? root.colorWithAlpha(root.urgent, 0.3) : root.background
+            border.color: closeMouse.containsMouse ? root.urgent : root.muted
+            border.width: 1
+            radius: 21
+
+            Text {
+              anchors.centerIn: parent
+              text: "X"
+              color: root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 17
+              font.weight: Font.Bold
+            }
+
+            MouseArea {
+              id: closeMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: {
+                root.runCleanup()
+                root.stopAudio()
+                Qt.quit()
               }
             }
           }
         }
-      }
 
-      Rectangle {
-        id: errorPanel
-        visible: root.phase === "error"
-        anchors.centerIn: parent
-        width: Math.min(660, parent.width - 48)
-        height: errorColumn.implicitHeight + 56
-        color: root.background
-        border.color: root.urgent
-        border.width: 2
-        radius: 16
-
-        ColumnLayout {
-          id: errorColumn
+        Rectangle {
+          id: completionPanel
+          visible: root.phase === "lesson-complete" && root.currentLesson
+          opacity: root.lessonContentOpacity
           anchors.centerIn: parent
-          width: parent.width - 56
-          spacing: 14
+          width: Math.min(620, parent.width - 48)
+          height: completionColumn.implicitHeight + 56
+          color: root.background
+          border.color: root.accent
+          border.width: 2
+          radius: 18
 
-          Text {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            text: "Something needs attention"
-            color: root.urgent
-            font.family: "sans-serif"
-            font.pixelSize: 22
-            font.weight: Font.Bold
-          }
-          Text {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignHCenter
-            text: root.errorMessage
-            textFormat: Text.PlainText
-            color: root.foreground
-            font.family: "sans-serif"
-            font.pixelSize: 14
-            wrapMode: Text.WordWrap
-          }
-          Text {
-            Layout.alignment: Qt.AlignHCenter
-            text: "Press Escape to return to topics"
-            color: root.muted
-            font.family: "sans-serif"
-            font.pixelSize: 12
+          ColumnLayout {
+            id: completionColumn
+            anchors.centerIn: parent
+            width: parent.width - 56
+            spacing: 14
+
+            Text {
+              Layout.alignment: Qt.AlignHCenter
+              text: "✓"
+              color: root.accent
+              font.family: "sans-serif"
+              font.pixelSize: 42
+              font.weight: Font.Bold
+            }
+            Text {
+              Layout.fillWidth: true
+              horizontalAlignment: Text.AlignHCenter
+              text: root.currentLesson ? root.currentLesson.title + " complete" : "Module complete"
+              color: root.instruction
+              font.family: "sans-serif"
+              font.pixelSize: 26
+              font.weight: Font.Bold
+            }
+            Text {
+              Layout.fillWidth: true
+              horizontalAlignment: Text.AlignHCenter
+              text: "Nice work. Choose another topic or replay this module whenever you want."
+              color: root.foreground
+              opacity: 0.8
+              wrapMode: Text.WordWrap
+              font.family: "sans-serif"
+              font.pixelSize: 14
+            }
+            RowLayout {
+              Layout.alignment: Qt.AlignHCenter
+              spacing: 12
+
+              Rectangle {
+                implicitWidth: topicsCompleteLabel.implicitWidth + 30
+                implicitHeight: 46
+                color: completeTopicsMouse.containsMouse ? root.accent : root.colorWithAlpha(root.accent, 0.22)
+                border.color: root.accent
+                border.width: 2
+                radius: 10
+
+                Text {
+                  id: topicsCompleteLabel
+                  anchors.centerIn: parent
+                  text: "Choose another topic"
+                  color: completeTopicsMouse.containsMouse ? root.background : root.foreground
+                  font.family: "sans-serif"
+                  font.pixelSize: 14
+                  font.weight: Font.Bold
+                }
+                MouseArea {
+                  id: completeTopicsMouse
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.returnToMenu()
+                }
+              }
+
+              Rectangle {
+                implicitWidth: replayLessonLabel.implicitWidth + 30
+                implicitHeight: 46
+                color: replayLessonMouse.containsMouse
+                  ? root.colorWithAlpha(root.foreground, 0.14)
+                  : root.background
+                border.color: root.muted
+                border.width: 1
+                radius: 10
+
+                Text {
+                  id: replayLessonLabel
+                  anchors.centerIn: parent
+                  text: "Replay module"
+                  color: root.foreground
+                  font.family: "sans-serif"
+                  font.pixelSize: 14
+                }
+                MouseArea {
+                  id: replayLessonMouse
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  cursorShape: Qt.PointingHandCursor
+                  onClicked: root.startLesson(root.lessonIndex)
+                }
+              }
+            }
           }
         }
+
+        Rectangle {
+          id: errorPanel
+          visible: root.phase === "error"
+          anchors.centerIn: parent
+          width: Math.min(660, parent.width - 48)
+          height: errorColumn.implicitHeight + 56
+          color: root.background
+          border.color: root.urgent
+          border.width: 2
+          radius: 16
+
+          ColumnLayout {
+            id: errorColumn
+            anchors.centerIn: parent
+            width: parent.width - 56
+            spacing: 14
+
+            Text {
+              Layout.fillWidth: true
+              horizontalAlignment: Text.AlignHCenter
+              text: "Something needs attention"
+              color: root.urgent
+              font.family: "sans-serif"
+              font.pixelSize: 22
+              font.weight: Font.Bold
+            }
+            Text {
+              Layout.fillWidth: true
+              horizontalAlignment: Text.AlignHCenter
+              text: root.errorMessage
+              textFormat: Text.PlainText
+              color: root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 14
+              wrapMode: Text.WordWrap
+            }
+            Text {
+              Layout.alignment: Qt.AlignHCenter
+              text: "Press Escape to return to topics"
+              color: root.muted
+              font.family: "sans-serif"
+              font.pixelSize: 12
+            }
+          }
+        }
+
       }
 
+      PanelWindow {
+        id: hexonWindow
+
+        // HEXON, the target reticle, and the tour outline live in their own
+        // overlay-level window with no keyboard focus. Newer layer surfaces
+        // (menus, panels, the image selector) stack above older ones, so the
+        // window is re-mapped whenever an external layer opens; that puts him
+        // back on top without taking keyboard focus away from the menu.
+        property bool mapped: true
+
+        screen: screenScope.modelData
+        // Track the main overlay's real window visibility, then re-map just
+        // after it appears so this window is always the newer (upper) surface.
+        visible: overlay.visible && mapped
+        anchors {
+          top: true
+          bottom: true
+          left: true
+          right: true
+        }
+        color: "transparent"
+        exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.namespace: "learn-omarchy-hexon"
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
+        mask: Region {
+          Region { item: hexonCoach }
+        }
+
+        function raise() {
+          if (!overlay.visible) return
+          mapped = false
+          raiseTimer.restart()
+        }
+
+        Timer {
+          id: raiseTimer
+          interval: 16
+          repeat: false
+          onTriggered: hexonWindow.mapped = true
+        }
+
+        Connections {
+          target: root
+          function onExternalLayerTickChanged() { hexonWindow.raise() }
+        }
+
+        Connections {
+          target: overlay
+          function onVisibleChanged() { if (overlay.visible) hexonWindow.raise() }
+        }
+
+        Component.onCompleted: if (overlay.visible) raise()
+
+        Rectangle {
+          id: targetMarker
+          z: 9
+          visible: root.phase === "highlight" &&
+            root.characterState === "target-point" &&
+            overlay.highlight
+          opacity: root.lessonContentOpacity
+          width: 38
+          height: 38
+          x: Math.round(overlay.targetPointX - (width / 2))
+          y: Math.round(overlay.targetPointY - (height / 2))
+          color: "transparent"
+          border.color: root.accent
+          border.width: 4
+          radius: 19
+
+          SequentialAnimation on scale {
+            running: targetMarker.visible && !root.reducedMotion
+            loops: Animation.Infinite
+            NumberAnimation { from: 0.72; to: 1.18; duration: 520; easing.type: Easing.OutCubic }
+            NumberAnimation { from: 1.18; to: 0.72; duration: 520; easing.type: Easing.InCubic }
+          }
+        }
+
+        Rectangle {
+          id: tourOutline
+          z: 9
+          visible: root.phase === "waiting" &&
+            root.currentStepIsTour &&
+            !root.currentTourTalks &&
+            (root.characterState === "tour-point" || root.characterState === "tour-settle") &&
+            overlay.highlight
+          opacity: root.lessonContentOpacity
+          x: Math.round(overlay.targetBoundsX)
+          y: Math.round(overlay.targetBoundsY)
+          width: Math.round(overlay.fittedHighlightWidth)
+          height: Math.round(overlay.fittedHighlightHeight)
+          color: root.colorWithAlpha(root.accent, 0.12)
+          border.color: root.accent
+          border.width: overlay.highlight ? Math.max(2, Math.min(4, Number(overlay.highlight.borderWidth) || 3)) : 3
+          radius: overlay.highlight ? Number(overlay.highlight.radius) || 8 : 8
+
+          SequentialAnimation on border.color {
+            running: tourOutline.visible && !root.reducedMotion
+            loops: Animation.Infinite
+            ColorAnimation { to: root.instruction; duration: 600 }
+            ColorAnimation { to: root.accent; duration: 600 }
+          }
+        }
+
+        Rectangle {
+          id: tourCaption
+          z: 11
+          visible: hexonCoach.visible && root.phase === "waiting" && root.currentStepIsTour
+          opacity: root.lessonContentOpacity
+          width: Math.min(680, overlay.width - 24, Math.max(260, tourCaptionText.implicitWidth + 44))
+          height: tourCaptionText.implicitHeight + 32
+          // Centre under HEXON, but never leave the screen.
+          x: Math.round(Math.max(12, Math.min(overlay.width - width - 12,
+            hexonCoach.x + (hexonCoach.width / 2) - (width / 2))))
+          y: Math.round(Math.min(overlay.height - height - 12, hexonCoach.y + hexonCoach.arcOffset + hexonCoach.height + 8))
+          radius: 12
+          color: root.background
+          border.color: root.instruction
+          border.width: 2
+
+          Text {
+            id: tourCaptionText
+            width: Math.min(tourCaption.width - 44, implicitWidth)
+            anchors.centerIn: parent
+            text: root.currentStep ? root.currentStep.instruction : ""
+            textFormat: Text.PlainText
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            color: root.instruction
+            font.family: "sans-serif"
+            font.pixelSize: 21
+            font.weight: Font.Bold
+          }
+        }
+
+        // Fading pixel trail behind the coach while flying.
+        Repeater {
+          model: hexonCoach.trail
+
+          Rectangle {
+            required property int index
+            required property var modelData
+            readonly property real age: (hexonCoach.trail.length - index) / Math.max(1, hexonCoach.trail.length)
+
+            z: 9
+            width: 6 + Math.round((1 - age) * 6)
+            height: width
+            x: modelData.x - (width / 2)
+            y: modelData.y - (height / 2)
+            radius: 1
+            color: index % 2 === 0 ? root.accent : root.instruction
+            opacity: Math.max(0, 0.75 - (age * 0.75))
+          }
+        }
+
+        Item {
+          id: hexonCoach
+          z: 10
+
+          property real effectScale: 1
+          property real effectRotation: 0
+          property real effectOpacity: 1
+          // +1 when the current trip heads right, -1 when it heads left; the
+          // flight pose is mirrored so winged characters never fly backwards.
+          property int flightDirection: 1
+          // Random blinks while holding a pointing pose.
+          property bool blinking: false
+          // 0 = limb down, 1 = halfway, 2 = pointing. Steps through 1 on the way up and down.
+          property int poseStage: isPointing ? 2 : 0
+          onIsPointingChanged: {
+            if (root.reducedMotion || !root.poseMid) {
+              poseStage = isPointing ? 2 : 0
+              return
+            }
+            poseStage = 1
+            poseStageTimer.restart()
+          }
+          // Volume-preserving squash and stretch for takeoff and landing.
+          property real stretch: 1
+          // Vertical swoop applied on top of the straight-line travel so long
+          // horizontal trips arc instead of sliding.
+          property real arcOffset: 0
+          property real arcHeight: 0
+          // Recent centre positions while flying, drawn as a fading pixel trail.
+          property var trail: []
+          property bool userPlaced: false
+          property real userX: 0
+          property real userY: 0
+          property string interactionMessage: ""
+          readonly property bool targetsCompletion:
+            root.characterState === "target-fly" ||
+            root.characterState === "target-settle" ||
+            root.characterState === "target-point"
+          readonly property bool targetsTour:
+            root.characterState === "tour-fly" ||
+            root.characterState === "tour-settle" ||
+            root.characterState === "tour-point" ||
+            root.characterState === "tour-talk"
+          readonly property bool isPointingUp: root.characterState === "tour-point"
+          readonly property bool targetsMenu:
+            root.characterState === "menu-fly" ||
+            root.characterState === "menu-settle" ||
+            root.characterState === "menu-point"
+          readonly property bool targetsModuleComplete: root.phase === "lesson-complete"
+          readonly property bool isPointing:
+            root.characterState === "help" ||
+            root.characterState === "target-point" ||
+            root.characterState === "tour-point" ||
+            root.characterState === "menu-point"
+          // Fingertip of the upward pose inside the 224x192 image (before the 1.13 pose scale).
+          readonly property real upTipImageX: Number(root.upTip.x)
+          readonly property real upTipImageY: Number(root.upTip.y)
+          readonly property real upTipLocalX: 8 + 112 + ((upTipImageX - 112) * pointUpPoseScale)
+          readonly property real upTipLocalY: (height - 192) + 96 + ((upTipImageY - 96) * pointUpPoseScale)
+          readonly property real tourTipX:
+            Math.max(18 + upTipLocalX, Math.min(overlay.width - 18 - (width - upTipLocalX), overlay.tourPointX))
+          readonly property real tourX: root.currentTourTalks
+            ? Math.max(18, Math.min(overlay.width - width - 18, overlay.tourCenterX - (width / 2)))
+            : tourTipX - upTipLocalX
+          readonly property real tourY: root.currentTourTalks
+            ? Math.max(40, Math.min(bottomY, overlay.tourCenterY - (height / 2)))
+            : Math.max(-(height - 192) - 4, overlay.tourPointY - upTipLocalY)
+          readonly property bool isFlying:
+            root.characterState === "step-fly" ||
+            root.characterState === "step-settle" ||
+            root.characterState === "help-fly" ||
+            root.characterState === "help-settle" ||
+            root.characterState === "target-fly" ||
+            root.characterState === "target-settle" ||
+            root.characterState === "tour-fly" ||
+            root.characterState === "tour-settle" ||
+            root.characterState === "menu-fly" ||
+            root.characterState === "menu-settle" ||
+            root.characterState === "module-fly" ||
+            root.characterState === "module-settle"
+          readonly property bool isSettledHover:
+            visible && !isFlying && root.characterState !== "hidden"
+          readonly property real pointPoseScale: root.pointPoseScale
+          readonly property real pointUpPoseScale: root.pointUpPoseScale
+          // Reticle sits a little ahead of the fingertip when pointing sideways.
+          readonly property real pointLead: 15
+          readonly property real pointTipLocalX: 8 + 112 + ((Number(root.pointTip.x) - 112) * pointPoseScale)
+          readonly property real pointTipLocalY: (height - 192) + 96 + ((Number(root.pointTip.y) - 96) * pointPoseScale)
+          readonly property real waitingX:
+            Math.max(28, teachingContent.x - width - 22)
+          readonly property real waitingY:
+            Math.max(70, overlay.height - height - 28)
+          readonly property real menuTargetX: overlay.menuSelectionX
+          readonly property real menuTargetY: overlay.menuSelectionY
+          readonly property real moduleTargetX:
+            Math.max(18, completionPanel.x - width - 22)
+          readonly property real moduleTargetY:
+            Math.max(50, Math.min(bottomY,
+              completionPanel.y + (completionPanel.height / 2) - (height * 0.55)))
+          readonly property real targetScale: targetsCompletion
+            ? Math.max(0.5, Math.min(1, (overlay.targetPointX - 18) / 195))
+            : 1
+          readonly property real responsiveScale: targetsCompletion ? targetScale : 1
+          property real presentationScale: responsiveScale
+          readonly property real targetX:
+            overlay.targetPointX - (width / 2) - ((pointTipLocalX + pointLead - (width / 2)) * targetScale)
+          readonly property real targetY:
+            overlay.targetPointY - height + ((height - pointTipLocalY) * targetScale)
+          readonly property real bottomY: overlay.height - height - 28
+          readonly property real contextX: targetsMenu
+            ? Math.max(18, Math.min(overlay.width - width - 18, menuTargetX - width + 45))
+            : targetsTour
+              ? tourX
+            : targetsCompletion
+              ? Math.max(18 - (width * (1 - targetScale) / 2), Math.min(overlay.width - width - 18, targetX))
+              : targetsModuleComplete
+                ? moduleTargetX
+              : waitingX
+          readonly property real contextY: targetsMenu
+            ? Math.max(50, menuTargetY - (height * 0.55))
+            : targetsTour
+              ? tourY
+            : targetsCompletion
+              ? Math.max(50, Math.min(bottomY, targetY))
+              : targetsModuleComplete
+                ? moduleTargetY
+              : waitingY
+
+          visible: (root.phase === "menu" ||
+            root.phase === "waiting" ||
+            root.phase === "highlight" ||
+            root.phase === "lesson-complete") &&
+            root.characterState !== "hidden"
+          width: 240
+          height: 260
+          x: userPlaced ? userX : contextX
+          y: userPlaced ? userY : contextY
+          scale: effectScale * presentationScale
+          rotation: effectRotation
+          opacity: effectOpacity
+          transformOrigin: Item.Bottom
+          transform: Translate { y: hexonCoach.arcOffset }
+
+          onIsSettledHoverChanged: {
+            if (!isSettledHover) characterImageArea.hoverOffset = 0
+          }
+
+          onXChanged: {
+            if (overlay.shouldShow) root.characterX = x
+            // Face the way we are actually moving; destinations can update a
+            // frame after the flight cue, so the motion itself is the truth.
+            if (isFlying && Math.abs(x - lastTrackedX) > 0.3) flightDirection = x > lastTrackedX ? 1 : -1
+            lastTrackedX = x
+          }
+          property real lastTrackedX: 0
+          onYChanged: if (overlay.shouldShow) root.characterY = y
+
+          Behavior on presentationScale {
+            enabled: hexonCoach.visible && !root.reducedMotion
+            NumberAnimation {
+              duration: 320
+              easing.type: Easing.InOutSine
+            }
+          }
+
+          // The pin (userPlaced) must not gate these Behaviors: when the pin is
+          // released the x/y bindings can re-evaluate before `enabled` does,
+          // which made HEXON jump to the target instead of flying there. Only
+          // direct manipulation (dragging, the gravity fall) bypasses them.
+          Behavior on x {
+            enabled: hexonCoach.visible && !root.reducedMotion && !characterMouse.pressed
+            NumberAnimation {
+              duration: root.characterTravelDuration
+              easing.type: Easing.InOutSine
+            }
+          }
+
+          Behavior on y {
+            enabled: hexonCoach.visible && !root.reducedMotion && !characterMouse.pressed && !fallAnimation.running
+            NumberAnimation {
+              duration: root.characterState === "menu-point" ? 620 : root.characterTravelDuration
+              easing.type: Easing.InOutSine
+            }
+          }
+
+          Connections {
+            target: root
+
+            function onPendingLessonTransitionChanged() {
+              if (root.pendingLessonTransition !== "highlight" || !hexonCoach.visible) return
+              fallAnimation.stop()
+              hexonCoach.userX = hexonCoach.x
+              hexonCoach.userY = hexonCoach.y
+              hexonCoach.userPlaced = true
+            }
+
+            function onCharacterCueChanged() {
+              if (root.reducedMotion) {
+                hexonCoach.stretch = 1
+              } else if (
+                root.characterState === "step-fly" ||
+                root.characterState === "help-fly" ||
+                root.characterState === "target-fly" ||
+                root.characterState === "tour-fly" ||
+                root.characterState === "menu-fly" ||
+                root.characterState === "module-fly"
+              ) {
+                landingAnimation.stop()
+                takeoffAnimation.restart()
+                // Swoop height follows the horizontal distance; dip when near the top edge.
+                var horizontal = Math.abs(hexonCoach.contextX - hexonCoach.x)
+                var swoop = Math.min(70, Math.max(24, horizontal * 0.1))
+                hexonCoach.arcHeight = hexonCoach.y < 160 ? swoop : -swoop
+                arcAnimation.restart()
+              } else if (
+                root.characterState === "step-settle" ||
+                root.characterState === "help-settle" ||
+                root.characterState === "target-settle" ||
+                root.characterState === "tour-settle" ||
+                root.characterState === "menu-settle" ||
+                root.characterState === "module-settle"
+              ) {
+                takeoffAnimation.stop()
+                landingAnimation.restart()
+              }
+              if (
+                root.characterState === "step-fly" ||
+                root.characterState === "step-settle" ||
+                root.characterState === "help-fly" ||
+                root.characterState === "help-settle" ||
+                root.characterState === "help" ||
+                root.characterState === "target-fly" ||
+                root.characterState === "target-settle" ||
+                root.characterState === "target-point" ||
+                root.characterState === "tour-fly" ||
+                root.characterState === "tour-settle" ||
+                root.characterState === "tour-point" ||
+                root.characterState === "tour-talk" ||
+                root.characterState === "menu-fly" ||
+                root.characterState === "menu-settle" ||
+                root.characterState === "menu-point" ||
+                root.characterState === "module-fly" ||
+                root.characterState === "module-settle"
+              ) {
+                fallAnimation.stop()
+                hexonCoach.userPlaced = false
+              }
+              if (root.reducedMotion) {
+                hexonCoach.effectScale = 1
+                hexonCoach.effectRotation = 0
+                hexonCoach.effectOpacity = 1
+                return
+              }
+              if (root.characterState === "correct") correctAnimation.restart()
+              else if (root.characterState === "incorrect") incorrectAnimation.restart()
+              else if (root.characterState === "celebrate") {
+                celebrateAnimation.restart()
+                if (root.phase === "lesson-complete") confettiAnimation.restart()
+              }
+              else {
+                hexonCoach.effectScale = 1
+                hexonCoach.effectRotation = 0
+                hexonCoach.effectOpacity = 1
+              }
+            }
+
+            function onSelectedLessonIndexChanged() {
+              if (root.phase === "menu") {
+                fallAnimation.stop()
+                hexonCoach.userPlaced = false
+              }
+            }
+          }
+
+          SequentialAnimation {
+            id: arcAnimation
+            NumberAnimation {
+              target: hexonCoach
+              property: "arcOffset"
+              to: hexonCoach.arcHeight
+              duration: Math.round(root.characterTravelDuration * 0.5)
+              easing.type: Easing.OutQuad
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "arcOffset"
+              to: 0
+              duration: Math.round(root.characterTravelDuration * 0.5)
+              easing.type: Easing.InQuad
+            }
+          }
+
+          SequentialAnimation {
+            id: takeoffAnimation
+            NumberAnimation { target: hexonCoach; property: "stretch"; to: 0.9; duration: 90; easing.type: Easing.OutQuad }
+            NumberAnimation { target: hexonCoach; property: "stretch"; to: 1.08; duration: 170; easing.type: Easing.OutQuad }
+            NumberAnimation { target: hexonCoach; property: "stretch"; to: 1; duration: 260; easing.type: Easing.InOutSine }
+          }
+
+          SequentialAnimation {
+            id: landingAnimation
+            NumberAnimation { target: hexonCoach; property: "stretch"; to: 1.06; duration: 90; easing.type: Easing.OutQuad }
+            NumberAnimation { target: hexonCoach; property: "stretch"; to: 0.94; duration: 130; easing.type: Easing.InOutSine }
+            NumberAnimation { target: hexonCoach; property: "stretch"; to: 1; duration: 200; easing.type: Easing.OutBack }
+          }
+
+          Timer {
+            // Blink at irregular intervals while pointing; the idle strip blinks on its own.
+            id: blinkTimer
+            interval: 2600
+            repeat: true
+            running: hexonCoach.visible && hexonCoach.isPointing && !hexonCoach.isFlying &&
+              root.pointBlink && !root.reducedMotion
+            onTriggered: {
+              hexonCoach.blinking = true
+              blinkOffTimer.restart()
+              interval = 2200 + Math.floor(Math.random() * 3000)
+            }
+            onRunningChanged: if (!running) hexonCoach.blinking = false
+          }
+
+          Timer {
+            id: poseStageTimer
+            interval: 140
+            repeat: false
+            onTriggered: hexonCoach.poseStage = hexonCoach.isPointing ? 2 : 0
+          }
+
+          Timer {
+            id: blinkOffTimer
+            interval: 130
+            repeat: false
+            onTriggered: hexonCoach.blinking = false
+          }
+
+          Timer {
+            id: trailTimer
+            interval: 55
+            repeat: true
+            running: hexonCoach.visible && hexonCoach.isFlying && !root.reducedMotion
+            onTriggered: {
+              var next = hexonCoach.trail.slice(-7)
+              next.push({ "x": hexonCoach.x + (hexonCoach.width / 2), "y": hexonCoach.y + hexonCoach.arcOffset + hexonCoach.height - 96 })
+              hexonCoach.trail = next
+            }
+            onRunningChanged: if (!running) trailFadeTimer.restart()
+          }
+
+          Timer {
+            id: trailFadeTimer
+            interval: 70
+            repeat: true
+            running: false
+            onTriggered: {
+              if (hexonCoach.trail.length === 0) { stop(); return }
+              hexonCoach.trail = hexonCoach.trail.slice(1)
+            }
+          }
+
+          SequentialAnimation {
+            id: correctAnimation
+            PropertyAction {
+              target: hexonCoach
+              property: "effectScale"
+              value: 1
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectScale"
+              to: 1.06
+              duration: 220
+              easing.type: Easing.InOutSine
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectScale"
+              to: 1
+              duration: 280
+              easing.type: Easing.InOutSine
+            }
+          }
+
+          SequentialAnimation {
+            id: incorrectAnimation
+            PropertyAction {
+              target: hexonCoach
+              property: "effectRotation"
+              value: 0
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectRotation"
+              to: -3
+              duration: 160
+              easing.type: Easing.InOutSine
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectRotation"
+              to: 3
+              duration: 240
+              easing.type: Easing.InOutSine
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectRotation"
+              to: 0
+              duration: 220
+              easing.type: Easing.InOutSine
+            }
+          }
+
+          SequentialAnimation {
+            id: celebrateAnimation
+            PropertyAction {
+              target: hexonCoach
+              property: "effectScale"
+              value: 1
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectScale"
+              to: 1.1
+              duration: 260
+              easing.type: Easing.InOutSine
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectScale"
+              to: 1
+              duration: 360
+              easing.type: Easing.InOutSine
+            }
+          }
+
+          SequentialAnimation {
+            id: clickAnimation
+            PropertyAction {
+              target: hexonCoach
+              property: "effectScale"
+              value: 1
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectScale"
+              to: 1.07
+              duration: 180
+              easing.type: Easing.InOutSine
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectScale"
+              to: 0.98
+              duration: 160
+              easing.type: Easing.InOutSine
+            }
+            NumberAnimation {
+              target: hexonCoach
+              property: "effectScale"
+              to: 1
+              duration: 220
+              easing.type: Easing.InOutSine
+            }
+          }
+
+          NumberAnimation {
+            id: fallAnimation
+            target: hexonCoach
+            property: "userY"
+            to: hexonCoach.bottomY
+            duration: root.reducedMotion ? 0 : 850
+            easing.type: Easing.OutCubic
+          }
+
+          Timer {
+            id: interactionMessageTimer
+            interval: 900
+            repeat: false
+            onTriggered: hexonCoach.interactionMessage = ""
+          }
+
+          Rectangle {
+            anchors {
+              horizontalCenter: parent.horizontalCenter
+              verticalCenter: characterImageArea.verticalCenter
+            }
+            visible: root.characterState === "correct"
+            width: 164
+            height: 164
+            radius: 82
+            color: "transparent"
+            border.color: root.accent
+            border.width: 4
+            opacity: 0.42
+
+            SequentialAnimation on scale {
+              running: root.characterState === "correct" && !root.reducedMotion
+              loops: Animation.Infinite
+              NumberAnimation { from: 0.86; to: 1.18; duration: 620; easing.type: Easing.OutCubic }
+              NumberAnimation { from: 1.18; to: 0.86; duration: 620; easing.type: Easing.InCubic }
+            }
+          }
+
+          Item {
+            id: confettiBurst
+
+            // Module-completion burst. One 0 -> 1 value drives every piece; each
+            // piece staggers its own start, flies out on an arc, flutters, spins,
+            // and fades, so the whole thing is a single animation.
+            property real progress: 1
+            readonly property bool active: progress < 1
+            readonly property real originX: hexonCoach.width / 2
+            readonly property real originY: hexonCoach.height - 130
+
+            anchors.fill: parent
+            visible: active
+
+            NumberAnimation {
+              id: confettiAnimation
+              target: confettiBurst
+              property: "progress"
+              from: 0
+              to: 1
+              duration: 2600
+              easing.type: Easing.Linear
+            }
+
+            Repeater {
+              model: 56
+
+              Rectangle {
+                required property int index
+                readonly property real seed: ((index * 7919) % 97) / 97
+                readonly property real seed2: ((index * 104729) % 89) / 89
+                readonly property real seed3: ((index * 15485863) % 83) / 83
+                // Two waves: the second half of the pieces launch about a third of the way in.
+                readonly property real delay: (index % 2 === 0 ? 0 : 0.32) + (seed3 * 0.12)
+                readonly property real t: Math.max(0, Math.min(1, (confettiBurst.progress - delay) / (1 - delay)))
+                // Fan across the upper half, launching a little faster straight up.
+                readonly property real angle: (Math.PI * 0.08) + (seed * Math.PI * 0.84)
+                readonly property real speed: 240 + (seed2 * 220)
+                readonly property real vx: Math.cos(angle) * speed
+                readonly property real vy: Math.sin(angle) * speed * (0.85 + (0.3 * Math.abs(Math.sin(angle))))
+                readonly property real flutter: Math.sin((t * 9) + (seed * 6.28)) * 14 * t
+                readonly property real px: confettiBurst.originX + (vx * t) + flutter
+                readonly property real py: confettiBurst.originY - (vy * t) + (260 * t * t)
+                readonly property bool streamer: index % 3 === 0
+
+                width: streamer ? 4 : 5 + Math.round(seed2 * 5)
+                height: streamer ? 12 + Math.round(seed * 8) : width
+                x: px - (width / 2)
+                y: py - (height / 2)
+                rotation: (seed3 * 360) + (t * 720 * (index % 2 === 0 ? 1 : -1))
+                opacity: t <= 0 ? 0 : t < 0.6 ? 1 : Math.max(0, 1 - ((t - 0.6) / 0.4))
+                color: index % 5 === 0
+                  ? root.accent
+                  : index % 5 === 1
+                    ? root.instruction
+                    : index % 5 === 2
+                      ? root.urgent
+                      : index % 5 === 3
+                        ? root.foreground
+                        : root.colorWithAlpha(root.accent, 0.55)
+              }
+            }
+
+            // A few four-point sparkles that pop around HEXON during the burst.
+            Repeater {
+              model: 6
+
+              Item {
+                required property int index
+                readonly property real seed: ((index * 7919) % 97) / 97
+                readonly property real start: 0.1 + (index * 0.13)
+                readonly property real life: Math.max(0, Math.min(1, (confettiBurst.progress - start) / 0.28))
+                readonly property real pop: life < 0.5 ? life * 2 : (1 - life) * 2
+
+                x: confettiBurst.originX - 120 + (seed * 240) - 9
+                y: confettiBurst.originY - 40 - (((index * 37) % 120)) - 9
+                width: 18
+                height: 18
+                scale: 0.4 + pop
+                opacity: pop
+                visible: life > 0 && life < 1
+
+                Rectangle { x: 7; y: 0; width: 4; height: 18; color: root.instruction }
+                Rectangle { x: 0; y: 7; width: 18; height: 4; color: root.instruction }
+                Rectangle { x: 6; y: 6; width: 6; height: 6; color: root.foreground }
+              }
+            }
+          }
+
+          Rectangle {
+            visible: !hexonCoach.isPointingUp
+            anchors {
+              top: parent.top
+            }
+            x: hexonCoach.isPointing
+              ? 195 - width
+              : (parent.width - width) / 2
+            width: Math.min(230, Math.max(112, characterMessageText.implicitWidth + 24))
+            height: Math.max(38, characterMessageText.implicitHeight + 16)
+            radius: 10
+            color: root.foreground
+            border.color: root.characterState === "incorrect" ? root.urgent : root.accent
+            border.width: 2
+
+            Text {
+              id: characterMessageText
+              anchors {
+                fill: parent
+                margins: 8
+              }
+              text: hexonCoach.interactionMessage !== ""
+                ? hexonCoach.interactionMessage
+                : root.characterMessage
+              textFormat: Text.PlainText
+              horizontalAlignment: Text.AlignHCenter
+              verticalAlignment: Text.AlignVCenter
+              wrapMode: Text.WordWrap
+              color: root.background
+              font.family: "monospace"
+              font.pixelSize: 12
+              font.weight: Font.Bold
+            }
+          }
+
+          Item {
+            id: characterImageArea
+
+            property real hoverOffset: 0
+            transform: Scale {
+              origin.x: 112
+              origin.y: 192
+              xScale: 2 - hexonCoach.stretch
+              yScale: hexonCoach.stretch
+            }
+
+            anchors {
+              horizontalCenter: parent.horizontalCenter
+              bottom: parent.bottom
+              bottomMargin: hoverOffset
+            }
+            width: 224
+            height: 192
+
+            SequentialAnimation on hoverOffset {
+              running: hexonCoach.isSettledHover && !root.reducedMotion
+              loops: Animation.Infinite
+              NumberAnimation {
+                from: 0
+                to: 4
+                duration: 900
+                easing.type: Easing.InOutSine
+              }
+              NumberAnimation {
+                from: 4
+                to: 0
+                duration: 900
+                easing.type: Easing.InOutSine
+              }
+            }
+
+            Repeater {
+              model: (hexonCoach.isPointing ? root.pointFlames : root.idleFlames).map(function(point) {
+                return { "x": Number(point[0]), "y": Number(point[1]) }
+              })
+
+              delegate: Item {
+                required property var modelData
+
+                property real flamePulse: 1
+
+                visible: hexonCoach.visible && !root.reducedMotion && root.characterFlames && !characterImageArea.showsFlight
+                x: modelData.x - 6
+                y: modelData.y
+                width: 12
+                height: 26
+                z: 0
+                scale: (hexonCoach.isFlying ? 1.35 : 1) * flamePulse
+                transformOrigin: Item.Top
+
+                Rectangle {
+                  x: 4
+                  width: 4
+                  height: 6
+                  color: root.foreground
+                }
+
+                Rectangle {
+                  x: 2
+                  y: 5
+                  width: 8
+                  height: 7
+                  color: root.instruction
+                }
+
+                Rectangle {
+                  x: 3
+                  y: 12
+                  width: 6
+                  height: 8
+                  color: root.urgent
+                }
+
+                Rectangle {
+                  x: 5
+                  y: 20
+                  width: 2
+                  height: 6
+                  color: root.accent
+                }
+
+                SequentialAnimation on flamePulse {
+                  running: parent.visible
+                  loops: Animation.Infinite
+                  NumberAnimation {
+                    from: 0.72
+                    to: 1.08
+                    duration: 150
+                    easing.type: Easing.InOutSine
+                  }
+                  NumberAnimation {
+                    from: 1.08
+                    to: 0.82
+                    duration: 190
+                    easing.type: Easing.InOutSine
+                  }
+                }
+
+                SequentialAnimation on opacity {
+                  running: parent.visible
+                  loops: Animation.Infinite
+                  NumberAnimation { from: 0.72; to: 1; duration: 170 }
+                  NumberAnimation { from: 1; to: 0.76; duration: 170 }
+                }
+              }
+            }
+
+            // Winged characters travel with their flight strip instead of the idle pose.
+            readonly property bool showsFlight: root.flightFrames > 0 && !root.reducedMotion &&
+              hexonCoach.isFlying && root.characterState.indexOf("-fly") !== -1
+
+            SpriteSequence {
+              anchors.centerIn: parent
+              z: 1
+              visible: root.flightFrames > 0
+              opacity: characterImageArea.showsFlight ? 1 : 0
+              width: 256
+              height: 192
+              interpolate: false
+              running: characterImageArea.showsFlight
+              transform: Scale {
+                origin.x: 128
+                xScale: hexonCoach.flightDirection
+              }
+              sprites: [
+                Sprite {
+                  name: "fly"
+                  source: root.spriteSource("flight")
+                  frameCount: Math.max(1, root.flightFrames)
+                  frameWidth: 256
+                  frameHeight: 192
+                  frameRate: root.flightFrameRate
+                }
+              ]
+
+              Behavior on opacity {
+                NumberAnimation {
+                  duration: root.characterPoseFadeDuration
+                  easing.type: Easing.InOutSine
+                }
+              }
+            }
+
+            SpriteSequence {
+              anchors.centerIn: parent
+              z: 1
+              opacity: hexonCoach.poseStage > 0 || characterImageArea.showsFlight ? 0 : 1
+              width: 192
+              height: 192
+              interpolate: false
+              goalSprite: root.characterState === "talk" ||
+                (root.characterState === "tour-talk" && audioProcess.running)
+                ? "talk" : "idle"
+              onGoalSpriteChanged: jumpTo(goalSprite)
+
+              sprites: [
+                Sprite {
+                  name: "idle"
+                  source: root.spriteSource("idle")
+                  frameCount: 16
+                  frameWidth: 192
+                  frameHeight: 192
+                  frameRate: root.reducedMotion ? 2 : 6
+                  to: { "idle": 1, "talk": 1 }
+                },
+                Sprite {
+                  name: "talk"
+                  source: root.spriteSource("talk")
+                  frameCount: 8
+                  frameWidth: 192
+                  frameHeight: 192
+                  frameRate: root.reducedMotion ? 2 : 8
+                  to: { "idle": 1, "talk": 1 }
+                }
+              ]
+
+              Behavior on opacity {
+                NumberAnimation {
+                  duration: root.characterPoseFadeDuration
+                  easing.type: Easing.InOutSine
+                }
+              }
+            }
+
+            Image {
+              anchors.fill: parent
+              z: 2
+              visible: root.pointBlink
+              opacity: hexonCoach.poseStage === 2 && hexonCoach.isPointingUp && hexonCoach.blinking ? 1 : 0
+              source: root.spriteSource("point-up-blink")
+              fillMode: Image.PreserveAspectFit
+              smooth: false
+              mipmap: false
+              scale: hexonCoach.pointUpPoseScale
+            }
+
+            Image {
+              anchors.fill: parent
+              z: 2
+              visible: root.pointBlink
+              opacity: hexonCoach.poseStage === 2 && !hexonCoach.isPointingUp && hexonCoach.blinking ? 1 : 0
+              source: root.spriteSource("point-blink")
+              fillMode: Image.PreserveAspectFit
+              smooth: false
+              mipmap: false
+              scale: hexonCoach.pointPoseScale
+            }
+
+            Image {
+              anchors.fill: parent
+              z: 1
+              visible: root.poseMid
+              opacity: hexonCoach.poseStage === 1 && hexonCoach.isPointingUp ? 1 : 0
+              source: root.spriteSource("point-up-mid")
+              fillMode: Image.PreserveAspectFit
+              smooth: false
+              mipmap: false
+              scale: hexonCoach.pointUpPoseScale
+            }
+
+            Image {
+              anchors.fill: parent
+              z: 1
+              visible: root.poseMid
+              opacity: hexonCoach.poseStage === 1 && !hexonCoach.isPointingUp ? 1 : 0
+              source: root.spriteSource("point-mid")
+              fillMode: Image.PreserveAspectFit
+              smooth: false
+              mipmap: false
+              scale: hexonCoach.pointPoseScale
+            }
+
+            Image {
+              anchors.fill: parent
+              z: 1
+              opacity: hexonCoach.poseStage === 2 && hexonCoach.isPointingUp ? 1 : 0
+              source: root.spriteSource("point-up")
+              fillMode: Image.PreserveAspectFit
+              smooth: false
+              mipmap: false
+              scale: hexonCoach.pointUpPoseScale
+
+              Behavior on opacity {
+                NumberAnimation {
+                  duration: root.characterPoseFadeDuration
+                  easing.type: Easing.InOutSine
+                }
+              }
+            }
+
+            Image {
+              anchors.fill: parent
+              z: 1
+              opacity: hexonCoach.poseStage === 2 && !hexonCoach.isPointingUp ? 1 : 0
+              source: root.spriteSource("point")
+              fillMode: Image.PreserveAspectFit
+              smooth: false
+              mipmap: false
+              scale: hexonCoach.pointPoseScale
+
+              Behavior on opacity {
+                NumberAnimation {
+                  duration: root.characterPoseFadeDuration
+                  easing.type: Easing.InOutSine
+                }
+              }
+            }
+
+          }
+
+          MouseArea {
+            id: characterMouse
+
+            property real pressSceneX: 0
+            property real pressSceneY: 0
+            property real startX: 0
+            property real startY: 0
+            property bool moved: false
+
+            anchors.fill: parent
+            z: 20
+            enabled: root.phase !== "menu"
+            hoverEnabled: true
+            cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
+            preventStealing: true
+
+            onPressed: function(mouse) {
+              var scenePosition = hexonCoach.mapToItem(hexonWindow.contentItem, mouse.x, mouse.y)
+              fallAnimation.stop()
+              pressSceneX = scenePosition.x
+              pressSceneY = scenePosition.y
+              startX = hexonCoach.x
+              startY = hexonCoach.y
+              moved = false
+              hexonCoach.userX = startX
+              hexonCoach.userY = startY
+              hexonCoach.userPlaced = true
+            }
+
+            onPositionChanged: function(mouse) {
+              if (!pressed) return
+              var scenePosition = hexonCoach.mapToItem(hexonWindow.contentItem, mouse.x, mouse.y)
+              var deltaX = scenePosition.x - pressSceneX
+              var deltaY = scenePosition.y - pressSceneY
+              if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) moved = true
+              hexonCoach.userX = Math.max(
+                18,
+                Math.min(overlay.width - hexonCoach.width - 18, startX + deltaX)
+              )
+              hexonCoach.userY = Math.max(
+                28,
+                Math.min(hexonCoach.bottomY, startY + deltaY)
+              )
+            }
+
+            onReleased: {
+              if (moved) {
+                hexonCoach.interactionMessage = "WHEE!"
+                interactionMessageTimer.restart()
+                if (root.reducedMotion) hexonCoach.userY = hexonCoach.bottomY
+                else fallAnimation.restart()
+              } else {
+                hexonCoach.userPlaced = false
+                hexonCoach.interactionMessage = "BEEP BOOP!"
+                interactionMessageTimer.restart()
+                if (!root.reducedMotion) clickAnimation.restart()
+              }
+            }
+
+            onCanceled: {
+              if (hexonCoach.userPlaced) {
+                if (root.reducedMotion) hexonCoach.userY = hexonCoach.bottomY
+                else fallAnimation.restart()
+              }
+            }
+          }
+        }
+
+      }
     }
   }
 }

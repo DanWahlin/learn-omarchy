@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "characters": [
+    {
+      "id": "hexon",
+      "displayName": "HEXON",
+      "tagline": "Pixel robot with a CRT head and boot flames. Precise, upbeat, and always pointing the way."
+    },
+    {
+      "id": "owl",
+      "displayName": "OLLIE",
+      "tagline": "A wise little owl with a pink scarf. Glides between stops and explains things calmly."
+    }
+  ]
+}

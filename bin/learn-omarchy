@@ -10,6 +10,7 @@ else
 fi
 app_root="${LEARN_OMARCHY_ROOT:-$default_root}"
 course="${LEARN_OMARCHY_COURSE:-$app_root/courses/omarchy-basics.json}"
+character="${LEARN_OMARCHY_CHARACTER:-}"
 
 while (($# > 0)); do
   case "$1" in
@@ -18,11 +19,17 @@ while (($# > 0)); do
       course="$2"
       shift 2
       ;;
+    --character)
+      [[ $# -ge 2 ]] || { echo "learn-omarchy: --character requires a name" >&2; exit 2; }
+      character="$2"
+      shift 2
+      ;;
     -h|--help)
       cat <<'USAGE'
-Usage: learn-omarchy [--course PATH]
+Usage: learn-omarchy [--course PATH] [--character NAME]
 
-Run an interactive, theme-aware Omarchy course.
+Run an interactive, theme-aware Omarchy course. Characters live under
+assets/characters/<NAME>; the default is hexon.
 USAGE
       exit 0
       ;;
@@ -45,6 +52,15 @@ course_dir="$(dirname -- "$course")"
 node --experimental-strip-types "$app_root/tools/validate-course.ts" "$course"
 mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/learn-omarchy"
 
+# Only an explicit choice becomes an override; otherwise the app shows the
+# coach picker on first run and remembers the selection.
+if [[ -n "$character" ]]; then
+  [[ -d "$app_root/assets/characters/$character/sprites" ]] || {
+    echo "learn-omarchy: unknown character '$character' (no $app_root/assets/characters/$character/sprites)" >&2
+    exit 2
+  }
+  export LEARN_OMARCHY_CHARACTER="$character"
+fi
 export LEARN_OMARCHY_ROOT="$app_root"
 export LEARN_OMARCHY_COURSE="$course"
 export LEARN_OMARCHY_COURSE_DIR="$course_dir"

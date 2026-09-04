@@ -1,0 +1,19 @@
+{
+  "displayName": "OLLIE",
+  "prefix": "owl",
+  "flames": false,
+  "pointPoseScale": 0.91,
+  "pointUpPoseScale": 0.96,
+  "pointTip": {
+    "x": 191,
+    "y": 89
+  },
+  "upTip": {
+    "x": 161,
+    "y": 8
+  },
+  "flightFrames": 2,
+  "flightFrameRate": 5,
+  "pointBlink": true,
+  "poseMid": true
+}

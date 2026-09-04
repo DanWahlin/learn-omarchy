@@ -54,6 +54,7 @@ export interface CourseStep {
   instruction: string;
   detail?: string;
   kind?: "tour";
+  pose?: "point" | "talk";
   keys: string[];
   actionLabel?: string;
   audio?: string | null;
@@ -62,6 +63,7 @@ export interface CourseStep {
   completion: Completion;
   highlight: Highlight;
   completionMessage?: string;
+  completionAudio?: string | null;
 }
 
 export interface CourseLesson {
@@ -268,11 +270,17 @@ const validateStep = (
   if (value.kind !== undefined && !isTour) {
     errors.push(`${path}.kind must be "tour" when present`);
   }
+  if (!isTour && value.pose !== undefined) {
+    errors.push(`${path}.pose is only valid for tour steps`);
+  }
   if (isTour) {
     if (!Array.isArray(value.keys) || value.keys.length !== 0) {
       errors.push(`${path}.keys must be empty for tour steps`);
     }
     if (typeof value.audio !== "string") errors.push(`${path}.audio is required for tour steps`);
+    if (value.pose !== undefined && value.pose !== "point" && value.pose !== "talk") {
+      errors.push(`${path}.pose must be "point" or "talk"`);
+    }
     if (value.help !== undefined) errors.push(`${path}.help is not allowed for tour steps`);
     if (value.actionLabel !== undefined) errors.push(`${path}.actionLabel is not allowed for tour steps`);
     if (!isRecord(value.completion) || value.completion.type !== "narration-complete") {
@@ -311,6 +319,10 @@ const validateStep = (
   validateHighlight(errors, value.highlight, `${path}.highlight`);
   if (value.completionMessage !== undefined) {
     addStringError(errors, value.completionMessage, `${path}.completionMessage`);
+  }
+  validateRelativePath(errors, value.completionAudio, `${path}.completionAudio`);
+  if (typeof value.completionAudio === "string" && typeof value.completionMessage !== "string") {
+    errors.push(`${path}.completionAudio requires a completionMessage to narrate`);
   }
 };
 
