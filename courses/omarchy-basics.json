@@ -15,7 +15,7 @@
           "id": "tour-welcome",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Welcome to Omarchy! Let's take a quick tour.",
+          "instruction": "Hi there! I'm HEXON. Welcome to Omarchy! Let's take a quick tour of your new desktop.",
           "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
           "keys": [],
           "audio": "audio/tour-welcome.mp3",
@@ -39,7 +39,7 @@
         {
           "id": "tour-workspaces",
           "kind": "tour",
-          "instruction": "See those numbers at the top left? Those are your workspaces, and each one is a separate desktop. The highlighted one is where you are right now.",
+          "instruction": "See those numbers up in the top left? Those are your workspaces. Each one is its own desktop, and the highlighted one is where you are right now.",
           "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
           "keys": [],
           "audio": "audio/tour-workspaces.mp3",
@@ -64,7 +64,7 @@
         {
           "id": "tour-clock",
           "kind": "tour",
-          "instruction": "Front and center, the date and time. Later on, a click there turns it into your calendar.",
+          "instruction": "Front and center, you've got the date and time. Click there later and it turns into your calendar.",
           "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
           "keys": [],
           "audio": "audio/tour-clock.mp3",
@@ -88,7 +88,7 @@
         {
           "id": "tour-status",
           "kind": "tour",
-          "instruction": "Over on the right is your status crew: network, Bluetooth, audio, display, and battery. Each one opens its own panel.",
+          "instruction": "Over on the right is your status crew: network, Bluetooth, audio, display, and battery. Click any of them and it opens its own panel.",
           "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
           "keys": [],
           "audio": "audio/tour-status.mp3",
@@ -111,15 +111,28 @@
         },
         {
           "id": "tour-omarchy-menu",
-          "instruction": "Ready for your first hotkey? Press Super and Space together to open the Omarchy menu.",
+          "instruction": "Ready for your first hotkey? Press Super and Space together, and the Omarchy menu opens.",
           "detail": "This menu is home base. Pick an app, change a setting, or reach anything else in Omarchy from here.",
-          "keys": ["SUPER", "+", "SPACE"],
+          "keys": [
+            "SUPER",
+            "+",
+            "SPACE"
+          ],
           "audio": "audio/tour-omarchy-menu.mp3",
           "help": {
             "label": "Open it for me",
-            "command": ["omarchy", "menu", "summon", "root"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "root"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -135,7 +148,7 @@
             "radius": 12,
             "durationMs": 2200
           },
-          "completionMessage": "That's the Omarchy menu. Type a few letters or use the arrows, then press Enter to launch whatever you picked.",
+          "completionMessage": "And that's the Omarchy menu. Type a few letters or use the arrow keys, then press Enter to launch whatever you picked.",
           "completionAudio": "audio/tour-omarchy-menu-done.mp3"
         }
       ]
@@ -151,13 +164,26 @@
           "id": "open-root-menu",
           "instruction": "Let's start with the big one. Press Super and Space to open the Omarchy menu.",
           "detail": "Everything in Omarchy is reachable from this menu, so it's worth making this shortcut muscle memory.",
-          "keys": ["SUPER", "+", "SPACE"],
+          "keys": [
+            "SUPER",
+            "+",
+            "SPACE"
+          ],
           "audio": "audio/open-root-menu.mp3",
           "help": {
             "label": "Open the menu for me",
-            "command": ["omarchy", "menu", "summon", "root"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "root"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -178,15 +204,30 @@
         },
         {
           "id": "open-apps",
-          "instruction": "Now for your apps. Hold Super and Alt, then tap Space to open the Apps menu.",
+          "instruction": "Now for your apps. Hold Super and Alt, then tap Space, and the Apps menu opens.",
           "detail": "The Apps menu lists everything installed. Start typing and the list narrows instantly.",
-          "keys": ["SUPER", "+", "ALT", "+", "SPACE"],
+          "keys": [
+            "SUPER",
+            "+",
+            "ALT",
+            "+",
+            "SPACE"
+          ],
           "audio": "audio/open-apps.mp3",
           "help": {
             "label": "Open Apps for me",
-            "command": ["omarchy", "menu", "summon", "apps"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "apps"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -202,20 +243,32 @@
             "radius": 12,
             "durationMs": 2200
           },
-          "completionMessage": "Nice. Type a few letters, press Enter, and the app launches. No mouse required.",
+          "completionMessage": "Nice. Type a few letters, hit Enter, and the app launches. No mouse required.",
           "completionAudio": "audio/open-apps-done.mp3"
         },
         {
           "id": "open-keybindings",
           "instruction": "Forget a shortcut? Press Super and K to see every keybinding at once.",
           "detail": "This searchable list is your cheat sheet. Type any word to filter it.",
-          "keys": ["SUPER", "+", "K"],
+          "keys": [
+            "SUPER",
+            "+",
+            "K"
+          ],
           "audio": "audio/open-keybindings.mp3",
           "help": {
             "label": "Show keybindings for me",
-            "command": ["omarchy", "menu", "keybindings"]
+            "command": [
+              "omarchy",
+              "menu",
+              "keybindings"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -231,7 +284,7 @@
             "radius": 12,
             "durationMs": 2200
           },
-          "completionMessage": "Keep this one handy. Any time you're stuck, Super plus K has the answer.",
+          "completionMessage": "Keep this one handy. Whenever you're stuck, Super plus K has the answer.",
           "completionAudio": "audio/open-keybindings-done.mp3"
         }
       ]
@@ -247,11 +300,19 @@
           "id": "launch-terminal",
           "instruction": "Time for a terminal. Press Super and Return, and one pops up right where you are.",
           "detail": "Omarchy tiles the new terminal next to your other windows automatically.",
-          "keys": ["SUPER", "+", "RETURN"],
+          "keys": [
+            "SUPER",
+            "+",
+            "RETURN"
+          ],
           "audio": "audio/launch-terminal.mp3",
           "help": {
             "label": "Launch the terminal for me",
-            "command": ["omarchy", "launch", "terminal"]
+            "command": [
+              "omarchy",
+              "launch",
+              "terminal"
+            ]
           },
           "completion": {
             "type": "hyprland-window-activated"
@@ -274,11 +335,21 @@
           "id": "launch-browser",
           "instruction": "Let's get online. Hold Super and Shift, then press Return to open your browser.",
           "detail": "A new browser window opens each time, so spin up as many as you need.",
-          "keys": ["SUPER", "+", "SHIFT", "+", "RETURN"],
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "RETURN"
+          ],
           "audio": "audio/launch-browser.mp3",
           "help": {
             "label": "Launch the browser for me",
-            "command": ["omarchy", "launch", "browser"]
+            "command": [
+              "omarchy",
+              "launch",
+              "browser"
+            ]
           },
           "completion": {
             "type": "hyprland-window-activated"
@@ -301,11 +372,21 @@
           "id": "launch-files",
           "instruction": "Need your files? Hold Super and Shift, then press F to open the file manager.",
           "detail": "The file manager opens in a new window, ready for browsing, drag and drop, or a quick search.",
-          "keys": ["SUPER", "+", "SHIFT", "+", "F"],
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "F"
+          ],
           "audio": "audio/launch-files.mp3",
           "help": {
             "label": "Launch Files for me",
-            "command": ["omarchy", "launch", "nautilus"]
+            "command": [
+              "omarchy",
+              "launch",
+              "nautilus"
+            ]
           },
           "completion": {
             "type": "hyprland-window-activated"
@@ -337,11 +418,19 @@
           "id": "next-workspace",
           "instruction": "Let's hop desktops. Press Super and Tab to move to the next workspace.",
           "detail": "Workspaces keep projects separate without minimizing anything. Watch the numbers in the bar.",
-          "keys": ["SUPER", "+", "TAB"],
+          "keys": [
+            "SUPER",
+            "+",
+            "TAB"
+          ],
           "audio": "audio/next-workspace.mp3",
           "help": {
             "label": "Move forward for me",
-            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.focus({ workspace = \"e+1\" }))"]
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ workspace = \"e+1\" }))"
+            ]
           },
           "completion": {
             "type": "hyprland-workspace-change"
@@ -364,11 +453,21 @@
           "id": "previous-workspace",
           "instruction": "Now head back. Hold Super and Shift, then press Tab to return to the previous workspace.",
           "detail": "Adding Shift reverses the direction. Super plus a number jumps straight to that workspace.",
-          "keys": ["SUPER", "+", "SHIFT", "+", "TAB"],
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "TAB"
+          ],
           "audio": "audio/previous-workspace.mp3",
           "help": {
             "label": "Move back for me",
-            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.focus({ workspace = \"e-1\" }))"]
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ workspace = \"e-1\" }))"
+            ]
           },
           "completion": {
             "type": "hyprland-workspace-change"
@@ -384,7 +483,7 @@
             "radius": 10,
             "durationMs": 1700
           },
-          "completionMessage": "And you're back. Super plus any number jumps there directly.",
+          "completionMessage": "And you're back. By the way, Super plus any number jumps straight to that workspace.",
           "completionAudio": "audio/previous-workspace-done.mp3"
         }
       ]
@@ -400,13 +499,29 @@
           "id": "audio-panel",
           "instruction": "Let's turn it up. Hold Super and Control, then press A to open the Audio panel.",
           "detail": "Volume, output device, and a per-app mixer all live here.",
-          "keys": ["SUPER", "+", "CTRL", "+", "A"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "A"
+          ],
           "audio": "audio/audio-panel.mp3",
           "help": {
             "label": "Open Audio for me",
-            "command": ["omarchy-shell", "shell", "summon", "omarchy.audio"]
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.audio"
+            ]
           },
-          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.audio"],
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.audio"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-keyboard-panel"
@@ -429,13 +544,29 @@
           "id": "network-panel",
           "instruction": "Wi-Fi time. Hold Super and Control, then press W to open the Network panel.",
           "detail": "See the networks around you, connect, and check which one you're on.",
-          "keys": ["SUPER", "+", "CTRL", "+", "W"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "W"
+          ],
           "audio": "audio/network-panel.mp3",
           "help": {
             "label": "Open Network for me",
-            "command": ["omarchy-shell", "shell", "summon", "omarchy.network"]
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.network"
+            ]
           },
-          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.network"],
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.network"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-keyboard-panel"
@@ -456,15 +587,31 @@
         },
         {
           "id": "power-panel",
-          "instruction": "Check your battery. Hold Super and Control, then press P to open the Power panel.",
+          "instruction": "How's your battery? Hold Super and Control, then press P to open the Power panel.",
           "detail": "Battery status and power profiles, ready for when you need to squeeze out more time.",
-          "keys": ["SUPER", "+", "CTRL", "+", "P"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "P"
+          ],
           "audio": "audio/power-panel.mp3",
           "help": {
             "label": "Open Power for me",
-            "command": ["omarchy-shell", "shell", "summon", "omarchy.power"]
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.power"
+            ]
           },
-          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.power"],
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.power"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-keyboard-panel"
@@ -480,20 +627,38 @@
             "radius": 12,
             "durationMs": 1900
           },
-          "completionMessage": "Battery and power profiles at a glance.",
+          "completionMessage": "Battery and power profiles, all at a glance.",
           "completionAudio": "audio/power-panel-done.mp3"
         },
         {
           "id": "calendar-panel",
           "instruction": "What's the date? Hold Super, Control, and Alt, then press D to open the calendar.",
           "detail": "The calendar sits under the clock, one chord away.",
-          "keys": ["SUPER", "+", "CTRL", "+", "ALT", "+", "D"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "ALT",
+            "+",
+            "D"
+          ],
           "audio": "audio/calendar-panel.mp3",
           "help": {
             "label": "Open Calendar for me",
-            "command": ["omarchy-shell", "shell", "summon", "omarchy.clock"]
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.clock"
+            ]
           },
-          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.clock"],
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.clock"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-keyboard-panel"
@@ -525,13 +690,29 @@
           "id": "background-menu",
           "instruction": "Fancy a new look? Hold Super and Control, then press Space to open the Background switcher.",
           "detail": "Backgrounds are grouped with your current theme, and you can add your own images.",
-          "keys": ["SUPER", "+", "CTRL", "+", "SPACE"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "SPACE"
+          ],
           "audio": "audio/background-menu.mp3",
           "help": {
             "label": "Show backgrounds for me",
-            "command": ["omarchy", "menu", "summon", "background"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "background"
+            ]
           },
-          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.image-picker"],
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.image-picker"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-image-selector"
@@ -547,20 +728,38 @@
             "radius": 12,
             "durationMs": 2000
           },
-          "completionMessage": "Pick a background you like. Escape keeps the one you have.",
+          "completionMessage": "Pick a background you like, or press Escape to keep the one you have.",
           "completionAudio": "audio/background-menu-done.mp3"
         },
         {
           "id": "theme-menu",
           "instruction": "Let's go bigger. Hold Super, Shift, and Control, then press Space to open the Theme menu.",
           "detail": "A theme recolors the desktop, terminal, editor, and shell together.",
-          "keys": ["SUPER", "+", "SHIFT", "+", "CTRL", "+", "SPACE"],
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "CTRL",
+            "+",
+            "SPACE"
+          ],
           "audio": "audio/theme-menu.mp3",
           "help": {
             "label": "Show themes for me",
-            "command": ["omarchy", "menu", "summon", "theme"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "theme"
+            ]
           },
-          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.image-picker"],
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.image-picker"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-image-selector"
@@ -583,13 +782,28 @@
           "id": "toggle-menu",
           "instruction": "One more. Hold Super and Control, then press O to open the Toggle menu.",
           "detail": "Night light, idle locking, the top bar, and other switches all live here.",
-          "keys": ["SUPER", "+", "CTRL", "+", "O"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "O"
+          ],
           "audio": "audio/toggle-menu.mp3",
           "help": {
             "label": "Show toggles for me",
-            "command": ["omarchy", "menu", "summon", "toggle"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "toggle"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -605,7 +819,7 @@
             "radius": 12,
             "durationMs": 2000
           },
-          "completionMessage": "Each entry flips one setting. Escape closes it without touching anything.",
+          "completionMessage": "Each entry flips one setting, and Escape closes it without touching anything.",
           "completionAudio": "audio/toggle-menu-done.mp3"
         }
       ]
@@ -621,13 +835,28 @@
           "id": "capture-menu",
           "instruction": "Grab what's on screen. Hold Super and Control, then press C to open the Capture menu.",
           "detail": "Screenshots, screen recordings, color picking, and text extraction all start here.",
-          "keys": ["SUPER", "+", "CTRL", "+", "C"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "C"
+          ],
           "audio": "audio/capture-menu.mp3",
           "help": {
             "label": "Open Capture for me",
-            "command": ["omarchy", "menu", "summon", "capture"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "capture"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -650,13 +879,28 @@
           "id": "share-menu",
           "instruction": "Send it somewhere. Hold Super and Control, then press S to open the Share menu.",
           "detail": "Share files and text to nearby devices without cables or cloud accounts.",
-          "keys": ["SUPER", "+", "CTRL", "+", "S"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "S"
+          ],
           "audio": "audio/share-menu.mp3",
           "help": {
             "label": "Open Share for me",
-            "command": ["omarchy", "menu", "summon", "share"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "share"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -679,13 +923,29 @@
           "id": "clipboard-history",
           "instruction": "Copied something earlier? Hold Super and Control, then press V to open your clipboard history.",
           "detail": "Everything you've copied recently is here. Pick an entry to paste it again.",
-          "keys": ["SUPER", "+", "CTRL", "+", "V"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "V"
+          ],
           "audio": "audio/clipboard-history.mp3",
           "help": {
             "label": "Open clipboard history for me",
-            "command": ["omarchy-shell", "shell", "summon", "omarchy.clipboard"]
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.clipboard"
+            ]
           },
-          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.clipboard"],
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.clipboard"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-clipboard"
@@ -717,13 +977,28 @@
           "id": "hardware-menu",
           "instruction": "Let's look under the hood. Hold Super and Control, then press H to open the Hardware menu.",
           "detail": "Audio, Bluetooth, display, keyboard, and other device settings gather here.",
-          "keys": ["SUPER", "+", "CTRL", "+", "H"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "H"
+          ],
           "audio": "audio/hardware-menu.mp3",
           "help": {
             "label": "Open Hardware for me",
-            "command": ["omarchy", "menu", "summon", "hardware"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "hardware"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"
@@ -739,20 +1014,36 @@
             "radius": 12,
             "durationMs": 2100
           },
-          "completionMessage": "Hardware setup lives here. Install and Update are one level up in the Omarchy menu, under Super plus Space.",
+          "completionMessage": "Hardware setup lives here. Install and Update are one level up, in the Omarchy menu under Super plus Space.",
           "completionAudio": "audio/hardware-menu-done.mp3"
         },
         {
           "id": "display-panel",
-          "instruction": "Sort out your screens. Hold Super and Control, then press D to open the Display panel.",
+          "instruction": "Let's sort out your screens. Hold Super and Control, then press D to open the Display panel.",
           "detail": "Scale, arrangement, and brightness, with changes applied as you make them.",
-          "keys": ["SUPER", "+", "CTRL", "+", "D"],
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "D"
+          ],
           "audio": "audio/display-panel.mp3",
           "help": {
             "label": "Open Display for me",
-            "command": ["omarchy-shell", "shell", "summon", "omarchy.monitor"]
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.monitor"
+            ]
           },
-          "cleanup": ["omarchy-shell", "shell", "hide", "omarchy.monitor"],
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.monitor"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-keyboard-panel"
@@ -775,13 +1066,26 @@
           "id": "system-menu",
           "instruction": "Last one. Hold Super and press Escape to open the System menu.",
           "detail": "Lock, suspend, log out, reboot, or shut down from one keyboard-driven list.",
-          "keys": ["SUPER", "+", "ESCAPE"],
+          "keys": [
+            "SUPER",
+            "+",
+            "ESCAPE"
+          ],
           "audio": "audio/system-menu.mp3",
           "help": {
             "label": "Open System for me",
-            "command": ["omarchy", "menu", "summon", "system"]
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "system"
+            ]
           },
-          "cleanup": ["omarchy", "menu", "close"],
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
             "type": "hyprland-layer-open",
             "namespace": "omarchy-menu"

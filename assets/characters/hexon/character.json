@@ -35,5 +35,11 @@
   "pointBlink": true,
   "flightFrames": 1,
   "flightFrameRate": 1,
-  "poseMid": true
+  "poseMid": true,
+  "intro": {
+    "kind": "rocket",
+    "anchorX": 0.5,
+    "anchorY": 0.7
+  },
+  "voice": "en-US-Andrew:DragonHDLatestNeural"
 }

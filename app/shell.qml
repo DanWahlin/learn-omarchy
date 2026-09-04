@@ -48,6 +48,15 @@ ShellRoot {
   // Halfway pointing frames (<prefix>-point-mid.png etc.) shown while the limb raises or lowers.
   readonly property bool poseMid: characterConfig.poseMid === true
   readonly property real flightFrameRate: Number(characterConfig.flightFrameRate) > 0 ? Number(characterConfig.flightFrameRate) : 5
+  // Opening scene played when the tour starts: "rocket" lands and the coach
+  // steps out of the hatch, or "tree" grows and the coach takes off from a
+  // branch. Sprites are <prefix>-intro.png (plus -intro-open.png for the open
+  // hatch); anchorX/anchorY give the doorway floor or the perch as fractions
+  // of the sprite.
+  readonly property var introConfig: characterConfig.intro && typeof characterConfig.intro === "object" ? characterConfig.intro : ({})
+  readonly property string introKind: String(introConfig.kind || (characterFlames ? "rocket" : "tree"))
+  readonly property real introAnchorX: Number(introConfig.anchorX) > 0 ? Number(introConfig.anchorX) : (introKind === "rocket" ? 0.5 : 0.84)
+  readonly property real introAnchorY: Number(introConfig.anchorY) > 0 ? Number(introConfig.anchorY) : (introKind === "rocket" ? 0.7 : 0.63)
 
   // One expression per path so a coach switch never mixes the new folder
   // with the previous manifest's sprite prefix mid-update.
@@ -127,6 +136,7 @@ ShellRoot {
 
   function enterHome() {
     phase = "menu"
+    selectedLessonIndex = firstIncompleteLessonIndex()
     setCharacterState("menu-point", "CHOOSE A LESSON")
     maybeAutoStartTour()
   }
@@ -165,10 +175,21 @@ ShellRoot {
     if (phase !== "settings") return
     resetConfirmPending = false
     if (!characterChosen()) {
-      Qt.quit()
+      // Nothing picked yet: on first run Escape leaves the app; after a reset
+      // the dialog turns back into the coach picker.
+      if (settingsMode === "first-run") Qt.quit()
+      else openSettings("first-run")
       return
     }
     enterHome()
+  }
+
+  function firstIncompleteLessonIndex() {
+    if (!course) return 0
+    for (var i = 0; i < course.lessons.length; i++) {
+      if (!completedLessons[course.lessons[i].id]) return i
+    }
+    return 0
   }
 
   function requestResetProgress() {
@@ -182,6 +203,8 @@ ShellRoot {
     completedLessons = ({})
     persistProgress()
     tourSeen = false
+    // Forget the coach as well, so the next open starts like a fresh install.
+    savedCharacter = ""
     persistSettings()
     resetJustDone = true
     resetDoneTimer.restart()
@@ -311,6 +334,148 @@ ShellRoot {
 
   function colorWithAlpha(colorValue, alpha) {
     return Qt.rgba(colorValue.r, colorValue.g, colorValue.b, alpha)
+  }
+
+  // Shared look for every panel, button, and keycap so the app reads as one
+  // console rather than a collection of pills.
+  readonly property color panelColor: colorWithAlpha(background, 0.96)
+  readonly property color panelBorder: colorWithAlpha(foreground, 0.16)
+  readonly property color subtleFill: colorWithAlpha(foreground, 0.06)
+  readonly property color keyFace: Qt.lighter(background, 1.45)
+
+  component UiPanel: Item {
+    id: panel
+    default property alias content: panelBody.data
+    property real radius: 16
+    property color stripe: "transparent"
+    property color edge: root.panelBorder
+
+    Rectangle {
+      anchors.fill: parent
+      anchors.margins: -12
+      radius: panel.radius + 12
+      color: Qt.rgba(0, 0, 0, 0.12)
+    }
+    Rectangle {
+      anchors.fill: parent
+      anchors.margins: -5
+      radius: panel.radius + 5
+      color: Qt.rgba(0, 0, 0, 0.26)
+    }
+    Rectangle {
+      id: panelBody
+      anchors.fill: parent
+      radius: panel.radius
+      color: root.panelColor
+      border.color: panel.edge
+      border.width: 1
+
+      Rectangle {
+        visible: panel.stripe.a > 0
+        anchors.top: parent.top
+        anchors.topMargin: 1
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width - (panel.radius * 2)
+        height: 3
+        radius: 2
+        color: panel.stripe
+      }
+    }
+  }
+
+  component UiButton: Rectangle {
+    id: button
+    property string label: ""
+    // "primary" | "secondary" | "ghost" | "danger"
+    property string kind: "secondary"
+    property bool compact: false
+    signal clicked()
+    readonly property bool hovered: buttonMouse.containsMouse
+    readonly property bool primary: kind === "primary"
+    readonly property bool danger: kind === "danger"
+    readonly property bool ghost: kind === "ghost"
+
+    implicitWidth: buttonLabel.implicitWidth + (compact ? 24 : 32)
+    implicitHeight: compact ? 32 : 40
+    radius: 9
+    color: primary
+      ? (hovered ? Qt.lighter(root.accent, 1.18) : root.accent)
+      : danger
+        ? root.colorWithAlpha(root.urgent, hovered ? 0.34 : 0.14)
+        : ghost
+          ? root.colorWithAlpha(root.foreground, hovered ? 0.16 : 0.06)
+          : root.colorWithAlpha(root.accent, hovered ? 0.36 : 0.16)
+    border.width: 1
+    border.color: primary
+      ? root.accent
+      : danger
+        ? root.colorWithAlpha(root.urgent, 0.7)
+        : ghost
+          ? root.colorWithAlpha(root.foreground, 0.2)
+          : root.colorWithAlpha(root.accent, 0.55)
+
+    Behavior on color { ColorAnimation { duration: 110 } }
+
+    Text {
+      id: buttonLabel
+      anchors.centerIn: parent
+      text: button.label
+      color: button.primary ? root.background : root.foreground
+      font.family: "monospace"
+      font.pixelSize: button.compact ? 11 : 12
+      font.weight: Font.Bold
+      font.letterSpacing: 1.1
+    }
+
+    MouseArea {
+      id: buttonMouse
+      anchors.fill: parent
+      hoverEnabled: true
+      cursorShape: Qt.PointingHandCursor
+      onClicked: button.clicked()
+    }
+  }
+
+  component Keycap: Item {
+    id: keycap
+    property string label: ""
+    property bool active: false
+    property bool small: false
+    readonly property bool isPlus: label === "+"
+
+    implicitWidth: isPlus ? (small ? 14 : 26) : keyText.implicitWidth + (small ? 14 : 36)
+    implicitHeight: small ? 22 : 54
+    scale: active ? 1.06 : 1
+    Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
+
+    Rectangle {
+      // Keycap edge under the face for a little depth.
+      visible: !keycap.isPlus
+      anchors.fill: parent
+      radius: keycap.small ? 5 : 9
+      color: keycap.active ? Qt.darker(root.accent, 1.5) : root.colorWithAlpha(root.foreground, 0.28)
+    }
+    Rectangle {
+      visible: !keycap.isPlus
+      anchors.fill: parent
+      anchors.bottomMargin: keycap.small ? 2 : 4
+      radius: keycap.small ? 5 : 9
+      color: keycap.active ? root.accent : root.keyFace
+      border.color: keycap.active ? root.colorWithAlpha(root.foreground, 0.75) : root.colorWithAlpha(root.foreground, 0.22)
+      border.width: 1
+      Behavior on color { ColorAnimation { duration: 90 } }
+    }
+    Text {
+      id: keyText
+      anchors.centerIn: parent
+      anchors.verticalCenterOffset: keycap.isPlus ? 0 : -(keycap.small ? 1 : 2)
+      text: keycap.label
+      textFormat: Text.PlainText
+      color: keycap.isPlus ? root.muted : (keycap.active ? root.background : root.foreground)
+      font.family: "monospace"
+      font.pixelSize: keycap.small ? 11 : 17
+      font.weight: Font.Bold
+    }
   }
 
   function setCharacterState(state, message) {
@@ -444,8 +609,71 @@ ShellRoot {
     characterReactionTimer.restart()
   }
 
+  // The tour's opening scene. startLesson asks for it; the first tour step
+  // plays it before the coach flies to the welcome stop. Stages: "arrive"
+  // (rocket descends / tree grows), "reveal" (coach appears), "exit" (coach
+  // steps out of the rocket), "launch" (coach takes off, scene fades).
+  property bool introRequested: false
+  property bool introActive: false
+  property string introStage: ""
+  // Fades the instruction panel away while the scene owns the bottom of the screen.
+  property real introPanelOpacity: introActive ? 0 : 1
+
+  function startIntro() {
+    setCharacterState("intro", "")
+    // The layer surface can still be settling its size right after launch;
+    // give it a moment so the landing spot is measured against the final height.
+    introStartTimer.restart()
+  }
+
+  function beginIntroScene() {
+    if (phase !== "waiting" || !currentStepIsTour || characterState !== "intro") return
+    introActive = true
+    introStage = "arrive"
+    introTimer.interval = introKind === "rocket" ? 2000 : 1100
+    introTimer.restart()
+  }
+
+  function cancelIntro() {
+    introStartTimer.stop()
+    introTimer.stop()
+    introRequested = false
+    introActive = false
+    introStage = ""
+  }
+
+  function advanceIntro() {
+    if (!introActive || phase !== "waiting" || !currentStepIsTour) {
+      cancelIntro()
+      return
+    }
+    if (introStage === "arrive") {
+      introStage = "reveal"
+      setCharacterState("intro-stand", "HELLO!")
+      introTimer.interval = introKind === "rocket" ? 800 : 1500
+    } else if (introStage === "reveal" && introKind === "rocket") {
+      introStage = "exit"
+      introTimer.interval = 1400
+    } else if (introStage === "reveal" || introStage === "exit") {
+      introStage = "launch"
+      setCharacterState("tour-fly", "FOLLOW ME")
+      characterTourArrivalTimer.restart()
+      introTimer.interval = 950
+    } else {
+      introActive = false
+      introStage = ""
+      return
+    }
+    introTimer.restart()
+  }
+
   function startCharacterStep() {
     if (currentStepIsTour) {
+      if (introRequested && !reducedMotion) {
+        introRequested = false
+        startIntro()
+        return
+      }
       if (reducedMotion) {
         setCharacterState(tourRestingState, tourRestingMessage)
         Qt.callLater(beginTourNarration)
@@ -908,6 +1136,8 @@ ShellRoot {
     lessonIndex = index
     stepIndex = 0
     errorMessage = ""
+    var firstStep = course.lessons[index].steps[0]
+    introRequested = Boolean(index === 0 && firstStep && firstStep.kind === "tour")
     startCurrentStep()
   }
 
@@ -937,6 +1167,10 @@ ShellRoot {
     characterTourArrivalTimer.stop()
     tourAdvanceTimer.stop()
     workspaceCompletionTimer.stop()
+    introStartTimer.stop()
+    introTimer.stop()
+    introActive = false
+    introStage = ""
     actionRunning = false
     pendingStepAction = false
     pendingActionStepId = ""
@@ -969,6 +1203,7 @@ ShellRoot {
     lessonIndex = -1
     stepIndex = 0
     phase = "menu"
+    selectedLessonIndex = firstIncompleteLessonIndex()
     if (reducedMotion) {
       setCharacterState("menu-point", "CHOOSE A LESSON")
     } else {
@@ -1008,12 +1243,23 @@ ShellRoot {
     beginLessonTransition("lesson-complete")
   }
 
+  // Narration is recorded per coach (it says the coach's name and uses the
+  // coach's voice): "audio/x.mp3" in the course resolves to
+  // "audio/<character>/x.mp3" under the course directory.
+  function characterAudioPath(relative) {
+    if (!relative) return ""
+    var slash = String(relative).lastIndexOf("/")
+    var dir = slash === -1 ? "" : String(relative).substring(0, slash + 1)
+    var file = slash === -1 ? String(relative) : String(relative).substring(slash + 1)
+    return courseDir + "/" + dir + characterName + "/" + file
+  }
+
   function currentAudioPath() {
-    return currentStep && currentStep.audio ? courseDir + "/" + currentStep.audio : ""
+    return currentStep && currentStep.audio ? characterAudioPath(currentStep.audio) : ""
   }
 
   function completionAudioPath() {
-    return currentStep && currentStep.completionAudio ? courseDir + "/" + currentStep.completionAudio : ""
+    return currentStep && currentStep.completionAudio ? characterAudioPath(currentStep.completionAudio) : ""
   }
 
   function playCompletionNarration() {
@@ -1689,6 +1935,23 @@ ShellRoot {
   }
 
   Timer {
+    id: introStartTimer
+    interval: 500
+    repeat: false
+    onTriggered: root.beginIntroScene()
+  }
+
+  Timer {
+    id: introTimer
+    repeat: false
+    onTriggered: root.advanceIntro()
+  }
+
+  Behavior on introPanelOpacity {
+    NumberAnimation { duration: root.reducedMotion ? 0 : 450; easing.type: Easing.InOutSine }
+  }
+
+  Timer {
     id: tourAdvanceTimer
     repeat: false
     onTriggered: {
@@ -1988,12 +2251,33 @@ ShellRoot {
           Region { item: topicPanel }
           Region { item: keyboardHint }
           Region { item: characterPanel }
-          Region { item: lessonNavigation }
+          Region { item: teachingContent }
           Region { item: controls }
-          Region { item: replayButton }
-          Region { item: actionButton }
           Region { item: completionPanel }
           Region { item: errorPanel }
+        }
+
+        // Omarchy's Apps menu shows a "Launching…" OSD two seconds after a
+        // launch unless a new toplevel window appeared. This overlay is a
+        // layer surface, not a window, so the OSD would sit there until its
+        // timeout; dismiss it every half second for the first few seconds.
+        property bool launchOsdDismissed: false
+        property int launchOsdAttempts: 0
+        onVisibleChanged: {
+          if (!visible || launchOsdDismissed) return
+          launchOsdDismissed = true
+          launchOsdTimer.restart()
+        }
+
+        Timer {
+          id: launchOsdTimer
+          interval: 500
+          repeat: true
+          onTriggered: {
+            Quickshell.execDetached(["omarchy-shell", "osd", "close"])
+            overlay.launchOsdAttempts++
+            if (overlay.launchOsdAttempts >= 9) stop()
+          }
         }
 
         Item {
@@ -2051,16 +2335,25 @@ ShellRoot {
           color: root.colorWithAlpha(root.background, 0.72)
         }
 
+        // Darken the desktop while the opening scene plays so the sprites read clearly.
         Rectangle {
+          anchors.fill: parent
+          visible: opacity > 0
+          color: root.background
+          opacity: root.introActive && root.introStage !== "launch" ? 0.6 : 0
+          Behavior on opacity {
+            NumberAnimation { duration: root.introStage === "launch" ? 900 : 600; easing.type: Easing.InOutSine }
+          }
+        }
+
+        UiPanel {
           id: characterPanel
           visible: root.phase === "settings"
           anchors.centerIn: parent
           width: Math.min(880, parent.width - 64)
           height: characterColumn.implicitHeight + 64
-          color: root.background
-          border.color: root.accent
-          border.width: 2
           radius: 18
+          stripe: root.accent
 
           ColumnLayout {
             id: characterColumn
@@ -2115,10 +2408,10 @@ ShellRoot {
                   implicitWidth: 300
                   implicitHeight: 340
                   color: characterCardMouse.containsMouse || selected
-                    ? root.colorWithAlpha(root.accent, 0.18)
-                    : root.colorWithAlpha(root.foreground, 0.045)
-                  border.color: selected ? root.accent : root.colorWithAlpha(root.foreground, 0.22)
-                  border.width: selected ? 3 : 1
+                    ? root.colorWithAlpha(root.accent, 0.14)
+                    : root.subtleFill
+                  border.color: selected ? root.colorWithAlpha(root.accent, 0.85) : root.colorWithAlpha(root.foreground, 0.12)
+                  border.width: selected ? 2 : 1
                   radius: 14
                   scale: selected ? 1.03 : 1
 
@@ -2222,9 +2515,9 @@ ShellRoot {
               Text {
                 Layout.fillWidth: true
                 text: root.resetJustDone
-                  ? "Progress reset. The tour will start again when you close Settings."
+                  ? "Progress reset. Closing Settings asks for a coach again, then starts the tour."
                   : root.completedCount + " of " + (root.course ? root.course.lessons.length : 0) +
-                    " modules complete. Resetting clears every checkmark and starts the tour again when you close Settings."
+                    " modules complete. Resetting clears every checkmark and the coach choice, like a fresh install."
                 color: root.resetJustDone ? root.instruction : root.foreground
                 opacity: 0.85
                 wrapMode: Text.WordWrap
@@ -2232,42 +2525,22 @@ ShellRoot {
                 font.pixelSize: 13
               }
 
-              Rectangle {
+              UiButton {
                 // Fixed width so the label change never moves the button under the cursor.
-                implicitWidth: Math.max(resetLabel.implicitWidth, resetConfirmMetrics.implicitWidth) + 30
-                implicitHeight: 42
-                color: root.resetConfirmPending
-                  ? root.colorWithAlpha(root.urgent, 0.32)
-                  : (resetMouse.containsMouse ? root.colorWithAlpha(root.urgent, 0.18) : root.background)
-                border.color: root.urgent
+                kind: "danger"
+                Layout.preferredWidth: Math.max(implicitWidth, resetConfirmMetrics.implicitWidth + 32)
+                label: root.resetConfirmPending ? "CLICK AGAIN TO CONFIRM" : "RESET PROGRESS"
                 border.width: root.resetConfirmPending ? 2 : 1
-                radius: 21
+                onClicked: root.requestResetProgress()
 
                 Text {
                   id: resetConfirmMetrics
                   visible: false
-                  text: "Click again to confirm"
-                  font.family: "sans-serif"
-                  font.pixelSize: 13
-                  font.weight: Font.DemiBold
-                }
-
-                Text {
-                  id: resetLabel
-                  anchors.centerIn: parent
-                  text: root.resetConfirmPending ? "Click again to confirm" : "Reset progress"
-                  color: root.foreground
-                  font.family: "sans-serif"
-                  font.pixelSize: 13
-                  font.weight: Font.DemiBold
-                }
-
-                MouseArea {
-                  id: resetMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: root.requestResetProgress()
+                  text: "CLICK AGAIN TO CONFIRM"
+                  font.family: "monospace"
+                  font.pixelSize: 12
+                  font.weight: Font.Bold
+                  font.letterSpacing: 1.1
                 }
               }
             }
@@ -2278,68 +2551,57 @@ ShellRoot {
 
               Text {
                 text: root.settingsMode === "first-run"
-                  ? "Arrow keys choose  ·  Enter confirms"
-                  : "Arrow keys choose a coach  ·  R resets progress  ·  Escape closes"
+                  ? "↑ ↓ CHOOSE   ·   ⏎ CONFIRM"
+                  : "↑ ↓ CHOOSE A COACH   ·   R RESETS PROGRESS   ·   ESC CLOSES"
                 color: root.muted
-                font.family: "sans-serif"
-                font.pixelSize: 12
+                font.family: "monospace"
+                font.pixelSize: 10
+                font.weight: Font.Bold
+                font.letterSpacing: 1
               }
 
-              Rectangle {
+              UiButton {
                 visible: root.settingsMode !== "first-run"
-                implicitWidth: doneLabel.implicitWidth + 30
-                implicitHeight: 40
-                color: doneMouse.containsMouse ? root.accent : root.colorWithAlpha(root.accent, 0.22)
-                border.color: root.accent
-                border.width: 2
-                radius: 10
-
-                Text {
-                  id: doneLabel
-                  anchors.centerIn: parent
-                  text: "Done"
-                  color: doneMouse.containsMouse ? root.background : root.foreground
-                  font.family: "sans-serif"
-                  font.pixelSize: 14
-                  font.weight: Font.Bold
-                }
-                MouseArea {
-                  id: doneMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: root.closeSettings()
-                }
+                kind: "primary"
+                label: "DONE"
+                onClicked: root.closeSettings()
               }
             }
           }
         }
 
-        Rectangle {
+        UiPanel {
           id: topicPanel
           visible: root.phase === "menu" && root.course
           anchors.centerIn: parent
           width: Math.min(980, parent.width - 64)
           height: Math.min(850, parent.height - 64)
-          color: root.background
-          border.color: root.accent
-          border.width: 2
           radius: 18
+          stripe: root.accent
 
           ColumnLayout {
             anchors {
               fill: parent
-              margins: 28
+              margins: 30
             }
-            spacing: 12
+            spacing: 16
 
             RowLayout {
               Layout.fillWidth: true
+              spacing: 24
 
               ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 4
+                spacing: 6
 
+                Text {
+                  text: "COURSE"
+                  color: root.accent
+                  font.family: "monospace"
+                  font.pixelSize: 11
+                  font.weight: Font.Bold
+                  font.letterSpacing: 2
+                }
                 Text {
                   text: root.course ? root.course.title : ""
                   color: root.instruction
@@ -2348,40 +2610,47 @@ ShellRoot {
                   font.weight: Font.Bold
                 }
                 Text {
-                  Layout.maximumWidth: topicPanel.width - 150
+                  Layout.maximumWidth: topicPanel.width - 320
                   text: root.course ? root.course.description : ""
                   color: root.foreground
-                  opacity: 0.82
+                  opacity: 0.8
                   font.family: "sans-serif"
                   font.pixelSize: 15
                   wrapMode: Text.WordWrap
                 }
               }
 
-              Rectangle {
-                implicitWidth: progressText.implicitWidth + 24
-                implicitHeight: 36
-                color: root.colorWithAlpha(root.accent, 0.18)
-                border.color: root.accent
-                border.width: 1
-                radius: 18
+              ColumnLayout {
+                Layout.alignment: Qt.AlignBottom
+                Layout.preferredWidth: 220
+                spacing: 8
 
                 Text {
-                  id: progressText
-                  anchors.centerIn: parent
-                  text: root.completedCount + " / " + (root.course ? root.course.lessons.length : 0) + " complete"
-                  color: root.foreground
-                  font.family: "sans-serif"
-                  font.pixelSize: 13
-                  font.weight: Font.DemiBold
+                  Layout.alignment: Qt.AlignRight
+                  text: root.completedCount + " OF " + (root.course ? root.course.lessons.length : 0) + " COMPLETE"
+                  color: root.muted
+                  font.family: "monospace"
+                  font.pixelSize: 11
+                  font.weight: Font.Bold
+                  font.letterSpacing: 1
+                }
+                Rectangle {
+                  Layout.fillWidth: true
+                  Layout.preferredHeight: 8
+                  radius: 4
+                  color: root.colorWithAlpha(root.foreground, 0.12)
+
+                  Rectangle {
+                    height: parent.height
+                    radius: 4
+                    color: root.accent
+                    width: root.course && root.course.lessons.length > 0
+                      ? Math.round(parent.width * root.completedCount / root.course.lessons.length)
+                      : 0
+                    Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
+                  }
                 }
               }
-            }
-
-            Rectangle {
-              Layout.fillWidth: true
-              Layout.preferredHeight: 1
-              color: root.colorWithAlpha(root.foreground, 0.18)
             }
 
             GridLayout {
@@ -2403,13 +2672,14 @@ ShellRoot {
 
                   Layout.fillWidth: true
                   Layout.fillHeight: true
-                  Layout.minimumHeight: 105
+                  Layout.minimumHeight: 108
                   color: cardMouse.containsMouse || selected
-                    ? root.colorWithAlpha(root.accent, 0.18)
-                    : root.colorWithAlpha(root.foreground, 0.045)
-                  border.color: selected ? root.accent : root.colorWithAlpha(root.foreground, 0.22)
-                  border.width: selected ? 2 : 1
+                    ? root.colorWithAlpha(root.accent, 0.14)
+                    : root.subtleFill
+                  border.color: selected ? root.colorWithAlpha(root.accent, 0.8) : root.colorWithAlpha(root.foreground, 0.12)
+                  border.width: 1
                   radius: 12
+                  Behavior on color { ColorAnimation { duration: 120 } }
 
                   function syncCharacterTarget() {
                     if (selected) overlay.updateMenuSelectionTarget(lessonCard, index)
@@ -2422,25 +2692,43 @@ ShellRoot {
                   onHeightChanged: if (selected) Qt.callLater(syncCharacterTarget)
                   Component.onCompleted: if (selected) Qt.callLater(syncCharacterTarget)
 
+                  Rectangle {
+                    // Selection stripe on the leading edge.
+                    visible: lessonCard.selected
+                    anchors {
+                      left: parent.left
+                      top: parent.top
+                      bottom: parent.bottom
+                      margins: 1
+                      topMargin: 12
+                      bottomMargin: 12
+                    }
+                    width: 4
+                    radius: 2
+                    color: root.instruction
+                  }
+
                   RowLayout {
                     anchors {
                       fill: parent
-                      margins: 16
+                      margins: 18
+                      leftMargin: 20
                     }
-                    spacing: 14
+                    spacing: 16
 
                     Rectangle {
-                      implicitWidth: 48
-                      implicitHeight: 48
+                      Layout.alignment: Qt.AlignTop
+                      implicitWidth: 44
+                      implicitHeight: 44
                       color: lessonCard.completed ? root.accent : root.colorWithAlpha(root.accent, 0.16)
-                      border.color: root.accent
+                      border.color: root.colorWithAlpha(root.accent, lessonCard.completed ? 1 : 0.5)
                       border.width: 1
-                      radius: 24
+                      radius: 10
 
                       Text {
                         anchors.centerIn: parent
                         text: lessonCard.completed ? "✓" : lessonCard.modelData.icon
-                        color: lessonCard.completed ? root.background : root.foreground
+                        color: lessonCard.completed ? root.background : root.accent
                         font.family: "monospace"
                         font.pixelSize: 16
                         font.weight: Font.Bold
@@ -2449,7 +2737,7 @@ ShellRoot {
 
                     ColumnLayout {
                       Layout.fillWidth: true
-                      spacing: 4
+                      spacing: 5
 
                       Text {
                         Layout.fillWidth: true
@@ -2464,25 +2752,38 @@ ShellRoot {
                         Layout.fillWidth: true
                         text: root.characterText(lessonCard.modelData.description)
                         color: root.foreground
-                        opacity: 0.72
+                        opacity: 0.75
                         font.family: "sans-serif"
-                        font.pixelSize: 12
+                        font.pixelSize: 13
                         wrapMode: Text.WordWrap
                         maximumLineCount: 2
                         elide: Text.ElideRight
                       }
-                      Text {
-                        text: lessonCard.modelData.estimatedMinutes + " min  ·  " + lessonCard.modelData.steps.length + " activities"
-                        color: root.muted
-                        font.family: "sans-serif"
-                        font.pixelSize: 11
-                      }
-                      Text {
-                        text: root.lessonShortcutLabel(lessonCard.modelData)
-                        color: root.accent
-                        font.family: "monospace"
-                        font.pixelSize: 11
-                        font.weight: Font.DemiBold
+
+                      RowLayout {
+                        Layout.topMargin: 4
+                        spacing: 10
+
+                        RowLayout {
+                          spacing: 5
+                          Repeater {
+                            model: root.lessonShortcutLabel(lessonCard.modelData).split(" ")
+                            Keycap {
+                              required property string modelData
+                              label: modelData
+                              small: true
+                            }
+                          }
+                        }
+
+                        Text {
+                          text: lessonCard.modelData.estimatedMinutes + " MIN  ·  " + lessonCard.modelData.steps.length + " ACTIVITIES"
+                          color: root.muted
+                          font.family: "monospace"
+                          font.pixelSize: 10
+                          font.weight: Font.Bold
+                          font.letterSpacing: 0.8
+                        }
                       }
                     }
                   }
@@ -2497,38 +2798,57 @@ ShellRoot {
                   }
                 }
               }
-
             }
 
-            Text {
+            RowLayout {
               Layout.alignment: Qt.AlignHCenter
-              text: "Arrow keys choose  ·  Enter starts  ·  Escape closes"
-              color: root.muted
-              font.family: "sans-serif"
-              font.pixelSize: 12
+              spacing: 18
+
+              Repeater {
+                model: [["↑ ↓", "CHOOSE"], ["⏎", "START"], ["ESC", "CLOSE"]]
+
+                RowLayout {
+                  required property var modelData
+                  spacing: 6
+                  Keycap { label: modelData[0]; small: true }
+                  Text {
+                    text: modelData[1]
+                    color: root.muted
+                    font.family: "monospace"
+                    font.pixelSize: 10
+                    font.weight: Font.Bold
+                    font.letterSpacing: 1
+                  }
+                }
+              }
             }
           }
         }
 
         Rectangle {
           id: keyboardHint
-          visible: !root.keyboardExclusive && !root.keyboardFocused && root.phase !== "loading"
+          // Stays up for as long as keys are released. It used to hide while
+          // the overlay held focus, but with on-demand focus the pointer
+          // entering the overlay grants focus, so the pill vanished on hover.
+          visible: !root.keyboardExclusive && root.phase !== "loading"
           anchors {
             top: parent.top
             horizontalCenter: parent.horizontalCenter
             topMargin: 42
           }
           width: keyboardHintText.implicitWidth + 32
-          height: 42
-          radius: 21
-          color: keyboardHintMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
+          height: 40
+          radius: 10
+          color: keyboardHintMouse.containsMouse ? root.colorWithAlpha(root.instruction, 0.3) : root.panelColor
           border.color: root.instruction
-          border.width: 2
+          border.width: 1
 
           Text {
             id: keyboardHintText
             anchors.centerIn: parent
-            text: "⌨  Keys are going to your other windows  ·  click to bring them back"
+            text: root.keyboardFocused
+              ? "⌨  Keys follow the mouse right now  ·  click to keep them here"
+              : "⌨  Keys are going to your other windows  ·  click to bring them back"
             color: root.foreground
             font.family: "sans-serif"
             font.pixelSize: 13
@@ -2544,256 +2864,198 @@ ShellRoot {
           }
         }
 
-        ColumnLayout {
+        UiPanel {
           id: teachingContent
           visible: root.phase === "waiting" || root.phase === "highlight"
-          opacity: root.lessonContentOpacity
+          opacity: root.lessonContentOpacity * root.introPanelOpacity
           anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
-            bottomMargin: 42
+            bottomMargin: 30
           }
-          spacing: 12
+          width: Math.min(900, overlay.width - 48)
+          height: consoleColumn.implicitHeight + 38
+          radius: 16
+          stripe: root.phase === "waiting" ? root.instruction : root.accent
 
-          RowLayout {
-            id: lessonNavigation
-            visible: root.phase === "waiting" || root.phase === "highlight"
-            opacity: root.lessonContentOpacity
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 10
-
-            Rectangle {
-              implicitWidth: topicsLabel.implicitWidth + 24
-              implicitHeight: 42
-              color: topicsMouse.containsMouse
-                ? root.colorWithAlpha(root.accent, 0.32)
-                : root.background
-              border.color: root.accent
-              border.width: 1
-              radius: 21
-
-              Text {
-                id: topicsLabel
-                anchors.centerIn: parent
-                text: "← Topics"
-                color: root.foreground
-                font.family: "sans-serif"
-                font.pixelSize: 14
-                font.weight: Font.DemiBold
-              }
-
-              MouseArea {
-                id: topicsMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.returnToMenu()
-              }
+          ColumnLayout {
+            id: consoleColumn
+            anchors {
+              left: parent.left
+              right: parent.right
+              top: parent.top
+              leftMargin: 20
+              rightMargin: 20
+              topMargin: 18
             }
+            spacing: 12
 
-            Rectangle {
-              implicitWidth: lessonStatus.implicitWidth + 24
-              implicitHeight: 42
-              color: root.background
-              border.color: root.colorWithAlpha(root.foreground, 0.3)
-              border.width: 1
-              radius: 21
+            RowLayout {
+              id: lessonNavigation
+              Layout.fillWidth: true
+              spacing: 10
 
-              Text {
-                id: lessonStatus
-                anchors.centerIn: parent
-                text: root.currentLesson
-                  ? root.currentLesson.title + "  ·  " + (root.stepIndex + 1) + " / " + root.currentLesson.steps.length
-                  : ""
-                color: root.foreground
-                font.family: "sans-serif"
-                font.pixelSize: 13
-              }
-            }
+              // Both side slots share one width so the title stays centred
+              // even when Replay and Skip are hidden.
+              readonly property real sideWidth: Math.max(topicsButton.implicitWidth, navRightGroup.implicitWidth)
 
-            Rectangle {
-              visible: root.phase === "waiting"
-              implicitWidth: skipLabel.implicitWidth + 24
-              implicitHeight: 42
-              color: skipMouse.containsMouse
-                ? root.colorWithAlpha(root.foreground, 0.14)
-                : root.background
-              border.color: root.muted
-              border.width: 1
-              radius: 21
+              Item {
+                Layout.preferredWidth: lessonNavigation.sideWidth
+                Layout.minimumWidth: lessonNavigation.sideWidth
+                implicitHeight: topicsButton.implicitHeight
 
-              Text {
-                id: skipLabel
-                anchors.centerIn: parent
-                text: "Skip"
-                color: root.foreground
-                opacity: 0.8
-                font.family: "sans-serif"
-                font.pixelSize: 13
-              }
-
-              MouseArea {
-                id: skipMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.skipCurrentStep()
-              }
-            }
-          }
-
-          Rectangle {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: Math.min(820, overlay.width - 48)
-            Layout.preferredHeight: messageColumn.implicitHeight + 28
-            color: root.background
-            border.color: root.accent
-            border.width: 2
-            radius: 12
-
-            ColumnLayout {
-              id: messageColumn
-              anchors {
-                left: parent.left
-                right: replayButton.visible ? replayButton.left : parent.right
-                verticalCenter: parent.verticalCenter
-                leftMargin: 22
-                rightMargin: replayButton.visible ? 14 : 22
-              }
-              spacing: 5
-
-              Text {
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.WordWrap
-                textFormat: Text.PlainText
-                color: root.phase === "waiting" ? root.instruction : root.foreground
-                font.family: "sans-serif"
-                font.pixelSize: 19
-                font.weight: Font.Bold
-                text: {
-                  if (root.phase === "highlight" && root.currentStep && root.currentStep.completionMessage)
-                    return root.currentStep.completionMessage
-                  if (root.currentStepIsTour && root.currentStep && root.currentStep.detail)
-                    return root.characterText(root.currentStep.detail)
-                  return root.currentStep ? root.currentStep.instruction : ""
+                UiButton {
+                  id: topicsButton
+                  anchors.left: parent.left
+                  kind: "ghost"
+                  compact: true
+                  label: "← TOPICS"
+                  onClicked: root.returnToMenu()
                 }
               }
 
-              Text {
-                visible: Boolean(root.phase === "waiting" && !root.currentStepIsTour && root.currentStep && root.currentStep.detail)
-                Layout.fillWidth: true
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.WordWrap
-                textFormat: Text.PlainText
-                color: root.foreground
-                opacity: 0.72
-                font.family: "sans-serif"
-                font.pixelSize: 13
-                text: root.currentStep ? root.currentStep.detail || "" : ""
-              }
-            }
+              Item { Layout.fillWidth: true }
 
-            Rectangle {
-              id: replayButton
-              visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.audio)
-              anchors {
-                right: parent.right
-                verticalCenter: parent.verticalCenter
-                rightMargin: 12
-              }
-              width: 38
-              height: 38
-              color: replayMouse.containsMouse
-                ? root.colorWithAlpha(root.accent, 0.4)
-                : root.colorWithAlpha(root.accent, 0.18)
-              border.color: root.accent
-              border.width: 1
-              radius: 19
-
-              Text {
-                anchors.centerIn: parent
-                text: "▶"
-                color: root.foreground
-                font.family: "sans-serif"
-                font.pixelSize: 16
-              }
-
-              MouseArea {
-                id: replayMouse
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: root.replayCurrentAudio()
-              }
-            }
-          }
-
-          RowLayout {
-            visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.keys.length > 0)
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 16
-
-            Repeater {
-              model: root.currentStep ? root.currentStep.keys : []
-
-              Rectangle {
-                required property string modelData
-                readonly property string normalizedKey: modelData.toUpperCase()
-                readonly property bool keyActive: normalizedKey !== "+" && root.activeKeys[normalizedKey] === true
-                implicitWidth: keyLabel.implicitWidth + (normalizedKey === "+" ? 24 : 36)
-                implicitHeight: 54
-                scale: keyActive ? 1.08 : 1
-                color: keyActive ? root.accent : root.background
-                border.color: keyActive ? root.foreground : (normalizedKey === "+" ? root.muted : root.accent)
-                border.width: keyActive ? 3 : (normalizedKey === "+" ? 1 : 2)
-                radius: 8
-
-                Behavior on scale {
-                  NumberAnimation { duration: 90; easing.type: Easing.OutCubic }
-                }
-                Behavior on color { ColorAnimation { duration: 90 } }
+              ColumnLayout {
+                spacing: 5
 
                 Text {
-                  id: keyLabel
-                  anchors.centerIn: parent
-                  text: normalizedKey
-                  textFormat: Text.PlainText
-                  color: keyActive ? root.background : root.foreground
-                  font.family: "monospace"
-                  font.pixelSize: normalizedKey === "+" ? 19 : 18
-                  font.weight: Font.Bold
+                  Layout.alignment: Qt.AlignHCenter
+                  text: root.currentLesson ? root.currentLesson.title : ""
+                  color: root.foreground
+                  font.family: "sans-serif"
+                  font.pixelSize: 13
+                  font.weight: Font.DemiBold
+                }
+
+                RowLayout {
+                  Layout.alignment: Qt.AlignHCenter
+                  spacing: 6
+
+                  Repeater {
+                    model: root.currentLesson ? root.currentLesson.steps.length : 0
+
+                    Rectangle {
+                      required property int index
+                      readonly property bool done: index < root.stepIndex || root.phase === "highlight" && index === root.stepIndex
+                      readonly property bool current: index === root.stepIndex
+                      // Layouts size children by implicit size, so animate that.
+                      implicitWidth: current ? 20 : 8
+                      implicitHeight: 8
+                      radius: 4
+                      color: done ? root.accent : current ? root.instruction : root.colorWithAlpha(root.foreground, 0.22)
+                      Behavior on implicitWidth { NumberAnimation { duration: 200; easing.type: Easing.OutCubic } }
+                      Behavior on color { ColorAnimation { duration: 200 } }
+                    }
+                  }
+
+                  Text {
+                    Layout.leftMargin: 10
+                    text: root.currentLesson ? "STEP " + (root.stepIndex + 1) + " OF " + root.currentLesson.steps.length : ""
+                    color: root.muted
+                    font.family: "monospace"
+                    font.pixelSize: 11
+                    font.weight: Font.Bold
+                    font.letterSpacing: 1
+                  }
+                }
+              }
+
+              Item { Layout.fillWidth: true }
+
+              Item {
+                Layout.preferredWidth: lessonNavigation.sideWidth
+                Layout.minimumWidth: lessonNavigation.sideWidth
+                implicitHeight: navRightGroup.implicitHeight
+
+                RowLayout {
+                  id: navRightGroup
+                  anchors.right: parent.right
+                  spacing: 10
+
+                  UiButton {
+                    visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.audio)
+                    compact: true
+                    label: "▶ REPLAY"
+                    onClicked: root.replayCurrentAudio()
+                  }
+
+                  UiButton {
+                    visible: root.phase === "waiting"
+                    kind: "ghost"
+                    compact: true
+                    label: "SKIP →"
+                    onClicked: root.skipCurrentStep()
+                  }
                 }
               }
             }
-          }
 
-          Rectangle {
-            id: actionButton
-            visible: Boolean(root.phase === "waiting" && root.currentStep && !root.currentStepIsTour && root.currentStep.keys.length === 0)
-            Layout.alignment: Qt.AlignHCenter
-            implicitWidth: actionLabelText.implicitWidth + 42
-            implicitHeight: 52
-            color: actionMouse.containsMouse ? root.accent : root.colorWithAlpha(root.accent, 0.24)
-            border.color: root.accent
-            border.width: 2
-            radius: 10
-
-            Text {
-              id: actionLabelText
-              anchors.centerIn: parent
-              text: root.currentStep ? root.currentStep.actionLabel || "Continue" : ""
-              color: actionMouse.containsMouse ? root.background : root.foreground
-              font.family: "sans-serif"
-              font.pixelSize: 16
-              font.weight: Font.Bold
+            Rectangle {
+              Layout.fillWidth: true
+              Layout.preferredHeight: 1
+              color: root.panelBorder
             }
 
-            MouseArea {
-              id: actionMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
+            Text {
+              Layout.fillWidth: true
+              Layout.leftMargin: 8
+              Layout.rightMargin: 8
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+              textFormat: Text.PlainText
+              color: root.phase === "waiting" ? root.instruction : root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 21
+              font.weight: Font.Bold
+              lineHeight: 1.15
+              text: {
+                if (root.phase === "highlight" && root.currentStep && root.currentStep.completionMessage)
+                  return root.characterText(root.currentStep.completionMessage)
+                if (root.currentStepIsTour && root.currentStep && root.currentStep.detail)
+                  return root.characterText(root.currentStep.detail)
+                return root.currentStep ? root.characterText(root.currentStep.instruction) : ""
+              }
+            }
+
+            Text {
+              visible: Boolean(root.phase === "waiting" && !root.currentStepIsTour && root.currentStep && root.currentStep.detail)
+              Layout.fillWidth: true
+              Layout.leftMargin: 8
+              Layout.rightMargin: 8
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+              textFormat: Text.PlainText
+              color: root.foreground
+              opacity: 0.72
+              font.family: "sans-serif"
+              font.pixelSize: 14
+              text: root.currentStep ? root.characterText(root.currentStep.detail || "") : ""
+            }
+
+            RowLayout {
+              visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.keys.length > 0)
+              Layout.alignment: Qt.AlignHCenter
+              Layout.topMargin: 4
+              Layout.bottomMargin: 2
+              spacing: 14
+
+              Repeater {
+                model: root.currentStep ? root.currentStep.keys : []
+
+                Keycap {
+                  required property string modelData
+                  label: modelData.toUpperCase()
+                  active: label !== "+" && root.activeKeys[label] === true
+                }
+              }
+            }
+
+            UiButton {
+              visible: Boolean(root.phase === "waiting" && root.currentStep && !root.currentStepIsTour && root.currentStep.keys.length === 0)
+              Layout.alignment: Qt.AlignHCenter
+              kind: "primary"
+              label: (root.currentStep ? root.currentStep.actionLabel || "Continue" : "").toUpperCase()
               onClicked: root.runStepAction("action")
             }
           }
@@ -2803,6 +3065,18 @@ ShellRoot {
           id: controls
           z: 100
           visible: root.phase !== "loading"
+          // The coach parks under the bar's right end for right-anchored
+          // tour stops, exactly where these buttons sit; tuck them away so
+          // learners aren't tempted to click them mid-tour.
+          readonly property bool tuckedAway: root.phase === "waiting" &&
+            root.currentStepIsTour &&
+            Boolean(overlay.highlight) &&
+            String(overlay.highlight.anchor || "").indexOf("right") !== -1
+          opacity: tuckedAway ? 0 : 1
+          enabled: !tuckedAway
+          Behavior on opacity {
+            NumberAnimation { duration: root.reducedMotion ? 0 : 450; easing.type: Easing.InOutSine }
+          }
           anchors {
             top: parent.top
             right: parent.right
@@ -2815,8 +3089,8 @@ ShellRoot {
             visible: root.phase !== "settings"
             implicitWidth: 42
             implicitHeight: 42
-            color: settingsMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
-            border.color: root.accent
+            color: settingsMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.panelColor
+            border.color: root.colorWithAlpha(root.accent, 0.55)
             border.width: 1
             radius: 21
 
@@ -2846,9 +3120,9 @@ ShellRoot {
           Rectangle {
             implicitWidth: 42
             implicitHeight: 42
-            color: keysMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
-            border.color: root.keyboardExclusive ? root.accent : root.instruction
-            border.width: root.keyboardExclusive ? 2 : 2
+            color: keysMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.panelColor
+            border.color: root.keyboardExclusive ? root.colorWithAlpha(root.accent, 0.55) : root.instruction
+            border.width: root.keyboardExclusive ? 1 : 2
             radius: 21
 
             Text {
@@ -2871,9 +3145,9 @@ ShellRoot {
           Rectangle {
             implicitWidth: 42
             implicitHeight: 42
-            color: audioMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
-            border.color: root.audioEnabled ? root.accent : root.muted
-            border.width: root.audioEnabled ? 2 : 1
+            color: audioMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.panelColor
+            border.color: root.audioEnabled ? root.colorWithAlpha(root.accent, 0.55) : root.muted
+            border.width: 1
             radius: 21
 
             Text {
@@ -2893,50 +3167,18 @@ ShellRoot {
             }
           }
 
-          Rectangle {
+          UiButton {
             visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.help)
-            implicitWidth: helpRow.implicitWidth + 24
-            implicitHeight: 42
-            color: helpMouse.containsMouse ? root.colorWithAlpha(root.accent, 0.34) : root.background
-            border.color: root.accent
-            border.width: 2
-            radius: 21
-
-            RowLayout {
-              id: helpRow
-              anchors.centerIn: parent
-              spacing: 8
-
-              Text {
-                text: "?"
-                color: root.accent
-                font.family: "sans-serif"
-                font.pixelSize: 20
-                font.weight: Font.Bold
-              }
-              Text {
-                text: "Help"
-                color: root.foreground
-                font.family: "sans-serif"
-                font.pixelSize: 14
-                font.weight: Font.DemiBold
-              }
-            }
-
-            MouseArea {
-              id: helpMouse
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.requestHelpAction()
-            }
+            Layout.preferredHeight: 42
+            label: "?  HELP"
+            onClicked: root.requestHelpAction()
           }
 
           Rectangle {
             implicitWidth: 42
             implicitHeight: 42
-            color: closeMouse.containsMouse ? root.colorWithAlpha(root.urgent, 0.3) : root.background
-            border.color: closeMouse.containsMouse ? root.urgent : root.muted
+            color: closeMouse.containsMouse ? root.colorWithAlpha(root.urgent, 0.3) : root.panelColor
+            border.color: closeMouse.containsMouse ? root.urgent : root.colorWithAlpha(root.foreground, 0.3)
             border.width: 1
             radius: 21
 
@@ -2963,39 +3205,56 @@ ShellRoot {
           }
         }
 
-        Rectangle {
+        UiPanel {
           id: completionPanel
           visible: root.phase === "lesson-complete" && root.currentLesson
           opacity: root.lessonContentOpacity
           anchors.centerIn: parent
           width: Math.min(620, parent.width - 48)
-          height: completionColumn.implicitHeight + 56
-          color: root.background
-          border.color: root.accent
-          border.width: 2
+          height: completionColumn.implicitHeight + 64
           radius: 18
+          stripe: root.accent
 
           ColumnLayout {
             id: completionColumn
             anchors.centerIn: parent
-            width: parent.width - 56
+            width: parent.width - 64
             spacing: 14
 
+            Rectangle {
+              Layout.alignment: Qt.AlignHCenter
+              implicitWidth: 72
+              implicitHeight: 72
+              radius: 36
+              color: root.colorWithAlpha(root.accent, 0.16)
+              border.color: root.accent
+              border.width: 2
+
+              Text {
+                anchors.centerIn: parent
+                text: "✓"
+                color: root.accent
+                font.family: "sans-serif"
+                font.pixelSize: 36
+                font.weight: Font.Bold
+              }
+            }
             Text {
               Layout.alignment: Qt.AlignHCenter
-              text: "✓"
+              text: "MODULE COMPLETE"
               color: root.accent
-              font.family: "sans-serif"
-              font.pixelSize: 42
+              font.family: "monospace"
+              font.pixelSize: 11
               font.weight: Font.Bold
+              font.letterSpacing: 2
             }
             Text {
               Layout.fillWidth: true
               horizontalAlignment: Text.AlignHCenter
-              text: root.currentLesson ? root.currentLesson.title + " complete" : "Module complete"
+              text: root.currentLesson ? root.currentLesson.title : ""
               color: root.instruction
               font.family: "sans-serif"
-              font.pixelSize: 26
+              font.pixelSize: 28
               font.weight: Font.Bold
             }
             Text {
@@ -3006,63 +3265,22 @@ ShellRoot {
               opacity: 0.8
               wrapMode: Text.WordWrap
               font.family: "sans-serif"
-              font.pixelSize: 14
+              font.pixelSize: 15
             }
             RowLayout {
               Layout.alignment: Qt.AlignHCenter
+              Layout.topMargin: 8
               spacing: 12
 
-              Rectangle {
-                implicitWidth: topicsCompleteLabel.implicitWidth + 30
-                implicitHeight: 46
-                color: completeTopicsMouse.containsMouse ? root.accent : root.colorWithAlpha(root.accent, 0.22)
-                border.color: root.accent
-                border.width: 2
-                radius: 10
-
-                Text {
-                  id: topicsCompleteLabel
-                  anchors.centerIn: parent
-                  text: "Choose another topic"
-                  color: completeTopicsMouse.containsMouse ? root.background : root.foreground
-                  font.family: "sans-serif"
-                  font.pixelSize: 14
-                  font.weight: Font.Bold
-                }
-                MouseArea {
-                  id: completeTopicsMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: root.returnToMenu()
-                }
+              UiButton {
+                kind: "primary"
+                label: "CHOOSE ANOTHER TOPIC"
+                onClicked: root.returnToMenu()
               }
-
-              Rectangle {
-                implicitWidth: replayLessonLabel.implicitWidth + 30
-                implicitHeight: 46
-                color: replayLessonMouse.containsMouse
-                  ? root.colorWithAlpha(root.foreground, 0.14)
-                  : root.background
-                border.color: root.muted
-                border.width: 1
-                radius: 10
-
-                Text {
-                  id: replayLessonLabel
-                  anchors.centerIn: parent
-                  text: "Replay module"
-                  color: root.foreground
-                  font.family: "sans-serif"
-                  font.pixelSize: 14
-                }
-                MouseArea {
-                  id: replayLessonMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: root.startLesson(root.lessonIndex)
-                }
+              UiButton {
+                kind: "ghost"
+                label: "REPLAY MODULE"
+                onClicked: root.startLesson(root.lessonIndex)
               }
             }
           }
@@ -3223,7 +3441,7 @@ ShellRoot {
         Rectangle {
           id: tourCaption
           z: 11
-          visible: hexonCoach.visible && root.phase === "waiting" && root.currentStepIsTour
+          visible: hexonCoach.visible && root.phase === "waiting" && root.currentStepIsTour && !root.introActive
           opacity: root.lessonContentOpacity
           width: Math.min(680, overlay.width - 24, Math.max(260, tourCaptionText.implicitWidth + 44))
           height: tourCaptionText.implicitHeight + 32
@@ -3232,15 +3450,15 @@ ShellRoot {
             hexonCoach.x + (hexonCoach.width / 2) - (width / 2))))
           y: Math.round(Math.min(overlay.height - height - 12, hexonCoach.y + hexonCoach.arcOffset + hexonCoach.height + 8))
           radius: 12
-          color: root.background
-          border.color: root.instruction
-          border.width: 2
+          color: root.panelColor
+          border.color: root.colorWithAlpha(root.instruction, 0.8)
+          border.width: 1
 
           Text {
             id: tourCaptionText
             width: Math.min(tourCaption.width - 44, implicitWidth)
             anchors.centerIn: parent
-            text: root.currentStep ? root.currentStep.instruction : ""
+            text: root.currentStep ? root.characterText(root.currentStep.instruction) : ""
             textFormat: Text.PlainText
             horizontalAlignment: Text.AlignHCenter
             wrapMode: Text.WordWrap
@@ -3248,6 +3466,370 @@ ShellRoot {
             font.family: "sans-serif"
             font.pixelSize: 21
             font.weight: Font.Bold
+          }
+        }
+
+        // Opening scene for the tour: HEXON's rocket drops down the middle of
+        // the screen, lands at the bottom and he steps out of the hatch; or
+        // OLLIE's tree grows and she takes off from its branch. The coach in
+        // the scene is the real hexonCoach, parked at coachX/coachY.
+        Item {
+          id: introScene
+          z: 8
+          anchors.fill: parent
+          visible: opacity > 0
+          opacity: root.introActive && root.introStage !== "launch" ? 1 : 0
+          Behavior on opacity {
+            NumberAnimation { duration: root.introStage === "launch" ? 900 : 450; easing.type: Easing.InOutSine }
+          }
+
+          readonly property bool rocket: root.introKind === "rocket"
+          readonly property string stage: root.introStage
+          readonly property real groundY: overlay.height - 10
+          readonly property real coachX: rocket
+            ? (stage === "arrive" || stage === "reveal"
+              ? rocketArt.x + (root.introAnchorX * rocketArt.width) - (hexonCoach.width / 2)
+              : rocketArt.x + (rocketArt.width * 0.5) + 150)
+            : treeArt.x + (root.introAnchorX * treeArt.width) - (hexonCoach.width / 2)
+          readonly property real coachY: rocket
+            ? (stage === "arrive" || stage === "reveal"
+              ? rocketArt.landedY + (root.introAnchorY * rocketArt.height) - hexonCoach.height + 4
+              : groundY - hexonCoach.height - 12)
+            : treeArt.y + (root.introAnchorY * treeArt.height) - hexonCoach.height + 8
+
+          property var stars: []
+          Component.onCompleted: {
+            var list = []
+            for (var i = 0; i < 48; i++) {
+              list.push({
+                "fx": Math.random(),
+                "fy": Math.random() * 0.8,
+                "size": 2 + Math.floor(Math.random() * 3),
+                "period": 900 + Math.floor(Math.random() * 1800),
+                "warm": Math.random() < 0.3
+              })
+            }
+            stars = list
+          }
+
+          Repeater {
+            model: introScene.stars
+
+            Rectangle {
+              required property var modelData
+              x: Math.round(modelData.fx * overlay.width)
+              y: Math.round(40 + (modelData.fy * overlay.height))
+              width: modelData.size
+              height: modelData.size
+              color: modelData.warm ? root.instruction : root.foreground
+              opacity: 0.25
+
+              SequentialAnimation on opacity {
+                running: introScene.visible && !root.reducedMotion
+                loops: Animation.Infinite
+                NumberAnimation { to: 0.9; duration: modelData.period; easing.type: Easing.InOutSine }
+                NumberAnimation { to: 0.2; duration: modelData.period; easing.type: Easing.InOutSine }
+              }
+            }
+          }
+
+          // Typed status line, like a terminal prompt.
+          Item {
+            id: introPrompt
+            x: 28
+            y: 58
+            readonly property string fullText: {
+              var name = root.characterDisplayName
+              if (introScene.stage === "arrive") return introScene.rocket ? "> INCOMING TRANSMISSION..." : "> SOMETHING STIRS IN THE TREE..."
+              if (introScene.stage === "reveal" || introScene.stage === "exit") return "> " + name + (introScene.rocket ? " HAS LANDED." : " IS AWAKE.")
+              return "> TOUR STARTING"
+            }
+            property int shown: 0
+            property bool cursorOn: true
+            onFullTextChanged: { shown = 0; typeTimer.restart() }
+
+            Timer {
+              id: typeTimer
+              interval: root.reducedMotion ? 0 : 34
+              repeat: true
+              running: introScene.visible
+              onTriggered: {
+                if (introPrompt.shown < introPrompt.fullText.length) introPrompt.shown++
+              }
+            }
+
+            Timer {
+              interval: 480
+              repeat: true
+              running: introScene.visible
+              onTriggered: introPrompt.cursorOn = !introPrompt.cursorOn
+            }
+
+            Rectangle {
+              anchors.fill: promptText
+              anchors.margins: -10
+              color: root.colorWithAlpha(root.background, 0.82)
+              radius: 4
+              border.color: root.colorWithAlpha(root.accent, 0.5)
+              border.width: 1
+            }
+
+            Text {
+              id: promptText
+              text: introPrompt.fullText.substring(0, introPrompt.shown) + (introPrompt.cursorOn ? "█" : " ")
+              color: root.instruction
+              font.family: "monospace"
+              font.pixelSize: 20
+              font.weight: Font.Bold
+            }
+          }
+
+          // Landing pad with blinking edge lights, at the very bottom of the screen.
+          Item {
+            id: landingPad
+            visible: introScene.rocket
+            width: Math.round(rocketArt.width * 1.7)
+            height: 14
+            x: Math.round((overlay.width - width) / 2)
+            y: Math.round(introScene.groundY - height + 4)
+            property bool phase: false
+
+            Timer {
+              interval: 420
+              repeat: true
+              running: introScene.rocket && introScene.visible && !root.reducedMotion
+              onTriggered: landingPad.phase = !landingPad.phase
+            }
+
+            Rectangle {
+              anchors.fill: parent
+              color: root.colorWithAlpha(root.background, 0.95)
+              border.color: root.muted
+              border.width: 2
+            }
+
+            Repeater {
+              model: 10
+
+              Rectangle {
+                required property int index
+                width: 8
+                height: 8
+                y: 3
+                x: Math.round(8 + (index * ((landingPad.width - 24) / 9)))
+                color: (index % 2 === 0) === landingPad.phase ? root.instruction : root.accent
+                opacity: (index % 2 === 0) === landingPad.phase ? 1 : 0.35
+              }
+            }
+          }
+
+          Item {
+            id: rocketArt
+            visible: introScene.rocket
+            readonly property bool doorOpen: introScene.stage === "reveal" || introScene.stage === "exit"
+            readonly property bool thrusting: descent.running || liftoff.running
+            property bool landed: false
+            property real flamePulse: 1
+
+            height: Math.round(Math.max(360, Math.min(700, overlay.height * 0.5)))
+            width: rocketImage.implicitHeight > 0
+              ? Math.round(height * rocketImage.implicitWidth / rocketImage.implicitHeight)
+              : Math.round(height * 0.44)
+            x: Math.round((overlay.width - width) / 2)
+            readonly property real landedY: introScene.groundY - height
+            y: -height - 80
+
+            Connections {
+              target: root
+              function onIntroStageChanged() {
+                if (!introScene.rocket) return
+                if (root.introStage === "arrive") {
+                  descent.stop()
+                  liftoff.stop()
+                  rocketArt.landed = false
+                  rocketArt.y = -rocketArt.height - 80
+                  descent.from = rocketArt.y
+                  descent.to = rocketArt.landedY
+                  if (root.reducedMotion) {
+                    rocketArt.y = rocketArt.landedY
+                    rocketArt.landed = true
+                  } else {
+                    descent.restart()
+                  }
+                } else if (root.introStage === "launch" && !root.reducedMotion) {
+                  liftoff.from = rocketArt.y
+                  liftoff.to = -rocketArt.height - 120
+                  liftoff.restart()
+                }
+              }
+              function onIntroActiveChanged() {
+                if (!root.introActive) {
+                  descent.stop()
+                  liftoff.stop()
+                }
+              }
+            }
+
+            NumberAnimation {
+              id: descent
+              target: rocketArt
+              property: "y"
+              duration: 1600
+              easing.type: Easing.OutQuad
+              onFinished: rocketArt.landed = true
+            }
+
+            NumberAnimation {
+              id: liftoff
+              target: rocketArt
+              property: "y"
+              duration: 900
+              easing.type: Easing.InQuad
+            }
+
+            Timer {
+              interval: 70
+              repeat: true
+              running: rocketArt.thrusting
+              onTriggered: rocketArt.flamePulse = 0.8 + (Math.random() * 0.4)
+            }
+
+            // Engine exhaust: chunky pixel flames under the nozzle, drawn
+            // behind the hull so the landing legs stay in front.
+            Repeater {
+              model: [-0.09, 0, 0.09]
+
+              Item {
+                required property var modelData
+                required property int index
+                visible: rocketArt.thrusting && !root.reducedMotion
+                x: Math.round((rocketArt.width / 2) + (modelData * rocketArt.width) - 6)
+                y: Math.round(rocketArt.height * 0.9)
+                width: 12
+                height: 26
+                z: -1
+                scale: (index === 1 ? 5.2 : 3.6) * rocketArt.flamePulse
+                transformOrigin: Item.Top
+
+                Rectangle { x: 4; width: 4; height: 6; color: root.foreground }
+                Rectangle { x: 2; y: 5; width: 8; height: 7; color: root.instruction }
+                Rectangle { x: 3; y: 12; width: 6; height: 8; color: root.urgent }
+                Rectangle { x: 5; y: 20; width: 2; height: 6; color: root.urgent }
+              }
+            }
+
+            Image {
+              id: rocketImage
+              anchors.fill: parent
+              source: introScene.rocket && root.characterConfig.prefix ? root.spriteSource("intro") : ""
+              fillMode: Image.Stretch
+              opacity: rocketArt.doorOpen ? 0 : 1
+              Behavior on opacity { NumberAnimation { duration: 160 } }
+            }
+
+            Image {
+              anchors.fill: parent
+              source: introScene.rocket && root.characterConfig.prefix ? root.spriteSource("intro-open") : ""
+              fillMode: Image.Stretch
+              opacity: rocketArt.doorOpen ? 1 : 0
+              Behavior on opacity { NumberAnimation { duration: 160 } }
+            }
+
+            // Dust kicked up on touchdown.
+            Repeater {
+              model: 10
+
+              Rectangle {
+                id: dust
+                required property int index
+                readonly property real direction: index < 5 ? -1 : 1
+                readonly property real reach: 60 + ((index % 5) * 42)
+                width: 9 - (index % 3) * 2
+                height: width
+                color: index % 2 === 0 ? root.muted : root.foreground
+                opacity: 0
+                x: rocketArt.width / 2
+                y: rocketArt.height - 8
+
+                ParallelAnimation {
+                  running: rocketArt.landed && !root.reducedMotion
+                  NumberAnimation { target: dust; property: "x"; from: rocketArt.width / 2; to: (rocketArt.width / 2) + (dust.direction * dust.reach); duration: 680; easing.type: Easing.OutCubic }
+                  NumberAnimation { target: dust; property: "y"; from: rocketArt.height - 8; to: rocketArt.height - 8 - (14 + ((dust.index % 5) * 10)); duration: 680; easing.type: Easing.OutCubic }
+                  SequentialAnimation {
+                    NumberAnimation { target: dust; property: "opacity"; to: 0.9; duration: 80 }
+                    NumberAnimation { target: dust; property: "opacity"; to: 0; duration: 600; easing.type: Easing.InQuad }
+                  }
+                }
+              }
+            }
+          }
+
+          Item {
+            id: treeArt
+            visible: !introScene.rocket
+            height: Math.round(Math.max(320, Math.min(640, overlay.height * 0.46)))
+            width: treeImage.implicitHeight > 0
+              ? Math.round(height * treeImage.implicitWidth / treeImage.implicitHeight)
+              : Math.round(height * 1.09)
+            // Slightly left of centre so the perch on the right-hand branch
+            // ends up near the middle of the screen.
+            x: Math.round((overlay.width / 2) - (width * 0.72))
+            y: Math.round(introScene.groundY - height)
+            transformOrigin: Item.Bottom
+            scale: 1
+
+            SequentialAnimation {
+              running: root.introActive && !introScene.rocket && !root.reducedMotion
+              PropertyAction { target: treeArt; property: "scale"; value: 0.1 }
+              NumberAnimation { target: treeArt; property: "scale"; to: 1; duration: 1000; easing.type: Easing.OutBack }
+            }
+
+            // Gentle sway.
+            SequentialAnimation on rotation {
+              running: treeArt.visible && introScene.visible && !root.reducedMotion
+              loops: Animation.Infinite
+              NumberAnimation { to: 0.8; duration: 1900; easing.type: Easing.InOutSine }
+              NumberAnimation { to: -0.8; duration: 1900; easing.type: Easing.InOutSine }
+            }
+
+            Image {
+              id: treeImage
+              anchors.fill: parent
+              source: !introScene.rocket && root.characterConfig.prefix ? root.spriteSource("intro") : ""
+              fillMode: Image.Stretch
+            }
+
+            // Fireflies drifting around the canopy.
+            Repeater {
+              model: 7
+
+              Rectangle {
+                id: firefly
+                required property int index
+                width: 4
+                height: 4
+                color: root.instruction
+                x: Math.round(treeArt.width * (0.1 + ((index * 0.13) % 0.8)))
+                y: Math.round(treeArt.height * (0.08 + ((index * 0.17) % 0.5)))
+                opacity: 0
+
+                SequentialAnimation on opacity {
+                  running: treeArt.visible && introScene.visible && !root.reducedMotion
+                  loops: Animation.Infinite
+                  PauseAnimation { duration: 300 + (firefly.index * 260) }
+                  NumberAnimation { to: 1; duration: 500 }
+                  NumberAnimation { to: 0; duration: 700 }
+                  PauseAnimation { duration: 400 }
+                }
+
+                SequentialAnimation on y {
+                  running: treeArt.visible && introScene.visible && !root.reducedMotion
+                  loops: Animation.Infinite
+                  NumberAnimation { to: Math.round(treeArt.height * (0.08 + ((firefly.index * 0.17) % 0.5))) - 18; duration: 1400 + (firefly.index * 150); easing.type: Easing.InOutSine }
+                  NumberAnimation { to: Math.round(treeArt.height * (0.08 + ((firefly.index * 0.17) % 0.5))) + 10; duration: 1400 + (firefly.index * 150); easing.type: Easing.InOutSine }
+                }
+              }
+            }
           }
         }
 
@@ -3315,6 +3897,9 @@ ShellRoot {
             root.characterState === "tour-point" ||
             root.characterState === "tour-talk"
           readonly property bool isPointingUp: root.characterState === "tour-point"
+          readonly property bool targetsIntro:
+            root.characterState === "intro" ||
+            root.characterState === "intro-stand"
           readonly property bool targetsMenu:
             root.characterState === "menu-fly" ||
             root.characterState === "menu-settle" ||
@@ -3380,7 +3965,9 @@ ShellRoot {
           readonly property real targetY:
             overlay.targetPointY - height + ((height - pointTipLocalY) * targetScale)
           readonly property real bottomY: overlay.height - height - 28
-          readonly property real contextX: targetsMenu
+          readonly property real contextX: targetsIntro
+            ? introScene.coachX
+            : targetsMenu
             ? Math.max(18, Math.min(overlay.width - width - 18, menuTargetX - width + 45))
             : targetsTour
               ? tourX
@@ -3389,7 +3976,9 @@ ShellRoot {
               : targetsModuleComplete
                 ? moduleTargetX
               : waitingX
-          readonly property real contextY: targetsMenu
+          readonly property real contextY: targetsIntro
+            ? introScene.coachY
+            : targetsMenu
             ? Math.max(50, menuTargetY - (height * 0.55))
             : targetsTour
               ? tourY
@@ -3403,7 +3992,8 @@ ShellRoot {
             root.phase === "waiting" ||
             root.phase === "highlight" ||
             root.phase === "lesson-complete") &&
-            root.characterState !== "hidden"
+            root.characterState !== "hidden" &&
+            root.characterState !== "intro"
           width: 240
           height: 260
           x: userPlaced ? userX : contextX
@@ -3513,7 +4103,9 @@ ShellRoot {
                 root.characterState === "menu-settle" ||
                 root.characterState === "menu-point" ||
                 root.characterState === "module-fly" ||
-                root.characterState === "module-settle"
+                root.characterState === "module-settle" ||
+                root.characterState === "intro" ||
+                root.characterState === "intro-stand"
               ) {
                 fallAnimation.stop()
                 hexonCoach.userPlaced = false
@@ -3529,6 +4121,11 @@ ShellRoot {
               else if (root.characterState === "celebrate") {
                 celebrateAnimation.restart()
                 if (root.phase === "lesson-complete") confettiAnimation.restart()
+              }
+              else if (root.characterState === "intro-stand") {
+                hexonCoach.effectScale = 1
+                hexonCoach.effectRotation = 0
+                introAppearAnimation.restart()
               }
               else {
                 hexonCoach.effectScale = 1
@@ -3561,6 +4158,16 @@ ShellRoot {
               duration: Math.round(root.characterTravelDuration * 0.5)
               easing.type: Easing.InQuad
             }
+          }
+
+          NumberAnimation {
+            id: introAppearAnimation
+            target: hexonCoach
+            property: "effectOpacity"
+            from: 0
+            to: 1
+            duration: 420
+            easing.type: Easing.OutCubic
           }
 
           SequentialAnimation {
@@ -3864,7 +4471,14 @@ ShellRoot {
           }
 
           Rectangle {
-            visible: !hexonCoach.isPointingUp
+            // Only genuine feedback gets a bubble: key reactions, celebrations,
+            // and click or drag responses. Status words during narration and
+            // travel never matched what was being said, so they stay hidden.
+            readonly property bool reacting:
+              root.characterState === "correct" ||
+              root.characterState === "incorrect" ||
+              root.characterState === "celebrate"
+            visible: !hexonCoach.isPointingUp && (reacting || hexonCoach.interactionMessage !== "")
             anchors {
               top: parent.top
             }

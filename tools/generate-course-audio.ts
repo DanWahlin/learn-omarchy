@@ -6,7 +6,16 @@ import { spawnSync } from "node:child_process";
 import { parseCourseJson } from "../src/course.ts";
 
 // Usage:
-//   generate-course-audio.ts <course.json> [--missing] [--backend edge|azure] [--env-file PATH]
+//   generate-course-audio.ts <course.json> [--character ID] [--missing] [--match TEXT] [--backend edge|azure] [--env-file PATH]
+//
+// Narration is recorded once per coach: "audio/x.mp3" in the course is written
+// to audio/<character>/x.mp3, "HEXON" in the text becomes the coach's display
+// name, and the voice comes from "voice" in the coach's character.json (falling
+// back to the environment). Without --character every coach in
+// assets/characters/index.json is generated.
+//
+// --match regenerates only narration whose spoken text contains TEXT (case
+// insensitive), e.g. --match Omarchy after changing its pronunciation.
 //
 // The Azure backend uses the Speech REST API with credentials read from an env
 // file (default ~/.env): AZURE_SPEECH_KEY plus AZURE_SPEECH_REGION or
@@ -20,12 +29,15 @@ const readFlag = (name: string): string | undefined => {
 };
 const coursePath = resolve(args.find((value) => !value.startsWith("--") && !isFlagValue(value)) ?? "courses/omarchy-basics.json");
 const onlyMissing = args.includes("--missing");
+const matchText = (readFlag("--match") ?? "").toLowerCase();
+const onlyCharacter = readFlag("--character");
+const charactersDir = resolve(dirname(coursePath), "..", "assets", "characters");
 const backend = readFlag("--backend") ?? process.env.LEARN_OMARCHY_TTS_BACKEND ?? "edge";
 const envFile = readFlag("--env-file") ?? resolve(process.env.HOME ?? "", ".env");
 
 function isFlagValue(value: string): boolean {
   const index = args.indexOf(value);
-  return index > 0 && ["--backend", "--env-file"].includes(args[index - 1]);
+  return index > 0 && ["--backend", "--env-file", "--match", "--character"].includes(args[index - 1]);
 }
 
 const result = parseCourseJson(await readFile(coursePath, "utf8"));
@@ -59,8 +71,12 @@ const escapeXml = (text: string): string =>
 
 // Words the voice would otherwise mispronounce, respelled in the spoken text.
 // Plain respelling is used rather than SSML <sub>/<phoneme> because the HD
-// voices ignore those tags. Display text is unaffected.
-const pronunciations: Record<string, string> = { Omarchy: "Omaaachi" };
+// voices ignore those tags. Display text is unaffected. "Omarchy" is said
+// "oh-MAH-chee"; override the respelling with LEARN_OMARCHY_PRONUNCIATION if
+// a different voice needs another spelling.
+const pronunciations: Record<string, string> = {
+  Omarchy: process.env.LEARN_OMARCHY_PRONUNCIATION ?? "Omaaachi",
+};
 
 const toSsmlText = (text: string): string =>
   escapeXml(
@@ -70,10 +86,36 @@ const toSsmlText = (text: string): string =>
     ),
   );
 
+type Character = { id: string; displayName: string; voice?: string };
+
+async function loadCharacters(): Promise<Character[]> {
+  const index = JSON.parse(await readFile(resolve(charactersDir, "index.json"), "utf8")) as {
+    characters?: Array<{ id?: string; displayName?: string }>;
+  };
+  const characters: Character[] = [];
+  for (const entry of index.characters ?? []) {
+    if (typeof entry.id !== "string") continue;
+    if (onlyCharacter && entry.id !== onlyCharacter) continue;
+    let manifest: { displayName?: string; voice?: string } = {};
+    try {
+      manifest = JSON.parse(await readFile(resolve(charactersDir, entry.id, "character.json"), "utf8"));
+    } catch {
+      // Defaults below cover a missing manifest.
+    }
+    characters.push({
+      id: entry.id,
+      displayName: manifest.displayName ?? entry.displayName ?? entry.id.toUpperCase(),
+      voice: manifest.voice,
+    });
+  }
+  if (characters.length === 0) throw new Error(`No characters found under ${charactersDir}${onlyCharacter ? ` matching ${onlyCharacter}` : ""}`);
+  return characters;
+}
+
 type Synthesizer = { voice: string; synthesize: (text: string, output: string) => Promise<void> };
 
-async function createEdgeSynthesizer(): Promise<Synthesizer> {
-  const voice = process.env.LEARN_OMARCHY_TTS_VOICE ?? "en-GB-RyanNeural";
+async function createEdgeSynthesizer(preferredVoice?: string): Promise<Synthesizer> {
+  const voice = preferredVoice ?? process.env.LEARN_OMARCHY_TTS_VOICE ?? "en-GB-RyanNeural";
   const edgeTts = process.env.EDGE_TTS_BIN ?? "edge-tts";
   return {
     voice,
@@ -88,12 +130,12 @@ async function createEdgeSynthesizer(): Promise<Synthesizer> {
   };
 }
 
-async function createAzureSynthesizer(): Promise<Synthesizer> {
+async function createAzureSynthesizer(preferredVoice?: string): Promise<Synthesizer> {
   const env = { ...(await loadEnvFile(envFile)), ...process.env } as Record<string, string | undefined>;
   const key = env.AZURE_SPEECH_KEY;
   const region = env.AZURE_SPEECH_REGION;
   const configuredEndpoint = env.AZURE_SPEECH_ENDPOINT;
-  const voice = env.LEARN_OMARCHY_TTS_VOICE ?? env.AZURE_SPEECH_MALE_VOICE_US ?? "en-US-AndrewMultilingualNeural";
+  const voice = preferredVoice ?? env.LEARN_OMARCHY_TTS_VOICE ?? env.AZURE_SPEECH_MALE_VOICE_US ?? "en-US-AndrewMultilingualNeural";
   if (!key) throw new Error(`AZURE_SPEECH_KEY is not set (looked in ${envFile})`);
   if (!region && !configuredEndpoint) {
     throw new Error(`AZURE_SPEECH_REGION or AZURE_SPEECH_ENDPOINT is not set (looked in ${envFile})`);
@@ -128,55 +170,53 @@ async function createAzureSynthesizer(): Promise<Synthesizer> {
   };
 }
 
-const synthesizer = backend === "azure" ? await createAzureSynthesizer() : await createEdgeSynthesizer();
+async function shouldGenerate(text: string, output: string): Promise<boolean> {
+  if (matchText !== "" && !text.toLowerCase().includes(matchText)) return false;
+  if (!onlyMissing) return true;
+  try {
+    await access(output);
+    return false;
+  } catch {
+    return true; // Generate files that don't exist yet.
+  }
+}
+
+function characterOutputPath(relativePath: string, character: Character): string {
+  const slash = relativePath.lastIndexOf("/");
+  const dir = slash === -1 ? "" : relativePath.slice(0, slash + 1);
+  const file = slash === -1 ? relativePath : relativePath.slice(slash + 1);
+  return `${dir}${character.id}/${file}`;
+}
 
 let generated = 0;
-for (const lesson of result.course.lessons) {
-  for (const step of lesson.steps) {
-    if (!step.audio) continue;
-    const output = resolve(dirname(coursePath), step.audio);
+for (const character of await loadCharacters()) {
+  const synthesizer = backend === "azure" ? await createAzureSynthesizer(character.voice) : await createEdgeSynthesizer(character.voice);
+  const generate = async (text: string, relativePath: string): Promise<void> => {
+    const spoken = text.replace(/HEXON/g, character.displayName);
+    const relative = characterOutputPath(relativePath, character);
+    const output = resolve(dirname(coursePath), relative);
     await mkdir(dirname(output), { recursive: true });
-    if (onlyMissing) {
-      try {
-        await access(output);
-        continue;
-      } catch {
-        // Generate files that don't exist yet.
-      }
-    }
+    if (!(await shouldGenerate(spoken, output))) return;
     try {
-      await synthesizer.synthesize(step.instruction, output);
+      await synthesizer.synthesize(spoken, output);
     } catch (error) {
       console.error(String(error instanceof Error ? error.message : error));
       process.exit(1);
     }
     generated++;
-    console.log(`Generated ${step.audio}`);
+    console.log(`Generated ${relative}`);
+  };
+  console.log(`${character.displayName} (${character.id}) speaks with ${synthesizer.voice} via ${backend}.`);
+  for (const lesson of result.course.lessons) {
+    for (const step of lesson.steps) {
+      if (step.audio) await generate(step.instruction, step.audio);
+    }
+  }
+  for (const lesson of result.course.lessons) {
+    for (const step of lesson.steps) {
+      if (step.completionAudio && step.completionMessage) await generate(step.completionMessage, step.completionAudio);
+    }
   }
 }
 
-for (const lesson of result.course.lessons) {
-  for (const step of lesson.steps) {
-    if (!step.completionAudio || !step.completionMessage) continue;
-    const output = resolve(dirname(coursePath), step.completionAudio);
-    await mkdir(dirname(output), { recursive: true });
-    if (onlyMissing) {
-      try {
-        await access(output);
-        continue;
-      } catch {
-        // Generate files that don't exist yet.
-      }
-    }
-    try {
-      await synthesizer.synthesize(step.completionMessage, output);
-    } catch (error) {
-      console.error(String(error instanceof Error ? error.message : error));
-      process.exit(1);
-    }
-    generated++;
-    console.log(`Generated ${step.completionAudio}`);
-  }
-}
-
-console.log(`Generated ${generated} narration file(s) with ${synthesizer.voice} via ${backend}.`);
+console.log(`Generated ${generated} narration file(s).`);

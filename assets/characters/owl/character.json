@@ -15,5 +15,11 @@
   "flightFrames": 2,
   "flightFrameRate": 5,
   "pointBlink": true,
-  "poseMid": true
+  "poseMid": true,
+  "intro": {
+    "kind": "tree",
+    "anchorX": 0.84,
+    "anchorY": 0.63
+  },
+  "voice": "en-GB-Ada:DragonHDLatestNeural"
 }

@@ -61,6 +61,15 @@ per course in `~/.local/state/learn-omarchy/progress.json`, and the fact that
 the tour has been opened once is recorded in `settings.json` next to it, so a
 skipped tour is never forced again; it stays available from the picker.
 
+The tour opens with a short pixel-art scene before the first stop: HEXON's
+rocket drops down the middle of the screen, lands on a pad at the bottom, and
+he steps out of the lit hatch; OLLIE's tree grows from the ground and she
+takes off from its branch. The desktop dims and the instruction panel fades
+while it plays, and `Enter` or Skip cuts it short. It is skipped entirely
+under `LEARN_OMARCHY_REDUCED_MOTION=1`. The top-right controls also fade out
+during tour stops that put the coach under the right end of the bar, so they
+never compete with what he is pointing at.
+
 - Select a module with the mouse or arrow keys and `Enter`. Each card previews
   its first shortcut.
 - Press the displayed shortcut. Each keycap lights up while its key is held.
@@ -290,6 +299,20 @@ python -m pip install edge-tts
 npm run audio:generate
 ```
 
+Narration is recorded once per coach, under `courses/audio/<character>/`:
+the spoken text says the coach's name where the course text says HEXON, and
+each coach's `character.json` names its `voice` (HEXON uses Andrew, OLLIE
+uses Ada, both Azure HD voices). With no `--character` flag every coach in
+`assets/characters/index.json` is generated. "Omarchy" is respelled for the
+voice as "Omaaachi" (oh-MAH-chee); set `LEARN_OMARCHY_PRONUNCIATION` to try
+another spelling, then regenerate just the lines that mention it:
+
+```bash
+LEARN_OMARCHY_PRONUNCIATION=Omaaachi \
+node --experimental-strip-types tools/generate-course-audio.ts \
+  courses/omarchy-basics.json --backend azure --match Omarchy --character owl
+```
+
 Generate only missing files or choose another voice:
 
 ```bash
@@ -327,13 +350,19 @@ confirm with Enter. The choice is saved to
 `~/.local/state/learn-omarchy/settings.json`. The gear button beside the
 speaker and exit controls opens Settings, where you can switch coaches and
 reset progress (two clicks, or press R twice); a reset clears every module
-checkmark and starts the tour again. The coach list comes from
+checkmark and the coach choice, so closing Settings asks for a coach again
+and then starts the tour, like a fresh install. The module picker always
+selects the first unfinished module, so the coach points at what's next. The coach list comes from
 `assets/characters/index.json`.
 
 Alternative characters live under `assets/characters/<name>/` with the same
 asset set: `concepts/` (generated sheets), `sprites.conf` (pipeline geometry),
 `character.json` (runtime geometry: sprite prefix, display name, pointing
-tips, pose scales, boot flames, flight frames), and `sprites/` (built strips).
+tips, pose scales, boot flames, flight frames, opening scene), and `sprites/`
+(built strips). The opening scene comes from `<prefix>-intro.png` (a rocket
+also needs `<prefix>-intro-open.png` with the hatch open); `intro` in
+`character.json` names the `kind` (`rocket` or `tree`) and `anchorX`/`anchorY`,
+the doorway floor or the perch as fractions of that sprite.
 A launch flag overrides the saved choice and skips the picker:
 
 ```bash
@@ -404,7 +433,7 @@ The preparation command requires ImageMagick during asset development.
 | `experiments/hexon-lab/` | Standalone sprite and movement test surface |
 | `src/course.ts` | Schema-v2 types and runtime validator |
 | `tools/validate-course.ts` | Course validation CLI |
-| `tools/generate-course-audio.ts` | Bulk Edge TTS narration generator |
+| `tools/generate-course-audio.ts` | Narration generator (Azure Speech or Edge TTS) |
 | `tests/` | Metadata and safety tests |
 | `bin/` | Repository and installed launchers |
 | `packaging/` | Arch Linux package scaffolding |
