@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+import { writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+const directory = process.env.LEARN_CAPTURE_TEST_DIR;
+if (!directory) throw new Error("Capture fixture requires an isolated test directory");
+const mode = process.env.LEARN_CAPTURE_TEST_MODE;
+if (mode === "wait") {
+  writeFileSync(join(directory, "selector.pid"), String(process.pid));
+  setInterval(() => {}, 1000);
+} else if (mode === "cancel") {
+  console.error("selection cancelled");
+  process.exitCode = 1;
+} else if (mode === "error") {
+  console.error("Capture protocol unavailable");
+  process.exitCode = 1;
+} else {
+  console.log("10,20 120x80");
+}

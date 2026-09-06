@@ -1,12 +1,17 @@
 #!/usr/bin/env -S node --experimental-strip-types
 
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { dirname, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { parseCourseJson } from "../src/course.ts";
+import {
+  ffmpegVersion, fileHash, fingerprint, generationIsFresh, normalizationIsFresh,
+  normalizeAudio, prepareSpeech, productionOptions, readManifest, sha256, stagePath, writeManifest,
+} from "./audio-production.ts";
+import type { GenerationSpec } from "./audio-production.ts";
 
 // Usage:
-//   generate-course-audio.ts <course.json> [--character ID] [--missing] [--match TEXT] [--backend edge|azure] [--env-file PATH]
+//   generate-course-audio.ts <course.json> [--character ID] [--steps ID,ID] [--missing] [--match TEXT] [--backend edge|azure] [--env-file PATH]
 //
 // Narration is recorded once per coach: "audio/x.mp3" in the course is written
 // to audio/<character>/x.mp3, "HEXON" in the text becomes the coach's display
@@ -32,13 +37,19 @@ const coursePath = resolve(args.find((value) => !value.startsWith("--") && !isFl
 const onlyMissing = args.includes("--missing");
 const matchText = (readFlag("--match") ?? "").toLowerCase();
 const onlyCharacter = readFlag("--character");
+const stepFilter = readFlag("--steps");
+if (args.includes("--steps") && (!stepFilter || stepFilter.startsWith("--"))) {
+  throw new Error("--steps requires comma-separated activity IDs");
+}
+const selectedSteps = stepFilter === undefined ? null : new Set(stepFilter.split(",").map(id => id.trim()));
 const charactersDir = resolve(dirname(coursePath), "..", "assets", "characters");
 const backend = readFlag("--backend") ?? process.env.LEARN_OMARCHY_TTS_BACKEND ?? "edge";
 const envFile = readFlag("--env-file") ?? resolve(process.env.HOME ?? "", ".env");
+if (backend !== "edge" && backend !== "azure") throw new Error(`Unknown speech backend: ${backend}`);
 
 function isFlagValue(value: string): boolean {
   const index = args.indexOf(value);
-  return index > 0 && ["--backend", "--env-file", "--match", "--character"].includes(args[index - 1]);
+  return index > 0 && ["--backend", "--env-file", "--match", "--character", "--steps"].includes(args[index - 1]);
 }
 
 const result = parseCourseJson(await readFile(coursePath, "utf8"));
@@ -46,14 +57,21 @@ if (!result.course || result.errors.length > 0) {
   result.errors.forEach((error) => console.error(`- ${error}`));
   process.exit(1);
 }
+if (selectedSteps) {
+  const knownSteps = new Set(result.course.lessons.flatMap(lesson => lesson.steps.map(step => step.id)));
+  for (const id of selectedSteps) {
+    if (!knownSteps.has(id)) throw new Error(`Unknown activity in --steps: ${id || "(empty)"}`);
+  }
+}
 
 async function loadEnvFile(path: string): Promise<Record<string, string>> {
   const values: Record<string, string> = {};
   let raw = "";
   try {
     raw = await readFile(path, "utf8");
-  } catch {
-    return values;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return values;
+    throw error;
   }
   for (const line of raw.split("\n")) {
     const match = line.match(/^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
@@ -79,14 +97,6 @@ const pronunciations: Record<string, string> = {
   Omarchy: process.env.LEARN_OMARCHY_PRONUNCIATION ?? "Omaachi",
 };
 
-const toSsmlText = (text: string): string =>
-  escapeXml(
-    Object.entries(pronunciations).reduce(
-      (spoken, [word, respelling]) => spoken.replace(new RegExp(`\\b${word}\\b`, "g"), respelling),
-      text,
-    ),
-  );
-
 // Manifest voices are backend-specific: "voice" names an Azure voice and
 // "edgeVoice" an Edge TTS voice. LEARN_OMARCHY_TTS_VOICE always wins.
 type Character = { id: string; displayName: string; voice?: string; edgeVoice?: string };
@@ -102,8 +112,8 @@ async function loadCharacters(): Promise<Character[]> {
     let manifest: { displayName?: string; voice?: string; edgeVoice?: string } = {};
     try {
       manifest = JSON.parse(await readFile(resolve(charactersDir, entry.id, "character.json"), "utf8"));
-    } catch {
-      // Defaults below cover a missing manifest.
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
     }
     characters.push({
       id: entry.id,
@@ -116,15 +126,23 @@ async function loadCharacters(): Promise<Character[]> {
   return characters;
 }
 
-type Synthesizer = { voice: string; synthesize: (text: string, output: string) => Promise<void> };
+type Synthesizer = {
+  voice: string;
+  options: Record<string, string>;
+  synthesize: (text: string, output: string) => Promise<void>;
+};
 
 async function createEdgeSynthesizer(manifestVoice?: string): Promise<Synthesizer> {
   const voice = process.env.LEARN_OMARCHY_TTS_VOICE ?? manifestVoice ?? "en-GB-RyanNeural";
   const edgeTts = process.env.EDGE_TTS_BIN ?? "edge-tts";
   return {
     voice,
+    options: { rate: "+0%", volume: "+0%", pitch: "+0Hz", format: "edge-default-mp3" },
     async synthesize(text, output) {
-      const child = spawnSync(edgeTts, ["--voice", voice, "--text", text, "--write-media", output], {
+      const child = spawnSync(edgeTts, [
+        "--voice", voice, "--rate=+0%", "--volume=+0%", "--pitch=+0Hz",
+        "--text", text, "--write-media", output,
+      ], {
         encoding: "utf8",
         stdio: "inherit",
       });
@@ -150,10 +168,11 @@ async function createAzureSynthesizer(manifestVoice?: string): Promise<Synthesiz
   const locale = voice.split("-").slice(0, 2).join("-") || "en-US";
   return {
     voice,
+    options: { locale, format: "audio-24khz-96kbitrate-mono-mp3", ssmlVersion: "1.0" },
     async synthesize(text, output) {
       const ssml =
         `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${locale}">` +
-        `<voice name="${escapeXml(voice)}">${toSsmlText(text)}</voice></speak>`;
+        `<voice name="${escapeXml(voice)}">${escapeXml(text)}</voice></speak>`;
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -174,17 +193,6 @@ async function createAzureSynthesizer(manifestVoice?: string): Promise<Synthesiz
   };
 }
 
-async function shouldGenerate(text: string, output: string): Promise<boolean> {
-  if (matchText !== "" && !text.toLowerCase().includes(matchText)) return false;
-  if (!onlyMissing) return true;
-  try {
-    await access(output);
-    return false;
-  } catch {
-    return true; // Generate files that don't exist yet.
-  }
-}
-
 function characterOutputPath(relativePath: string, character: Character): string {
   const slash = relativePath.lastIndexOf("/");
   const dir = slash === -1 ? "" : relativePath.slice(0, slash + 1);
@@ -193,21 +201,46 @@ function characterOutputPath(relativePath: string, character: Character): string
 }
 
 let generated = 0;
+const audioRoot = resolve(dirname(coursePath), "audio");
+await mkdir(audioRoot, { recursive: true });
+const manifestPath = resolve(audioRoot, "production-manifest.json");
+const manifest = await readManifest(manifestPath);
+const version = ffmpegVersion();
 for (const character of await loadCharacters()) {
   const synthesizer = backend === "azure"
     ? await createAzureSynthesizer(character.voice)
     : await createEdgeSynthesizer(character.edgeVoice);
   const generate = async (text: string, relativePath: string): Promise<void> => {
-    const spoken = text.replace(/HEXON/g, character.displayName);
+    const named = text.replace(/HEXON/g, () => character.displayName);
+    if (matchText !== "" && !named.toLowerCase().includes(matchText)) return;
+    const spoken = prepareSpeech(text, character.displayName, pronunciations);
     const relative = characterOutputPath(relativePath, character);
     const output = resolve(dirname(coursePath), relative);
+    if (!output.endsWith(".mp3")) throw new Error(`Narration production requires an .mp3 path: ${relative}`);
     await mkdir(dirname(output), { recursive: true });
-    if (!(await shouldGenerate(spoken, output))) return;
+    const key = relativeToAudio(output);
+    const spec: GenerationSpec = {
+      textHash: sha256(text),
+      preparedTextHash: sha256(spoken),
+      character: { id: character.id, displayName: character.displayName },
+      voice: synthesizer.voice,
+      backend,
+      pronunciations,
+      preparationVersion: 1,
+      synthesisOptions: synthesizer.options,
+      productionOptions,
+    };
+    const currentHash = await fileHash(output);
+    if (onlyMissing && generationIsFresh(manifest.files[key], spec, currentHash)
+      && normalizationIsFresh(manifest.files[key], currentHash, version)) return;
+    const staged = stagePath(output);
     try {
-      await synthesizer.synthesize(spoken, output);
-    } catch (error) {
-      console.error(String(error instanceof Error ? error.message : error));
-      process.exit(1);
+      await synthesizer.synthesize(spoken, staged);
+      manifest.files[key] = await normalizeAudio(staged, output,
+        { kind: "generated", fingerprint: fingerprint(spec), spec }, version);
+      await writeManifest(manifestPath, manifest);
+    } finally {
+      await rm(staged, { force: true });
     }
     generated++;
     console.log(`Generated ${relative}`);
@@ -215,14 +248,20 @@ for (const character of await loadCharacters()) {
   console.log(`${character.displayName} (${character.id}) speaks with ${synthesizer.voice} via ${backend}.`);
   for (const lesson of result.course.lessons) {
     for (const step of lesson.steps) {
+      if (selectedSteps && !selectedSteps.has(step.id)) continue;
       if (step.audio) await generate(step.instruction, step.audio);
     }
   }
   for (const lesson of result.course.lessons) {
     for (const step of lesson.steps) {
+      if (selectedSteps && !selectedSteps.has(step.id)) continue;
       if (step.completionAudio && step.completionMessage) await generate(step.completionMessage, step.completionAudio);
     }
   }
+}
+
+function relativeToAudio(path: string): string {
+  return relative(audioRoot, path).split("\\").join("/");
 }
 
 console.log(`Generated ${generated} narration file(s).`);

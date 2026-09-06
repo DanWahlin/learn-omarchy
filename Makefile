@@ -16,10 +16,10 @@ test:
 	npm test
 
 install:
-	install -d "$(APP_DIR)" "$(APP_DIR)/assets/characters" "$(APP_DIR)/assets/sounds" "$(BIN_DIR)" "$(DESKTOP_DIR)" "$(ICON_DIR)"
+	install -d "$(APP_DIR)" "$(APP_DIR)/bin" "$(APP_DIR)/assets/characters" "$(APP_DIR)/assets/sounds" "$(BIN_DIR)" "$(DESKTOP_DIR)" "$(ICON_DIR)"
 	install -m 644 share/icons/hicolor/256x256/apps/learn-omarchy.png "$(ICON_DIR)/learn-omarchy.png"
 	install -m 644 assets/characters/index.json "$(APP_DIR)/assets/characters/index.json"
-	cp -R app courses experiments src tools package.json "$(APP_DIR)/"
+	cp -R app courses experiments integrations src tools package.json character-lab.qml "$(APP_DIR)/"
 	cp -R assets/sounds "$(APP_DIR)/assets/"
 	for character in assets/characters/*/; do \
 		name="$$(basename "$$character")"; \
@@ -29,6 +29,7 @@ install:
 	done
 	install -m 755 bin/hexon-lab "$(BIN_DIR)/hexon-lab"
 	install -m 755 bin/learn-omarchy "$(BIN_DIR)/learn-omarchy"
+	install -m 755 bin/learn-omarchy-practice "$(APP_DIR)/bin/learn-omarchy-practice"
 	install -m 755 bin/learn-omarchy-validate "$(BIN_DIR)/learn-omarchy-validate"
 	install -m 644 share/applications/learn-omarchy.desktop "$(DESKTOP_DIR)/learn-omarchy.desktop"
 

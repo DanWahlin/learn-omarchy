@@ -10,7 +10,11 @@
 set -euo pipefail
 
 character="${1:-}"
-[[ -n "$character" ]] || { echo "usage: prepare-character-sprites.sh <character>" >&2; exit 2; }
+mode="${2:-}"
+[[ "$character" =~ ^[a-z0-9-]+$ && ( -z "$mode" || "$mode" == "--clean-runtime-only" ) && $# -le 2 ]] || {
+  echo "usage: prepare-character-sprites.sh <character> [--clean-runtime-only]" >&2
+  exit 2
+}
 
 root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 character_dir="$root/assets/characters/$character"
@@ -44,6 +48,9 @@ talk_face_x=""
 talk_face_y=""
 talk_face_width=""
 talk_face_height=""
+# Optional polygon in face-crop coordinates. Keep surrounding eyes out of the
+# replacement; also publish the masked patches for registered speech overlays.
+talk_face_mask=""
 # Optional frame order for the talk strip, as space-separated column indexes
 # (e.g. "0 1 0 3 0 1 0 3"). Lets a strip alternate between a few clean copies
 # instead of using every generated column.
@@ -83,11 +90,42 @@ alpha_cutoff=""
 # column width and trim vertically only, so copies that touch their column
 # edges stay horizontally aligned with one another.
 frame_align="trim"
+# Explicitly audited isolated alpha=1 pixels, never a global glow threshold.
+stray_point_pixels=()
+stray_flight_pixels=()
 
 # shellcheck disable=SC1090
 source "$config"
 
 command -v magick >/dev/null 2>&1 || { echo "prepare-character-sprites: ImageMagick is required" >&2; exit 1; }
+output_dir="$character_dir/sprites"
+
+clean_pixels() {
+  local file="$1"; shift
+  [[ -f "$file" && $# -gt 0 ]] || return 0
+  local expression="" point
+  for point in "$@"; do
+    [[ -z "$expression" ]] || expression+=" || "
+    expression+="(i == ${point%,*} && j == ${point#*,})"
+  done
+  magick "$file" -channel A -fx "u <= (1.01/255) && ($expression) ? 0 : u" +channel \
+    -strip -define png:exclude-chunks=date,time "$file"
+}
+
+clean_runtime() {
+  local pose
+  for pose in point point-up point-blink point-up-blink point-mid point-up-mid; do
+    clean_pixels "$output_dir/$character-$pose.png" "${stray_point_pixels[@]}"
+  done
+  clean_pixels "$output_dir/$character-flight.png" "${stray_flight_pixels[@]}"
+}
+
+if [[ "$mode" == "--clean-runtime-only" ]]; then
+  clean_runtime
+  echo "Cleaned audited stray alpha pixels for $character; body and glow preserved"
+  exit 0
+fi
+
 for required in "$strip_source" "$flight_source" "$point_source"; do
   [[ -f "$required" ]] || { echo "prepare-character-sprites: source not found: $required" >&2; exit 1; }
 done
@@ -95,8 +133,8 @@ if [[ "$point_up_mode" == "concept" ]]; then
   [[ -f "$point_up_source" ]] || { echo "prepare-character-sprites: source not found: $point_up_source" >&2; exit 1; }
 fi
 
-output_dir="$character_dir/sprites"
-work="$(mktemp -d)"
+work="$character_dir/.sprite-work-$$"
+mkdir "$work"
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$output_dir"
 
@@ -170,6 +208,7 @@ if [[ -n "$talk_source" ]]; then
   tf_x="${talk_face_x:-$face_x}"; tf_y="${talk_face_y:-$face_y}"
   tf_w="${talk_face_width:-$face_width}"; tf_h="${talk_face_height:-$face_height}"
   talk_frames=()
+  speech_frames=()
   for index in {0..7}; do
     source_x=$((index * source_frame_width))
     magick "$talk_source" \
@@ -188,17 +227,31 @@ if [[ -n "$talk_source" ]]; then
         -filter point -resize "x${character_height}" -gravity south -background none \
         -extent "${frame_size}x${frame_size}" +repage "$work/talk-source-${index}.png"
     fi
-    magick "$work/source-0.png" \
-      \( "$work/talk-source-${index}.png" -crop "${tf_w}x${tf_h}+${tf_x}+${tf_y}" +repage \) \
+    magick "$work/talk-source-${index}.png" \
+      -crop "${tf_w}x${tf_h}+${tf_x}+${tf_y}" +repage "$work/speech-${index}.png"
+    if [[ -n "$talk_face_mask" ]]; then
+      magick "$work/speech-${index}.png" \
+        \( -size "${tf_w}x${tf_h}" xc:none +antialias -fill white -draw "polygon $talk_face_mask" \) \
+        -compose DstIn -composite "$work/speech-${index}.png"
+    fi
+    magick "$work/source-0.png" "$work/speech-${index}.png" \
       -geometry "+${tf_x}+${tf_y}" -composite "$work/talk-${index}.png"
     talk_frames+=("$work/talk-${index}.png")
+    speech_frames+=("$work/speech-${index}.png")
   done
   if [[ -n "$talk_frame_order" ]]; then
     ordered=()
     for index in $talk_frame_order; do ordered+=("${talk_frames[$index]}"); done
     talk_frames=("${ordered[@]}")
+    ordered=()
+    for index in $talk_frame_order; do ordered+=("${speech_frames[$index]}"); done
+    speech_frames=("${ordered[@]}")
   fi
   magick "${talk_frames[@]}" +append -strip -define png:exclude-chunks=date,time "$output_dir/$character-talk.png"
+  if [[ -n "$talk_face_mask" ]]; then
+    magick "${speech_frames[@]}" +append -strip -define png:color-type=6 \
+      -define png:exclude-chunks=date,time "$output_dir/$character-speech.png"
+  fi
 else
   magick \
     "$work/neutral.png" "$work/happy.png" "$work/neutral.png" "$work/happy.png" \
@@ -354,4 +407,5 @@ else
   fi
 fi
 
+clean_runtime
 echo "Prepared $character sprite strips in $output_dir"

@@ -1,228 +1,188 @@
+pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
-import Quickshell.Wayland
+import "../../app" as App
 
 ShellRoot {
   id: root
-
-  readonly property string assetRoot:
-    Quickshell.env("HEXON_ASSET_ROOT") || (Quickshell.shellDir + "/../../assets/characters/hexon")
-  readonly property var scales: [0.5, 1, 1.5, 2]
-  readonly property var demoStates: ["idle", "talk", "fly", "fly-up", "guide"]
-  readonly property real pointPoseScale: 1.07
-
+  readonly property string charactersRoot: Quickshell.env("CHARACTER_LAB_ROOT")
+    || (Quickshell.shellDir + "/assets/characters")
+  property string characterName: Quickshell.env("CHARACTER_LAB_CHARACTER") || "hexon"
+  property var characters: []
+  property var characterConfig: ({})
+  property string loadError: ""
   property string animationState: "idle"
-  property int scaleIndex: 1
-  property bool movedRight: false
+  property string selectedPose: "idle"
+  property bool speaking: false
+  property bool inFlight: false
+  property int direction: 1
   property bool reducedMotion: false
+  property bool playing: true
+  property bool landmarks: false
+  property int frame: -1
+  property real spriteScale: 1
+  property string background: "checkerboard"
+  property bool movedRight: false
   property bool demoRunning: false
   property int demoIndex: 0
-  property real flightProgress: 0
-  property string guidePhase: "approach"
-  property real guideProgress: 0
-  property real guideBlend: 0
-  property real guideArrivalOffset: 0
+  property real progress: 0
+  readonly property var states: ["idle", "talk", "point", "point-up", "fly", "fly-up", "guide"]
 
-  function cycleScale() {
-    scaleIndex = (scaleIndex + 1) % scales.length
+  function selectCharacter(name) {
+    if (!characters.some(function(c) { return c.id === name })) return "invalid-character"
+    if (name === characterName) return "ok"
+    characterConfig = ({})
+    loadError = ""
+    characterName = name
+    frame = -1
+    return "ok"
   }
 
-  function moveCharacter() {
-    movedRight = !movedRight
-  }
-
-  function setAnimationState(name) {
-    guideTimeline.stop()
+  function setState(name) {
+    if (states.indexOf(name) < 0) return "invalid-state"
     animationState = name
-    if (name === "fly" || name === "fly-up") {
-      flightProgress = reducedMotion ? 0.5 : 0
-    } else if (name === "guide") {
-      guideProgress = reducedMotion ? 1 : 0
-      guidePhase = reducedMotion ? "point" : "approach"
-      guideBlend = reducedMotion ? 1 : 0
-      guideArrivalOffset = 0
-      if (!reducedMotion) guideTimeline.start()
-    }
+    selectedPose = name === "point" || name === "point-up" ? name : name === "guide" ? "point" : "idle"
+    speaking = name === "talk" || name === "guide"
+    inFlight = name === "fly" || name === "fly-up"
+    frame = -1
+    progress = 0
+    if ((inFlight || name === "guide") && !reducedMotion) travel.restart()
+    return "ok"
   }
 
-  function selectAnimationState(name) {
+  function selectState(name) {
     demoRunning = false
-    demoTimer.stop()
-    setAnimationState(name)
+    return setState(name)
   }
 
-  function startDemo() {
-    demoRunning = true
-    demoIndex = 0
-    setAnimationState(demoStates[demoIndex])
-    demoTimer.restart()
+  function scrub(value) {
+    frame = Math.max(0, Math.min(coach.frameCount - 1, value))
+    playing = false
   }
 
-  function toggleMotion() {
-    reducedMotion = !reducedMotion
-    if (reducedMotion && (animationState === "fly" || animationState === "fly-up")) {
-      flightProgress = 0.5
-    } else if (animationState === "guide") {
-      setAnimationState("guide")
+  function togglePlay() {
+    if (!playing) frame = -1
+    playing = !playing
+  }
+
+  FileView {
+    path: root.charactersRoot + "/index.json"
+    onLoaded: {
+      try { root.characters = JSON.parse(text()).characters }
+      catch (error) { root.loadError = "Invalid character index: " + error }
     }
+    onLoadFailed: root.loadError = "Cannot load character index"
   }
-
-  Timer {
-    id: demoTimer
-    interval: root.animationState === "guide"
-      ? 5200
-      : root.animationState === "fly" || root.animationState === "fly-up"
-        ? 4200
-        : 2800
-    onTriggered: {
-      if (root.demoIndex === root.demoStates.length - 1) {
-        root.demoRunning = false
-        root.setAnimationState("idle")
-        return
-      }
-
-      root.demoIndex += 1
-      root.setAnimationState(root.demoStates[root.demoIndex])
-      restart()
+  FileView {
+    path: root.charactersRoot + "/" + root.characterName + "/character.json"
+    onLoaded: {
+      try {
+        root.characterConfig = JSON.parse(text())
+        root.loadError = ""
+      } catch (error) { root.loadError = "Invalid character manifest: " + error }
     }
+    onLoadFailed: root.loadError = "Cannot load character manifest"
   }
 
   NumberAnimation {
+    id: travel
     target: root
-    property: "flightProgress"
+    property: "progress"
     from: 0
     to: 1
-    duration: 3600
+    duration: root.animationState === "guide" ? 6000 : 4000
     loops: Animation.Infinite
-    running: (root.animationState === "fly" || root.animationState === "fly-up") &&
-      !root.reducedMotion
+    running: window.visible && (root.inFlight || root.animationState === "guide")
+      && !root.reducedMotion
+    paused: running && (!root.playing || root.frame >= 0)
   }
-
-  SequentialAnimation {
-    id: guideTimeline
-    loops: Animation.Infinite
-
-    ScriptAction {
-      script: {
-        root.guidePhase = "approach"
-        root.guideProgress = 0
-        root.guideBlend = 0
-        root.guideArrivalOffset = 0
-      }
+  Timer {
+    interval: 6500
+    repeat: true
+    running: window.visible && root.demoRunning && root.playing
+    onTriggered: {
+      root.demoIndex = (root.demoIndex + 1) % root.states.length
+      root.setState(root.states[root.demoIndex])
     }
-    NumberAnimation {
-      target: root
-      property: "guideProgress"
-      from: 0
-      to: 1
-      duration: 1600
-      easing.type: Easing.OutCubic
-    }
-    ScriptAction { script: root.guidePhase = "transition" }
-    ParallelAnimation {
-      NumberAnimation {
-        target: root
-        property: "guideBlend"
-        from: 0
-        to: 1
-        duration: 520
-        easing.type: Easing.InOutCubic
-      }
-      SequentialAnimation {
-        NumberAnimation {
-          target: root
-          property: "guideArrivalOffset"
-          from: 0
-          to: 12
-          duration: 180
-          easing.type: Easing.OutQuad
-        }
-        NumberAnimation {
-          target: root
-          property: "guideArrivalOffset"
-          from: 12
-          to: 0
-          duration: 340
-          easing.type: Easing.OutBack
-        }
-      }
-    }
-    ScriptAction { script: root.guidePhase = "point" }
-    PauseAnimation { duration: 2800 }
   }
 
   IpcHandler {
     target: "hexon-lab"
-
     function status(): string {
       return JSON.stringify({
-        animationState: root.animationState,
-        scale: root.scales[root.scaleIndex],
-        movedRight: root.movedRight,
-        reducedMotion: root.reducedMotion,
-        demoRunning: root.demoRunning,
-        guidePhase: root.guidePhase,
-        guideBlend: root.guideBlend
+        character: root.characterName, animationState: root.animationState,
+        pose: coach.pose, talking: coach.talking, flying: coach.isFlyingSprite,
+        facing: root.direction, scale: root.spriteScale, background: root.background,
+        reducedMotion: root.reducedMotion, animated: root.playing,
+        previewFrame: root.frame, currentFrame: coach.currentFrame, frameCount: coach.frameCount,
+        landmarks: root.landmarks, movedRight: root.movedRight,
+        demoRunning: root.demoRunning, error: root.loadError || coach.errorMessage,
+        pointTip: [coach.pointTipX, coach.pointTipY], upTip: [coach.upTipX, coach.upTipY],
+        flameSockets: coach.flameSockets
       })
     }
-
-    function state(name: string): string {
-      if (name !== "idle" && name !== "talk" && name !== "fly" &&
-          name !== "fly-up" && name !== "guide") {
-        return "invalid-state"
-      }
-      root.selectAnimationState(name)
+    function character(name: string): string { return root.selectCharacter(name) }
+    function state(name: string): string { return root.selectState(name) }
+    function pose(name: string): string {
+      if (["idle", "point", "point-up"].indexOf(name) < 0) return "invalid-pose"
+      root.demoRunning = false
+      root.animationState = name
+      root.selectedPose = name
+      root.inFlight = false
+      root.frame = -1
       return "ok"
     }
-
-    function demo(): string {
-      root.startDemo()
+    function speech(enabled: bool): string { root.speaking = enabled; return "ok" }
+    function flight(enabled: bool): string { root.inFlight = enabled; return "ok" }
+    function facing(value: int): string {
+      if (value !== 1 && value !== -1) return "invalid-facing"
+      root.direction = value
       return "ok"
     }
-
-    function move(): string {
-      root.moveCharacter()
+    function background(name: string): string {
+      if (["light", "dark", "checkerboard"].indexOf(name) < 0) return "invalid-background"
+      root.background = name
       return "ok"
     }
-
-    function scale(): string {
-      root.cycleScale()
+    function size(value: real): string {
+      if (!isFinite(value) || value < 0.5 || value > 3) return "invalid-scale"
+      root.spriteScale = value
       return "ok"
     }
-
-    function motion(): string {
-      root.toggleMotion()
+    function frame(value: int): string {
+      if (value < -1 || value >= coach.frameCount) return "invalid-frame"
+      if (value < 0) { root.frame = -1; root.playing = true }
+      else root.scrub(value)
       return "ok"
     }
+    function pause(): string { root.playing = false; return "ok" }
+    function play(): string { root.frame = -1; root.playing = true; return "ok" }
+    function landmarks(enabled: bool): string { root.landmarks = enabled; return "ok" }
+    function demo(): string { root.demoRunning = true; root.demoIndex = 0; root.setState("idle"); return "ok" }
+    function move(): string { root.movedRight = !root.movedRight; return "ok" }
+    function scale(): string { root.spriteScale = root.spriteScale >= 2 ? 0.5 : root.spriteScale + 0.5; return "ok" }
+    function motion(): string { root.reducedMotion = !root.reducedMotion; return "ok" }
   }
 
   component LabButton: Rectangle {
     id: button
-
     required property string label
     property bool selected: false
     signal activated
-
-    implicitWidth: buttonText.implicitWidth + 28
-    implicitHeight: 40
-    radius: 7
-    color: selected || mouse.containsMouse ? "#26314f" : "#171d30"
-    border.color: selected ? "#7aa2f7" : "#3b4261"
-    border.width: selected ? 2 : 1
-
+    implicitWidth: labelText.implicitWidth + 20
+    implicitHeight: 32
+    radius: 5
+    color: selected ? "#334665" : mouse.containsMouse ? "#26314f" : "#171d30"
+    border.color: selected ? "#7aa2f7" : "#555e7b"
     Text {
-      id: buttonText
+      id: labelText
       anchors.centerIn: parent
       text: button.label
-      color: "#c0caf5"
-      font.family: "sans-serif"
-      font.pixelSize: 14
-      font.weight: Font.DemiBold
+      color: "#e0e5ff"
+      font.pixelSize: 13
     }
-
     MouseArea {
       id: mouse
       anchors.fill: parent
@@ -232,449 +192,174 @@ ShellRoot {
     }
   }
 
-  Variants {
-    model: Quickshell.screens
+  FloatingWindow {
+    id: window
+    title: "Character Lab"
+    visible: true
+    implicitWidth: 1080
+    implicitHeight: 760
+    color: "#111521"
 
-    delegate: PanelWindow {
-      id: overlay
-
-      required property var modelData
-      readonly property bool isFocusedScreen: {
-        var monitor = Hyprland.monitorFor(modelData)
-        return monitor && monitor === Hyprland.focusedMonitor
+    ColumnLayout {
+      anchors.fill: parent
+      anchors.margins: 20
+      spacing: 10
+      Text {
+        text: "CHARACTER LAB · " + (root.characterConfig.displayName || root.characterName)
+        color: "#c0caf5"
+        font.pixelSize: 22
+        font.bold: true
       }
-
-      screen: modelData
-      visible: isFocusedScreen
-      color: "transparent"
-      exclusionMode: ExclusionMode.Ignore
-      WlrLayershell.namespace: "hexon-lab"
-      WlrLayershell.layer: WlrLayer.Overlay
-      WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
-      anchors {
-        top: true
-        bottom: true
-        left: true
-        right: true
+      Text {
+        text: "Production renderer · cyan: body / baseline · red: side tip · green: up tip · amber: flame sockets"
+        color: "#a9b1d6"
+        font.pixelSize: 13
       }
-      mask: Region { Region { item: labPanel } }
-
-      Item {
-        anchors.fill: parent
-        focus: true
-
-        Keys.onPressed: function(event) {
-          if (event.key === Qt.Key_1) root.selectAnimationState("idle")
-          else if (event.key === Qt.Key_2) root.selectAnimationState("talk")
-          else if (event.key === Qt.Key_3) root.selectAnimationState("fly")
-          else if (event.key === Qt.Key_4) root.selectAnimationState("fly-up")
-          else if (event.key === Qt.Key_5) root.selectAnimationState("guide")
-          else if (event.key === Qt.Key_D) root.startDemo()
-          else if (event.key === Qt.Key_M) root.moveCharacter()
-          else if (event.key === Qt.Key_S) root.cycleScale()
-          else if (event.key === Qt.Key_R) root.toggleMotion()
-          else if (event.key === Qt.Key_Escape) Qt.quit()
-          else return
-          event.accepted = true
+      Flow {
+        Layout.fillWidth: true
+        Layout.preferredHeight: childrenRect.height
+        spacing: 6
+        Repeater {
+          model: root.characters
+          LabButton {
+            required property var modelData
+            label: modelData.displayName
+            selected: root.characterName === modelData.id
+            onActivated: root.selectCharacter(modelData.id)
+          }
+        }
+        Repeater {
+          model: root.states
+          LabButton {
+            required property string modelData
+            label: modelData
+            selected: root.animationState === modelData
+            onActivated: root.selectState(modelData)
+          }
         }
       }
-
       Rectangle {
-        id: labPanel
-        anchors.centerIn: parent
-        width: Math.min(960, parent.width - 40)
-        height: Math.min(700, parent.height - 40)
-        radius: 18
-        color: "#111521"
-        border.color: "#3b4261"
-        border.width: 1
-
-        ColumnLayout {
-          anchors {
-            fill: parent
-            margins: 24
-          }
-          spacing: 16
-
-          RowLayout {
-            Layout.fillWidth: true
-
-            ColumnLayout {
-              spacing: 2
-
-              Text {
-                text: "HEXON CHARACTER LAB"
-                color: "#7aa2f7"
-                font.family: "monospace"
-                font.pixelSize: 23
-                font.weight: Font.Bold
-              }
-
-              Text {
-                text: "Reactive teaching motions, flight, speech, and expressions"
-                color: "#a9b1d6"
-                opacity: 0.78
-                font.family: "sans-serif"
-                font.pixelSize: 14
-              }
-            }
-
-            Item { Layout.fillWidth: true }
-
-            Text {
-              text: "1 Idle  2 Talk  3 Fly  4 Fly up  5 Guide  D Demo"
-              color: "#565f89"
-              font.family: "monospace"
-              font.pixelSize: 12
-            }
-          }
-
-          Rectangle {
-            id: stage
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            clip: true
-            radius: 12
-            color: "#0b0e17"
-            border.color: "#24283b"
-
-            Grid {
-              anchors.fill: parent
-              columns: Math.ceil(width / 32)
-
-              Repeater {
-                model: Math.ceil(stage.width / 32) * Math.ceil(stage.height / 32)
-
-                Rectangle {
-                  required property int index
-                  width: 32
-                  height: 32
-                  color: {
-                    var columns = Math.ceil(stage.width / 32)
-                    return ((index % columns) + Math.floor(index / columns)) % 2 === 0
-                      ? "#101522"
-                      : "#151b2c"
-                  }
-                }
-              }
-            }
-
+        id: stage
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        clip: true
+        color: root.background === "light" ? "#f4f4f4" : "#0b0e17"
+        Grid {
+          visible: root.background === "checkerboard"
+          columns: Math.ceil(stage.width / 24)
+          Repeater {
+            model: Math.ceil(stage.width / 24) * Math.ceil(stage.height / 24)
             Rectangle {
-              id: guideTarget
-              visible: root.animationState === "guide"
-              x: stage.width - width - 48
-              y: Math.round((stage.height - height) / 2)
-              width: 168
-              height: 112
-              radius: 14
-              color: "#171d30"
-              border.color: "#bb9af7"
-              border.width: 3
-
-              SequentialAnimation on opacity {
-                running: guideTarget.visible && !root.reducedMotion
-                loops: Animation.Infinite
-                NumberAnimation { to: 0.65; duration: 500 }
-                NumberAnimation { to: 1; duration: 500 }
-              }
-
-              Column {
-                anchors.centerIn: parent
-                spacing: 8
-
-                Text {
-                  anchors.horizontalCenter: parent.horizontalCenter
-                  text: "APPS MENU"
-                  color: "#c0caf5"
-                  font.family: "monospace"
-                  font.pixelSize: 17
-                  font.weight: Font.Bold
-                }
-
-                Text {
-                  anchors.horizontalCenter: parent.horizontalCenter
-                  text: "SUPER + ALT + SPACE"
-                  color: "#7dcfff"
-                  font.family: "monospace"
-                  font.pixelSize: 11
-                }
-              }
-            }
-
-            Item {
-              id: guideCharacter
-              readonly property real spriteScale: root.scales[root.scaleIndex]
-              readonly property real destinationX: guideTarget.x - width + 18
-              readonly property real destinationY:
-                guideTarget.y + Math.round((guideTarget.height - height) / 2)
-              visible: root.animationState === "guide"
-              width: 256 * spriteScale
-              height: 192 * spriteScale
-              x: -width + ((destinationX + width) * root.guideProgress)
-              y: destinationY -
-                (root.reducedMotion
-                  ? 0
-                  : Math.sin(root.guideProgress * Math.PI) * 64) +
-                root.guideArrivalOffset
-
-              Rectangle {
-                anchors.centerIn: parent
-                visible: root.guidePhase === "transition"
-                width: 150
-                height: 150
-                radius: 75
-                color: "transparent"
-                border.color: "#7dcfff"
-                border.width: 4
-                opacity: Math.sin(root.guideBlend * Math.PI) * 0.8
-                scale: 0.7 + (root.guideBlend * 0.7)
-              }
-
-              Image {
-                anchors.fill: parent
-                visible: root.guidePhase !== "point"
-                source: root.assetRoot + "/sprites/hexon-flight.png"
-                fillMode: Image.PreserveAspectFit
-                smooth: false
-                mipmap: false
-                opacity: root.guidePhase === "transition" ? 1 - root.guideBlend : 1
-                scale: root.guidePhase === "transition"
-                  ? 1 - (root.guideBlend * 0.03)
-                  : 1
-              }
-
-              Image {
-                anchors.fill: parent
-                visible: root.guidePhase !== "approach"
-                source: root.assetRoot + "/sprites/hexon-point.png"
-                fillMode: Image.PreserveAspectFit
-                smooth: false
-                mipmap: false
-                opacity: root.guidePhase === "transition" ? root.guideBlend : 1
-                scale: root.guidePhase === "transition"
-                  ? 1 + (root.guideBlend * (root.pointPoseScale - 1))
-                  : root.pointPoseScale
-              }
-            }
-
-            Rectangle {
-              anchors {
-                horizontalCenter: guideCharacter.horizontalCenter
-                bottom: guideCharacter.top
-                bottomMargin: -12
-              }
-              visible: root.animationState === "guide" && root.guidePhase === "point"
-              width: guideSpeechText.implicitWidth + 28
-              height: 42
-              radius: 10
-              color: "#e0e5ff"
-              border.color: "#bb9af7"
-
-              Text {
-                id: guideSpeechText
-                anchors.centerIn: parent
-                text: "HERE'S YOUR APPS MENU!"
-                color: "#1a1b26"
-                font.family: "monospace"
-                font.pixelSize: 13
-                font.weight: Font.Bold
-              }
-            }
-
-            Item {
-              id: character
-              readonly property real spriteScale: root.scales[root.scaleIndex]
-              readonly property bool isFlying:
-                root.animationState === "fly" || root.animationState === "fly-up"
-              readonly property bool isFlyingUp: root.animationState === "fly-up"
-              visible: root.animationState !== "guide"
-              width: (isFlying ? 256 : 192) * spriteScale
-              height: 192 * spriteScale
-              x: isFlyingUp
-                ? Math.round((stage.width - width) / 2)
-                : isFlying
-                ? (root.reducedMotion
-                    ? Math.round((stage.width - width) / 2)
-                    : -width + ((stage.width + width) * root.flightProgress))
-                : (root.movedRight ? stage.width - width - 48 : 48)
-              y: isFlyingUp
-                ? (root.reducedMotion
-                    ? Math.round((stage.height - height) / 2)
-                    : stage.height + width -
-                      ((stage.height + (width * 2)) * root.flightProgress))
-                : Math.round((stage.height - height) / 2) +
-                (isFlying && !root.reducedMotion
-                  ? Math.round(Math.sin(root.flightProgress * Math.PI * 2) * 22)
-                  : 0)
-              rotation: isFlyingUp
-                ? -90
-                : isFlying && !root.reducedMotion
-                ? Math.sin(root.flightProgress * Math.PI * 2) * 3
-                : 0
-
-              Behavior on x {
-                enabled: !root.reducedMotion && !character.isFlying
-                NumberAnimation {
-                  duration: 850
-                  easing.type: Easing.InOutCubic
-                }
-              }
-
-              SpriteSequence {
-                id: hexon
-                anchors.fill: parent
-                visible: !character.isFlying
-                interpolate: false
-                goalSprite: root.animationState === "talk" ? "talk" : "idle"
-                onGoalSpriteChanged: jumpTo(goalSprite)
-
-                sprites: [
-                  Sprite {
-                    name: "idle"
-                    source: root.assetRoot + "/sprites/hexon-idle.png"
-                    frameCount: 16
-                    frameWidth: 192
-                    frameHeight: 192
-                    frameRate: root.reducedMotion ? 2 : 6
-                    to: { "idle": 1, "talk": 1 }
-                  },
-                  Sprite {
-                    name: "talk"
-                    source: root.assetRoot + "/sprites/hexon-talk.png"
-                    frameCount: 8
-                    frameWidth: 192
-                    frameHeight: 192
-                    frameRate: root.reducedMotion ? 2 : 8
-                    to: { "idle": 1, "talk": 1 }
-                  }
-                ]
-              }
-
-              Image {
-                anchors.fill: parent
-                visible: character.isFlying
-                source: root.assetRoot + "/sprites/hexon-flight.png"
-                fillMode: Image.PreserveAspectFit
-                smooth: false
-                mipmap: false
-              }
-            }
-
-            Rectangle {
-              anchors {
-                left: character.left
-                right: character.right
-                bottom: character.bottom
-              }
-              height: 1
-              color: "#7aa2f7"
-              visible: root.animationState !== "guide"
-              opacity: character.isFlying ? 0 : 0.45
-            }
-
-            Rectangle {
-              anchors {
-                horizontalCenter: character.horizontalCenter
-                bottom: character.top
-                bottomMargin: -16
-              }
-              visible: root.animationState === "talk"
-              width: speechText.implicitWidth + 28
-              height: 42
-              radius: 10
-              color: "#e0e5ff"
-              border.color: "#7aa2f7"
-
-              Text {
-                id: speechText
-                anchors.centerIn: parent
-                text: "READY TO HELP!"
-                color: "#1a1b26"
-                font.family: "monospace"
-                font.pixelSize: 14
-                font.weight: Font.Bold
-              }
-            }
-
-            Text {
-              anchors {
-                left: parent.left
-                bottom: parent.bottom
-                margins: 12
-              }
-              text: "State: " + root.animationState +
-                "  |  Scale: " + root.scales[root.scaleIndex] + "x" +
-                "  |  Motion: " + (root.reducedMotion ? "reduced" : "full") +
-                (root.demoRunning ? "  |  Playing all" : "")
-              color: "#7dcfff"
-              font.family: "monospace"
-              font.pixelSize: 13
-            }
-          }
-
-          Flow {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 88
-            spacing: 8
-
-            LabButton {
-              label: "Idle"
-              selected: root.animationState === "idle"
-              onActivated: root.selectAnimationState("idle")
-            }
-
-            LabButton {
-              label: "Talk"
-              selected: root.animationState === "talk"
-              onActivated: root.selectAnimationState("talk")
-            }
-
-            LabButton {
-              label: "Fly"
-              selected: root.animationState === "fly"
-              onActivated: root.selectAnimationState("fly")
-            }
-
-            LabButton {
-              label: "Fly up"
-              selected: root.animationState === "fly-up"
-              onActivated: root.selectAnimationState("fly-up")
-            }
-
-            LabButton {
-              label: "Fly + point"
-              selected: root.animationState === "guide"
-              onActivated: root.selectAnimationState("guide")
-            }
-
-            LabButton {
-              label: root.demoRunning ? "Playing all..." : "Play all"
-              selected: root.demoRunning
-              onActivated: root.startDemo()
-            }
-
-            LabButton {
-              label: root.movedRight ? "Move left" : "Move right"
-              onActivated: root.moveCharacter()
-            }
-
-            LabButton {
-              label: "Scale " + root.scales[root.scaleIndex] + "x"
-              onActivated: root.cycleScale()
-            }
-
-            LabButton {
-              label: root.reducedMotion ? "Reduced motion" : "Full motion"
-              selected: root.reducedMotion
-              onActivated: root.toggleMotion()
-            }
-
-            LabButton {
-              label: "Close"
-              onActivated: Qt.quit()
+              required property int index
+              width: 24
+              height: 24
+              color: (index % Math.ceil(stage.width / 24) + Math.floor(index / Math.ceil(stage.width / 24))) % 2
+                ? "#999999" : "#cccccc"
             }
           }
         }
+        Rectangle {
+          id: guideTarget
+          visible: root.animationState === "guide"
+          x: root.direction > 0 ? stage.width - 130 : 30
+          y: stage.height / 2 - 12
+          width: 100
+          height: 70
+          radius: 8
+          color: "#171d30"
+          border.color: "#bb9af7"
+          Text { anchors.centerIn: parent; text: "APPS MENU"; color: "#c0caf5"; font.pixelSize: 12 }
+        }
+        App.CharacterSprite {
+          id: coach
+          readonly property bool guiding: root.animationState === "guide"
+          readonly property real approach: root.reducedMotion ? 1 : Math.min(1, root.progress * 3)
+          readonly property real approachStart: root.direction > 0 ? -224 * scale : stage.width
+          assetRoot: root.charactersRoot + "/" + root.characterName
+          config: root.characterConfig
+          pose: root.selectedPose
+          talking: root.speaking
+          flying: root.inFlight || (guiding && approach < 1)
+          facing: root.direction
+          reducedMotion: root.reducedMotion
+          animated: root.playing
+          previewFrame: root.frame
+          showLandmarks: root.landmarks
+          scale: root.spriteScale
+          transformOrigin: Item.TopLeft
+          x: guiding
+            ? approachStart + (guideTarget.x + (root.direction < 0 ? guideTarget.width : 0)
+                - pointTipX * scale - approachStart) * approach
+            : root.inFlight && root.animationState !== "fly-up" && !root.reducedMotion
+              ? -224 * scale + (stage.width + 224 * scale) * (root.direction > 0 ? root.progress : 1 - root.progress)
+              : root.movedRight ? stage.width - 224 * scale - 35 : (stage.width - 224 * scale) / 2
+          y: guiding ? guideTarget.y + 35 - pointTipY * scale - (root.reducedMotion ? 0 : Math.sin(approach * Math.PI) * 60)
+            : root.animationState === "fly-up" && !root.reducedMotion
+              ? stage.height - (stage.height + 192 * scale) * root.progress
+              : (stage.height - 192 * scale) / 2
+        }
+      }
+      Flow {
+        Layout.fillWidth: true
+        Layout.preferredHeight: childrenRect.height
+        spacing: 6
+        LabButton { label: "Speech"; selected: root.speaking; onActivated: root.speaking = !root.speaking }
+        LabButton { label: "Flight"; selected: root.inFlight; onActivated: root.inFlight = !root.inFlight }
+        LabButton { label: root.direction > 0 ? "Facing →" : "Facing ←"; onActivated: root.direction *= -1 }
+        LabButton { label: "Reduced motion"; selected: root.reducedMotion; onActivated: root.reducedMotion = !root.reducedMotion }
+        LabButton { label: "Landmarks"; selected: root.landmarks; onActivated: root.landmarks = !root.landmarks }
+        LabButton { label: "Move"; onActivated: root.movedRight = !root.movedRight }
+        LabButton { label: "Demo"; selected: root.demoRunning; onActivated: { root.demoRunning = !root.demoRunning; root.demoIndex = 0; root.setState("idle") } }
+        Repeater {
+          model: ["light", "dark", "checkerboard"]
+          LabButton {
+            required property string modelData
+            label: modelData
+            selected: root.background === modelData
+            onActivated: root.background = modelData
+          }
+        }
+      }
+      Flow {
+        Layout.fillWidth: true
+        Layout.preferredHeight: childrenRect.height
+        spacing: 6
+        Repeater {
+          model: [0.5, 1, 1.5, 2, 3]
+          LabButton {
+            required property real modelData
+            label: modelData + "×"
+            selected: root.spriteScale === modelData
+            onActivated: root.spriteScale = modelData
+          }
+        }
+        LabButton { label: root.playing ? "Pause" : "Play"; onActivated: root.togglePlay() }
+        LabButton { label: "‹ Frame"; onActivated: root.scrub((coach.currentFrame + coach.frameCount - 1) % coach.frameCount) }
+        LabButton { label: "Frame ›"; onActivated: root.scrub((coach.currentFrame + 1) % coach.frameCount) }
+        Text {
+          text: "  Frame " + coach.currentFrame + "/" + (coach.frameCount - 1) + (root.frame < 0 ? " · automatic" : " · scrubbed")
+          color: "#c0caf5"
+          height: 32
+          verticalAlignment: Text.AlignVCenter
+        }
+      }
+      Text {
+        Layout.fillWidth: true
+        text: root.loadError || coach.errorMessage || "Space: pause/play · ←/→: frame · Esc: close · IPC target: hexon-lab"
+        color: root.loadError || coach.errorMessage ? "#ff7777" : "#a9b1d6"
+        wrapMode: Text.Wrap
+      }
+    }
+    Item {
+      anchors.fill: parent
+      focus: true
+      Keys.onPressed: function(event) {
+        if (event.key === Qt.Key_Space) root.togglePlay()
+        else if (event.key === Qt.Key_Left) root.scrub((coach.currentFrame + coach.frameCount - 1) % coach.frameCount)
+        else if (event.key === Qt.Key_Right) root.scrub((coach.currentFrame + 1) % coach.frameCount)
+        else if (event.key === Qt.Key_Escape) Qt.quit()
+        else return
+        event.accepted = true
       }
     }
   }

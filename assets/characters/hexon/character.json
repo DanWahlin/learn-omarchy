@@ -36,6 +36,37 @@
   "flightFrames": 1,
   "flightFrameRate": 1,
   "poseMid": true,
+  "renderer": {
+    "canvas": { "width": 224, "height": 192 },
+    "baseline": 190,
+    "bodyAnchorX": 112,
+    "registrationNote": "Register boot soles and torso centre, excluding antennae and pointing arm from body scale. The pointing torso is 1.23 times smaller than idle.",
+    "poses": {
+      "idle": {
+        "frameWidth": 192, "scale": 1, "offset": { "x": 16, "y": 0 }, "baseline": 190, "bodyAnchorX": 96,
+        "flameSockets": [{ "x": 80, "y": 181 }, { "x": 114, "y": 181 }]
+      },
+      "flight": { "frameWidth": 256, "scale": 1, "offset": { "x": -16, "y": 0 } },
+      "point": {
+        "frameWidth": 224, "scale": 1.23, "offset": { "x": -9.77, "y": 0.58 },
+        "baseline": 154, "bodyAnchorX": 99, "tip": { "x": 165, "y": 75 },
+        "flameSockets": [{ "x": 80, "y": 153 }, { "x": 122, "y": 150 }],
+        "speech": {
+          "source": { "x": 74, "y": 66, "width": 44, "height": 27 },
+          "destination": { "x": 85, "y": 53, "width": 38, "height": 22 }
+        }
+      },
+      "point-up": {
+        "frameWidth": 224, "scale": 1.23, "offset": { "x": -9.77, "y": 0.58 },
+        "baseline": 154, "bodyAnchorX": 99, "tip": { "x": 147, "y": 42 },
+        "flameSockets": [{ "x": 80, "y": 153 }, { "x": 122, "y": 150 }],
+        "speech": {
+          "source": { "x": 74, "y": 66, "width": 44, "height": 27 },
+          "destination": { "x": 85, "y": 53, "width": 38, "height": 22 }
+        }
+      }
+    }
+  },
   "intro": {
     "kind": "rocket",
     "anchorX": 0.5,

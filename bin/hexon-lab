@@ -14,5 +14,18 @@ command -v qs >/dev/null 2>&1 || {
   exit 1
 }
 
-export HEXON_ASSET_ROOT="$app_root/assets/characters/hexon"
-exec qs --no-duplicate --path "$app_root/experiments/hexon-lab"
+if [[ $# -gt 1 || "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  echo "usage: hexon-lab [character-id]"
+  echo "Preview any bundled coach with the production renderer (default: hexon)."
+  exit 0
+fi
+character="${1:-${CHARACTER_LAB_CHARACTER:-hexon}}"
+if [[ ! "$character" =~ ^[a-z0-9-]+$ || ! -f "$app_root/assets/characters/$character/character.json" ]]; then
+  echo "hexon-lab: unknown character: $character" >&2
+  exit 2
+fi
+export CHARACTER_LAB_ROOT="$app_root/assets/characters"
+export CHARACTER_LAB_CHARACTER="$character"
+# The entry point is at the repository root so Quickshell can resolve the
+# lab's ../../app import without escaping its QML configuration root.
+exec qs --no-duplicate --path "$app_root/character-lab.qml"

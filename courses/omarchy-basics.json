@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "id": "omarchy-essentials",
   "title": "Learn Omarchy",
-  "description": "Choose a short, hands-on module. Learn the shortcuts and surfaces that make Omarchy fast.",
+  "description": "Build practical desktop skills with guided shortcuts and real exercises. Optional modules let you explore further.",
   "lessons": [
     {
       "id": "omarchy-tour",
@@ -15,8 +15,8 @@
           "id": "tour-welcome",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Hi there! I'm HEXON. Welcome to Omarchy! Let's take a quick tour of your new desktop.",
-          "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
+          "instruction": "Hi there! I'm HEXON. Welcome to Omarchy! Super means the Windows key, or Command on a Mac keyboard. Let's take a quick tour.",
+          "detail": "Super is the Windows key on most keyboards, or Command on a Mac keyboard. Keep your existing work open; the course uses its own practice windows.",
           "keys": [],
           "audio": "audio/tour-welcome.mp3",
           "completion": {
@@ -58,6 +58,10 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
+            "barWidgets": [
+              "omarchy.menu",
+              "omarchy.workspaces"
+            ],
             "durationMs": 1200
           }
         },
@@ -80,6 +84,10 @@
             "y": 1,
             "width": 330,
             "height": 27,
+            "barWidgets": [
+              "omarchy.clock",
+              "omarchy.weather"
+            ],
             "borderWidth": 3,
             "radius": 8,
             "durationMs": 1200
@@ -104,6 +112,13 @@
             "y": 1,
             "width": 350,
             "height": 27,
+            "barWidgets": [
+              "omarchy.bluetooth",
+              "omarchy.network",
+              "omarchy.audio",
+              "omarchy.monitor",
+              "omarchy.power"
+            ],
             "borderWidth": 3,
             "radius": 8,
             "durationMs": 1200
@@ -142,11 +157,15 @@
             "anchor": "center",
             "x": 0,
             "y": 0,
-            "width": 620,
+            "width": 340,
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2200
+            "durationMs": 2200,
+            "target": "panel",
+            "barWidgets": [
+              "omarchy.menu"
+            ]
           },
           "completionMessage": "And that's the Omarchy menu. Type a few letters or use the arrow keys, then press Enter to launch whatever you picked.",
           "completionAudio": "audio/tour-omarchy-menu-done.mp3"
@@ -197,7 +216,11 @@
             "height": 880,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2200
+            "durationMs": 2200,
+            "target": "panel",
+            "barWidgets": [
+              "omarchy.menu"
+            ]
           },
           "completionMessage": "There it is. Type to search or use the arrows, and Escape backs out whenever you like.",
           "completionAudio": "audio/open-root-menu-done.mp3"
@@ -241,10 +264,39 @@
             "height": 880,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2200
+            "durationMs": 2200,
+            "target": "panel",
+            "barWidgets": [
+              "omarchy.menu"
+            ]
           },
           "completionMessage": "Nice. Type a few letters, hit Enter, and the app launches. No mouse required.",
           "completionAudio": "audio/open-apps-done.mp3"
+        },
+        {
+          "id": "apps-search-practice",
+          "kind": "practice",
+          "practice": "app-search",
+          "optional": false,
+          "instruction": "Now use the Apps menu for a real task. Search for your terminal, launch it, then close that new window.",
+          "detail": "Start exercise releases the keys to a normal desktop window. Follow its instructions, then choose Finish exercise to return here.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/apps-search-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "You completed the real task. That's a skill you can use outside this course.",
+          "completionAudio": "audio/apps-search-practice-done.mp3"
         },
         {
           "id": "open-keybindings",
@@ -282,7 +334,8 @@
             "height": 620,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2200
+            "durationMs": 2200,
+            "target": "panel"
           },
           "completionMessage": "Keep this one handy. Whenever you're stuck, Super plus K has the answer.",
           "completionAudio": "audio/open-keybindings-done.mp3"
@@ -326,13 +379,15 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "That's your terminal, one shortcut away from anywhere in Omarchy.",
           "completionAudio": "audio/launch-terminal-done.mp3"
         },
         {
           "id": "close-terminal",
+          "windowFromStep": "launch-terminal",
           "instruction": "Now let's tidy up. Press Super and W to close that terminal.",
           "detail": "Super plus W closes whatever window has focus. You'll use it constantly, so it's worth learning right away.",
           "keys": [
@@ -365,7 +420,8 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "Gone. Open with a shortcut, close with a shortcut. That's the rhythm of Omarchy.",
           "completionAudio": "audio/close-terminal-done.mp3"
@@ -373,7 +429,7 @@
         {
           "id": "launch-browser",
           "instruction": "Let's get online. Hold Super and Shift, then press Return to open your browser.",
-          "detail": "A new browser window opens each time, so spin up as many as you need.",
+          "detail": "This shortcut uses the browser you've configured in Omarchy. Browser settings can affect whether a new window opens.",
           "keys": [
             "SUPER",
             "+",
@@ -402,9 +458,10 @@
             "height": 900,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
-          "completionMessage": "Browser's up. Super, Shift, and Return will always bring you a fresh window.",
+          "completionMessage": "Your browser is ready. Super, Shift, and Return is the shortcut to remember.",
           "completionAudio": "audio/launch-browser-done.mp3"
         },
         {
@@ -428,7 +485,8 @@
             ]
           },
           "completion": {
-            "type": "hyprland-window-activated"
+            "type": "hyprland-window-activated",
+            "appIdPattern": "^(org\\.gnome\\.Nautilus|[Nn]autilus)$"
           },
           "highlight": {
             "shape": "rectangle",
@@ -439,13 +497,15 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "There are your files. Same trick, different letter.",
           "completionAudio": "audio/launch-files-done.mp3"
         },
         {
           "id": "close-files",
+          "windowFromStep": "launch-files",
           "instruction": "Same move again. Press Super and W to close the file manager.",
           "detail": "Closing windows is just as quick as opening them, so there's no reason to let clutter build up.",
           "keys": [
@@ -478,7 +538,8 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "Nice and clean. You can leave the browser open; we'll come back to it.",
           "completionAudio": "audio/close-files-done.mp3"
@@ -490,7 +551,7 @@
       "title": "Windows",
       "description": "Tile, focus, float, and fullscreen windows without touching the mouse.",
       "icon": "04",
-      "estimatedMinutes": 4,
+      "estimatedMinutes": 7,
       "steps": [
         {
           "id": "windows-open-first",
@@ -522,7 +583,8 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "There's the first one, filling the space it has. Now watch what happens when we add another.",
           "completionAudio": "audio/windows-open-first-done.mp3"
@@ -557,13 +619,15 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
-          "completionMessage": "See that? The screen split in two, side by side, with no dragging involved. That's tiling.",
+          "completionMessage": "There's your second practice terminal. Omarchy fits it around any windows you already had open.",
           "completionAudio": "audio/windows-open-second-done.mp3"
         },
         {
           "id": "windows-focus-next",
+          "windowFromStep": "windows-open-first",
           "instruction": "Two windows, one keyboard. Press Alt and Tab to hop to the other terminal.",
           "detail": "Alt plus Tab cycles through the windows on this workspace. Super plus an arrow key moves focus in that direction instead. The highlighted border shows where you are.",
           "keys": [
@@ -577,14 +641,18 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.cycle_next())"
+              "hl.dispatch(hl.dsp.focus({ window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "activewindowv2"
-            ]
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "focused": true
+            }
           },
           "highlight": {
             "shape": "rectangle",
@@ -595,13 +663,15 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "You just switched windows without reaching for the mouse. Try Super plus Left or Right later and you'll feel the tiling.",
           "completionAudio": "audio/windows-focus-next-done.mp3"
         },
         {
           "id": "windows-float",
+          "windowFromStep": "windows-open-first",
           "instruction": "Sometimes you want a window to float free. Press Super and T to toggle floating.",
           "detail": "A floating window sits on top of the tiles and can be dragged around with Super and the mouse. Press Super and T again to tile it back.",
           "keys": [
@@ -615,14 +685,18 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.float({ action = \"toggle\" }))"
+              "hl.dispatch(hl.dsp.window.float({ action = \"enable\", window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "changefloatingmode"
-            ]
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "floating": true
+            }
           },
           "highlight": {
             "shape": "rectangle",
@@ -633,15 +707,17 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "It's floating now. Handy for a calculator or a chat window you want to keep in view.",
           "completionAudio": "audio/windows-float-done.mp3"
         },
         {
           "id": "windows-fullscreen",
+          "windowFromStep": "windows-open-first",
           "instruction": "Need to focus on one thing? Press Super and F for fullscreen.",
-          "detail": "Fullscreen hides everything else, including the bar. The same shortcut brings you back.",
+          "detail": "Super+F toggles fullscreen. You'll press the same shortcut again in the next activity to get your desktop back.",
           "keys": [
             "SUPER",
             "+",
@@ -653,14 +729,18 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.fullscreen({ mode = \"fullscreen\" }))"
+              "hl.dispatch(hl.dsp.window.fullscreen({ mode = \"fullscreen\", action = \"set\", window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
             "type": "hyprland-event",
             "events": [
               "fullscreen"
-            ]
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "fullscreen": true
+            }
           },
           "highlight": {
             "shape": "rectangle",
@@ -671,13 +751,207 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "Full screen, no distractions. Super plus F again takes you right back to the tiles.",
           "completionAudio": "audio/windows-fullscreen-done.mp3"
         },
         {
+          "id": "windows-exit-fullscreen",
+          "windowFromStep": "windows-open-first",
+          "instruction": "Press Super and F again to leave fullscreen.",
+          "detail": "The same shortcut gets you in and out, so you're never stuck.",
+          "keys": [
+            "SUPER",
+            "+",
+            "F"
+          ],
+          "audio": "audio/windows-exit-fullscreen.mp3",
+          "help": {
+            "label": "Show me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.fullscreen({ window = \"{tutorialWindow}\", mode = \"fullscreen\", action = \"unset\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activewindowv2",
+              "changefloatingmode",
+              "fullscreen",
+              "movewindowv2"
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "fullscreen": false
+            }
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "Fullscreen is off. You can return to the bar and your other windows.",
+          "completionAudio": "audio/windows-exit-fullscreen-done.mp3"
+        },
+        {
+          "id": "windows-retile",
+          "windowFromStep": "windows-open-first",
+          "instruction": "Press Super and T to put that floating terminal back into the tiled layout.",
+          "detail": "Tiling fits the practice window around your existing work.",
+          "keys": [
+            "SUPER",
+            "+",
+            "T"
+          ],
+          "audio": "audio/windows-retile.mp3",
+          "help": {
+            "label": "Show me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.float({ window = \"{tutorialWindow}\", action = \"disable\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activewindowv2",
+              "changefloatingmode",
+              "fullscreen",
+              "movewindowv2"
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "floating": false
+            }
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "Your terminal is tiled again. Hyprland manages its size and position alongside the other windows.",
+          "completionAudio": "audio/windows-retile-done.mp3"
+        },
+        {
+          "id": "windows-focus-right",
+          "windowFromStep": "windows-open-second",
+          "directionFromStep": "windows-open-first",
+          "instruction": "Super and an arrow focuses a neighboring window. Use the highlighted arrow to focus your other practice terminal.",
+          "detail": "The arrow follows your terminals' actual positions. This guided action doesn't change any of your existing windows.",
+          "keys": [
+            "SUPER",
+            "+",
+            "RIGHT"
+          ],
+          "audio": "audio/windows-focus-right.mp3",
+          "help": {
+            "label": "Show me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.focus({ window = \"{tutorialWindow}\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activewindowv2",
+              "changefloatingmode",
+              "fullscreen",
+              "movewindowv2"
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "focused": true
+            }
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "Your second terminal has focus. Directional shortcuts save you from cycling through every window.",
+          "completionAudio": "audio/windows-focus-right-done.mp3"
+        },
+        {
+          "id": "windows-swap",
+          "windowFromStep": "windows-open-second",
+          "instruction": "Add Shift to swap window positions. Hold Super and Shift, then press the highlighted arrow.",
+          "detail": "Outside the course this swaps with the neighboring window. Here we safely exchange only our two practice terminals.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "RIGHT"
+          ],
+          "audio": "audio/windows-swap.mp3",
+          "help": {
+            "label": "Show me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.swap({ window = \"{tutorialWindow}\", target = \"{peerWindow}\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activewindowv2",
+              "changefloatingmode",
+              "fullscreen",
+              "movewindowv2"
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "swapped": true
+            }
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "Your practice terminals traded places. Adding Shift changes directional focus into a window swap.",
+          "completionAudio": "audio/windows-swap-done.mp3",
+          "swapWithStep": "windows-open-first"
+        },
+        {
           "id": "windows-close-one",
+          "windowFromStep": "windows-open-second",
           "instruction": "Let's clean up. Press Super and W to close this window.",
           "detail": "Closing a tiled window gives its space back to the others instantly.",
           "keys": [
@@ -710,13 +984,15 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "One down. Notice how the other terminal grew to fill the gap.",
           "completionAudio": "audio/windows-close-one-done.mp3"
         },
         {
           "id": "windows-close-two",
+          "windowFromStep": "windows-open-first",
           "instruction": "And once more. Press Super and W to close the last terminal.",
           "detail": "That's the whole loop: open, arrange, focus, close. All from the keyboard.",
           "keys": [
@@ -749,7 +1025,8 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "Spotless. You now know more about window management than most people learn in a month.",
           "completionAudio": "audio/windows-close-two-done.mp3"
@@ -761,7 +1038,7 @@
       "title": "Workspaces",
       "description": "Jump between desktops, send windows where they belong, and stash things in the scratchpad.",
       "icon": "05",
-      "estimatedMinutes": 4,
+      "estimatedMinutes": 7,
       "steps": [
         {
           "id": "workspaces-home",
@@ -795,7 +1072,9 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 1
           },
           "completionMessage": "Workspace one. That's home base for this module.",
           "completionAudio": "audio/workspaces-home-done.mp3"
@@ -830,15 +1109,16 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "Perfect. Keep an eye on the numbers in the bar as we go.",
           "completionAudio": "audio/workspaces-open-terminal-done.mp3"
         },
         {
           "id": "workspaces-jump",
-          "instruction": "Press Super and 2 to jump straight to workspace two.",
-          "detail": "Super plus a number goes directly to that workspace. Empty workspaces are created the moment you visit them.",
+          "instruction": "Press Super and 2 to visit workspace two.",
+          "detail": "Workspaces separate your tasks. A workspace may already contain windows; switching doesn't close them.",
           "keys": [
             "SUPER",
             "+",
@@ -867,19 +1147,23 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 2
           },
-          "completionMessage": "There you are, on a fresh empty desktop. Your terminal is still waiting back on workspace one.",
+          "completionMessage": "You're on workspace two. Anything you already had here stays in place.",
           "completionAudio": "audio/workspaces-jump-done.mp3"
         },
         {
           "id": "workspaces-back",
-          "instruction": "Press Super and 1 to head back to your terminal.",
-          "detail": "Jumping by number becomes second nature fast. One for chat, two for code, three for the browser, whatever suits you.",
+          "instruction": "Press Super, Control, and Tab to return to your former workspace.",
+          "detail": "Former means the workspace you were just using. Here that takes us back to workspace one.",
           "keys": [
             "SUPER",
             "+",
-            "1"
+            "CTRL",
+            "+",
+            "TAB"
           ],
           "audio": "audio/workspaces-back.mp3",
           "help": {
@@ -887,7 +1171,7 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.focus({ workspace = \"1\" }))"
+              "hl.dispatch(hl.dsp.focus({ workspace = \"previous\" }))"
             ]
           },
           "completion": {
@@ -904,13 +1188,16 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 1
           },
           "completionMessage": "And you're back. Now let's move the terminal instead of ourselves.",
           "completionAudio": "audio/workspaces-back-done.mp3"
         },
         {
           "id": "workspaces-send",
+          "windowFromStep": "workspaces-open-terminal",
           "instruction": "Hold Super and Shift, then press 2 to send this terminal to workspace two.",
           "detail": "Super, Shift, and a number moves the focused window to that workspace and follows it there.",
           "keys": [
@@ -926,7 +1213,7 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.move({ workspace = \"2\" }))"
+              "hl.dispatch(hl.dsp.window.move({ workspace = \"2\", window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
@@ -934,7 +1221,12 @@
             "events": [
               "movewindowv2",
               "movewindow"
-            ]
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "workspace": 2,
+              "focused": true
+            }
           },
           "highlight": {
             "shape": "rectangle",
@@ -946,7 +1238,9 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 2
           },
           "completionMessage": "The terminal came along for the ride. That's how you sort windows onto the desktops where they belong.",
           "completionAudio": "audio/workspaces-send-done.mp3"
@@ -981,7 +1275,8 @@
             "height": 54,
             "borderWidth": 8,
             "radius": 10,
-            "durationMs": 1700
+            "durationMs": 1700,
+            "target": "workspace"
           },
           "completionMessage": "See the highlight move in the bar? That's you on a new workspace.",
           "completionAudio": "audio/next-workspace-done.mp3"
@@ -1018,14 +1313,66 @@
             "height": 54,
             "borderWidth": 8,
             "radius": 10,
-            "durationMs": 1700
+            "durationMs": 1700,
+            "target": "workspace"
           },
           "completionMessage": "And you're back. By the way, Super plus any number jumps straight to that workspace.",
           "completionAudio": "audio/previous-workspace-done.mp3"
         },
         {
+          "id": "workspaces-stash",
+          "windowFromStep": "workspaces-open-terminal",
+          "instruction": "Let's give the scratchpad something useful. Press Super, Alt, and S to put our terminal there.",
+          "detail": "The scratchpad is a temporary workspace you can reveal over your current one. Your other windows aren't moved.",
+          "keys": [
+            "SUPER",
+            "+",
+            "ALT",
+            "+",
+            "S"
+          ],
+          "audio": "audio/workspaces-stash.mp3",
+          "help": {
+            "label": "Show me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.move({ window = \"{tutorialWindow}\", workspace = \"special:scratchpad\", follow = false }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activewindowv2",
+              "changefloatingmode",
+              "fullscreen",
+              "movewindowv2"
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "specialWorkspace": "scratchpad"
+            }
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 2
+          },
+          "completionMessage": "That's the expected window change, confirmed on your practice terminal.",
+          "completionAudio": "audio/workspaces-stash-done.mp3"
+        },
+        {
           "id": "workspaces-scratchpad",
-          "instruction": "One more trick. Press Super and S to open the scratchpad.",
+          "instruction": "Press Super and S to reveal the scratchpad with your terminal in it.",
           "detail": "The scratchpad is a hidden workspace that slides over the top of whatever you're doing. Super plus S shows and hides it.",
           "keys": [
             "SUPER",
@@ -1057,9 +1404,10 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace"
           },
-          "completionMessage": "That's the scratchpad. Park a notes window or a music player there and pull it up from anywhere.",
+          "completionMessage": "There's your terminal, available without leaving this workspace.",
           "completionAudio": "audio/workspaces-scratchpad-done.mp3"
         },
         {
@@ -1096,24 +1444,118 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace"
           },
           "completionMessage": "Hidden again, and still there whenever you need it. You can close the terminal whenever you like with Super plus W.",
           "completionAudio": "audio/workspaces-scratchpad-hide-done.mp3"
+        },
+        {
+          "id": "workspaces-restore",
+          "windowFromStep": "workspaces-open-terminal",
+          "instruction": "Press Super, Shift, and 2 to bring the practice terminal back to workspace two.",
+          "detail": "Sending a scratchpad window to a numbered workspace takes it out of the scratchpad.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SHIFT",
+            "+",
+            "2"
+          ],
+          "audio": "audio/workspaces-restore.mp3",
+          "help": {
+            "label": "Show me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.move({ window = \"{tutorialWindow}\", workspace = \"2\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "activewindowv2",
+              "changefloatingmode",
+              "fullscreen",
+              "movewindowv2"
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "workspace": 2,
+              "focused": true
+            }
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 2
+          },
+          "completionMessage": "That's the expected window change, confirmed on your practice terminal.",
+          "completionAudio": "audio/workspaces-restore-done.mp3"
+        },
+        {
+          "id": "workspaces-close",
+          "windowFromStep": "workspaces-open-terminal",
+          "instruction": "Let's leave the desktop tidy. Press Super and W to close our practice terminal.",
+          "detail": "Super plus W closes whatever window has focus. You'll use it constantly, so it's worth learning right away.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/workspaces-close.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ],
+            "target": "tutorial-window"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "Gone. Open with a shortcut, close with a shortcut. That's the rhythm of Omarchy.",
+          "completionAudio": "audio/workspaces-close-done.mp3"
         }
       ]
     },
     {
       "id": "bar-panels",
-      "title": "Menu bar",
-      "description": "Open the most useful quick panels for audio, networking, power, and time.",
+      "title": "Desktop controls",
+      "description": "Optional: understand status, preview themes, and explore desktop controls safely.",
       "icon": "06",
-      "estimatedMinutes": 4,
+      "estimatedMinutes": 6,
       "steps": [
         {
           "id": "audio-panel",
           "instruction": "Let's turn it up. Hold Super and Control, then press A to open the Audio panel.",
-          "detail": "Volume, output device, and a per-app mixer all live here.",
+          "detail": "Output is where sound plays; input is your microphone. Release Keys to explore the panel, Escape to close it, then Capture Keys to return. No volume changes are required.",
           "keys": [
             "SUPER",
             "+",
@@ -1150,7 +1592,11 @@
             "height": 540,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1900
+            "durationMs": 1900,
+            "target": "panel",
+            "barWidgets": [
+              "omarchy.audio"
+            ]
           },
           "completionMessage": "Volume, outputs, and a mixer, all without leaving the keyboard.",
           "completionAudio": "audio/audio-panel-done.mp3"
@@ -1158,7 +1604,7 @@
         {
           "id": "network-panel",
           "instruction": "Wi-Fi time. Hold Super and Control, then press W to open the Network panel.",
-          "detail": "See the networks around you, connect, and check which one you're on.",
+          "detail": "Read the connection status without disconnecting. Release Keys to use the panel, Escape to close it, and Capture Keys to return.",
           "keys": [
             "SUPER",
             "+",
@@ -1195,7 +1641,11 @@
             "height": 600,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1900
+            "durationMs": 1900,
+            "target": "panel",
+            "barWidgets": [
+              "omarchy.network"
+            ]
           },
           "completionMessage": "That's your Network panel. Pick a network, connect, done.",
           "completionAudio": "audio/network-panel-done.mp3"
@@ -1240,7 +1690,11 @@
             "height": 580,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1900
+            "durationMs": 1900,
+            "target": "panel",
+            "barWidgets": [
+              "omarchy.power"
+            ]
           },
           "completionMessage": "Battery and power profiles, all at a glance.",
           "completionAudio": "audio/power-panel-done.mp3"
@@ -1248,7 +1702,7 @@
         {
           "id": "calendar-panel",
           "instruction": "What's the date? Hold Super, Control, and Alt, then press D to open the calendar.",
-          "detail": "The calendar sits under the clock, one chord away.",
+          "detail": "Clicking the clock is a useful alternative to this longer shortcut. Explore with Release Keys; Escape closes the panel.",
           "keys": [
             "SUPER",
             "+",
@@ -1287,24 +1741,19 @@
             "height": 500,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1900
+            "durationMs": 1900,
+            "target": "panel",
+            "barWidgets": [
+              "omarchy.clock"
+            ]
           },
           "completionMessage": "There's your calendar, the same view you get by clicking the clock.",
           "completionAudio": "audio/calendar-panel-done.mp3"
-        }
-      ]
-    },
-    {
-      "id": "personalization",
-      "title": "Personalization",
-      "description": "Discover backgrounds, themes, and quick toggles without editing configuration files.",
-      "icon": "07",
-      "estimatedMinutes": 3,
-      "steps": [
+        },
         {
           "id": "background-menu",
           "instruction": "Fancy a new look? Hold Super and Control, then press Space to open the Background switcher.",
-          "detail": "Backgrounds are grouped with your current theme, and you can add your own images.",
+          "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
           "keys": [
             "SUPER",
             "+",
@@ -1341,7 +1790,8 @@
             "height": 474,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2000
+            "durationMs": 2000,
+            "target": "panel"
           },
           "completionMessage": "Pick a background you like, or press Escape to keep the one you have.",
           "completionAudio": "audio/background-menu-done.mp3"
@@ -1349,7 +1799,7 @@
         {
           "id": "theme-menu",
           "instruction": "Let's go bigger. Hold Super, Shift, and Control, then press Space to open the Theme menu.",
-          "detail": "A theme recolors the whole desktop at once: terminal, editor, bar, and this course too. Pick one you like, and you can always come back here to change it.",
+          "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
           "keys": [
             "SUPER",
             "+",
@@ -1388,7 +1838,8 @@
             "height": 474,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2000
+            "durationMs": 2000,
+            "target": "panel"
           },
           "completionMessage": "Choose a theme and everything changes together. If you're not sure, Escape leaves things exactly as they are.",
           "completionAudio": "audio/theme-menu-done.mp3"
@@ -1432,19 +1883,21 @@
             "height": 720,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2000
+            "durationMs": 2000,
+            "target": "panel"
           },
           "completionMessage": "Each entry flips one setting, and Escape closes it without touching anything.",
           "completionAudio": "audio/toggle-menu-done.mp3"
         }
-      ]
+      ],
+      "optional": true
     },
     {
       "id": "clipboard-and-helpers",
-      "title": "Clipboard and helpers",
-      "description": "Universal copy and paste, clipboard history, emoji, and reminders.",
-      "icon": "08",
-      "estimatedMinutes": 3,
+      "title": "Clipboard and Compose",
+      "description": "Retrieve older clipboard entries and type emojis with sequential Compose keys.",
+      "icon": "07",
+      "estimatedMinutes": 5,
       "steps": [
         {
           "id": "helpers-universal-copy",
@@ -1511,108 +1964,95 @@
             "height": 780,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2000
+            "durationMs": 2000,
+            "target": "panel"
           },
           "completionMessage": "Your clipboard remembers. Choose an entry and it's ready to paste.",
           "completionAudio": "audio/clipboard-history-done.mp3"
         },
         {
-          "id": "helpers-emoji",
-          "instruction": "Need an emoji? Hold Super and Control, then press E to open the emoji picker.",
-          "detail": "Type a word to search, press Enter, and the emoji lands in whatever you were typing.",
-          "keys": [
-            "SUPER",
-            "+",
-            "CTRL",
-            "+",
-            "E"
-          ],
-          "audio": "audio/helpers-emoji.mp3",
-          "help": {
-            "label": "Open it for me",
-            "command": [
-              "omarchy-shell",
-              "shell",
-              "summon",
-              "omarchy.emojis"
-            ]
-          },
-          "cleanup": [
-            "omarchy-shell",
-            "shell",
-            "hide",
-            "omarchy.emojis"
-          ],
+          "id": "clipboard-practice",
+          "kind": "practice",
+          "practice": "clipboard",
+          "optional": false,
+          "instruction": "Let's make clipboard history useful. Copy two sample notes, retrieve the older one, and paste it.",
+          "detail": "The exercise uses harmless text, but it replaces the current clipboard. Keys go to the exercise window until you finish or close it.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/clipboard-practice.mp3",
           "completion": {
-            "type": "hyprland-layer-open",
-            "namespace": "omarchy-emojis"
+            "type": "practice-result"
           },
           "highlight": {
             "shape": "rectangle",
             "anchor": "center",
             "x": 0,
             "y": 0,
-            "width": 620,
-            "height": 760,
-            "borderWidth": 10,
-            "radius": 12,
-            "durationMs": 2200
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
           },
-          "completionMessage": "There they all are. Search, Enter, done. No more hunting through menus.",
-          "completionAudio": "audio/helpers-emoji-done.mp3"
+          "completionMessage": "You completed the real task. That's a skill you can use outside this course.",
+          "completionAudio": "audio/clipboard-practice-done.mp3"
         },
         {
-          "id": "helpers-reminder",
-          "instruction": "Last helper. Hold Super and Control, then press R to set a reminder.",
-          "detail": "Type something like 'stand up in 20 minutes' and Omarchy will nudge you with a notification.",
-          "keys": [
-            "SUPER",
-            "+",
-            "CTRL",
-            "+",
-            "R"
-          ],
-          "audio": "audio/helpers-reminder.mp3",
-          "help": {
-            "label": "Open it for me",
-            "command": [
-              "omarchy",
-              "menu",
-              "summon",
-              "reminder-set"
-            ]
-          },
-          "cleanup": [
-            "omarchy",
-            "menu",
-            "close"
-          ],
+          "id": "compose-intro",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "Caps Lock has a second job in Omarchy: it's the Compose key. Tap and release Caps Lock, then m, then s for a smile. These are separate presses, not a shortcut you hold together.",
+          "detail": "Use lowercase letters without Shift. Other defaults: m then o for okay, m then 1 for one hundred, m then l for love, m then k for a kiss, and m then h for a heart. There isn't a default m then j sequence. Custom keyboard configurations can change Compose.",
+          "keys": [],
+          "audio": "audio/compose-intro.mp3",
           "completion": {
-            "type": "hyprland-layer-open",
-            "namespace": "omarchy-menu"
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 14280
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "center",
+            "x": 0,
+            "y": -60,
+            "width": 12,
+            "height": 12,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000
+          }
+        },
+        {
+          "id": "compose-practice",
+          "kind": "practice",
+          "practice": "compose",
+          "optional": false,
+          "instruction": "Let's type a smile and a heart without opening the emoji picker. Follow the keys in order, one at a time.",
+          "detail": "The normal text field receives Compose input. The exercise checks the resulting emojis. If Caps Lock has been remapped, use the picker in everyday work and skip this exercise rather than changing your keyboard settings.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/compose-practice.mp3",
+          "completion": {
+            "type": "practice-result"
           },
           "highlight": {
             "shape": "rectangle",
             "anchor": "center",
             "x": 0,
             "y": 0,
-            "width": 620,
-            "height": 760,
-            "borderWidth": 10,
-            "radius": 12,
-            "durationMs": 2200
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
           },
-          "completionMessage": "That's your reminder prompt. It's the easiest way to stop forgetting the little things.",
-          "completionAudio": "audio/helpers-reminder-done.mp3"
+          "completionMessage": "Two little sequences, two emojis. That's Compose: tap the keys in order, instead of holding a chord.",
+          "completionAudio": "audio/compose-practice-done.mp3"
         }
       ]
     },
     {
       "id": "capture-and-share",
-      "title": "Capture and share",
-      "description": "Reach screenshots, screen recording, and sharing quickly.",
-      "icon": "09",
-      "estimatedMinutes": 3,
+      "title": "Capture",
+      "description": "Capture an image, record and replay a short clip, and optionally extract text or decode a QR code.",
+      "icon": "08",
+      "estimatedMinutes": 8,
       "steps": [
         {
           "id": "capture-menu",
@@ -1653,54 +2093,316 @@
             "height": 740,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2000
+            "durationMs": 2000,
+            "target": "panel"
           },
           "completionMessage": "Screenshots, recordings, and more, all from one menu.",
           "completionAudio": "audio/capture-menu-done.mp3"
         },
         {
-          "id": "share-menu",
-          "instruction": "Send it somewhere. Hold Super and Control, then press S to open the Share menu.",
-          "detail": "Share files and text to nearby devices without cables or cloud accounts.",
-          "keys": [
-            "SUPER",
-            "+",
-            "CTRL",
-            "+",
-            "S"
-          ],
-          "audio": "audio/share-menu.mp3",
-          "help": {
-            "label": "Open Share for me",
-            "command": [
-              "omarchy",
-              "menu",
-              "summon",
-              "share"
-            ]
-          },
-          "cleanup": [
-            "omarchy",
-            "menu",
-            "close"
-          ],
+          "id": "capture-native-workflow",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "For an everyday screenshot, press Print, or search Screenshot in the Omarchy menu. Drag a region, or use Tab to choose a window and Enter to capture it. Control and Enter captures the whole screen. Escape cancels.",
+          "detail": "Outside this exercise, Omarchy's screenshot picker freezes the screen. It saves to your configured Pictures directory and the clipboard. Click the screenshot notification to edit it, or use Super+Alt+Comma while it's the latest actionable notification. Avoid private content before capturing.",
+          "keys": [],
+          "audio": "audio/capture-native-workflow.mp3",
           "completion": {
-            "type": "hyprland-layer-open",
-            "namespace": "omarchy-menu"
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 15540
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
+        },
+        {
+          "id": "capture-practice",
+          "kind": "practice",
+          "practice": "capture",
+          "optional": false,
+          "instruction": "Capture the harmless practice card, inspect the saved image, and explore its copy and edit controls.",
+          "detail": "The course uses its own tracked capture tools, so it won't terminate another screenshot session. This is a safe equivalent of the native workflow, not a test of your Print binding. Nothing is uploaded.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/capture-practice.mp3",
+          "completion": {
+            "type": "practice-result"
           },
           "highlight": {
             "shape": "rectangle",
             "anchor": "center",
             "x": 0,
             "y": 0,
-            "width": 400,
-            "height": 520,
-            "borderWidth": 10,
-            "radius": 12,
-            "durationMs": 2000
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
           },
-          "completionMessage": "That's the Share menu. Pick a file and a device, and off it goes.",
-          "completionAudio": "audio/share-menu-done.mp3"
+          "completionMessage": "Your capture is saved and ready to inspect. In everyday work, Print or the Capture menu gets you there.",
+          "completionAudio": "audio/capture-practice-done.mp3"
+        },
+        {
+          "id": "recording-intro",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "Screen recording is built in too. Alt and Print opens the recording choices when nothing is recording, and stops a recording that's running. The Capture menu works on keyboards without Print. Watch the recording indicator so you always know when you're on camera.",
+          "detail": "Native recordings go to your configured Videos directory. No audio, desktop audio, microphone, and webcam are different choices. Never include someone else's voice, private windows, or notifications without permission. Our practice recording is silent and limited to a region you choose.",
+          "keys": [],
+          "audio": "audio/recording-intro.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 18060
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
+        },
+        {
+          "id": "recording-practice",
+          "kind": "practice",
+          "practice": "screen-recording",
+          "optional": false,
+          "instruction": "Let's make a short, silent recording of the practice card. Start explicitly, stop it yourself, then play the saved clip.",
+          "detail": "No microphone or webcam is enabled. The exercise owns only its recorder and output. It must not stop an existing recording. Review the selected region before starting.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/recording-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "You started, stopped, and replayed a real recording. Knowing how to stop is just as important as knowing how to start.",
+          "completionAudio": "audio/recording-practice-done.mp3"
+        },
+        {
+          "id": "ocr-practice",
+          "kind": "practice",
+          "practice": "ocr",
+          "optional": true,
+          "instruction": "An image can contain useful text. Select the sample text on the practice card, extract it, and paste the result.",
+          "detail": "OCR means optical character recognition. Outside the course, Super+Ctrl+Print opens text capture. Recognition can make mistakes, so compare the pasted words with the original. This optional exercise uses only a harmless sample.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/ocr-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "You turned pixels into editable text. Give extracted text a quick proofread before you use it.",
+          "completionAudio": "audio/ocr-practice-done.mp3"
+        },
+        {
+          "id": "qr-practice",
+          "kind": "practice",
+          "practice": "qr",
+          "optional": true,
+          "instruction": "Let's read a QR code that's already on screen. Capture the sample code, then paste the decoded text.",
+          "detail": "Search QR Code in the Omarchy menu for the everyday tool. Our sample contains harmless text, not a website. Decoding a QR code isn't a reason to open an unfamiliar link automatically.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/qr-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "You've read the QR code without reaching for your phone, and checked its contents before acting.",
+          "completionAudio": "audio/qr-practice-done.mp3"
+        }
+      ]
+    },
+    {
+      "id": "apps-and-upkeep",
+      "title": "Apps and upkeep",
+      "icon": "09",
+      "estimatedMinutes": 4,
+      "description": "Find install, removal, defaults, updates, and recovery tools without changing the system.",
+      "steps": [
+        {
+          "id": "upkeep-install",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "Need another app? Open the Omarchy menu and search Install. Start with official packages. The AUR is community maintained, so review what you're installing rather than treating every result as equally trusted.",
+          "detail": "This is an introduction, not an installation task. Use Release Keys if you'd like to locate Install, then Escape and Capture Keys to return. Installing software can request your password and change the system. No installation is required for completion.",
+          "keys": [],
+          "audio": "audio/upkeep-install.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 13440
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
+        },
+        {
+          "id": "upkeep-remove",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "Remove is where you uninstall something you no longer need. Check the exact package and any dependencies before confirming. Removing all preinstalled apps is a broad change, not a routine cleanup shortcut.",
+          "detail": "Find Remove from the Omarchy menu if you want to explore. Cancel before removing anything. The course never removes packages, debloats your desktop, or asks you to use Close all windows.",
+          "keys": [],
+          "audio": "audio/upkeep-remove.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 13440
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
+        },
+        {
+          "id": "upkeep-defaults",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "Your shortcuts can follow your preferences. In Setup, Defaults, choose the browser, terminal, or editor you want Omarchy to open. Installing an app and making it the default are separate decisions.",
+          "detail": "Open Super+Space, then search Defaults. Selecting a default changes future launches immediately. This lesson only introduces the location; keep your current defaults unless you intentionally want to change them.",
+          "keys": [],
+          "audio": "audio/upkeep-defaults.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 13020
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
+        },
+        {
+          "id": "upkeep-updates",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "The Update menu keeps Omarchy and its packages current. Save your work first and read the proposed changes. Stay on the stable channel unless you deliberately want to help test newer software.",
+          "detail": "On supported Btrfs installations, update snapshots can help recover from problems. A snapshot isn't an independent backup of your personal files. Locate Update without starting it during this course.",
+          "keys": [],
+          "audio": "audio/upkeep-updates.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 13440
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
+        },
+        {
+          "id": "upkeep-recovery",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "If one device stops working, a targeted hardware restart may help without rebooting everything. Look under Update, Hardware. Keep resets separate from updates: resetting configuration can replace your custom settings.",
+          "detail": "Your user settings generally live under ~/.config; packaged Omarchy defaults live under /usr/share/omarchy and shouldn't be edited. Back up your changes before resets. Restarting network or audio services can interrupt active calls, downloads, and recordings, so this lesson performs none.",
+          "keys": [],
+          "audio": "audio/upkeep-recovery.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 12600
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
         }
       ]
     },
@@ -1750,7 +2452,8 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2100
+            "durationMs": 2100,
+            "target": "panel"
           },
           "completionMessage": "Hardware setup lives here. Install and Update are one level up, in the Omarchy menu under Super plus Space.",
           "completionAudio": "audio/hardware-menu-done.mp3"
@@ -1758,7 +2461,7 @@
         {
           "id": "display-panel",
           "instruction": "Let's sort out your screens. Hold Super and Control, then press D to open the Display panel.",
-          "detail": "Scale, arrangement, and brightness, with changes applied as you make them.",
+          "detail": "Display changes apply immediately. Read the panel without changing scale or resolution during this lesson. Release Keys to explore; Escape closes it.",
           "keys": [
             "SUPER",
             "+",
@@ -1795,7 +2498,11 @@
             "height": 540,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1900
+            "durationMs": 1900,
+            "target": "panel",
+            "barWidgets": [
+              "omarchy.monitor"
+            ]
           },
           "completionMessage": "Display changes apply immediately, so you can preview scaling before you commit.",
           "completionAudio": "audio/display-panel-done.mp3"
@@ -1837,10 +2544,517 @@
             "height": 560,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 2100
+            "durationMs": 2100,
+            "target": "panel"
           },
           "completionMessage": "Nothing happens until you choose an entry, so Escape closes it safely. Lock, suspend, and shutdown all live here when you need them.",
           "completionAudio": "audio/system-menu-done.mp3"
+        },
+        {
+          "id": "lock-practice",
+          "kind": "practice",
+          "practice": "screen-lock",
+          "optional": true,
+          "instruction": "Build one useful habit: Super, Control, and L locks your screen. Practice only when you're ready.",
+          "detail": "This optional exercise won't lock anything until you explicitly choose Lock this computer now. You'll need your password to return. Skipping it doesn't block the lesson.",
+          "keys": [],
+          "actionLabel": "Review lock practice",
+          "audio": "audio/lock-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "You completed the real task. That's a skill you can use outside this course.",
+          "completionAudio": "audio/lock-practice-done.mp3"
+        }
+      ]
+    },
+    {
+      "id": "productivity-extras",
+      "title": "Productivity extras",
+      "optional": true,
+      "icon": "+",
+      "estimatedMinutes": 5,
+      "description": "Optional: the emoji picker, reminders, local dictation, and word corrections.",
+      "steps": [
+        {
+          "id": "helpers-emoji",
+          "instruction": "Need an emoji? Hold Super and Control, then press E to open the emoji picker.",
+          "detail": "Type a word to search, press Enter, and the emoji lands in whatever you were typing.",
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "E"
+          ],
+          "audio": "audio/helpers-emoji.mp3",
+          "help": {
+            "label": "Open it for me",
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.emojis"
+            ]
+          },
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.emojis"
+          ],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-emojis"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 620,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2200,
+            "target": "panel"
+          },
+          "completionMessage": "There they all are. Search, Enter, done. No more hunting through menus.",
+          "completionAudio": "audio/helpers-emoji-done.mp3"
+        },
+        {
+          "id": "helpers-reminder",
+          "instruction": "Need a reminder? Hold Super and Control, then press R to set one.",
+          "detail": "Enter the number of minutes first, then your reminder message. Press Escape to leave without scheduling anything.",
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "R"
+          ],
+          "audio": "audio/helpers-reminder.mp3",
+          "help": {
+            "label": "Open it for me",
+            "command": [
+              "omarchy-shell",
+              "shell",
+              "summon",
+              "omarchy.reminders"
+            ]
+          },
+          "cleanup": [
+            "omarchy-shell",
+            "shell",
+            "hide",
+            "omarchy.reminders"
+          ],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-reminders"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 340,
+            "height": 80,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2200,
+            "target": "panel"
+          },
+          "completionMessage": "That's your reminder prompt. It's the easiest way to stop forgetting the little things.",
+          "completionAudio": "audio/helpers-reminder-done.mp3"
+        },
+        {
+          "id": "dictation-practice",
+          "kind": "practice",
+          "practice": "dictation",
+          "optional": true,
+          "instruction": "If local dictation is installed, you can speak into a text field. This optional exercise checks availability and asks before using your microphone.",
+          "detail": "Omarchy's current shortcuts are Super+Ctrl+X to toggle dictation, or hold F9 for push-to-talk when Voxtype is installed. Choose a quiet moment and avoid private information. Missing software or microphone access is a reason to skip, not to install anything automatically.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/dictation-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "You've explored local dictation and its controls. Always check recognized words before sending a message.",
+          "completionAudio": "audio/dictation-practice-done.mp3"
+        },
+        {
+          "id": "dictation-corrections",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "Names and technical words can trip up speech recognition. Voxtype's replacement settings let you correct recurring mistakes. Keep replacements specific so an ordinary word doesn't unexpectedly turn into something else.",
+          "detail": "Find dictation setup in the Omarchy menu. Review the installed tool's configuration before editing, save a backup, and test with a harmless phrase. This introduction doesn't edit replacement rules or claim they affect every kind of typing.",
+          "keys": [],
+          "audio": "audio/dictation-corrections.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 12600
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "useful-tools",
+      "title": "Useful tools",
+      "optional": true,
+      "icon": "+",
+      "estimatedMinutes": 4,
+      "description": "Optional: inspect resource use, open the calculator, and learn safe disk-usage inspection.",
+      "steps": [
+        {
+          "id": "tools-monitor-open",
+          "instruction": "Wondering what's using your computer? Press Super, Control, and T to open the activity monitor.",
+          "detail": "Btop shows CPU, memory, disks, and processes. Release Keys to inspect it. Don't terminate processes to complete the lesson; Capture Keys returns to the coach.",
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "T"
+          ],
+          "audio": "audio/tools-monitor-open.mp3",
+          "help": {
+            "label": "Open it for me",
+            "command": [
+              "xdg-terminal-exec",
+              "--app-id=org.learn-omarchy.toolbox",
+              "--title=Learn Omarchy activity",
+              "-e",
+              "btop"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-window-activated"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "The tool is open. Release Keys to explore, then Capture Keys to return to your coach.",
+          "completionAudio": "audio/tools-monitor-open-done.mp3"
+        },
+        {
+          "id": "tools-monitor-close",
+          "windowFromStep": "tools-monitor-open",
+          "instruction": "Press Super and W to close our activity monitor.",
+          "detail": "The course closes only the window it opened, never an existing tool window.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/tools-monitor-close.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ],
+            "target": "tutorial-window"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "Closed. Your other work stays where you left it.",
+          "completionAudio": "audio/tools-monitor-close-done.mp3"
+        },
+        {
+          "id": "tools-calculator-open",
+          "instruction": "For a quick calculation, press Super, Control, and Q. The calculator is built right in.",
+          "detail": "Release Keys and try 5 + 5, then Capture Keys to return. Opening the calculator is verified; the course doesn't claim to have checked your arithmetic. If an existing calculator is reused, it won't gain permission to close it.",
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "Q"
+          ],
+          "audio": "audio/tools-calculator-open.mp3",
+          "help": {
+            "label": "Open it for me",
+            "command": [
+              "omacalc"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-window-activated"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "The tool is open. Release Keys to explore, then Capture Keys to return to your coach.",
+          "completionAudio": "audio/tools-calculator-open-done.mp3"
+        },
+        {
+          "id": "tools-calculator-close",
+          "windowFromStep": "tools-calculator-open",
+          "instruction": "Press Super and W to close our calculator.",
+          "detail": "The course closes only the window it opened, never an existing tool window.",
+          "keys": [
+            "SUPER",
+            "+",
+            "W"
+          ],
+          "audio": "audio/tools-calculator-close.mp3",
+          "help": {
+            "label": "Close it for me",
+            "command": [
+              "hyprctl",
+              "eval",
+              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
+            ]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": [
+              "closewindow"
+            ],
+            "target": "tutorial-window"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": -40,
+            "width": 1280,
+            "height": 760,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 1800,
+            "target": "window"
+          },
+          "completionMessage": "Closed. Your other work stays where you left it.",
+          "completionAudio": "audio/tools-calculator-close-done.mp3"
+        },
+        {
+          "id": "tools-disk-usage",
+          "kind": "tour",
+          "pose": "talk",
+          "instruction": "Running low on space? Search Disk Usage in the Omarchy menu to see where it's going. Inspect before deleting: a large folder might be important work, not disposable clutter.",
+          "detail": "This is a read-only introduction. Don't use trash or permanent-delete commands as part of the lesson. Backups, application caches, and system packages need different cleanup decisions.",
+          "keys": [],
+          "audio": "audio/tools-disk-usage.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 12180
+          },
+          "highlight": {
+            "shape": "circle",
+            "anchor": "top-left",
+            "x": 25,
+            "y": 14,
+            "width": 28,
+            "height": 28,
+            "borderWidth": 2,
+            "radius": 6,
+            "durationMs": 1000,
+            "barWidgets": [
+              "omarchy.menu"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "create-and-share",
+      "title": "Create and share",
+      "optional": true,
+      "icon": "+",
+      "estimatedMinutes": 6,
+      "description": "Optional: web-app launchers, smaller video files, and safe LocalSend preparation.",
+      "steps": [
+        {
+          "id": "web-app-practice",
+          "kind": "practice",
+          "practice": "web-app",
+          "optional": true,
+          "instruction": "A website can have its own launcher instead of getting lost in browser tabs. Let's explore a harmless demo web app and how to remove its entry afterward.",
+          "detail": "In everyday Omarchy, search Install Web App to supply a name and URL, and Remove Web App to undo it. This exercise must use only its own demo entry, never overwrite another launcher, and ask before creating anything.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/web-app-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "A web app is a launcher for a site, not a separate account or a replacement for the browser's security.",
+          "completionAudio": "audio/web-app-practice-done.mp3"
+        },
+        {
+          "id": "transcode-practice",
+          "kind": "practice",
+          "practice": "transcode",
+          "optional": true,
+          "instruction": "A recording can be too large to share comfortably. Let's create a smaller copy of a harmless practice clip and inspect the result.",
+          "detail": "Transcoding means converting media. Keep the original, choose a sensible resolution, and compare the output before sharing. MP4 suits longer clips; GIF can be convenient for short, silent loops but isn't always smaller.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/transcode-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "You've created a separate output and kept the original. Check quality and size before you share it.",
+          "completionAudio": "audio/transcode-practice-done.mp3"
+        },
+        {
+          "id": "share-menu",
+          "instruction": "Here's an optional tool for sharing. Press Super, Control, and S to open the Share menu.",
+          "detail": "Opening the menu sends nothing. Before sharing, check the selected content and recipient. Never send secrets or personal files just to complete a lesson. Escape cancels.",
+          "keys": [
+            "SUPER",
+            "+",
+            "CTRL",
+            "+",
+            "S"
+          ],
+          "audio": "audio/share-menu.mp3",
+          "help": {
+            "label": "Open Share for me",
+            "command": [
+              "omarchy",
+              "menu",
+              "summon",
+              "share"
+            ]
+          },
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
+          "completion": {
+            "type": "hyprland-layer-open",
+            "namespace": "omarchy-menu"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 400,
+            "height": 520,
+            "borderWidth": 10,
+            "radius": 12,
+            "durationMs": 2000,
+            "target": "panel"
+          },
+          "completionMessage": "The Share menu is open. Sending anything is optional and always your decision.",
+          "completionAudio": "audio/share-menu-done.mp3"
+        },
+        {
+          "id": "sharing-practice",
+          "kind": "practice",
+          "practice": "sharing",
+          "optional": true,
+          "instruction": "LocalSend can share files with nearby devices. Let's prepare a harmless sample and review the content and recipient before any send.",
+          "detail": "Opening Share sends nothing. Both devices need LocalSend and network access to each other. Sending remains your explicit choice; preparing or reviewing a share must not be reported as confirmed delivery.",
+          "keys": [],
+          "actionLabel": "Start exercise",
+          "audio": "audio/sharing-practice.mp3",
+          "completion": {
+            "type": "practice-result"
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "center",
+            "x": 0,
+            "y": 0,
+            "width": 180,
+            "height": 120,
+            "borderWidth": 3
+          },
+          "completionMessage": "You reviewed the safe sharing workflow. Delivery to another device is a separate action that this course doesn't assume.",
+          "completionAudio": "audio/sharing-practice-done.mp3"
         }
       ]
     },
@@ -1848,14 +3062,14 @@
       "id": "first-real-session",
       "title": "Your first real session",
       "description": "Put it all together: open, arrange, sort onto workspaces, and clean up like a pro.",
-      "icon": "11",
+      "icon": "14",
       "estimatedMinutes": 4,
       "steps": [
         {
           "id": "finale-intro",
           "kind": "tour",
           "instruction": "Time to put it all together. No new shortcuts here, just the ones you already know, used the way you'll use them every day. Ready? Let's go.",
-          "detail": "HEXON is talking you through this one. Press Enter to continue early, or Skip to jump ahead.",
+          "detail": "Use your existing desktop. We'll verify only the windows opened by this lesson and leave your other work alone.",
           "keys": [],
           "audio": "audio/finale-intro.mp3",
           "completion": {
@@ -1908,7 +3122,9 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 1
           },
           "completionMessage": "Good. Everything starts from here.",
           "completionAudio": "audio/finale-home-done.mp3"
@@ -1943,7 +3159,8 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "Terminal's up.",
           "completionAudio": "audio/finale-terminal-done.mp3"
@@ -1980,13 +3197,15 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "Two windows, tiled, zero dragging.",
           "completionAudio": "audio/finale-browser-done.mp3"
         },
         {
           "id": "finale-send-browser",
+          "windowFromStep": "finale-browser",
           "instruction": "Let's give the browser its own desktop. Hold Super and Shift, then press 2.",
           "detail": "The browser moves to workspace two and you go with it.",
           "keys": [
@@ -2002,7 +3221,7 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.move({ workspace = \"2\" }))"
+              "hl.dispatch(hl.dsp.window.move({ workspace = \"2\", window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
@@ -2010,7 +3229,12 @@
             "events": [
               "movewindowv2",
               "movewindow"
-            ]
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "workspace": 2,
+              "focused": true
+            }
           },
           "highlight": {
             "shape": "rectangle",
@@ -2022,7 +3246,9 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 2
           },
           "completionMessage": "Browser on two, terminal on one. Now your work has rooms.",
           "completionAudio": "audio/finale-send-browser-done.mp3"
@@ -2059,13 +3285,16 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 1
           },
           "completionMessage": "And there's the terminal, right where you left it.",
           "completionAudio": "audio/finale-back-to-one-done.mp3"
         },
         {
           "id": "finale-close-terminal",
+          "windowFromStep": "finale-terminal",
           "instruction": "Done with the terminal for now. Press Super and W.",
           "detail": "Clean as you go and the desktop never gets messy.",
           "keys": [
@@ -2098,7 +3327,8 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "Closed. One more to go.",
           "completionAudio": "audio/finale-close-terminal-done.mp3"
@@ -2135,13 +3365,16 @@
             "borderWidth": 3,
             "radius": 8,
             "dynamic": "workspaces",
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 2
           },
           "completionMessage": "There it is.",
           "completionAudio": "audio/finale-to-two-done.mp3"
         },
         {
           "id": "finale-close-browser",
+          "windowFromStep": "finale-browser",
           "instruction": "And close it. Press Super and W.",
           "detail": "That's a full session: open, arrange, sort, close.",
           "keys": [
@@ -2174,7 +3407,8 @@
             "height": 760,
             "borderWidth": 10,
             "radius": 12,
-            "durationMs": 1800
+            "durationMs": 1800,
+            "target": "window"
           },
           "completionMessage": "That's the whole loop, and you did every bit of it from the keyboard.",
           "completionAudio": "audio/finale-close-browser-done.mp3"

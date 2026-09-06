@@ -16,6 +16,34 @@
   "flightFrameRate": 5,
   "pointBlink": true,
   "poseMid": true,
+  "renderer": {
+    "canvas": { "width": 224, "height": 192 },
+    "baseline": 191,
+    "bodyAnchorX": 117,
+    "registrationNote": "Register talons and torso/beak centre. Body scale excludes the raised wing; do not fit the entire alpha bounds to idle. Speech uses eye-free patches at native pixel size: the talk beak at (101,94) registers to (99,78) in point and (99,76) in point-up.",
+    "poses": {
+      "idle": { "frameWidth": 192, "scale": 1, "offset": { "x": 16, "y": 0 }, "baseline": 191, "bodyAnchorX": 101 },
+      "flight": { "frameWidth": 256, "scale": 1, "offset": { "x": -16, "y": 0 } },
+      "point": {
+        "frameWidth": 224, "scale": 0.93, "offset": { "x": 25.86, "y": 20.81 },
+        "baseline": 183, "bodyAnchorX": 98, "tip": { "x": 191, "y": 89 },
+        "speech": {
+          "sprite": "speech", "frameWidth": 22,
+          "source": { "x": 0, "y": 0, "width": 22, "height": 30 },
+          "destination": { "x": 88, "y": 72, "width": 22, "height": 30 }
+        }
+      },
+      "point-up": {
+        "frameWidth": 224, "scale": 0.93, "offset": { "x": 25.86, "y": 20.81 },
+        "baseline": 183, "bodyAnchorX": 98, "tip": { "x": 161, "y": 8 },
+        "speech": {
+          "sprite": "speech", "frameWidth": 22,
+          "source": { "x": 0, "y": 0, "width": 22, "height": 30 },
+          "destination": { "x": 88, "y": 70, "width": 22, "height": 30 }
+        }
+      }
+    }
+  },
   "intro": {
     "kind": "tree",
     "anchorX": 0.84,

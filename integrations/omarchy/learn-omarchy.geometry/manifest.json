@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "id": "learn-omarchy.geometry",
+  "name": "Learn Omarchy Geometry",
+  "version": "1.0.0",
+  "author": "Learn Omarchy",
+  "description": "Read-only, on-demand logical geometry for the Learn Omarchy tutorial.",
+  "kinds": ["service"],
+  "entryPoints": {
+    "service": "Service.qml"
+  }
+}

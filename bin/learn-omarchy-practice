@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+app_root="${LEARN_OMARCHY_ROOT:-$(cd -- "$script_dir/.." && pwd)}"
+
+if [[ "${1:-}" == "--capture" ]]; then
+  exec node "$app_root/tools/capture-practice.mjs"
+fi
+if [[ "${1:-}" == "--session" ]]; then
+  exec node "$app_root/tools/capture-practice.mjs" --session "${2:-}"
+fi
+
+case "${1:-}" in
+  app-search|clipboard|capture|screen-lock|compose|screen-recording|ocr|qr|dictation|web-app|transcode|sharing) export LEARN_OMARCHY_PRACTICE_MODE="$1" ;;
+  *) echo "Usage: learn-omarchy-practice app-search|clipboard|capture|screen-lock|compose|screen-recording|ocr|qr|dictation|web-app|transcode|sharing" >&2; exit 2 ;;
+esac
+export LEARN_OMARCHY_ROOT="$app_root"
+exec qs --path "$app_root/app/practice.qml"

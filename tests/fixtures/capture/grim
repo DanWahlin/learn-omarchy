@@ -1,0 +1,5 @@
+#!/usr/bin/env node
+import { copyFileSync } from "node:fs";
+
+if (!process.env.LEARN_CAPTURE_TEST_DIR) throw new Error("Capture fixture requires an isolated test directory");
+copyFileSync(new URL("../../../assets/characters/owl/sprites/owl-idle.png", import.meta.url), process.argv.at(-1));

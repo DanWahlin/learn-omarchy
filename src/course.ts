@@ -11,6 +11,10 @@ export type HighlightAnchor =
   | "bottom-right";
 
 export interface Highlight {
+  // Semantic targets use live geometry when available; the coordinates remain a fallback.
+  target?: "window" | "workspace" | "panel";
+  workspaceId?: number;
+  barWidgets?: string[];
   shape: HighlightShape;
   anchor: HighlightAnchor;
   x: number;
@@ -23,7 +27,17 @@ export interface Highlight {
   durationMs?: number;
 }
 
+export interface WindowState {
+  floating?: boolean;
+  fullscreen?: boolean;
+  workspace?: number;
+  focused?: boolean;
+  specialWorkspace?: "scratchpad";
+  swapped?: true;
+}
+
 export type Completion =
+  | { type: "practice-result" }
   | {
       type: "hyprland-layer-open";
       namespace: string;
@@ -37,6 +51,8 @@ export type Completion =
     }
   | {
       type: "hyprland-window-activated";
+      // Optional app ID regex, matched case-insensitively; authors supply anchors.
+      appIdPattern?: string;
     }
   | {
       // Completes when the focused workspace has the given id. If the learner
@@ -49,13 +65,14 @@ export type Completion =
       // "changefloatingmode") after the taught keys or Help were observed.
       // `dataPattern` is an optional regular expression the event payload
       // must match. `target: "tutorial-window"` additionally requires the
-      // event to concern a window the course itself launched earlier in the
-      // module, so a stray keypress can't complete a step on the learner's
-      // own windows.
+      // event to concern the window launched by the step's `windowFromStep`,
+      // so a stray keypress can't complete a step on another window.
       type: "hyprland-event";
       events: string[];
       dataPattern?: string;
       target?: "tutorial-window";
+      // Confirm against the owned client's state after an event, never after closewindow.
+      windowState?: WindowState;
     }
   | {
       type: "narration-complete";
@@ -70,9 +87,14 @@ export interface CommandAction {
 
 export interface CourseStep {
   id: string;
+  windowFromStep?: string;
+  swapWithStep?: string;
+  directionFromStep?: string;
+  optional?: boolean;
   instruction: string;
   detail?: string;
-  kind?: "tour";
+  kind?: "tour" | "practice";
+  practice?: "app-search" | "clipboard" | "capture" | "screen-lock" | "compose" | "screen-recording" | "ocr" | "qr" | "dictation" | "web-app" | "transcode" | "sharing";
   pose?: "point" | "talk";
   keys: string[];
   actionLabel?: string;
@@ -91,6 +113,7 @@ export interface CourseLesson {
   description: string;
   icon: string;
   estimatedMinutes: number;
+  optional?: boolean;
   steps: CourseStep[];
 }
 
@@ -99,6 +122,7 @@ export interface Course {
   id: string;
   title: string;
   description: string;
+  referenceViewport?: { width: number; height: number };
   lessons: CourseLesson[];
 }
 
@@ -122,7 +146,8 @@ const namedKeyLabels = new Set([
   "SPACE",
   "RETURN",
   "TAB",
-  "ESCAPE",, "LEFT", "RIGHT", "UP", "DOWN"]);
+  "ESCAPE", "LEFT", "RIGHT", "UP", "DOWN",
+]);
 
 const isSupportedKeyLabel = (value: string): boolean =>
   value === "+" || namedKeyLabels.has(value) || /^[A-Z0-9]$/.test(value);
@@ -204,6 +229,21 @@ const validateHighlight = (
   if (value.dynamic !== undefined && value.dynamic !== "workspaces") {
     errors.push(`${path}.dynamic must be "workspaces" when present`);
   }
+  if (value.barWidgets !== undefined &&
+      (!Array.isArray(value.barWidgets) || value.barWidgets.length === 0 ||
+        value.barWidgets.some((id) => typeof id !== "string" || !id.trim()))) {
+    errors.push(`${path}.barWidgets must be a non-empty list of widget IDs`);
+  }
+  if (value.target !== undefined &&
+      (typeof value.target !== "string" || !["window", "workspace", "panel"].includes(value.target))) {
+    errors.push(`${path}.target must be "window", "workspace", or "panel" when present`);
+  }
+  if (value.workspaceId !== undefined) {
+    if (value.target !== "workspace") {
+      errors.push(`${path}.workspaceId requires target "workspace"`);
+    }
+    validateWorkspaceId(errors, value.workspaceId, `${path}.workspaceId`);
+  }
   if (
     value.shape === "circle" &&
     typeof value.width === "number" &&
@@ -223,6 +263,43 @@ const validateHighlight = (
   }
 };
 
+const validateWorkspaceId = (errors: string[], value: unknown, path: string): void => {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 10) {
+    errors.push(`${path} must be a workspace number from 1 to 10`);
+  }
+};
+
+const validatePattern = (errors: string[], value: unknown, path: string): void => {
+  if (!addStringError(errors, value, path)) return;
+  try {
+    new RegExp(value);
+  } catch {
+    errors.push(`${path} must be a valid regular expression`);
+  }
+};
+
+const validateWindowState = (errors: string[], value: unknown, path: string): void => {
+  if (!isRecord(value)) {
+    errors.push(`${path} must be a non-empty object`);
+    return;
+  }
+  if (Object.keys(value).length === 0) errors.push(`${path} must be a non-empty object`);
+  for (const [key, state] of Object.entries(value)) {
+    if (key === "workspace") {
+      validateWorkspaceId(errors, state, `${path}.${key}`);
+    } else if (key === "specialWorkspace") {
+      if (state !== "scratchpad") errors.push(`${path}.specialWorkspace must be "scratchpad"`);
+      if (value.workspace !== undefined) errors.push(`${path} cannot combine workspace and specialWorkspace`);
+    } else if (key === "swapped") {
+      if (state !== true) errors.push(`${path}.swapped must be true`);
+    } else if (["floating", "fullscreen", "focused"].includes(key)) {
+      if (typeof state !== "boolean") errors.push(`${path}.${key} must be a boolean`);
+    } else {
+      errors.push(`${path}.${key} is not a supported window state`);
+    }
+  }
+};
+
 const validateCompletion = (
   errors: string[],
   value: unknown,
@@ -231,6 +308,13 @@ const validateCompletion = (
   if (!isRecord(value)) {
     errors.push(`${path} must be an object`);
     return;
+  }
+  if (value.type === "practice-result") return;
+  if (value.windowState !== undefined && value.type !== "hyprland-event") {
+    errors.push(`${path}.windowState is only valid for "hyprland-event"`);
+  }
+  if (value.appIdPattern !== undefined && value.type !== "hyprland-window-activated") {
+    errors.push(`${path}.appIdPattern is only valid for "hyprland-window-activated"`);
   }
   if (value.type === "hyprland-layer-open") {
     addStringError(errors, value.namespace, `${path}.namespace`);
@@ -243,28 +327,33 @@ const validateCompletion = (
     return;
   }
   if (value.type === "hyprland-workspace-change") return;
-  if (value.type === "hyprland-window-activated") return;
-  if (value.type === "hyprland-workspace-is") {
-    if (typeof value.id !== "number" || !Number.isInteger(value.id) || value.id < 1 || value.id > 10) {
-      errors.push(`${path}.id must be a workspace number from 1 to 10`);
+  if (value.type === "hyprland-window-activated") {
+    if (value.appIdPattern !== undefined) {
+      validatePattern(errors, value.appIdPattern, `${path}.appIdPattern`);
     }
     return;
   }
+  if (value.type === "hyprland-workspace-is") {
+    validateWorkspaceId(errors, value.id, `${path}.id`);
+    return;
+  }
   if (value.type === "hyprland-event") {
-    if (!Array.isArray(value.events) || value.events.length === 0 || !value.events.every((name) => typeof name === "string" && name.length > 0)) {
+    if (!Array.isArray(value.events) || value.events.length === 0 || !value.events.every((name) => typeof name === "string" && name.trim().length > 0)) {
       errors.push(`${path}.events must be a non-empty array of event names`);
     }
     if (value.target !== undefined && value.target !== "tutorial-window") {
       errors.push(`${path}.target must be "tutorial-window" when present`);
     }
     if (value.dataPattern !== undefined) {
-      addStringError(errors, value.dataPattern, `${path}.dataPattern`);
-      if (typeof value.dataPattern === "string") {
-        try {
-          new RegExp(value.dataPattern);
-        } catch {
-          errors.push(`${path}.dataPattern must be a valid regular expression`);
-        }
+      validatePattern(errors, value.dataPattern, `${path}.dataPattern`);
+    }
+    if (value.windowState !== undefined) {
+      validateWindowState(errors, value.windowState, `${path}.windowState`);
+      if (value.target !== "tutorial-window") {
+        errors.push(`${path}.windowState requires target "tutorial-window"`);
+      }
+      if (Array.isArray(value.events) && value.events.includes("closewindow")) {
+        errors.push(`${path}.windowState cannot be checked after "closewindow"`);
       }
     }
     return;
@@ -308,10 +397,66 @@ const validateStep = (
     seenIds.add(value.id);
   }
   addStringError(errors, value.instruction, `${path}.instruction`);
+  if (value.optional !== undefined && typeof value.optional !== "boolean") errors.push(`${path}.optional must be a boolean`);
   if (value.detail !== undefined) addStringError(errors, value.detail, `${path}.detail`);
+  const usesTutorialWindow =
+    (isRecord(value.completion) &&
+      (value.completion.target === "tutorial-window" || value.completion.windowState !== undefined)) ||
+    (isRecord(value.help) && isCommand(value.help.command) &&
+      value.help.command.some((part) => part.includes("{tutorialWindow}"))) ||
+    (isCommand(value.cleanup) && value.cleanup.some((part) => part.includes("{tutorialWindow}")));
+  if (usesTutorialWindow || value.windowFromStep !== undefined) {
+    addStringError(errors, value.windowFromStep, `${path}.windowFromStep`);
+  }
   const isTour = value.kind === "tour";
-  if (value.kind !== undefined && !isTour) {
-    errors.push(`${path}.kind must be "tour" when present`);
+  const isPractice = value.kind === "practice";
+  if (value.kind !== undefined && !isTour && !isPractice) {
+    errors.push(`${path}.kind must be "tour" or "practice" when present`);
+  }
+  validateRelativePath(errors, value.audio, `${path}.audio`);
+  validateRelativePath(errors, value.completionAudio, `${path}.completionAudio`);
+  if (value.completionMessage !== undefined) {
+    addStringError(errors, value.completionMessage, `${path}.completionMessage`);
+  }
+  if (typeof value.completionAudio === "string" && typeof value.completionMessage !== "string") {
+    errors.push(`${path}.completionAudio requires a completionMessage to narrate`);
+  }
+  if (value.cleanup !== undefined) validateCommand(errors, value.cleanup, `${path}.cleanup`);
+  validateCompletion(errors, value.completion, `${path}.completion`);
+  validateHighlight(errors, value.highlight, `${path}.highlight`);
+  if (value.practice !== undefined && !isPractice) errors.push(`${path}.practice requires kind "practice"`);
+  if (isPractice) {
+    if (typeof value.practice !== "string" || !["app-search", "clipboard", "capture", "screen-lock", "compose", "screen-recording", "ocr", "qr", "dictation", "web-app", "transcode", "sharing"].includes(value.practice)) errors.push(`${path}.practice is not supported`);
+    if (!Array.isArray(value.keys) || value.keys.length !== 0) errors.push(`${path}.keys must be empty for practice`);
+    addStringError(errors, value.actionLabel, `${path}.actionLabel`);
+    if (value.help !== undefined || value.cleanup !== undefined || value.pose !== undefined || value.windowFromStep !== undefined || value.swapWithStep !== undefined || value.directionFromStep !== undefined) {
+      errors.push(`${path}: practice cannot define help, cleanup, pose or window targets`);
+    }
+    if (!isRecord(value.completion) || value.completion.type !== "practice-result") errors.push(`${path}.completion must be practice-result`);
+    else if (Object.keys(value.completion).some((key) => key !== "type")) errors.push(`${path}.completion may only define type for practice`);
+    return;
+  }
+  if (isRecord(value.completion) && value.completion.type === "practice-result") errors.push(`${path}.completion requires kind "practice"`);
+  const swapped = isRecord(value.completion) && isRecord(value.completion.windowState) && value.completion.windowState.swapped;
+  if (value.directionFromStep !== undefined) {
+    addStringError(errors, value.directionFromStep, `${path}.directionFromStep`);
+    if (value.swapWithStep !== undefined) errors.push(`${path}.directionFromStep cannot be combined with swapWithStep`);
+    if (!value.windowFromStep || value.directionFromStep === value.windowFromStep ||
+        !isRecord(value.completion) || value.completion.type !== "hyprland-event" ||
+        !isRecord(value.completion.windowState) || value.completion.windowState.focused !== true) {
+      errors.push(`${path}.directionFromStep requires distinct owned windows and focused verification`);
+    }
+  }
+  if ((value.directionFromStep !== undefined || value.swapWithStep !== undefined) &&
+      (!Array.isArray(value.keys) || value.keys.filter(key => ["LEFT", "RIGHT", "UP", "DOWN"].includes(key)).length !== 1)) {
+    errors.push(`${path}.keys must contain one arrow for a directional activity`);
+  }
+  if (value.swapWithStep !== undefined || swapped) {
+    addStringError(errors, value.swapWithStep, `${path}.swapWithStep`);
+    if (!swapped || !value.windowFromStep || value.swapWithStep === value.windowFromStep) errors.push(`${path}.swapWithStep requires two distinct owned window references and swapped verification`);
+  }
+  if (isRecord(value.help) && isCommand(value.help.command) && value.help.command.some((part) => part.includes("{peerWindow}")) && !value.swapWithStep) {
+    errors.push(`${path}.help.command requires swapWithStep for {peerWindow}`);
   }
   if (!isTour && value.pose !== undefined) {
     errors.push(`${path}.pose is only valid for tour steps`);
@@ -329,10 +474,6 @@ const validateStep = (
     if (!isRecord(value.completion) || value.completion.type !== "narration-complete") {
       errors.push(`${path}.completion.type must be "narration-complete" for tour steps`);
     }
-    validateRelativePath(errors, value.audio, `${path}.audio`);
-    if (value.cleanup !== undefined) validateCommand(errors, value.cleanup, `${path}.cleanup`);
-    validateCompletion(errors, value.completion, `${path}.completion`);
-    validateHighlight(errors, value.highlight, `${path}.highlight`);
     return;
   }
   if (!Array.isArray(value.keys) || !value.keys.every((key) => typeof key === "string" && key.trim().length > 0)) {
@@ -352,20 +493,9 @@ const validateStep = (
   if (value.actionLabel !== undefined) {
     addStringError(errors, value.actionLabel, `${path}.actionLabel`);
   }
-  validateRelativePath(errors, value.audio, `${path}.audio`);
   validateAction(errors, value.help, `${path}.help`);
-  if (value.cleanup !== undefined) validateCommand(errors, value.cleanup, `${path}.cleanup`);
-  validateCompletion(errors, value.completion, `${path}.completion`);
   if (isRecord(value.completion) && value.completion.type === "narration-complete") {
     errors.push(`${path}.completion.type "narration-complete" is only valid for tour steps`);
-  }
-  validateHighlight(errors, value.highlight, `${path}.highlight`);
-  if (value.completionMessage !== undefined) {
-    addStringError(errors, value.completionMessage, `${path}.completionMessage`);
-  }
-  validateRelativePath(errors, value.completionAudio, `${path}.completionAudio`);
-  if (typeof value.completionAudio === "string" && typeof value.completionMessage !== "string") {
-    errors.push(`${path}.completionAudio requires a completionMessage to narrate`);
   }
 };
 
@@ -377,6 +507,14 @@ export function validateCourse(value: unknown): string[] {
   addStringError(errors, value.id, "course.id");
   addStringError(errors, value.title, "course.title");
   addStringError(errors, value.description, "course.description");
+  if (value.referenceViewport !== undefined) {
+    if (!isRecord(value.referenceViewport)) {
+      errors.push("course.referenceViewport must be an object");
+    } else {
+      addPositiveNumberError(errors, value.referenceViewport.width, "course.referenceViewport.width");
+      addPositiveNumberError(errors, value.referenceViewport.height, "course.referenceViewport.height");
+    }
+  }
 
   if (!Array.isArray(value.lessons) || value.lessons.length === 0) {
     errors.push("course.lessons must be a non-empty array");
@@ -397,15 +535,32 @@ export function validateCourse(value: unknown): string[] {
     }
     addStringError(errors, lesson.title, `${path}.title`);
     addStringError(errors, lesson.description, `${path}.description`);
+    if (lesson.optional !== undefined && typeof lesson.optional !== "boolean") errors.push(`${path}.optional must be a boolean`);
     addStringError(errors, lesson.icon, `${path}.icon`);
     addPositiveNumberError(errors, lesson.estimatedMinutes, `${path}.estimatedMinutes`);
     if (!Array.isArray(lesson.steps) || lesson.steps.length === 0) {
       errors.push(`${path}.steps must be a non-empty array`);
       return;
     }
-    lesson.steps.forEach((step, stepIndex) =>
-      validateStep(errors, step, `${path}.steps[${stepIndex}]`, seenStepIds),
-    );
+    const launchSteps = new Set<string>();
+    lesson.steps.forEach((step, stepIndex) => {
+      const stepPath = `${path}.steps[${stepIndex}]`;
+      validateStep(errors, step, stepPath, seenStepIds);
+      if (!isRecord(step)) return;
+      if (typeof step.windowFromStep === "string" && !launchSteps.has(step.windowFromStep)) {
+        errors.push(`${stepPath}.windowFromStep must reference an earlier window-launch step in the same lesson`);
+      }
+      if (typeof step.swapWithStep === "string" && !launchSteps.has(step.swapWithStep)) {
+        errors.push(`${stepPath}.swapWithStep must reference an earlier window-launch step in the same lesson`);
+      }
+      if (typeof step.directionFromStep === "string" && !launchSteps.has(step.directionFromStep)) {
+        errors.push(`${stepPath}.directionFromStep must reference an earlier window-launch step in the same lesson`);
+      }
+      if (typeof step.id === "string" && isRecord(step.completion) &&
+          step.completion.type === "hyprland-window-activated") {
+        launchSteps.add(step.id);
+      }
+    });
   });
 
   return errors;
