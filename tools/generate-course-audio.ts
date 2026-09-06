@@ -2,8 +2,10 @@
 
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { parseCourseJson } from "../src/course.ts";
+import { defaultUserPackRoot, discoverCharacterPacks } from "../src/character-packs.ts";
 import {
   ffmpegVersion, fileHash, fingerprint, generationIsFresh, normalizationIsFresh,
   normalizeAudio, prepareSpeech, productionOptions, readManifest, sha256, stagePath, writeManifest,
@@ -15,10 +17,9 @@ import type { GenerationSpec } from "./audio-production.ts";
 //
 // Narration is recorded once per coach: "audio/x.mp3" in the course is written
 // to audio/<character>/x.mp3, "HEXON" in the text becomes the coach's display
-// name, and the voice is LEARN_OMARCHY_TTS_VOICE when set, otherwise "voice"
-// (Azure) or "edgeVoice" (Edge) from the coach's character.json, otherwise a
-// backend default. Without --character every coach in
-// assets/characters/index.json is generated.
+// name, and the voice is LEARN_OMARCHY_TTS_VOICE when set, otherwise the
+// backend's entry in character.json's narration.voices. Without --character,
+// only bundled packs with their own narration are generated.
 //
 // --match regenerates only narration whose spoken text contains TEXT (case
 // insensitive), e.g. --match Omarchy after changing its pronunciation.
@@ -42,7 +43,7 @@ if (args.includes("--steps") && (!stepFilter || stepFilter.startsWith("--"))) {
   throw new Error("--steps requires comma-separated activity IDs");
 }
 const selectedSteps = stepFilter === undefined ? null : new Set(stepFilter.split(",").map(id => id.trim()));
-const charactersDir = resolve(dirname(coursePath), "..", "assets", "characters");
+const charactersDir = fileURLToPath(new URL("../assets/characters", import.meta.url));
 const backend = readFlag("--backend") ?? process.env.LEARN_OMARCHY_TTS_BACKEND ?? "edge";
 const envFile = readFlag("--env-file") ?? resolve(process.env.HOME ?? "", ".env");
 if (backend !== "edge" && backend !== "azure") throw new Error(`Unknown speech backend: ${backend}`);
@@ -97,29 +98,25 @@ const pronunciations: Record<string, string> = {
   Omarchy: process.env.LEARN_OMARCHY_PRONUNCIATION ?? "Omaachi",
 };
 
-// Manifest voices are backend-specific: "voice" names an Azure voice and
-// "edgeVoice" an Edge TTS voice. LEARN_OMARCHY_TTS_VOICE always wins.
 type Character = { id: string; displayName: string; voice?: string; edgeVoice?: string };
 
 async function loadCharacters(): Promise<Character[]> {
-  const index = JSON.parse(await readFile(resolve(charactersDir, "index.json"), "utf8")) as {
-    characters?: Array<{ id?: string; displayName?: string }>;
-  };
+  const userRoot = onlyCharacter ? defaultUserPackRoot() : undefined;
+  const discovery = await discoverCharacterPacks({ bundledRoot: charactersDir, userRoot });
+  for (const diagnostic of discovery.diagnostics) console.warn(diagnostic);
   const characters: Character[] = [];
-  for (const entry of index.characters ?? []) {
-    if (typeof entry.id !== "string") continue;
-    if (onlyCharacter && entry.id !== onlyCharacter) continue;
-    let manifest: { displayName?: string; voice?: string; edgeVoice?: string } = {};
-    try {
-      manifest = JSON.parse(await readFile(resolve(charactersDir, entry.id, "character.json"), "utf8"));
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+  for (const pack of discovery.packs) {
+    if (onlyCharacter && pack.id !== onlyCharacter) continue;
+    const narration = pack.manifest.narration;
+    if (narration.mode !== "own") {
+      if (onlyCharacter) throw new Error(`Pack "${pack.id}" uses ${narration.mode} narration; it doesn't need generated recordings`);
+      continue;
     }
     characters.push({
-      id: entry.id,
-      displayName: manifest.displayName ?? entry.displayName ?? entry.id.toUpperCase(),
-      voice: manifest.voice,
-      edgeVoice: manifest.edgeVoice,
+      id: pack.id,
+      displayName: pack.manifest.displayName,
+      voice: narration.voices?.azure,
+      edgeVoice: narration.voices?.edge,
     });
   }
   if (characters.length === 0) throw new Error(`No characters found under ${charactersDir}${onlyCharacter ? ` matching ${onlyCharacter}` : ""}`);

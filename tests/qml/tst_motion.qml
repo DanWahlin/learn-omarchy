@@ -23,7 +23,7 @@ Item {
       verify(timing !== null && update !== null && behaviors.length > 0)
       harness.fixture = Qt.createQmlObject(
         "import QtQuick\nItem { id: root; width: 2000; height: 1200\n"
-        + "property bool reducedMotion: false\nproperty bool introActive: false\n"
+        + "property bool reducedMotion: false\nproperty bool introDeparting: false\n"
         + "property string characterState: 'tour-fly'\nproperty int characterTravelDuration: 900\n"
         + "property alias coach: hexonCoach\n"
         + timing[0]
@@ -31,23 +31,26 @@ Item {
         + "Item { id: fallAnimation; property bool running: false }\n"
         + "Item { id: hexonCoach; width: 100; height: 100\n"
         + "property real contextX: 0\nproperty real contextY: 0\n"
-        + "property bool isFlying: true\nproperty bool uprightFlight: true\nproperty real flightBank: 0\n"
-        + "x: contextX; y: contextY\n"
+        + "property bool userPlaced: false\nproperty real userX: 0\nproperty real userY: 0\n"
+        + "property bool isFlying: true\nproperty bool uprightFlight: true\nproperty bool targetsIntro: false\nproperty real flightBank: 0\n"
+        + "x: userPlaced ? userX : contextX; y: userPlaced ? userY : contextY\n"
         + update[0] + "\n" + behaviors + "\n} }", harness)
     }
 
     function init() {
       failOnWarning(/.*/)
       fixture.reducedMotion = true
+      fixture.coach.userPlaced = false
       fixture.coach.contextX = 0
       fixture.coach.contextY = 0
-      fixture.introActive = false
+      fixture.introDeparting = false
+      fixture.coach.targetsIntro = false
       wait(20)
       fixture.reducedMotion = false
     }
 
     function test_firstAscentUsesItsOwnTimingBeforeMotionStarts() {
-      fixture.introActive = true
+      fixture.introDeparting = true
       fixture.coach.contextY = 1000
       compare(fixture.characterTravelDuration, 1350)
       compare(fixture.coach.flightBank, 0)
@@ -71,6 +74,37 @@ Item {
       compare(fixture.coach.y, 1000)
       compare(fixture.characterTravelDuration, 0)
       compare(fixture.coach.flightBank, 0)
+    }
+
+    function test_introPlayerCoordinatesAreNotInterpolatedTwice() {
+      fixture.coach.targetsIntro = true
+      fixture.coach.contextX = 400
+      fixture.coach.contextY = 700
+      compare(fixture.coach.x, 400)
+      compare(fixture.coach.y, 700)
+    }
+
+    function test_introHandoffPinsLastPositionThenUsesSlowerTourFlight() {
+      fixture.coach.targetsIntro = true
+      fixture.coach.contextX = 300
+      fixture.coach.contextY = 700
+      fixture.coach.userX = fixture.coach.x
+      fixture.coach.userY = fixture.coach.y
+      fixture.coach.userPlaced = true
+      fixture.introDeparting = true
+      fixture.coach.targetsIntro = false
+      fixture.coach.contextX = 900
+      fixture.coach.contextY = 300
+      wait(20)
+      compare(fixture.coach.x, 300)
+      compare(fixture.coach.y, 700)
+      fixture.coach.userPlaced = false
+      compare(fixture.characterTravelDuration, fixture.travelDurationForDistance(Math.sqrt(600 * 600 + 400 * 400), true))
+      wait(250)
+      verify(fixture.coach.x > 300 && fixture.coach.x < 900)
+      verify(fixture.coach.y < 700 && fixture.coach.y > 300)
+      tryCompare(fixture.coach, "x", 900, 1300)
+      tryCompare(fixture.coach, "y", 300, 1300)
     }
 
     function test_bankFollowsTravelAndLevelsOnArrival() {

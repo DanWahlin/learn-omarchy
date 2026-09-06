@@ -16,39 +16,60 @@ ShellRoot {
   readonly property string courseDir: Quickshell.env("LEARN_OMARCHY_COURSE_DIR") || (appRoot + "/courses")
   readonly property string characterOverride: String(Quickshell.env("LEARN_OMARCHY_CHARACTER") || "").toLowerCase()
   readonly property string settingsPath: stateHome + "/learn-omarchy/settings.json"
-  property string characterName: characterOverride !== "" ? characterOverride : "hexon"
+  property string requestedCharacter: characterOverride
+  readonly property var resolvedPack: characterStore.selectedPack
+  readonly property string characterName: resolvedPack ? resolvedPack.id : ""
   property string savedCharacter: ""
   property bool settingsResolved: false
   property bool progressResolved: false
   // Set once the tour has been opened automatically, so a skipped tour is not
   // forced again; completion itself lives in the progress file like any lesson.
   property bool tourSeen: false
-  property var characterIndex: []
+  readonly property var characterIndex: characterStore.packs
   property int characterPick: 0
   // "first-run" asks for a coach and proceeds on pick; "settings" stays open.
   property string settingsMode: "settings"
   property bool resetConfirmPending: false
   property bool resetJustDone: false
-  readonly property string characterAssetRoot: appRoot + "/assets/characters/" + characterName
-  // Per-character presentation from assets/characters/<name>/character.json.
-  property var characterConfig: ({})
-  readonly property string characterDisplayName: String(characterConfig.displayName || characterName.toUpperCase())
-  readonly property bool characterFlames: characterConfig.flames !== false
-  // Opening scene played when the tour starts: "rocket" lands and the coach
-  // steps out of the hatch, or "tree" grows and the coach takes off from a
-  // branch. Sprites are <prefix>-intro.png (plus -intro-open.png for the open
-  // hatch); anchorX/anchorY give the doorway floor or the perch as fractions
-  // of the sprite.
-  readonly property var introConfig: characterConfig.intro && typeof characterConfig.intro === "object" ? characterConfig.intro : ({})
-  readonly property string introKind: String(introConfig.kind || (characterFlames ? "rocket" : "tree"))
-  readonly property real introAnchorX: Number(introConfig.anchorX) > 0 ? Number(introConfig.anchorX) : (introKind === "rocket" ? 0.5 : 0.84)
-  readonly property real introAnchorY: Number(introConfig.anchorY) > 0 ? Number(introConfig.anchorY) : (introKind === "rocket" ? 0.7 : 0.63)
+  readonly property string characterAssetRoot: resolvedPack ? resolvedPack.assetUrl : ""
+  readonly property var characterConfig: resolvedPack ? resolvedPack.manifest : ({})
+  readonly property string characterDisplayName: String(characterConfig.displayName || "Coach")
+  readonly property bool characterFlames: Boolean(characterConfig.effects && characterConfig.effects.thrusters)
+  readonly property string characterNotice: characterStore.notice
+  property string introNotice: ""
+  Component.onDestruction: {
+    cancelIntro()
+    stopAudio()
+    runCleanup()
+  }
 
-  // One expression per path so a coach switch never mixes the new folder
-  // with the previous manifest's sprite prefix mid-update.
-  function spriteSource(kind) {
-    var prefix = characterConfig.prefix ? String(characterConfig.prefix) : characterName
-    return appRoot + "/assets/characters/" + characterName + "/sprites/" + prefix + "-" + kind + ".png"
+  CharacterPackStore {
+    id: characterStore
+    appRoot: root.appRoot
+    requestedId: root.requestedCharacter
+    onReadyChanged: if (ready) root.characterPacksReady()
+    onPacksChanged: if (ready) root.characterPacksReady()
+    onSelectedPackChanged: root.syncCharacterPick()
+  }
+
+  function characterPacksReady() {
+    syncCharacterPick()
+    if (!characterStore.selectedPack) {
+      if (settingsResolved && phase !== "loading" && phase !== "settings")
+        openSettings(characterChosen() ? "settings" : "first-run")
+      return
+    }
+    if (settingsResolved && characterChosen()) maybeAutoStartTour()
+  }
+
+  function refreshCharacters() {
+    if (phase === "waiting" || phase === "highlight") {
+      if (!pauseLesson()) return false
+    }
+    cancelIntro()
+    stopAudio()
+    characterStore.refresh()
+    return true
   }
 
   function colorLuminance(value) {
@@ -77,23 +98,11 @@ ShellRoot {
   }
 
   function characterText(text) {
-    return String(text || "").replace(/HEXON/g, characterDisplayName)
+    return String(text || "").replace(/HEXON/g, function() { return characterDisplayName })
   }
 
   function characterChosen() {
     return characterOverride !== "" || savedCharacter !== ""
-  }
-
-  function loadCharacterIndex(raw) {
-    try {
-      var parsed = JSON.parse(String(raw || "{}"))
-      var list = parsed && Array.isArray(parsed.characters) ? parsed.characters : []
-      characterIndex = list.filter(function(entry) { return entry && typeof entry.id === "string" })
-    } catch (error) {
-      console.warn("learn-omarchy: character index couldn't be parsed:", error)
-      characterIndex = []
-    }
-    syncCharacterPick()
   }
 
   function syncCharacterPick() {
@@ -154,7 +163,8 @@ ShellRoot {
   // when progress is known, the tour was never completed, and it was never
   // auto-opened before.
   function maybeAutoStartTour() {
-    if (!course || !settingsResolved || !progressResolved || tourSeen) return false
+    if (!course || !settingsResolved || !progressResolved || !characterStore.ready ||
+        !characterStore.selectedPack || tourSeen) return false
     if (phase !== "menu" || lessonIndex >= 0 || course.lessons.length === 0) return false
     if (completedLessons[course.lessons[0].id]) return false
     tourSeen = true
@@ -165,6 +175,10 @@ ShellRoot {
 
   function enterHome() {
     phase = "menu"
+    if (characterStore.ready && !characterStore.selectedPack) {
+      openSettings(characterChosen() ? "settings" : "first-run")
+      return
+    }
     selectedLessonIndex = firstIncompleteLessonIndex()
     setCharacterState("menu-point", "CHOOSE A LESSON")
     maybeAutoStartTour()
@@ -172,16 +186,25 @@ ShellRoot {
 
   function applyCharacter(id) {
     var next = String(id || "").toLowerCase()
-    if (next === "" || next === characterName) return
-    characterConfig = {}
-    characterName = next
-    characterFile.reload()
+    if (next === "") return false
+    if (next === requestedCharacter) return true
+    if (phase === "waiting" || phase === "highlight") {
+      if (!pauseLesson()) return false
+    }
+    cancelIntro()
+    stopAudio()
+    introNotice = ""
+    requestedCharacter = next
+    characterStore.select(next)
     syncCharacterPick()
+    return true
   }
 
   function chooseCharacter(id) {
-    applyCharacter(id)
-    savedCharacter = characterName
+    var next = String(id || "").toLowerCase()
+    if (!characterStore.ready || !characterIndex.some(function(pack) { return pack.id === next })) return
+    if (!applyCharacter(next)) return
+    savedCharacter = next
     persistSettings()
     if (phase === "settings" && settingsMode === "first-run") enterHome()
   }
@@ -207,6 +230,10 @@ ShellRoot {
 
   function closeSettings() {
     if (phase !== "settings") return
+    if (!characterStore.ready || !characterStore.selectedPack) {
+      if (settingsMode === "first-run") Qt.quit()
+      return
+    }
     resetConfirmPending = false
     var resumeLesson = settingsReturnToLesson && currentLesson && currentStep
     settingsReturnToLesson = false
@@ -267,15 +294,6 @@ ShellRoot {
     characterPick = Math.max(0, Math.min(characterIndex.length - 1, characterPick + delta))
   }
 
-  function loadCharacterConfig(raw) {
-    try {
-      var parsed = JSON.parse(String(raw || "{}"))
-      characterConfig = parsed && typeof parsed === "object" ? parsed : {}
-    } catch (error) {
-      console.warn("learn-omarchy: character manifest couldn't be parsed:", error)
-      characterConfig = {}
-    }
-  }
   readonly property string progressPath: stateHome + "/learn-omarchy/progress.json"
   readonly property string themePath: stateHome + "/omarchy/current/theme"
   readonly property string themeNamePath: stateHome + "/omarchy/current/theme.name"
@@ -709,6 +727,7 @@ ShellRoot {
       id: buttonLabel
       anchors.centerIn: parent
       text: button.label
+      textFormat: Text.PlainText
       color: button.primary ? root.background : root.foreground
       font.family: "monospace"
       font.pixelSize: (button.compact ? 11 : 12) * root.textScale
@@ -739,6 +758,7 @@ ShellRoot {
         id: hintText
         anchors.centerIn: parent
         text: button.description
+        textFormat: Text.PlainText
         color: root.foreground
         font.pixelSize: 12
       }
@@ -759,6 +779,7 @@ ShellRoot {
     Text {
       Layout.fillWidth: true
       text: preference.label + ": " + preference.displayValue
+      textFormat: Text.PlainText
       color: root.foreground
       font.pixelSize: 13 * root.textScale
       wrapMode: Text.WordWrap
@@ -1156,96 +1177,73 @@ ShellRoot {
     characterReactionTimer.restart()
   }
 
-  // The tour's opening scene. startLesson asks for it; the first tour step
-  // plays it before the coach flies to the welcome stop. Stages: "arrive"
-  // (rocket descends / tree grows), "reveal" (coach appears), "exit" (coach
-  // steps out of the rocket), "launch" (coach takes off, scene fades).
   property bool introRequested: false
   property bool introActive: false
-  property string introStage: ""
-  // Descent and liftoff share this duration so the ship leaves as it arrived.
-  readonly property int introRocketTravelMs: 1600
-  // Fades the instruction panel away while the scene owns the bottom of the screen.
+  property int introGeneration: 0
+  property bool introPlaybackStarted: false
+  property bool introDeparting: false
+  signal introPlaybackRequested(int generation)
+  signal introCancellationRequested(bool keepPosition)
+  signal introHandoffRequested(int generation)
+  signal introReleaseRequested()
   property real introPanelOpacity: introActive ? 0 : 1
 
   function startIntro() {
+    if (!characterStore.ready || !characterStore.selectedPack) return
+    cancelIntro()
+    stopAudio()
+    introNotice = ""
+    introActive = true
     setCharacterState("intro", "")
-    // The layer surface can still be settling its size right after launch;
-    // give it a moment so the landing spot is measured against the final height.
     introStartTimer.restart()
   }
 
   function beginIntroScene() {
-    if (phase !== "waiting" || !currentStepIsTour || characterState !== "intro") return
-    introActive = true
-    introStage = "arrive"
-    introTimer.interval = introKind === "rocket" ? 2000 : 1100
-    introTimer.restart()
+    if (!introActive || phase !== "waiting" || !currentStepIsTour || characterState !== "intro") return
+    introStartTimer.stop()
+    introPlaybackRequested(introGeneration)
   }
 
-  function cancelIntro() {
+  function cancelIntro(keepRequested, keepPosition) {
+    // Invalidate callbacks before cancelling players: cancellation emits synchronously.
+    introGeneration++
     introStartTimer.stop()
-    introTimer.stop()
-    introLandTimer.stop()
-    introRequested = false
+    if (!keepRequested) introRequested = false
     introActive = false
-    introStage = ""
+    introPlaybackStarted = false
+    introDeparting = false
+    introCancellationRequested(Boolean(keepPosition))
+    if (sfxProcess.running) sfxProcess.running = false
   }
 
   function skipIntroScene() {
     if (phase !== "waiting" || (!introActive && characterState !== "intro")) return
-    cancelIntro()
-    startCharacterStep()
+    finishIntro(introGeneration)
   }
 
-  function advanceIntro() {
-    if (!introActive || phase !== "waiting" || !currentStepIsTour) {
-      cancelIntro()
-      return
+  function finishIntro(generation, message) {
+    if (generation !== introGeneration || !introActive || phase !== "waiting" || !currentStepIsTour) return
+    if (message) {
+      introNotice = String(message)
+      console.warn("learn-omarchy: intro:", message)
     }
-    if (introStage === "arrive") {
-      introStage = "reveal"
-      setCharacterState("intro-stand", "HELLO!")
-      introTimer.interval = introKind === "rocket" ? 800 : 1500
-    } else if (introStage === "reveal" && introKind === "rocket") {
-      // Fly out of the hatch and land beside the pad.
-      introStage = "exit"
-      setCharacterState("intro-exit", "")
-      introLandTimer.restart()
-      introTimer.interval = 1600
-    } else if (introStage === "reveal" || introStage === "exit") {
-      // Rocket: the ship lifts off at the pace it came in while the coach
-      // watches from beside the pad, so he never crosses its path.
-      // Tree: the coach takes off straight away.
-      introStage = "launch"
-      if (introKind === "rocket") {
-        introTimer.interval = introRocketTravelMs + 150
-      } else {
-        setCharacterState("tour-fly", "FOLLOW ME")
-        characterTourArrivalTimer.restart()
-        introTimer.interval = 950
-      }
-    } else if (introStage === "launch") {
-      // Ship gone: now the coach heads for the welcome stop as the scene fades.
-      introStage = "clear"
-      if (introKind === "rocket") {
-        setCharacterState("tour-fly", "FOLLOW ME")
-        characterTourArrivalTimer.restart()
-      }
-      introTimer.interval = 650
-    } else {
-      introActive = false
-      introStage = ""
-      // The coach has been waiting at the welcome stop; now he can talk.
-      if (characterState === tourRestingState) beginTourNarration()
-      return
-    }
-    introTimer.restart()
+    introHandoffRequested(generation)
+    cancelIntro(false, true)
+    introDeparting = true
+    var nextGeneration = introGeneration
+    // Keep the last body position pinned until normal travel bindings are enabled.
+    setCharacterState(reducedMotion ? tourRestingState : "tour-fly", reducedMotion ? tourRestingMessage : "FOLLOW ME")
+    Qt.callLater(function() {
+      if (introGeneration !== nextGeneration || phase !== "waiting" || !currentStepIsTour) return
+      introReleaseRequested()
+      if (reducedMotion) beginTourNarration()
+      else characterTourArrivalTimer.restart()
+    })
   }
 
   function startCharacterStep() {
     if (currentStepIsTour) {
-      if (introRequested && !reducedMotion) {
+      if (introRequested) {
         introRequested = false
         startIntro()
         return
@@ -1292,7 +1290,9 @@ ShellRoot {
   }
 
   function beginTourNarration() {
-    if (phase !== "waiting" || !currentStepIsTour) return
+    if (phase !== "waiting" || !currentStepIsTour || introActive) return
+    if (introDeparting && characterState !== tourRestingState) return
+    introDeparting = false
     if (narrationEnabled && currentAudioPath() !== "") {
       playCurrentAudio(true)
       return
@@ -2130,7 +2130,8 @@ ShellRoot {
   }
 
   function startLesson(index, practice, resume) {
-    if (!course || index < 0 || index >= course.lessons.length) return
+    if (!course || !characterStore.ready || !characterStore.selectedPack ||
+        index < 0 || index >= course.lessons.length) return
     resetLessonRuntime()
     selectedLessonIndex = index
     lessonIndex = index
@@ -2235,11 +2236,7 @@ ShellRoot {
     characterTourArrivalTimer.stop()
     tourAdvanceTimer.stop()
     workspaceCompletionTimer.stop()
-    introStartTimer.stop()
-    introTimer.stop()
-    introLandTimer.stop()
-    introActive = false
-    introStage = ""
+    cancelIntro(true)
     actionRunning = false
     pendingStepAction = false
     pendingActionStepId = ""
@@ -2356,6 +2353,10 @@ ShellRoot {
   }
 
   function skipCurrentStep() {
+    if (introActive) {
+      skipIntroScene()
+      return
+    }
     if (!currentLesson || !currentStep || lessonTransitionRunning) return
     cancelAction()
     stopAudio()
@@ -2400,23 +2401,12 @@ ShellRoot {
     beginLessonTransition("lesson-complete")
   }
 
-  // Narration is recorded per coach (it says the coach's name and uses the
-  // coach's voice): "audio/x.mp3" in the course resolves to
-  // "audio/<character>/x.mp3" under the course directory.
-  function characterAudioPath(relative) {
-    if (!relative) return ""
-    var slash = String(relative).lastIndexOf("/")
-    var dir = slash === -1 ? "" : String(relative).substring(0, slash + 1)
-    var file = slash === -1 ? String(relative) : String(relative).substring(slash + 1)
-    return courseDir + "/" + dir + characterName + "/" + file
-  }
-
   function currentAudioPath() {
-    return currentStep && currentStep.audio ? characterAudioPath(currentStep.audio) : ""
+    return currentStep ? characterStore.audioPath(currentStep.audio, currentStep.instruction, courseDir) : ""
   }
 
   function completionAudioPath() {
-    return currentStep && currentStep.completionAudio ? characterAudioPath(currentStep.completionAudio) : ""
+    return currentStep ? characterStore.audioPath(currentStep.completionAudio, currentStep.completionMessage, courseDir) : ""
   }
 
   function recordAudioPlayback(event, path, exitCode) {
@@ -2445,7 +2435,8 @@ ShellRoot {
   function finishCompletionNarration() {
     completionNarrationDone = true
     var minimumDwell = Math.max(2200, Number(currentStep && currentStep.highlight.durationMs || 0))
-    if (!narrationEnabled && currentStep) minimumDwell = Math.max(minimumDwell, readingDuration(currentStep.completionMessage))
+    if ((!narrationEnabled || completionAudioPath() === "") && currentStep)
+      minimumDwell = Math.max(minimumDwell, readingDuration(currentStep.completionMessage))
     scheduleCompletionAdvance(Math.max(narrationRestMs, minimumDwell - (Date.now() - highlightStartedAt)))
   }
 
@@ -2465,7 +2456,8 @@ ShellRoot {
   }
 
   function startAudioPath(path, preserveCharacterState) {
-    if (!narrationEnabled || path === "" || (phase !== "waiting" && phase !== "highlight")) return
+    if (!narrationEnabled || introActive || (introDeparting && characterState !== tourRestingState) ||
+        path === "" || (phase !== "waiting" && phase !== "highlight")) return
     if (path !== currentAudioPath() && path !== completionAudioPath()) return
     if (path === completionAudioPath() && path !== currentAudioPath()) {
       if (phase !== "highlight") return
@@ -2518,12 +2510,12 @@ ShellRoot {
     audioEnabled = !audioEnabled
     persistSettings()
     if (audioEnabled) {
-      if (!speechEnabled) return
+      if (!speechEnabled || introActive) return
       if (phase === "highlight") {
         playCompletionNarration()
       } else if (currentStepIsTour) {
         tourAdvanceTimer.stop()
-        playCurrentAudio(true)
+        beginTourNarration()
       } else {
         playCurrentAudio()
       }
@@ -2533,14 +2525,14 @@ ShellRoot {
     stopAudio()
     if (sfxProcess.running) sfxProcess.running = false
     if (phase === "highlight") finishCompletionNarration()
-    if (autoAdvance && currentStepIsTour && !wasPlayingTour && phase === "waiting" && !tourAdvanceTimer.running) {
+    if (autoAdvance && currentStepIsTour && !introActive && !introDeparting && !wasPlayingTour && phase === "waiting" && !tourAdvanceTimer.running) {
       tourAdvanceTimer.interval = tourFallbackDuration()
       tourAdvanceTimer.restart()
     }
   }
 
   function replayCurrentAudio() {
-    if (!currentStep || !currentStep.audio) return
+    if (!currentStep || currentAudioPath() === "" || introActive) return
     audioEnabled = true
     speechEnabled = true
     persistSettings()
@@ -2941,22 +2933,6 @@ ShellRoot {
   }
 
   FileView {
-    id: characterFile
-    path: root.characterAssetRoot + "/character.json"
-    printErrors: false
-    onLoaded: root.loadCharacterConfig(text())
-    onLoadFailed: console.warn("learn-omarchy: no character manifest at", path, "- using HEXON defaults")
-  }
-
-  FileView {
-    id: characterIndexFile
-    path: root.appRoot + "/assets/characters/index.json"
-    printErrors: false
-    onLoaded: root.loadCharacterIndex(text())
-    onLoadFailed: console.warn("learn-omarchy: no character index at", path)
-  }
-
-  FileView {
     id: settingsFile
     path: root.settingsPath
     atomicWrites: true
@@ -3012,6 +2988,12 @@ ShellRoot {
       return JSON.stringify({
         phase: root.phase,
         character: root.characterName,
+        requestedCharacter: root.requestedCharacter,
+        characterPacksReady: characterStore.ready,
+        characterNotice: root.characterNotice,
+        introActive: root.introActive,
+        introGeneration: root.introGeneration,
+        introNotice: root.introNotice,
         settingsPath: root.settingsPath,
         lessonIndex: root.lessonIndex,
         selectedLessonIndex: root.selectedLessonIndex,
@@ -3126,6 +3108,10 @@ ShellRoot {
       return root.characterName
     }
 
+    function refreshCoaches(): string {
+      return root.refreshCharacters() ? "refreshing" : "busy"
+    }
+
     function target(): string {
       if (root.phase !== "waiting" || !root.currentStep) return "not-waiting"
       root.completeCurrentStep()
@@ -3134,22 +3120,29 @@ ShellRoot {
 
     function skip(): string {
       if (root.phase !== "waiting" || !root.currentStep) return "not-waiting"
-      root.skipCurrentStep()
+      if (root.introActive) root.skipIntroScene()
+      else root.skipCurrentStep()
       return "ok"
     }
   }
 
-  // Short sound effects (booster rumble for the rocket scene). Independent of
+  // Application sound effects are independent of
   // narration so the two never interrupt each other; muted with the speaker.
   Process {
     id: sfxProcess
   }
 
   function playSound(name) {
-    if (!audioEnabled || !effectsEnabled || reducedMotion || phase === "paused" || phase === "settings") return
+    if (!audioEnabled || !effectsEnabled || effectsVolume <= 0 || reducedMotion || phase === "paused" || phase === "settings") return
     if (sfxProcess.running) sfxProcess.running = false
     sfxProcess.command = ["mpv", "--no-video", "--really-quiet", "--volume=" + effectsVolume, "--", appRoot + "/assets/sounds/" + name]
     sfxProcess.running = true
+  }
+
+  function playIntroSound(id, generation) {
+    if (!introActive || generation !== introGeneration || phase !== "waiting") return
+    if (["rocket-land.opus", "rocket-liftoff.opus"].indexOf(id) < 0) return
+    playSound(id)
   }
 
   Process {
@@ -3579,19 +3572,6 @@ ShellRoot {
     onTriggered: root.beginIntroScene()
   }
 
-  Timer {
-    id: introTimer
-    repeat: false
-    onTriggered: root.advanceIntro()
-  }
-
-  Timer {
-    id: introLandTimer
-    interval: root.characterTravelDuration + 120
-    repeat: false
-    onTriggered: if (root.characterState === "intro-exit") root.setCharacterState("intro-land", "")
-  }
-
   Behavior on introPanelOpacity {
     NumberAnimation { duration: root.reducedMotion ? 0 : 450; easing.type: Easing.InOutSine }
   }
@@ -3704,7 +3684,7 @@ ShellRoot {
         root.settleCharacter()
       } else if (root.phase === "waiting" && root.characterState === "tour-settle") {
         root.setCharacterState(root.tourRestingState, root.tourRestingMessage)
-        // During the opening scene the narration waits for the ship to leave.
+        root.introDeparting = false
         if (!root.introActive) root.beginTourNarration()
       } else if (root.phase === "waiting" && root.characterState === "help-settle") {
         root.setCharacterState("help", "RIGHT HERE")
@@ -3899,6 +3879,7 @@ ShellRoot {
           Region { item: topicPanel }
           Region { item: keyboardHint }
           Region { item: characterPanel }
+          Region { item: packNoticePanel }
           Region { item: teachingContent }
           Region { item: controls }
           Region { item: completionPanel }
@@ -3988,9 +3969,39 @@ ShellRoot {
           anchors.fill: parent
           visible: opacity > 0
           color: root.background
-          opacity: root.introActive && root.introStage !== "clear" ? 0.6 : 0
+          opacity: root.introActive ? 0.6 : 0
           Behavior on opacity {
             NumberAnimation { duration: 600; easing.type: Easing.InOutSine }
+          }
+        }
+
+        UiPanel {
+          id: packNoticePanel
+          visible: root.phase !== "settings" && root.phase !== "loading" &&
+            (root.characterNotice !== "" || root.introNotice !== "")
+          anchors.horizontalCenter: parent.horizontalCenter
+          y: 44
+          width: Math.min(680, parent.width - 48)
+          height: packNoticeContent.implicitHeight + 24
+          z: 30
+          stripe: root.instruction
+          ColumnLayout {
+            id: packNoticeContent
+            anchors.fill: parent
+            anchors.margins: 12
+            Text {
+              Layout.fillWidth: true
+              text: root.characterNotice || root.introNotice
+              textFormat: Text.PlainText
+              color: root.foreground
+              wrapMode: Text.WordWrap
+              font.pixelSize: 13 * root.textScale
+            }
+            UiButton {
+              compact: true
+              label: "COACH SETTINGS"
+              onClicked: root.openSettings("settings")
+            }
           }
         }
 
@@ -4082,6 +4093,30 @@ ShellRoot {
                   font.weight: Font.Bold
                 }
 
+                Text {
+                  Layout.fillWidth: true
+                  visible: text !== ""
+                  text: [root.characterNotice, root.introNotice, characterStore.narrationNotice].filter(function(value) { return value }).join("\n")
+                  textFormat: Text.PlainText
+                  color: root.instruction
+                  wrapMode: Text.WordWrap
+                  font.pixelSize: 13 * root.textScale
+                }
+                Text {
+                  Layout.fillWidth: true
+                  visible: text !== ""
+                  text: characterStore.diagnostics.map(function(item) { return item.message || String(item) }).join("\n")
+                  textFormat: Text.PlainText
+                  color: root.muted
+                  wrapMode: Text.WordWrap
+                  font.pixelSize: 12 * root.textScale
+                }
+                UiButton {
+                  label: "REFRESH COACHES"
+                  compact: true
+                  onClicked: root.refreshCharacters()
+                }
+
                 GridLayout {
                   Layout.fillWidth: true
                   columns: characterColumn.width < 640 ? 1 : 2
@@ -4098,6 +4133,8 @@ ShellRoot {
                       required property var modelData
                       readonly property bool selected: index === root.characterPick
                       readonly property bool active: modelData.id === root.characterName
+                      readonly property var preview: modelData.manifest.preview
+                      readonly property var previewSprite: modelData.manifest.sprites[preview.sprite]
 
                       Layout.fillWidth: true
                       Layout.minimumWidth: 0
@@ -4125,8 +4162,9 @@ ShellRoot {
                             anchors.centerIn: parent
                             width: parent.width
                             height: parent.height
-                            source: root.appRoot + "/assets/characters/" + characterCard.modelData.id + "/sprites/" + characterCard.modelData.id + "-idle.png"
-                            sourceClipRect: Qt.rect(0, 0, 192, 192)
+                            source: characterCard.modelData.assetUrl + "/" + characterCard.previewSprite.path
+                            sourceClipRect: Qt.rect(characterCard.preview.frame * characterCard.previewSprite.frameWidth,
+                              0, characterCard.previewSprite.frameWidth, characterCard.previewSprite.frameHeight)
                             fillMode: Image.PreserveAspectFit
                             smooth: false
                             mipmap: false
@@ -4141,7 +4179,8 @@ ShellRoot {
                           Text {
                             Layout.fillWidth: true
                             horizontalAlignment: root.settingsMode === "first-run" ? Text.AlignHCenter : Text.AlignLeft
-                            text: characterCard.modelData.displayName || characterCard.modelData.id.toUpperCase()
+                            text: characterCard.modelData.manifest.displayName
+                            textFormat: Text.PlainText
                             color: characterCard.selected ? root.instruction : root.foreground
                             font.family: "monospace"
                             font.pixelSize: 18 * root.textScale
@@ -4150,7 +4189,8 @@ ShellRoot {
                           Text {
                             Layout.fillWidth: true
                             horizontalAlignment: root.settingsMode === "first-run" ? Text.AlignHCenter : Text.AlignLeft
-                            text: characterCard.modelData.tagline || ""
+                            text: characterCard.modelData.manifest.description || ""
+                            textFormat: Text.PlainText
                             color: root.muted
                             wrapMode: Text.WordWrap
                             font.family: "sans-serif"
@@ -4159,7 +4199,7 @@ ShellRoot {
                           Text {
                             Layout.fillWidth: true
                             horizontalAlignment: root.settingsMode === "first-run" ? Text.AlignHCenter : Text.AlignLeft
-                            text: characterCard.active && root.settingsMode !== "first-run" ? "CURRENT COACH" : (characterCard.modelData.id === "hexon" ? "DEFAULT" : "")
+                            text: characterCard.active && root.settingsMode !== "first-run" ? "CURRENT COACH" : (characterCard.modelData.id === characterStore.fallbackId ? "DEFAULT" : "")
                             color: characterCard.active && root.settingsMode !== "first-run" ? root.accent : root.muted
                             font.family: "monospace"
                             font.pixelSize: 10 * root.textScale
@@ -4604,6 +4644,7 @@ ShellRoot {
                         Text {
                           Layout.fillWidth: true
                           text: root.characterText(lessonCard.modelData.description)
+                          textFormat: Text.PlainText
                           color: root.foreground
                           opacity: 0.72
                           font.family: "sans-serif"
@@ -4862,7 +4903,7 @@ ShellRoot {
                   spacing: 10
 
                   UiButton {
-                    visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.audio)
+                    visible: root.phase === "waiting" && !root.introActive && root.currentAudioPath() !== ""
                     compact: true
                     label: "▶ REPLAY"
                     onClicked: {
@@ -5429,8 +5470,21 @@ ShellRoot {
         Rectangle {
           id: tourCaption
           z: 11
-          visible: hexonCoach.visible && root.phase === "waiting" && root.currentStepIsTour && !root.introActive
-          opacity: root.lessonContentOpacity
+          readonly property bool ready: hexonCoach.visible && root.phase === "waiting"
+            && root.currentStepIsTour && !root.introActive
+            && root.characterState === root.tourRestingState
+            && !coachTravelX.running && !coachTravelY.running
+            && !characterMouse.pressed && !fallAnimation.running
+          visible: opacity > 0
+          opacity: ready ? root.lessonContentOpacity : 0
+          Behavior on opacity {
+            onTargetValueChanged: captionFade.duration = targetValue > 0 && !root.reducedMotion ? 240 : 0
+            NumberAnimation {
+              id: captionFade
+              duration: 0
+              easing.type: Easing.InOutSine
+            }
+          }
           width: Math.min(680, overlay.width - 24, Math.max(260, tourCaptionText.implicitWidth + 44))
           height: tourCaptionText.implicitHeight + 32
           // Centre under HEXON, but never leave the screen.
@@ -5457,369 +5511,84 @@ ShellRoot {
           }
         }
 
-        // Opening scene for the tour: HEXON's rocket drops down the middle of
-        // the screen, lands at the bottom and he steps out of the hatch; or
-        // OLLIE's tree grows and she takes off from its branch. The coach in
-        // the scene is the real hexonCoach, parked at coachX/coachY.
-        Item {
-          id: introScene
+        IntroPlayer {
+          id: introPlayer
           z: 8
           anchors.fill: parent
-          visible: opacity > 0
-          opacity: root.introActive && root.introStage !== "clear" ? 1 : 0
-          Behavior on opacity {
-            NumberAnimation { duration: root.introStage === "clear" ? 600 : 450; easing.type: Easing.InOutSine }
+          sequence: root.resolvedPack ? root.resolvedPack.intro : null
+          assetRoot: root.characterAssetRoot
+          displayName: root.characterDisplayName
+          reducedMotion: root.reducedMotion
+          visible: root.introActive && overlay.shouldShow
+          property int playbackGeneration: -1
+          property bool handoffPinned: false
+          palette: ({
+            accent: root.accent,
+            instruction: root.instruction,
+            foreground: root.foreground,
+            background: root.background,
+            muted: root.muted,
+            urgent: root.urgent
+          })
+          Component.onDestruction: {
+            if (root.introActive && playbackGeneration === root.introGeneration)
+              root.finishIntro(playbackGeneration, "Display removed; continuing the tour.")
           }
 
-          readonly property bool rocket: root.introKind === "rocket"
-          readonly property string stage: root.introStage
-          readonly property real groundY: overlay.height - 10
-          readonly property real coachX: rocket
-            ? (stage === "arrive" || stage === "reveal"
-              ? rocketArt.x + (root.introAnchorX * rocketArt.width) - (hexonCoach.width / 2)
-              : rocketArt.x + (rocketArt.width * 0.5) + 150)
-            : treeArt.x + (root.introAnchorX * treeArt.width) - (hexonCoach.width / 2)
-          readonly property real coachY: rocket
-            ? (stage === "arrive" || stage === "reveal"
-              ? rocketArt.landedY + (root.introAnchorY * rocketArt.height) - hexonCoach.height + 4
-              : groundY - hexonCoach.height - 12)
-            : treeArt.y + (root.introAnchorY * treeArt.height) - hexonCoach.height + 8
-
-          property var stars: []
-          Component.onCompleted: {
-            var list = []
-            for (var i = 0; i < 48; i++) {
-              list.push({
-                "fx": Math.random(),
-                "fy": Math.random() * 0.8,
-                "size": 2 + Math.floor(Math.random() * 3),
-                "period": 900 + Math.floor(Math.random() * 1800),
-                "warm": Math.random() < 0.3
-              })
-            }
-            stars = list
+          onFinished: if (overlay.shouldShow) root.finishIntro(playbackGeneration)
+          onFailed: function(message) {
+            if (overlay.shouldShow) root.finishIntro(playbackGeneration, message)
           }
-
-          Repeater {
-            model: introScene.stars
-
-            Rectangle {
-              required property var modelData
-              x: Math.round(modelData.fx * overlay.width)
-              y: Math.round(40 + (modelData.fy * overlay.height))
-              width: modelData.size
-              height: modelData.size
-              color: modelData.warm ? root.instruction : root.foreground
-              opacity: 0.25
-
-              SequentialAnimation on opacity {
-                running: introScene.visible && !root.reducedMotion
-                loops: Animation.Infinite
-                NumberAnimation { to: 0.9; duration: modelData.period; easing.type: Easing.InOutSine }
-                NumberAnimation { to: 0.2; duration: modelData.period; easing.type: Easing.InOutSine }
-              }
+          onCancelled: {
+            if (root.introActive && playbackGeneration === root.introGeneration && overlay.shouldShow)
+              root.finishIntro(playbackGeneration, "The introduction was interrupted; continuing the tour.")
+          }
+          onDiagnostic: function(message) {
+            if (overlay.shouldShow) {
+              root.introNotice = message
+              console.warn("learn-omarchy: intro:", message)
             }
           }
 
-          // Typed status line, like a terminal prompt.
-          Item {
-            id: introPrompt
-            x: 28
-            y: 58
-            readonly property string fullText: {
-              var name = root.characterDisplayName
-              if (introScene.stage === "arrive") return introScene.rocket ? "> INCOMING TRANSMISSION..." : "> SOMETHING STIRS IN THE TREE..."
-              if (introScene.stage === "reveal" || introScene.stage === "exit") return "> " + name + (introScene.rocket ? " HAS LANDED." : " IS AWAKE.")
-              return "> TOUR STARTING"
+          onSoundRequested: function(path) {
+            if (overlay.shouldShow) root.playIntroSound(path, playbackGeneration)
+          }
+          Connections {
+            target: root
+            function onIntroPlaybackRequested(generation) {
+              if (!overlay.shouldShow || root.introPlaybackStarted || introPlayer.playbackGeneration === generation) return
+              introPlayer.playbackGeneration = generation
+              root.introPlaybackStarted = true
+              introPlayer.play()
             }
-            property int shown: 0
-            property bool cursorOn: true
-            onFullTextChanged: { shown = 0; typeTimer.restart() }
-
-            Timer {
-              id: typeTimer
-              interval: root.reducedMotion ? 0 : 34
-              repeat: true
-              running: introScene.visible
-              onTriggered: {
-                if (introPrompt.shown < introPrompt.fullText.length) introPrompt.shown++
+            function onIntroCancellationRequested(keepPosition) {
+              if (!keepPosition && introPlayer.handoffPinned) {
+                introPlayer.handoffPinned = false
+                hexonCoach.userPlaced = false
               }
+              introPlayer.cancel()
             }
-
-            Timer {
-              interval: 480
-              repeat: true
-              running: introScene.visible
-              onTriggered: introPrompt.cursorOn = !introPrompt.cursorOn
+            function onIntroHandoffRequested(generation) {
+              if (!overlay.shouldShow) return
+              hexonCoach.userX = hexonCoach.x
+              hexonCoach.userY = hexonCoach.y
+              hexonCoach.userPlaced = true
+              introPlayer.handoffPinned = true
             }
-
-            Rectangle {
-              anchors.fill: promptText
-              anchors.margins: -10
-              color: root.colorWithAlpha(root.background, 0.82)
-              radius: 4
-              border.color: root.colorWithAlpha(root.accent, 0.5)
-              border.width: 1
-            }
-
-            Text {
-              id: promptText
-              text: introPrompt.fullText.substring(0, introPrompt.shown) + (introPrompt.cursorOn ? "█" : " ")
-              color: root.instruction
-              font.family: "monospace"
-              font.pixelSize: 20
-              font.weight: Font.Bold
+            function onIntroReleaseRequested() {
+              if (!introPlayer.handoffPinned) return
+              introPlayer.handoffPinned = false
+              hexonCoach.userPlaced = false
             }
           }
-
-          // Landing pad with blinking edge lights, at the very bottom of the screen.
-          Item {
-            id: landingPad
-            visible: introScene.rocket
-            width: Math.round(rocketArt.width * 1.7)
-            height: 14
-            x: Math.round((overlay.width - width) / 2)
-            y: Math.round(introScene.groundY - height + 4)
-            property bool phase: false
-
-            Timer {
-              interval: 420
-              repeat: true
-              running: introScene.rocket && introScene.visible && !root.reducedMotion
-              onTriggered: landingPad.phase = !landingPad.phase
-            }
-
-            Rectangle {
-              anchors.fill: parent
-              color: root.colorWithAlpha(root.background, 0.95)
-              border.color: root.muted
-              border.width: 2
-            }
-
-            Repeater {
-              model: 10
-
-              Rectangle {
-                required property int index
-                width: 8
-                height: 8
-                y: 3
-                x: Math.round(8 + (index * ((landingPad.width - 24) / 9)))
-                color: (index % 2 === 0) === landingPad.phase ? root.instruction : root.accent
-                opacity: (index % 2 === 0) === landingPad.phase ? 1 : 0.35
-              }
-            }
-          }
-
-          Item {
-            id: rocketArt
-            visible: introScene.rocket
-            readonly property bool doorOpen: introScene.stage === "reveal" || introScene.stage === "exit"
-            readonly property bool thrusting: descent.running || liftoff.running
-            property bool landed: false
-            property real flamePulse: 1
-
-            height: Math.round(Math.max(360, Math.min(700, overlay.height * 0.5)))
-            width: rocketImage.implicitHeight > 0
-              ? Math.round(height * rocketImage.implicitWidth / rocketImage.implicitHeight)
-              : Math.round(height * 0.44)
-            x: Math.round((overlay.width - width) / 2)
-            readonly property real landedY: introScene.groundY - height
-            y: -height - 80
-
-            Connections {
-              target: root
-              function onIntroStageChanged() {
-                if (!introScene.rocket || !overlay.shouldShow) return
-                if (root.introStage === "arrive") {
-                  descent.stop()
-                  liftoff.stop()
-                  rocketArt.landed = false
-                  rocketArt.y = -rocketArt.height - 80
-                  descent.from = rocketArt.y
-                  descent.to = rocketArt.landedY
-                  if (root.reducedMotion) {
-                    rocketArt.y = rocketArt.landedY
-                    rocketArt.landed = true
-                  } else {
-                    descent.restart()
-                    root.playSound("rocket-land.opus")
-                  }
-                } else if (root.introStage === "launch" && !root.reducedMotion) {
-                  liftoff.from = rocketArt.y
-                  liftoff.to = -rocketArt.height - 120
-                  liftoff.restart()
-                  root.playSound("rocket-liftoff.opus")
-                }
-              }
-              function onIntroActiveChanged() {
-                if (!root.introActive) {
-                  descent.stop()
-                  liftoff.stop()
-                  if (sfxProcess.running) sfxProcess.running = false
-                }
-              }
-            }
-
-            NumberAnimation {
-              id: descent
-              target: rocketArt
-              property: "y"
-              duration: root.introRocketTravelMs
-              easing.type: Easing.OutQuad
-              onFinished: rocketArt.landed = true
-            }
-
-            NumberAnimation {
-              id: liftoff
-              target: rocketArt
-              property: "y"
-              duration: root.introRocketTravelMs
-              easing.type: Easing.InQuad
-            }
-
-            Timer {
-              interval: 70
-              repeat: true
-              running: rocketArt.thrusting
-              onTriggered: rocketArt.flamePulse = 0.8 + (Math.random() * 0.4)
-            }
-
-            // Engine exhaust: chunky pixel flames under the nozzle, drawn
-            // behind the hull so the landing legs stay in front.
-            Repeater {
-              model: [-0.09, 0, 0.09]
-
-              Item {
-                required property var modelData
-                required property int index
-                visible: rocketArt.thrusting && !root.reducedMotion
-                x: Math.round((rocketArt.width / 2) + (modelData * rocketArt.width) - 6)
-                y: Math.round(rocketArt.height * 0.9)
-                width: 12
-                height: 26
-                z: -1
-                scale: (index === 1 ? 5.2 : 3.6) * rocketArt.flamePulse
-                transformOrigin: Item.Top
-
-                Rectangle { x: 4; width: 4; height: 6; color: root.foreground }
-                Rectangle { x: 2; y: 5; width: 8; height: 7; color: root.instruction }
-                Rectangle { x: 3; y: 12; width: 6; height: 8; color: root.urgent }
-                Rectangle { x: 5; y: 20; width: 2; height: 6; color: root.urgent }
-              }
-            }
-
-            Image {
-              id: rocketImage
-              anchors.fill: parent
-              source: introScene.rocket && root.characterConfig.prefix ? root.spriteSource("intro") : ""
-              fillMode: Image.Stretch
-              opacity: rocketArt.doorOpen ? 0 : 1
-              Behavior on opacity { NumberAnimation { duration: 160 } }
-            }
-
-            Image {
-              anchors.fill: parent
-              source: introScene.rocket && root.characterConfig.prefix ? root.spriteSource("intro-open") : ""
-              fillMode: Image.Stretch
-              opacity: rocketArt.doorOpen ? 1 : 0
-              Behavior on opacity { NumberAnimation { duration: 160 } }
-            }
-
-            // Dust kicked up on touchdown.
-            Repeater {
-              model: 10
-
-              Rectangle {
-                id: dust
-                required property int index
-                readonly property real direction: index < 5 ? -1 : 1
-                readonly property real reach: 60 + ((index % 5) * 42)
-                width: 9 - (index % 3) * 2
-                height: width
-                color: index % 2 === 0 ? root.muted : root.foreground
-                opacity: 0
-                x: rocketArt.width / 2
-                y: rocketArt.height - 8
-
-                ParallelAnimation {
-                  running: rocketArt.landed && !root.reducedMotion
-                  NumberAnimation { target: dust; property: "x"; from: rocketArt.width / 2; to: (rocketArt.width / 2) + (dust.direction * dust.reach); duration: 680; easing.type: Easing.OutCubic }
-                  NumberAnimation { target: dust; property: "y"; from: rocketArt.height - 8; to: rocketArt.height - 8 - (14 + ((dust.index % 5) * 10)); duration: 680; easing.type: Easing.OutCubic }
-                  SequentialAnimation {
-                    NumberAnimation { target: dust; property: "opacity"; to: 0.9; duration: 80 }
-                    NumberAnimation { target: dust; property: "opacity"; to: 0; duration: 600; easing.type: Easing.InQuad }
-                  }
-                }
-              }
-            }
-          }
-
-          Item {
-            id: treeArt
-            visible: !introScene.rocket
-            height: Math.round(Math.max(320, Math.min(640, overlay.height * 0.46)))
-            width: treeImage.implicitHeight > 0
-              ? Math.round(height * treeImage.implicitWidth / treeImage.implicitHeight)
-              : Math.round(height * 1.09)
-            // Slightly left of centre so the perch on the right-hand branch
-            // ends up near the middle of the screen.
-            x: Math.round((overlay.width / 2) - (width * 0.72))
-            y: Math.round(introScene.groundY - height)
-            transformOrigin: Item.Bottom
-            scale: 1
-
-            SequentialAnimation {
-              running: root.introActive && !introScene.rocket && !root.reducedMotion
-              PropertyAction { target: treeArt; property: "scale"; value: 0.1 }
-              NumberAnimation { target: treeArt; property: "scale"; to: 1; duration: 1000; easing.type: Easing.OutBack }
-            }
-
-            // Gentle sway.
-            SequentialAnimation on rotation {
-              running: treeArt.visible && introScene.visible && !root.reducedMotion
-              loops: Animation.Infinite
-              NumberAnimation { to: 0.8; duration: 1900; easing.type: Easing.InOutSine }
-              NumberAnimation { to: -0.8; duration: 1900; easing.type: Easing.InOutSine }
-            }
-
-            Image {
-              id: treeImage
-              anchors.fill: parent
-              source: !introScene.rocket && root.characterConfig.prefix ? root.spriteSource("intro") : ""
-              fillMode: Image.Stretch
-            }
-
-            // Fireflies drifting around the canopy.
-            Repeater {
-              model: 7
-
-              Rectangle {
-                id: firefly
-                required property int index
-                width: 4
-                height: 4
-                color: root.instruction
-                x: Math.round(treeArt.width * (0.1 + ((index * 0.13) % 0.8)))
-                y: Math.round(treeArt.height * (0.08 + ((index * 0.17) % 0.5)))
-                opacity: 0
-
-                SequentialAnimation on opacity {
-                  running: treeArt.visible && introScene.visible && !root.reducedMotion
-                  loops: Animation.Infinite
-                  PauseAnimation { duration: 300 + (firefly.index * 260) }
-                  NumberAnimation { to: 1; duration: 500 }
-                  NumberAnimation { to: 0; duration: 700 }
-                  PauseAnimation { duration: 400 }
-                }
-
-                SequentialAnimation on y {
-                  running: treeArt.visible && introScene.visible && !root.reducedMotion
-                  loops: Animation.Infinite
-                  NumberAnimation { to: Math.round(treeArt.height * (0.08 + ((firefly.index * 0.17) % 0.5))) - 18; duration: 1400 + (firefly.index * 150); easing.type: Easing.InOutSine }
-                  NumberAnimation { to: Math.round(treeArt.height * (0.08 + ((firefly.index * 0.17) % 0.5))) + 10; duration: 1400 + (firefly.index * 150); easing.type: Easing.InOutSine }
-                }
-              }
+          Connections {
+            target: overlay
+            function onShouldShowChanged() {
+              if (overlay.shouldShow && root.introActive && !root.introPlaybackStarted && !introStartTimer.running)
+                root.beginIntroScene()
+              if (!overlay.shouldShow && root.introActive &&
+                  introPlayer.playbackGeneration === root.introGeneration)
+                root.finishIntro(introPlayer.playbackGeneration, "Display changed; continuing the tour on the active display.")
             }
           }
         }
@@ -5854,7 +5623,8 @@ ShellRoot {
           // +1 when the current trip heads right, -1 when it heads left; the
           // flight pose is mirrored so winged characters never fly backwards.
           property int flightDirection: 1
-          readonly property bool uprightFlight: root.characterFlames && (targetsTour || targetsIntro)
+          readonly property bool uprightFlight: Boolean(root.characterConfig.motion &&
+            root.characterConfig.motion.tourFlight === "upright") && targetsTour
           property real flightBank: 0
           // Volume-preserving squash and stretch for takeoff and landing.
           property real stretch: 1
@@ -5881,11 +5651,7 @@ ShellRoot {
           readonly property bool completionPointsUp: targetsCompletion && overlay.targetPointY < 90
           readonly property bool isPointingUp: root.characterState === "tour-point" ||
             (root.characterState === "target-point" && completionPointsUp)
-          readonly property bool targetsIntro:
-            root.characterState === "intro" ||
-            root.characterState === "intro-stand" ||
-            root.characterState === "intro-exit" ||
-            root.characterState === "intro-land"
+          readonly property bool targetsIntro: root.characterState === "intro"
           readonly property bool targetsMenu:
             root.characterState === "menu-fly" ||
             root.characterState === "menu-settle" ||
@@ -5922,9 +5688,9 @@ ShellRoot {
             root.characterState === "menu-settle" ||
             root.characterState === "module-fly" ||
             root.characterState === "module-settle" ||
-            root.characterState === "intro-exit"
+            (targetsIntro && introPlayer.characterFlying)
           readonly property bool isSettledHover:
-            visible && !isFlying && root.characterState !== "hidden"
+            visible && !isFlying && !targetsIntro && root.characterState !== "hidden"
           // Reticle sits a little ahead of the fingertip when pointing sideways.
           readonly property real pointLead: 15 * pointDirection
           readonly property real pointTipLocalX: 8 + coachArt.pointTipX
@@ -5957,7 +5723,7 @@ ShellRoot {
               ((height - (completionPointsUp ? upTipLocalY : pointTipLocalY)) * targetScale)
           readonly property real bottomY: overlay.height - height - 28
           readonly property real contextX: targetsIntro
-            ? introScene.coachX
+            ? introPlayer.characterX - 8
             : targetsMenu
             ? Math.max(18, Math.min(overlay.width - width - 18, menuTargetX - width + 45))
             : targetsTour
@@ -5968,7 +5734,7 @@ ShellRoot {
                 ? moduleTargetX
               : waitingX
           readonly property real contextY: targetsIntro
-            ? introScene.coachY
+            ? introPlayer.characterY - (height - 192)
             : targetsMenu
             ? Math.max(50, menuTargetY - (height * 0.55))
             : targetsTour
@@ -5983,17 +5749,17 @@ ShellRoot {
             root.phase === "waiting" ||
             root.phase === "highlight" ||
             root.phase === "lesson-complete") &&
-            root.characterState !== "hidden" &&
-            root.characterState !== "intro"
+            root.characterState !== "hidden" && Boolean(root.resolvedPack) &&
+            (!targetsIntro || introPlayer.characterVisible)
           width: 240
           height: 260
           x: userPlaced ? userX : contextX
           y: userPlaced ? userY : contextY
-          scale: effectScale * presentationScale
-          rotation: effectRotation
-          opacity: effectOpacity
+          scale: targetsIntro ? introPlayer.characterScale : effectScale * presentationScale
+          rotation: targetsIntro ? introPlayer.characterRotation : effectRotation
+          opacity: targetsIntro ? introPlayer.characterOpacity : effectOpacity
           transformOrigin: Item.Bottom
-          transform: Translate { y: hexonCoach.arcOffset }
+          transform: Translate { y: hexonCoach.targetsIntro ? 0 : hexonCoach.arcOffset }
 
           onIsSettledHoverChanged: {
             if (!isSettledHover) characterImageArea.hoverOffset = 0
@@ -6020,7 +5786,7 @@ ShellRoot {
           onYChanged: if (overlay.shouldShow) root.characterY = y
 
           Behavior on presentationScale {
-            enabled: hexonCoach.visible && !root.reducedMotion
+            enabled: hexonCoach.visible && !root.reducedMotion && !hexonCoach.targetsIntro
             NumberAnimation {
               duration: 320
               easing.type: Easing.InOutSine
@@ -6033,24 +5799,26 @@ ShellRoot {
           // direct manipulation (dragging, the gravity fall) bypasses them.
           function updateTravelDuration() {
             var distance = Math.sqrt(Math.pow(contextX - x, 2) + Math.pow(contextY - y, 2))
-            var leavingIntro = root.introActive && root.characterState === "tour-fly"
+            var leavingIntro = root.introDeparting && root.characterState === "tour-fly"
             root.characterTravelDuration = root.travelDurationForDistance(distance, leavingIntro)
             flightBank = !root.reducedMotion && isFlying && uprightFlight ? 8 * (contextX - x) / Math.max(1, distance) : 0
           }
 
           Behavior on x {
-            enabled: hexonCoach.visible && !root.reducedMotion && !characterMouse.pressed
+            enabled: hexonCoach.visible && !root.reducedMotion && !hexonCoach.targetsIntro && !characterMouse.pressed
             onTargetValueChanged: hexonCoach.updateTravelDuration()
             NumberAnimation {
+              id: coachTravelX
               duration: root.characterTravelDuration
               easing.type: Easing.InOutSine
             }
           }
 
           Behavior on y {
-            enabled: hexonCoach.visible && !root.reducedMotion && !characterMouse.pressed && !fallAnimation.running
+            enabled: hexonCoach.visible && !root.reducedMotion && !hexonCoach.targetsIntro && !characterMouse.pressed && !fallAnimation.running
             onTargetValueChanged: hexonCoach.updateTravelDuration()
             NumberAnimation {
+              id: coachTravelY
               duration: root.characterState === "menu-point" ? 620 : root.characterTravelDuration
               easing.type: Easing.InOutSine
             }
@@ -6078,8 +5846,7 @@ ShellRoot {
                 root.characterState === "target-fly" ||
                 root.characterState === "tour-fly" ||
                 root.characterState === "menu-fly" ||
-                root.characterState === "module-fly" ||
-                root.characterState === "intro-exit"
+                root.characterState === "module-fly"
               ) {
                 landingAnimation.stop()
                 takeoffAnimation.restart()
@@ -6094,8 +5861,7 @@ ShellRoot {
                 root.characterState === "target-settle" ||
                 root.characterState === "tour-settle" ||
                 root.characterState === "menu-settle" ||
-                root.characterState === "module-settle" ||
-                root.characterState === "intro-land"
+                root.characterState === "module-settle"
               ) {
                 takeoffAnimation.stop()
                 landingAnimation.restart()
@@ -6118,13 +5884,10 @@ ShellRoot {
                 root.characterState === "menu-point" ||
                 root.characterState === "module-fly" ||
                 root.characterState === "module-settle" ||
-                root.characterState === "intro" ||
-                root.characterState === "intro-stand" ||
-                root.characterState === "intro-exit" ||
-                root.characterState === "intro-land"
+                root.characterState === "intro"
               ) {
                 fallAnimation.stop()
-                hexonCoach.userPlaced = false
+                if (!introPlayer.handoffPinned) hexonCoach.userPlaced = false
               }
               if (root.reducedMotion) {
                 hexonCoach.effectScale = 1
@@ -6137,11 +5900,6 @@ ShellRoot {
               else if (root.characterState === "celebrate") {
                 celebrateAnimation.restart()
                 if (root.phase === "lesson-complete" && root.lessonFullyExplored(root.currentLesson)) confettiAnimation.restart()
-              }
-              else if (root.characterState === "intro-stand") {
-                hexonCoach.effectScale = 1
-                hexonCoach.effectRotation = 0
-                introAppearAnimation.restart()
               }
               else {
                 hexonCoach.effectScale = 1
@@ -6176,16 +5934,6 @@ ShellRoot {
             }
           }
 
-          NumberAnimation {
-            id: introAppearAnimation
-            target: hexonCoach
-            property: "effectOpacity"
-            from: 0
-            to: 1
-            duration: 420
-            easing.type: Easing.OutCubic
-          }
-
           SequentialAnimation {
             id: takeoffAnimation
             NumberAnimation { target: hexonCoach; property: "stretch"; to: 0.9; duration: 90; easing.type: Easing.OutQuad }
@@ -6204,7 +5952,7 @@ ShellRoot {
             id: trailTimer
             interval: 55
             repeat: true
-            running: hexonCoach.visible && hexonCoach.isFlying && !root.reducedMotion
+            running: hexonCoach.visible && hexonCoach.isFlying && !hexonCoach.targetsIntro && !root.reducedMotion
             onTriggered: {
               var next = hexonCoach.trail.slice(-7)
               next.push({ "x": hexonCoach.x + (hexonCoach.width / 2), "y": hexonCoach.y + hexonCoach.arcOffset + hexonCoach.height - 96 })
@@ -6503,16 +6251,16 @@ ShellRoot {
             id: characterImageArea
 
             property real hoverOffset: 0
-            rotation: hexonCoach.flightBank
+            rotation: hexonCoach.targetsIntro ? 0 : hexonCoach.flightBank
             Behavior on rotation {
-              enabled: !root.reducedMotion
+              enabled: !root.reducedMotion && !hexonCoach.targetsIntro
               NumberAnimation { duration: 240; easing.type: Easing.InOutSine }
             }
             transform: Scale {
               origin.x: 112
               origin.y: 192
-              xScale: 2 - hexonCoach.stretch
-              yScale: hexonCoach.stretch
+              xScale: hexonCoach.targetsIntro ? 1 : 2 - hexonCoach.stretch
+              yScale: hexonCoach.targetsIntro ? 1 : hexonCoach.stretch
             }
 
             anchors {
@@ -6617,21 +6365,22 @@ ShellRoot {
             CharacterSprite {
               id: coachArt
               z: 1
-              assetRoot: root.characterAssetRoot
-              config: root.characterConfig
-              pose: hexonCoach.isPointing ? (hexonCoach.isPointingUp ? "point-up" : "point") : "idle"
+              pack: root.resolvedPack
+              pose: hexonCoach.targetsIntro ? introPlayer.characterPose :
+                hexonCoach.isPointing ? (hexonCoach.isPointingUp ? "point-up" : "point") : "idle"
               talking: audioProcess.running && !root.audioPaused && !root.audioStopRequested
-              flying: hexonCoach.isFlying && !hexonCoach.uprightFlight
+              flying: hexonCoach.targetsIntro ? introPlayer.characterFlying :
+                hexonCoach.isFlying && !hexonCoach.uprightFlight
               // Keep target landmarks stable throughout an approach, rather
               // than letting movement-driven facing change the destination.
               landmarkFacing: hexonCoach.pointDirection
-              facing: hexonCoach.isFlying
+              facing: hexonCoach.targetsIntro ? introPlayer.characterFacing : hexonCoach.isFlying
                 ? (hexonCoach.uprightFlight ? 1 : hexonCoach.flightDirection)
                 : hexonCoach.isPointing ? hexonCoach.pointDirection : 1
               reducedMotion: root.reducedMotion
               animated: hexonWindow.visible && root.phase !== "paused"
               onErrorMessageChanged: {
-                if (errorMessage && config.prefix && overlay.shouldShow)
+                if (errorMessage && root.resolvedPack && overlay.shouldShow)
                   console.warn("learn-omarchy: " + errorMessage)
               }
             }
@@ -6640,8 +6389,9 @@ ShellRoot {
               anchors.centerIn: parent
               width: parent.width
               z: 3
-              visible: !!root.characterConfig.prefix && coachArt.errorMessage !== ""
+              visible: Boolean(root.resolvedPack) && coachArt.errorMessage !== ""
               text: coachArt.errorMessage + "\nOpen Settings to choose another coach."
+              textFormat: Text.PlainText
               color: root.urgent
               wrapMode: Text.Wrap
               font.pixelSize: 12 * root.textScale
@@ -6660,7 +6410,7 @@ ShellRoot {
 
             anchors.fill: parent
             z: 20
-            enabled: root.phase !== "menu"
+            enabled: root.phase !== "menu" && !hexonCoach.targetsIntro
             hoverEnabled: true
             cursorShape: pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor
             preventStealing: true
@@ -6702,8 +6452,7 @@ ShellRoot {
                 else fallAnimation.restart()
               } else {
                 hexonCoach.userPlaced = false
-                hexonCoach.interactionMessage = root.characterConfig.clickMessage ||
-                  (root.characterFlames ? "BEEP BOOP!" : "HOOT!")
+                hexonCoach.interactionMessage = "LET'S LEARN!"
                 interactionMessageTimer.restart()
                 if (!root.reducedMotion) clickAnimation.restart()
               }

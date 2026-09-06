@@ -24,6 +24,7 @@ Item {
       sprite.flying = false
       sprite.facing = 1
       sprite.landmarkFacing = 1
+      sprite.pack = null
       sprite.resetPoseTransition()
     }
     function configure(name) {
@@ -127,6 +128,103 @@ Item {
       sprite.animated = false
       compare(sprite.poseBlend, 1)
       compare(sprite.previousPose, "")
+    }
+
+    function test_thirdPackSingleFrameRolesDoNotAssumeOfficialStripLengths() {
+      configure("hexon")
+      var geometry = { frameWidth: 224, scale: 1, offset: { x: 0, y: 0 },
+        tip: { x: 165, y: 75 } }
+      var single = { path: "sprites/hexon-point.png", frameWidth: 224, frameHeight: 192, frames: 1 }
+      sprite.config = {
+        formatVersion: 1, id: "third-coach", displayName: "Third coach",
+        sprites: { idle: single, talk: single, point: single, "point-up": single },
+        effects: { thrusters: false },
+        renderer: { baseline: 154, bodyAnchorX: 99,
+          poses: { idle: geometry, point: geometry, "point-up": geometry } }
+      }
+      sprite.animated = false
+      compare(sprite.frameCount, 1)
+      compare(sprite.spriteSource("idle"), sprite.assetRoot + "/sprites/hexon-point.png")
+      compare(sprite.flameSockets.length, 0)
+      sprite.elapsed = 3100
+      compare(sprite.currentFrame, 0)
+      sprite.previewFrame = 12
+      compare(sprite.currentFrame, 0)
+      sprite.talking = true
+      compare(sprite.frameCount, 1)
+      compare(sprite.currentFrame, 0)
+      sprite.pose = "point"
+      compare(sprite.frameCount, 1)
+      compare(sprite.speechOverlay, false)
+      sprite.flying = true
+      compare(sprite.isFlyingSprite, false)
+      compare(sprite.errorMessage, "")
+    }
+
+    function test_metadataTimelinesAndRates() {
+      configure("hexon")
+      sprite.animated = false
+      sprite.elapsed = 2999
+      compare(sprite.currentFrame, 0)
+      sprite.elapsed = 3000
+      compare(sprite.currentFrame, 11)
+      sprite.elapsed = 3050
+      compare(sprite.currentFrame, 12)
+      sprite.elapsed = 3150
+      compare(sprite.currentFrame, 13)
+      sprite.elapsed = 3200
+      compare(sprite.currentFrame, 0)
+      sprite.talking = true
+      sprite.elapsed = 250
+      compare(sprite.currentFrame, 2)
+      sprite.pose = "point-up"
+      sprite.elapsed = 3100
+      compare(sprite.bodyName, "point-up-blink")
+      verify(sprite.speechOverlay)
+      compare(sprite.currentFrame, 0)
+      sprite.reducedMotion = true
+      compare(sprite.currentFrame, 0)
+      compare(sprite.bodyName, "point-up")
+      compare(sprite.frameAt({ frames: 3, fps: 5 }, 400), 2)
+      compare(sprite.frameAt({ frames: 3, fps: 5 }, 600), 0)
+      compare(sprite.frameAt({ frames: 2,
+        timeline: [{ frame: 1, durationMs: 100 }, { frame: 0, durationMs: 200 }] }, 300), 1)
+    }
+
+    function test_invalidConfigurationReportsCanonicalContract() {
+      sprite.config = { prefix: "legacy" }
+      verify(sprite.errorMessage.indexOf("validated version 1") >= 0)
+    }
+
+    function test_atomicPackSwitchesKeepPathsAndDimensionsTogether() {
+      configure("owl")
+      var owl = { manifest: sprite.config, assetUrl: sprite.assetRoot }
+      configure("hexon")
+      var singleManifest = JSON.parse(JSON.stringify(sprite.config))
+      singleManifest.id = "single-frame"
+      singleManifest.sprites.idle = {
+        path: "sprites/hexon-point.png", frameWidth: 224, frameHeight: 192, frames: 1
+      }
+      singleManifest.renderer.poses.idle = singleManifest.renderer.poses.point
+      var single = { manifest: singleManifest, assetUrl: sprite.assetRoot }
+      sprite.animated = false
+      failOnWarning(/.*/)
+      // Deliberately unusable legacy inputs prove that pack takes precedence.
+      sprite.pack = owl
+      sprite.config = ({})
+      sprite.assetRoot = "file:///not-a-character-pack"
+      for (var i = 0; i < 20; i++) {
+        var selected = i % 2 ? owl : single
+        sprite.pack = selected
+        compare(sprite.frameCount, i % 2 ? 16 : 1)
+        compare(sprite.bodySprite.frameWidth, i % 2 ? 192 : 224)
+        compare(sprite.spriteSource("idle"), selected.assetUrl + "/" + selected.manifest.sprites.idle.path)
+        compare(sprite.previousPose, "")
+        compare(sprite.errorMessage, "")
+        wait(1)
+        compare(sprite.errorMessage, "")
+      }
+      configure("hexon")
     }
   }
 }

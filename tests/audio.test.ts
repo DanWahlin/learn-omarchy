@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { tmpdir } from "node:os";
 import test from "node:test";
 import {
   ffmpegVersion, fileHash, fingerprint, generationIsFresh, normalizationFilter,
@@ -31,6 +32,27 @@ test("activity-scoped generation rejects unknown IDs before contacting a speech 
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /Unknown activity in --steps|--steps requires/);
     assert.doesNotMatch(result.stderr, /AZURE_SPEECH_KEY|Azure Speech returned/);
+  }
+});
+
+test("graphics-only packs never initiate voice generation", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "learn-pack-audio-"));
+  try {
+    const dataHome = resolve(directory, "data");
+    const target = resolve(dataHome, "learn-omarchy/characters/spark");
+    await cp(resolve("examples/characters/spark"), target, { recursive: true });
+    const result = spawnSync(process.execPath, [
+      "--experimental-strip-types", "tools/generate-course-audio.ts",
+      "courses/omarchy-basics.json", "--character", "spark", "--backend", "azure",
+    ], {
+      encoding: "utf8",
+      env: { ...process.env, HOME: directory, XDG_DATA_HOME: dataHome, AZURE_SPEECH_KEY: "" },
+    });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /uses (borrowed|silent) narration/);
+    assert.doesNotMatch(result.stderr, /AZURE_SPEECH_KEY is not set|Azure Speech returned/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
 });
 

@@ -9,22 +9,24 @@ else
   app_root="$(cd -- "$script_dir/../share/learn-omarchy" && pwd)"
 fi
 
-command -v qs >/dev/null 2>&1 || {
-  echo "hexon-lab: required command not found: qs" >&2
-  exit 1
-}
-
 if [[ $# -gt 1 || "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   echo "usage: hexon-lab [character-id]"
-  echo "Preview any bundled coach with the production renderer (default: hexon)."
+  echo "Preview bundled and user character packs with the production renderer (default: hexon)."
   exit 0
 fi
+for tool in qs node; do
+  command -v "$tool" >/dev/null 2>&1 || {
+    echo "hexon-lab: required command not found: $tool" >&2
+    exit 1
+  }
+done
 character="${1:-${CHARACTER_LAB_CHARACTER:-hexon}}"
-if [[ ! "$character" =~ ^[a-z0-9-]+$ || ! -f "$app_root/assets/characters/$character/character.json" ]]; then
-  echo "hexon-lab: unknown character: $character" >&2
+if [[ ${#character} -gt 64 || ! "$character" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]]; then
+  echo "hexon-lab: invalid character ID: $character" >&2
   exit 2
 fi
-export CHARACTER_LAB_ROOT="$app_root/assets/characters"
+export CHARACTER_LAB_APP_ROOT="$app_root"
+export CHARACTER_LAB_ROOT="${CHARACTER_LAB_ROOT:-$app_root/assets/characters}"
 export CHARACTER_LAB_CHARACTER="$character"
 # The entry point is at the repository root so Quickshell can resolve the
 # lab's ../../app import without escaping its QML configuration root.

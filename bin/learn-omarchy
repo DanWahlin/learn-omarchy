@@ -28,8 +28,9 @@ while (($# > 0)); do
       cat <<'USAGE'
 Usage: learn-omarchy [--course PATH] [--character NAME]
 
-Run an interactive, theme-aware Omarchy course. Characters live under
-assets/characters/<NAME>; the default is hexon.
+Run an interactive, theme-aware Omarchy course. Character packs are discovered
+from the bundled assets and your user data directory. Invalid or missing
+selections recover to an available pack with a visible diagnostic.
 USAGE
       exit 0
       ;;
@@ -55,10 +56,6 @@ mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/learn-omarchy"
 # Only an explicit choice becomes an override; otherwise the app shows the
 # coach picker on first run and remembers the selection.
 if [[ -n "$character" ]]; then
-  [[ -d "$app_root/assets/characters/$character/sprites" ]] || {
-    echo "learn-omarchy: unknown character '$character' (no $app_root/assets/characters/$character/sprites)" >&2
-    exit 2
-  }
   export LEARN_OMARCHY_CHARACTER="$character"
 fi
 export LEARN_OMARCHY_ROOT="$app_root"

@@ -1,11 +1,15 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { inflateSync } from "node:zlib";
 import { runInNewContext } from "node:vm";
 import test from "node:test";
+import { discoverCharacterPacks } from "../src/character-packs.ts";
 
 const assetRoot = new URL("../assets/characters/", import.meta.url);
-const characters = JSON.parse(readFileSync(new URL("index.json", assetRoot), "utf8")).characters;
+const catalog = await discoverCharacterPacks({ bundledRoot: fileURLToPath(assetRoot) });
+const characters = catalog.packs;
+const officialCharacters = characters.filter(character => ["hexon", "owl"].includes(character.id));
 
 // Decode the shipped 8-bit RGBA PNGs without adding an image-library dependency.
 function png(url: URL) {
@@ -54,19 +58,29 @@ function png(url: URL) {
   };
 }
 
-test("character index has unique safe IDs and both production coaches", () => {
+test("discovered character packs have unique safe IDs and include both production coaches", () => {
   const ids = characters.map((character: { id: string }) => character.id);
-  assert.deepEqual(ids.toSorted(), ["hexon", "owl"]);
+  assert.ok(ids.includes("hexon") && ids.includes("owl"), catalog.diagnostics.join("\n"));
   assert.equal(new Set(ids).size, ids.length);
   for (const id of ids) assert.match(id, /^[a-z0-9-]+$/);
 });
 
-for (const { id } of characters) {
-  const manifest = JSON.parse(readFileSync(new URL(`${id}/character.json`, assetRoot), "utf8"));
-  const sprite = (pose: string) => png(new URL(`${id}/sprites/${id}-${pose}.png`, assetRoot));
+test("every discovered sprite uses explicit metadata rather than a filename convention", () => {
+  for (const pack of characters) {
+    assert.equal(pack.manifest.formatVersion, 1);
+    for (const [role, metadata] of Object.entries(pack.manifest.sprites)) {
+      const image = readFileSync(new URL(metadata.path, pack.assetUrl + "/"));
+      assert.equal(image.readUInt32BE(16), metadata.frameWidth * metadata.frames, `${pack.id}:${role} width`);
+      assert.equal(image.readUInt32BE(20), metadata.frameHeight, `${pack.id}:${role} height`);
+    }
+  }
+});
+
+for (const { id, manifest, assetUrl } of officialCharacters) {
+  const sprite = (pose: string) => png(new URL(manifest.sprites[pose].path, assetUrl + "/"));
 
   test(`${id}: registered body baselines, anchors, tips and speech crops are valid`, () => {
-    assert.equal(manifest.prefix, id);
+    assert.equal(manifest.id, id);
     const { renderer } = manifest;
     assert.deepEqual(renderer.canvas, { width: 224, height: 192 });
     assert.ok(renderer.registrationNote.length > 0);
@@ -75,7 +89,7 @@ for (const { id } of characters) {
       assert.ok(Number.isFinite(p.offset.x) && Number.isFinite(p.offset.y));
       const image = sprite(name);
       assert.equal(image.height, 192);
-      assert.equal(image.width, p.frameWidth * (name === "idle" ? 16 : name === "flight" ? manifest.flightFrames : 1));
+      assert.equal(image.width, manifest.sprites[name].frameWidth * manifest.sprites[name].frames);
       if (name === "flight") continue;
       let soleRow = image.height - 1;
       while (soleRow >= 0 && !Array.from({ length: p.frameWidth }, (_, x) =>
@@ -104,11 +118,13 @@ for (const { id } of characters) {
       const box = p.speech.source;
       assert.notDeepEqual(talk.crop(box.x, box.y, box.width, box.height),
         talk.crop(box.x + (p.speech.frameWidth || 192), box.y, box.width, box.height), "registered speech crop changes expression");
-      for (const suffix of ["-blink", "-mid"]) {
-        const alternate = sprite(name + suffix);
-        assert.equal(alternate.width, 224);
-        assert.equal(alternate.height, 192);
-      }
+      const blink = sprite(name + "-blink");
+      assert.equal(blink.width, 224);
+      assert.equal(blink.height, 192);
+      // Midpoint artwork is retained as authoring material, not a runtime role.
+      const midpoint = png(new URL(`${id}/sprites/${id}-${name}-mid.png`, assetRoot));
+      assert.equal(midpoint.width, 224);
+      assert.equal(midpoint.height, 192);
     }
   });
 
@@ -185,10 +201,12 @@ test("OLLIE speech preserves both eyes and replaces the complete native beak in 
   }
 });
 
-test("speech overlays select their registered strip and stride, with the original talk fallback", () => {
+test("speech overlays select their registered role and metadata stride, with the original talk fallback", () => {
   const renderer = readFileSync(new URL("../app/CharacterSprite.qml", import.meta.url), "utf8");
-  assert.match(renderer, /spriteSource\(root\.speech\.sprite \|\| "talk"\)/);
-  assert.match(renderer, /root\.currentFrame \* Number\(root\.speech\.frameWidth \|\| 192\)/);
+  assert.match(renderer, /speech && speech\.sprite \? speech\.sprite : "talk"/);
+  assert.match(renderer, /spriteSource\(root\.speechRole\)/);
+  assert.match(renderer, /root\.currentFrame \* Number\(root\.sprites\[root\.speechRole\]\?\.frameWidth/);
+  assert.doesNotMatch(renderer, /config\.(prefix|flames|flightFrames|flightFrameRate|pointBlink)/);
   assert.match(renderer, /smooth: false/);
 });
 
@@ -203,7 +221,7 @@ test("HEXON cleanup removes only the audited stray locations, retaining flight p
 });
 
 test("flame sockets register idle and both pointing poses without adding exhaust to flight or OLLIE", () => {
-  for (const { id } of characters) {
+  for (const { id } of officialCharacters) {
     const config = JSON.parse(readFileSync(new URL(`${id}/character.json`, assetRoot), "utf8"));
     for (const [name, pose] of Object.entries(config.renderer.poses) as [string, any][]) {
       const sockets = pose.flameSockets || [];
@@ -221,7 +239,7 @@ test("flame sockets register idle and both pointing poses without adding exhaust
       assert.deepEqual(config.renderer.poses.point.flameSockets, config.renderer.poses["point-up"].flameSockets);
       const idle = config.renderer.poses.idle;
       assert.deepEqual(idle.flameSockets.map((s: { x: number; y: number }) =>
-        [idle.offset.x + s.x * idle.scale, idle.offset.y + s.y * idle.scale]), config.idleFlames);
+        [idle.offset.x + s.x * idle.scale, idle.offset.y + s.y * idle.scale]), [[96, 181], [130, 181]]);
     }
   }
 });
@@ -246,13 +264,14 @@ test("course shares registered character geometry, independent speech and instal
   assert.match(shell, /upTipLocalX: 8 \+ coachArt\.upTipX/);
   assert.match(shell, /pointTipLocalY: \(height - 192\) \+ coachArt\.pointTipY/);
   assert.doesNotMatch(shell, /SpriteSequence|poseStage|pointPoseScale|coachSpriteLoader/);
-  assert.match(makefile, /cp -R app courses experiments .*character-lab\.qml/);
+  assert.match(makefile, /cp -R app courses .*character-lab\.qml/);
+  assert.match(makefile, /install -m 644 experiments\/hexon-lab\/shell\.qml experiments\/hexon-lab\/qmldir/);
 });
 
 test("rocket tour travel stays upright without letting flight facing move the landing target", () => {
   const shell = readFileSync(new URL("../app/shell.qml", import.meta.url), "utf8");
-  assert.match(shell, /uprightFlight: root\.characterFlames && \(targetsTour \|\| targetsIntro\)/);
-  assert.match(shell, /flying: hexonCoach\.isFlying && !hexonCoach\.uprightFlight/);
+  assert.match(shell, /uprightFlight: Boolean\(root\.characterConfig\.motion &&\s*root\.characterConfig\.motion\.tourFlight === "upright"\)/);
+  assert.match(shell, /flying: hexonCoach\.targetsIntro \? introPlayer\.characterFlying :\s*hexonCoach\.isFlying && !hexonCoach\.uprightFlight/);
   assert.match(shell, /landmarkFacing: hexonCoach\.pointDirection/);
   assert.match(shell, /hexonCoach\.uprightFlight \? 0 : Math\.min\(45, horizontal \* 0\.065\)/);
 });
@@ -261,10 +280,12 @@ test("reselecting the active lab coach preserves its loaded manifest", () => {
   const lab = readFileSync(new URL("../experiments/hexon-lab/shell.qml", import.meta.url), "utf8");
   const select = lab.match(/function selectCharacter\(name\) \{[\s\S]*?\n  \}/)?.[0];
   assert.ok(select);
-  const config = { prefix: "hexon" };
+  const config = { id: "hexon" };
   const context = {
     characters, characterName: "hexon", characterConfig: config,
     loadError: "", frame: 3, nextCharacter: "hexon",
+    stopIntro() {},
+    packStore: { select(name: string) { context.characterName = name; } },
   };
   const invoke = () => runInNewContext(select + "\nselectCharacter(nextCharacter)", context);
   assert.equal(invoke(), "ok");
@@ -276,6 +297,6 @@ test("reselecting the active lab coach preserves its loaded manifest", () => {
   context.nextCharacter = "owl";
   assert.equal(invoke(), "ok");
   assert.equal(context.characterName, "owl");
-  assert.equal(Object.keys(context.characterConfig).length, 0);
+  assert.equal(context.characterConfig, config, "the shared store owns the manifest binding");
   assert.equal(context.frame, -1);
 });

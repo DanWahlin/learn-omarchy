@@ -1,21 +1,27 @@
 {
+  "formatVersion": 1,
+  "id": "owl",
   "displayName": "OLLIE",
-  "prefix": "owl",
-  "flames": false,
-  "pointPoseScale": 0.91,
-  "pointUpPoseScale": 0.96,
-  "pointTip": {
-    "x": 191,
-    "y": 89
+  "description": "A wise little owl with a pink scarf. Glides between stops and explains things calmly.",
+  "author": { "name": null, "status": "unresolved", "note": "Existing artwork attribution has not been established by the repository." },
+  "license": { "status": "unresolved", "note": "The repository does not declare an asset license. Confirm redistribution rights before republishing artwork." },
+  "preview": { "sprite": "idle", "frame": 0 },
+  "sprites": {
+    "idle": { "path": "sprites/owl-idle.png", "frameWidth": 192, "frameHeight": 192, "frames": 16, "timeline": [
+      { "frame": 0, "durationMs": 3000 }, { "frame": 11, "durationMs": 50 },
+      { "frame": 12, "durationMs": 100 }, { "frame": 13, "durationMs": 50 }
+    ] },
+    "talk": { "path": "sprites/owl-talk.png", "frameWidth": 192, "frameHeight": 192, "frames": 8, "fps": 8 },
+    "speech": { "path": "sprites/owl-speech.png", "frameWidth": 22, "frameHeight": 30, "frames": 8, "fps": 8 },
+    "flight": { "path": "sprites/owl-flight.png", "frameWidth": 256, "frameHeight": 192, "frames": 2, "fps": 5 },
+    "point": { "path": "sprites/owl-point.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "point-up": { "path": "sprites/owl-point-up.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "point-blink": { "path": "sprites/owl-point-blink.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "point-up-blink": { "path": "sprites/owl-point-up-blink.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 }
   },
-  "upTip": {
-    "x": 161,
-    "y": 8
-  },
-  "flightFrames": 2,
-  "flightFrameRate": 5,
-  "pointBlink": true,
-  "poseMid": true,
+  "effects": { "thrusters": false },
+  "motion": { "tourFlight": "sprite" },
+  "blink": { "periodMs": 3200, "startMs": 3050, "durationMs": 100 },
   "renderer": {
     "canvas": { "width": 224, "height": 192 },
     "baseline": 191,
@@ -45,10 +51,10 @@
     }
   },
   "intro": {
-    "kind": "tree",
-    "anchorX": 0.84,
-    "anchorY": 0.63
+    "sequence": "intro/sequence.json"
   },
-  "voice": "en-GB-Ada:DragonHDLatestNeural",
-  "edgeVoice": "en-GB-SoniaNeural"
+  "narration": {
+    "mode": "own", "audioSet": "owl",
+    "voices": { "azure": "en-GB-Ada:DragonHDLatestNeural", "edge": "en-GB-SoniaNeural" }
+  }
 }

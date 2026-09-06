@@ -101,6 +101,17 @@ fingerprints have been invented for them.
 
 ## Speech generation and freshness
 
+Generation resolves the same validated character packs as the app and lab.
+Only packs with `narration.mode: "own"` need generation; backend voice choices
+come from `narration.voices.azure` and `narration.voices.edge`, with the explicit
+environment override still taking precedence.
+
+Graphics-only packs can borrow an official audio set or remain silent, without
+credentials or new recordings. Borrowed clips that introduce the source coach
+by name are omitted instead of introducing the wrong character. The selected
+pack's visible text and normal reading-time fallback remain available.
+See [the pack format](../docs/character-packs.md) for the complete policy.
+
 ```bash
 npm run audio:generate -- --character hexon --backend edge --missing
 npm run audio:generate -- --character owl --backend azure --match Omarchy

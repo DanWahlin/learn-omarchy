@@ -70,6 +70,13 @@ and practice controls, including native Qt copy/paste events. The clipboard used
 by these offscreen tests isn't your desktop clipboard. The suite doesn't open a
 window on your desktop or change your preferences.
 
+When Quickshell is installed, `npm test` also launches the real character lab
+from both the checkout and a staged installation, offscreen with private HOME/XDG
+directories and PID-scoped IPC. It tests user-pack
+discovery, all three intros, cancellation, reduced motion, missing/invalid-intro
+fallbacks, refresh and removed-pack recovery. It does not connect to your live
+display or session bus. Without Quickshell, that integration test is skipped.
+
 ## Course controls
 
 On the very first run, after you choose a coach, the Omarchy tour opens
@@ -541,10 +548,11 @@ npm run audio:generate
 
 Narration is recorded once per coach, under `courses/audio/<character>/`:
 the spoken text says the coach's name where the course text says HEXON, and
-each coach's `character.json` names its Azure `voice` (HEXON uses Andrew,
-OLLIE uses Ada, both HD voices) and an `edgeVoice` for the Edge backend.
-`LEARN_OMARCHY_TTS_VOICE` overrides both. With no `--character` flag every coach in
-`assets/characters/index.json` is generated. "Omarchy" is respelled for the
+each pack's `character.json` names `narration.voices.azure` (HEXON uses Andrew,
+OLLIE uses Ada, both HD voices) and `narration.voices.edge`.
+`LEARN_OMARCHY_TTS_VOICE` overrides both. With no `--character` flag, bundled
+packs with `narration.mode: "own"` are generated. Borrowed and silent packs don't
+need voice generation. "Omarchy" is respelled for the
 voice as "Omaachi" (oh-MAH-chee); set `LEARN_OMARCHY_PRONUNCIATION` to try
 another spelling, then regenerate just the lines that mention it:
 
@@ -594,27 +602,57 @@ lets you switch coaches and
 reset progress (two clicks, or press R twice); a reset clears every module
 checkmark and the coach choice, so closing Settings asks for a coach again
 and then starts the tour, like a fresh install. The module picker always
-selects unfinished core modules before optional ones, so the coach points at what's next. The coach list comes from
-`assets/characters/index.json`.
+selects unfinished core modules before optional ones, so the coach points at what's next.
 
-Alternative characters live under `assets/characters/<name>/` with the same
-asset set: `concepts/` (generated sheets), `sprites.conf` (pipeline geometry),
-`character.json` (sprite prefix, display name, registered pose geometry,
-speech crops, boot flames, flight frames, opening scene), and `sprites/`
-(built strips). The opening scene comes from `<prefix>-intro.png` (a rocket
-also needs `<prefix>-intro-open.png` with the hatch open); `intro` in
-`character.json` names the `kind` (`rocket` or `tree`) and `anchorX`/`anchorY`,
-the doorway floor or the perch as fractions of that sprite.
-The `renderer` section registers each pose to a shared body anchor and sole
-baseline on a 224×192 canvas. Pointing tips, speech crops, and flame sockets
-use that registration, including mirrored facing. Both the course and lab
-render through `app/CharacterSprite.qml`; speech can animate while a coach
-holds either pointing pose.
+Characters are **data-only packs**. The bundled catalog at
+`assets/characters/index.json` reserves the official `hexon` and `owl` IDs.
+Community packs are discovered from
+`${XDG_DATA_HOME:-$HOME/.local/share}/learn-omarchy/characters/<id>/`; they don't
+need a catalog edit, sudo, or changes to the application. Bundled IDs can't be
+overridden by community packs.
+
+Each pack's `character.json` declares its format version, metadata, licensing,
+preview, explicit sprite paths/frame metadata, pose registration, effects,
+narration policy, and optional declarative intro sequence. The shared loader
+checks assets and bounds before exposing a pack to either the course or lab.
+Invalid packs are skipped with diagnostics; a missing saved selection falls
+back to an available pack with a notice.
+
+The v1 renderer uses a documented 224×192 canvas. Pointing landmarks, speech
+crops, and flame sockets use registered pose geometry, including mirrored
+facing. Both the course and lab use `app/CharacterSprite.qml` and the same
+`app/IntroPlayer.qml`. Rocket/tree assets and choreography belong to the
+official packs, not character-specific branches in the tour controller.
+
+See [Character packs](docs/character-packs.md) for the format, safe installation,
+validation, starter pack, narration options, and contribution workflow.
+[Declarative intros](docs/character-intros.md) documents the bounded action
+vocabulary and viewport-relative layout.
+
 A launch flag overrides the saved choice and skips the picker:
 
 ```bash
 ./bin/learn-omarchy --character owl
 ```
+
+Graphics-only contributions can use silent narration or borrow an official
+audio set. Borrowed clips that name the original coach are intentionally omitted:
+the selected character's text stays visible and the normal reading-time fallback
+applies. Existing HEXON and OLLIE recordings are unchanged.
+
+**Artwork licensing:** the repository does not currently establish an asset
+license or author attribution for the existing generated character art. The
+official manifests explicitly flag that unresolved provenance; don't assume
+their artwork is licensed for redistribution merely because it is bundled.
+
+### Trusted repository artwork tools
+
+Finished JSON and PNG files are sufficient to create a pack. No image-generation
+service, credentials, paid tools, or build step is required. The following
+pipeline is optional authoring machinery for trusted repository development,
+not a runtime pack format. It sources `sprites.conf` as executable Bash; never
+run it on an untrusted contribution. Runtime discovery and installation don't
+source that file or copy `concepts/` into installed packs.
 
 The bundled owl, OLLIE, was generated from a single concept with the image
 model configured in `~/.env` (`AI_IMAGE_ENDPOINT`, `AI_IMAGE_API_KEY`,
@@ -638,7 +676,7 @@ an optional alpha cutoff and column-locked alignment for generated art whose
 copies vary slightly. A character whose mouth is what moves (a beak, say) can
 add a `talk_source` strip with eight mouth variations, and characters with
 wings can list `flight_extra_sources` (a wing down-stroke) to build a
-multi-frame flight strip that `character.json` enables with `flightFrames`;
+multi-frame flight strip declared by `sprites.flight` in `character.json`;
 those characters fly with their wings instead of HEXON's boot flames. Displayed text that names HEXON switches to the selected
 character's display name automatically.
 OLLIE's `talk_face_mask` excludes neighboring eye pixels from the animated
@@ -648,8 +686,8 @@ around its edges.
 
 ## Character lab
 
-The standalone character lab previews both coaches with the production
-renderer, independently from the tutorial:
+The standalone character lab discovers official and user-installed packs through
+the same loader as the course, independently from lesson actions:
 
 ```bash
 ./bin/hexon-lab
@@ -657,7 +695,8 @@ renderer, independently from the tutorial:
 ```
 
 Use the labeled controls to switch coaches, idle/talk/point/up-point poses,
-flight, and the teaching sequence. Speech and facing are independent controls.
+flight, and the teaching sequence. Preview/replay or stop a pack's full intro,
+refresh pack discovery, and inspect validation diagnostics. Speech and facing are independent controls.
 Choose a light, dark, or checkerboard background, inspect registered landmarks,
 adjust scale, or enable reduced motion. Space pauses or resumes; Left/Right
 scrub individual frames; Escape closes the lab.
@@ -688,11 +727,19 @@ The preparation command requires ImageMagick during asset development.
 |---|---|
 | `app/shell.qml` | Native layer-shell UI and course runtime |
 | `app/CharacterSprite.qml` | Shared registered pose and speech renderer |
-| `assets/characters/` | Character concepts and prepared sprite strips |
+| `app/CharacterPackStore.qml` | Shared validated discovery and selection bridge |
+| `app/IntroPlayer.qml` | Bounded declarative scenery and character choreography |
+| `assets/characters/` | Official character packs; trusted authoring files aren't installed |
+| `examples/characters/spark/` | Original graphics-only starter pack |
+| `docs/character-packs.md` | Public pack format and contribution workflow |
+| `docs/character-intros.md` | Intro actions, coordinates, and lifecycle |
 | `courses/` | Editable curriculum and packaged narration |
 | `experiments/hexon-lab/` | Standalone sprite and movement test surface |
 | `character-lab.qml` | Lab entrypoint with access to the shared renderer |
 | `src/course.ts` | Schema-v2 types and runtime validator |
+| `src/character-packs.ts` | Shared safe pack discovery, resolution, and validation |
+| `tools/character-packs.ts` | Offline pack listing and validation CLI |
+| `tools/install-character-packs.ts` | Validated runtime-asset packaging |
 | `tools/validate-course.ts` | Course validation CLI |
 | `tools/generate-course-audio.ts` | Narration generator (Azure Speech or Edge TTS) |
 | `tests/` | Metadata and safety tests |

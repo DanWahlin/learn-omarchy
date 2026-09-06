@@ -12,6 +12,7 @@ Item {
 
   property string assetRoot: ""
   property var config: ({})
+  property var pack: null
   property string pose: "idle"
   property bool talking: false
   property bool flying: false
@@ -22,35 +23,45 @@ Item {
   property int previewFrame: -1
   property bool showLandmarks: false
 
-  readonly property var registration: config.renderer || ({})
+  readonly property var manifest: pack ? pack.manifest : config
+  readonly property string assetDirectory: pack ? pack.assetUrl : assetRoot
+  readonly property var registration: manifest.renderer || ({})
   readonly property var poses: registration.poses || ({})
-  readonly property bool isFlyingSprite: flying && Number(config.flightFrames || 0) > 0
+  readonly property var sprites: manifest.sprites || ({})
+  readonly property bool isFlyingSprite: flying && !!sprites.flight
   readonly property string activePose: isFlyingSprite ? "flight" : pose
   readonly property var geometry: poses[activePose] || ({})
   readonly property var speech: geometry.speech || null
   readonly property bool pointing: activePose === "point" || activePose === "point-up"
   readonly property bool speechOverlay: talking && pointing && speech !== null
-  readonly property int frameCount: isFlyingSprite ? Math.max(1, Number(config.flightFrames))
-    : talking && (!pointing || speechOverlay) ? 8 : pointing ? 2 : 16
+  readonly property string speechRole: speech && speech.sprite ? speech.sprite : "talk"
+  readonly property string animationRole: isFlyingSprite ? "flight"
+    : speechOverlay ? speechRole : talking && !pointing ? "talk" : activePose
+  readonly property var animationSprite: sprites[animationRole] || ({})
+  readonly property int frameCount: Math.max(1, Number(animationSprite.frames || 1))
   readonly property int currentFrame: previewFrame >= 0 ? Math.min(frameCount - 1, previewFrame)
     : reducedMotion ? 0
-    : isFlyingSprite ? Math.floor(elapsed * Number(config.flightFrameRate || 1) / 1000) % frameCount
-    : talking ? Math.floor(elapsed / 125) % frameCount
-    : pointing ? (blinkPhase >= 3050 && blinkPhase < 3150 ? 1 : 0)
-    : blinkPhase < 3000 ? 0 : blinkPhase < 3050 ? 11 : blinkPhase < 3150 ? 12 : 13
-  readonly property int blinkPhase: elapsed % 3200
+    : frameAt(animationSprite, elapsed)
+  readonly property var blink: manifest.blink || ({})
+  readonly property int blinkPhase: elapsed % Math.max(1, Number(blink.periodMs || 1))
   readonly property bool blinking: pointing && (!talking || speechOverlay)
-    && (previewFrame >= 0 ? !talking && currentFrame === 1
-      : !reducedMotion && blinkPhase >= 3050 && blinkPhase < 3150)
+    && previewFrame < 0 && !reducedMotion && !!manifest.blink
+    && blinkPhase >= Number(blink.startMs)
+    && blinkPhase < Number(blink.startMs) + Number(blink.durationMs)
   readonly property string bodyName: isFlyingSprite ? "flight"
-    : pointing ? activePose + (blinking && config.pointBlink ? "-blink" : "")
+    : pointing ? activePose + (blinking && sprites[activePose + "-blink"] ? "-blink" : "")
     : talking ? "talk" : "idle"
-  readonly property int bodyFrame: pointing ? 0 : currentFrame
+  readonly property var bodySprite: sprites[bodyName] || ({})
+  readonly property int bodyFrame: speechOverlay ? frameAt(bodySprite, reducedMotion || previewFrame >= 0 ? 0 : elapsed)
+    : Math.min(Number(bodySprite.frames || 1) - 1, currentFrame)
   readonly property bool animationActive: visible && opacity > 0 && animated
     && !reducedMotion && previewFrame < 0 && !errorMessage
     && (!isFlyingSprite || frameCount > 1)
-  readonly property string errorMessage: !assetRoot || !config.prefix ? "Character assets are not configured"
+  readonly property string errorMessage: !assetDirectory || manifest.formatVersion !== 1 || !manifest.id || !manifest.sprites
+    ? "Character assets are not configured with a validated version 1 pack"
     : !poses[activePose] ? "Missing pose registration: " + activePose
+    : !sprites[bodyName] ? "Missing sprite role: " + bodyName
+    : speechOverlay && !sprites[speechRole] ? "Missing speech sprite role: " + speechRole
     : body.status === Image.Error ? "Cannot load sprite: " + body.source
     : speechOverlay && mouth.status === Image.Error ? "Cannot load speech sprite: " + mouth.source
     : ""
@@ -60,12 +71,12 @@ Item {
   readonly property real upTipY: tip("point-up", "y")
   // Flight artwork already contains exhaust. Other sockets follow the same
   // registration and facing transform as the body, in canvas-local pixels.
-  readonly property var flameSockets: config.flames === false || isFlyingSprite ? []
+  readonly property var flameSockets: !manifest.effects?.thrusters || isFlyingSprite ? []
     : (geometry.flameSockets || []).map(function(socket) {
       return { x: registeredCoordinate(geometry, socket, "x"),
         y: registeredCoordinate(geometry, socket, "y") }
     })
-  property int elapsed: 0
+  property real elapsed: 0
   property string displayedPose: ""
   property int displayedFacing: 1
   property string previousPose: ""
@@ -91,7 +102,7 @@ Item {
     }
     displayedPose = activePose
     displayedFacing = facing
-    if (!poses[previousPose] || !animated || reducedMotion || previewFrame >= 0 || !visible) {
+    if (!poses || !poses[previousPose] || !animated || reducedMotion || previewFrame >= 0 || !visible) {
       resetPoseTransition()
       return
     }
@@ -119,11 +130,32 @@ Item {
   }
 
   function spriteSource(name) {
-    return assetRoot && config.prefix ? assetRoot + "/sprites/" + config.prefix + "-" + name + ".png" : ""
+    // Read path and root from one catalog entry: separately bound legacy
+    // properties can otherwise briefly combine different packs on selection.
+    var selected = pack
+    var metadata = selected ? selected.manifest : config
+    var directory = selected ? selected.assetUrl : assetRoot
+    var sprite = metadata.sprites ? metadata.sprites[name] : null
+    return directory && sprite ? directory + "/" + sprite.path.split("/").map(encodeURIComponent).join("/") : ""
   }
 
-  onConfigChanged: { elapsed = 0; resetPoseTransition() }
-  onAssetRootChanged: resetPoseTransition()
+  function frameAt(sprite, time) {
+    var count = Math.max(1, Number(sprite.frames || 1))
+    var timeline = sprite.timeline || []
+    if (timeline.length) {
+      var duration = timeline.reduce(function(total, entry) { return total + entry.durationMs }, 0)
+      var position = time % duration
+      for (var i = 0; i < timeline.length; i++) {
+        position -= timeline[i].durationMs
+        if (position < 0) return Math.min(count - 1, timeline[i].frame)
+      }
+    }
+    return Math.floor(time * Number(sprite.fps || 0) / 1000) % count
+  }
+
+  onPackChanged: { elapsed = 0; resetPoseTransition() }
+  onConfigChanged: if (!pack) { elapsed = 0; resetPoseTransition() }
+  onAssetRootChanged: if (!pack) resetPoseTransition()
   onActivePoseChanged: { elapsed = 0; transitionPose() }
   onFacingChanged: transitionPose()
   onTalkingChanged: elapsed = 0
@@ -150,7 +182,7 @@ Item {
     onTriggered: {
       // Ancestor visibility can be reentrant during layer construction.
       // Inspect it on a frame instead of binding the timer to the whole tree.
-      if (root.isPresented()) root.elapsed = (root.elapsed + interval) % 96000
+      if (root.isPresented()) root.elapsed += interval
     }
   }
 
@@ -165,12 +197,12 @@ Item {
     Image {
       x: Number(root.previousGeometry.offset?.x || 0)
       y: Number(root.previousGeometry.offset?.y || 0)
-      width: Number(root.previousGeometry.frameWidth || 224)
-      height: 192
+      width: Number(root.sprites[root.previousPose]?.frameWidth || 224)
+      height: Number(root.sprites[root.previousPose]?.frameHeight || 192)
       scale: Number(root.previousGeometry.scale || 1)
       transformOrigin: Item.TopLeft
       source: parent.visible ? root.spriteSource(root.previousPose) : ""
-      sourceClipRect: Qt.rect(0, 0, width, 192)
+      sourceClipRect: Qt.rect(0, 0, width, height)
       smooth: false
       mipmap: false
     }
@@ -190,10 +222,10 @@ Item {
 
       Image {
         id: body
-        width: Number(root.geometry.frameWidth || 224)
-        height: 192
+        width: Number(root.bodySprite.frameWidth || 224)
+        height: Number(root.bodySprite.frameHeight || 192)
         source: root.spriteSource(root.bodyName)
-        sourceClipRect: Qt.rect(root.bodyFrame * width, 0, width, 192)
+        sourceClipRect: Qt.rect(root.bodyFrame * width, 0, width, height)
         smooth: false
         mipmap: false
         asynchronous: false
@@ -207,9 +239,9 @@ Item {
         y: root.speech ? root.speech.destination.y : 0
         width: root.speech ? root.speech.destination.width : 0
         height: root.speech ? root.speech.destination.height : 0
-        source: visible ? root.spriteSource(root.speech.sprite || "talk") : ""
+        source: visible ? root.spriteSource(root.speechRole) : ""
         sourceClipRect: root.speech
-          ? Qt.rect(root.currentFrame * Number(root.speech.frameWidth || 192) + root.speech.source.x,
+          ? Qt.rect(root.currentFrame * Number(root.sprites[root.speechRole]?.frameWidth || 1) + root.speech.source.x,
             root.speech.source.y, root.speech.source.width, root.speech.source.height)
           : Qt.rect(0, 0, 1, 1)
         smooth: false
@@ -228,7 +260,7 @@ Item {
     }
     Rectangle {
       x: 0
-      y: Number(root.registration.baseline || 190)
+      y: Number(root.registration.baseline ?? 190)
       width: 224
       height: 1
       color: "#33ccff"
@@ -248,8 +280,8 @@ Item {
       }
     }
     Rectangle {
-      x: (root.facing < 0 ? 224 - Number(root.registration.bodyAnchorX || 112)
-        : Number(root.registration.bodyAnchorX || 112)) - 1
+      x: (root.facing < 0 ? 224 - Number(root.registration.bodyAnchorX ?? 112)
+        : Number(root.registration.bodyAnchorX ?? 112)) - 1
       width: 1
       height: 192
       color: "#33ccff"

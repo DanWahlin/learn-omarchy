@@ -1,0 +1,32 @@
+{
+  "formatVersion": 1,
+  "id": "spark",
+  "displayName": "Spark",
+  "description": "An original geometric lantern companion, demonstrating a graphics-only community pack with single-frame poses.",
+  "author": { "name": "learn-omarchy example project-generated shapes", "status": "declared" },
+  "license": { "status": "declared", "identifier": "CC0-1.0", "note": "The original geometric placeholder PNGs in this example are dedicated to the public domain under CC0 1.0. This does not license the existing official character artwork." },
+  "preview": { "sprite": "idle", "frame": 0 },
+  "sprites": {
+    "idle": { "path": "sprites/spark-idle.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "talk": { "path": "sprites/spark-talk.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "point": { "path": "sprites/spark-point.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "point-up": { "path": "sprites/spark-point-up.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 }
+  },
+  "renderer": {
+    "canvas": { "width": 224, "height": 192 },
+    "baseline": 176,
+    "bodyAnchorX": 112,
+    "registrationNote": "All poses share the lantern centre and flat base. Pointer tips are the ends of the gold arms.",
+    "poses": {
+      "idle": { "frameWidth": 224, "scale": 1, "offset": { "x": 0, "y": 0 }, "baseline": 176, "bodyAnchorX": 112 },
+      "point": { "frameWidth": 224, "scale": 1, "offset": { "x": 0, "y": 0 }, "baseline": 176, "bodyAnchorX": 112, "tip": { "x": 198, "y": 96 },
+        "speech": { "source": { "x": 100, "y": 118, "width": 24, "height": 16 }, "destination": { "x": 100, "y": 118, "width": 24, "height": 16 } } },
+      "point-up": { "frameWidth": 224, "scale": 1, "offset": { "x": 0, "y": 0 }, "baseline": 176, "bodyAnchorX": 112, "tip": { "x": 160, "y": 30 },
+        "speech": { "source": { "x": 100, "y": 118, "width": 24, "height": 16 }, "destination": { "x": 100, "y": 118, "width": 24, "height": 16 } } }
+    }
+  },
+  "effects": { "thrusters": false },
+  "motion": { "tourFlight": "upright" },
+  "intro": { "sequence": "intro/sequence.json" },
+  "narration": { "mode": "borrowed", "audioSet": "hexon" }
+}

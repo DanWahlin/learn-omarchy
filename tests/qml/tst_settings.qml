@@ -14,6 +14,8 @@ Item {
   property real textScale: 1
   property var characterIndex: []
   property string characterName: "owl"
+  property string characterNotice: ""
+  property string introNotice: ""
   property int characterPick: 1
   property bool speechEnabled: true
   property bool effectsEnabled: true
@@ -46,9 +48,16 @@ Item {
   property bool exerciseRunning: false
   property string outcomeAddress: ""
   property int savedCount: 0
+  property int refreshCount: 0
   property var fixture
 
   Item { id: sfxProcess; property bool running: false }
+  Item {
+    id: characterStore
+    property string fallbackId: "hexon"
+    property string narrationNotice: ""
+    property var diagnostics: []
+  }
   Item {
     id: overlay
     anchors.fill: parent
@@ -61,6 +70,8 @@ Item {
   function toggleAudio() { audioEnabled = !audioEnabled; persistSettings() }
   function closeSettings() { phase = "menu" }
   function chooseCharacter(id) { characterName = id; persistSettings() }
+  function refreshCharacters() { refreshCount++ }
+  function currentAudioPath() { return "" }
   function requestResetProgress() { resetConfirmPending = true }
   function handleKeyPressed(event) {}
   function updateActiveKeys(event, pressed) {}
@@ -90,7 +101,11 @@ Item {
     when: windowShown
 
     function initTestCase() {
-      root.characterIndex = JSON.parse(root.readSource("../../assets/characters/index.json")).characters
+      root.characterIndex = JSON.parse(root.readSource("../../assets/characters/index.json")).characters.map(function(entry) {
+        var directory = "../../assets/characters/" + entry.id
+        return { id: entry.id, assetUrl: Qt.resolvedUrl(directory).toString(),
+          manifest: JSON.parse(root.readSource(directory + "/character.json")) }
+      })
       var source = root.readSource("../../app/shell.qml")
       verify(source.length > 1000)
       var components = source.slice(source.indexOf("  component UiPanel:"), source.indexOf("  component Keycap:"))
@@ -116,11 +131,73 @@ Item {
       root.textScale = 1
       root.resetConfirmPending = false
       root.currentStepIsTour = false
+      root.characterNotice = ""
+      root.introNotice = ""
+      characterStore.diagnostics = []
       overlay.highlight = null
       root.width = 1920
       root.height = 1200
       fixture.scroll.contentY = 0
       wait(100)
+    }
+
+    function test_manifestPreviewDoesNotDependOnPackIdOrFilename() {
+      var original = root.characterIndex
+      var pack = JSON.parse(JSON.stringify(original[0]))
+      pack.id = "external-demo"
+      pack.manifest.displayName = "External Demo"
+      pack.manifest.preview.frame = 1
+      root.characterIndex = [pack]
+      wait(50)
+      var sprite = pack.manifest.sprites[pack.manifest.preview.sprite]
+      var previews = root.descendants(fixture.panel, function(item) { return "sourceClipRect" in item })
+      compare(previews.length, 1)
+      compare(previews[0].source.toString(), pack.assetUrl + "/" + sprite.path)
+      compare(previews[0].sourceClipRect.x, sprite.frameWidth)
+      compare(previews[0].sourceClipRect.width, sprite.frameWidth)
+      compare(previews[0].sourceClipRect.height, sprite.frameHeight)
+      root.characterIndex = original
+    }
+
+    function test_emptyCatalogKeepsNoticeAndRefreshVisible() {
+      var original = root.characterIndex
+      root.characterIndex = []
+      root.characterNotice = "No valid character packs are available."
+      wait(50)
+      var refresh = root.button("REFRESH COACHES")
+      verify(refresh !== null && refresh.visible)
+      var before = root.refreshCount
+      refresh.clicked()
+      compare(root.refreshCount, before + 1)
+      var notices = root.descendants(fixture.panel, function(item) {
+        return "text" in item && item.text.indexOf("No valid character packs") >= 0
+      })
+      verify(notices.length > 0 && notices[0].visible)
+      root.characterIndex = original
+    }
+
+    function test_packMetadataAndButtonLabelsAreLiteralPlainText() {
+      var original = root.characterIndex
+      var pack = JSON.parse(JSON.stringify(original[0]))
+      pack.manifest.displayName = "<b>雪 & $&</b>"
+      pack.manifest.description = "<i>A coach with Unicode: café</i>"
+      root.characterIndex = [pack]
+      root.characterNotice = "<b>Unavailable: 雪</b>"
+      var diagnostic = "<i>Missing sprite: <example></i>"
+      characterStore.diagnostics = [{ message: diagnostic }]
+      var refresh = root.button("REFRESH COACHES")
+      refresh.label = "<b>Refresh 雪</b>"
+      wait(50)
+      var labels = [pack.manifest.displayName, pack.manifest.description, root.characterNotice, diagnostic, refresh.label]
+      for (var label of labels) {
+        var matches = root.descendants(fixture.panel, function(item) {
+          return "textFormat" in item && item.text === label
+        })
+        verify(matches.length > 0, label)
+        for (var match of matches) compare(match.textFormat, Text.PlainText, label)
+      }
+      refresh.label = "REFRESH COACHES"
+      root.characterIndex = original
     }
 
     function test_regionsStaySeparated_data() {

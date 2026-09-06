@@ -30,7 +30,7 @@ function runtime(stepId: string, reducedMotion = true) {
   const context = createContext({
     course: structuredClone(course),
     courseDir: "/course",
-    characterName: "hexon",
+    requestedCharacter: "hexon",
     characterState: "coach",
     characterIndex: [],
     characterPick: 0,
@@ -40,6 +40,17 @@ function runtime(stepId: string, reducedMotion = true) {
     progressResolved: true,
     tourSeen: true,
     introActive: false,
+    introRequested: false,
+    introGeneration: 0,
+    introPlaybackStarted: false,
+    introDeparting: false,
+    introNotice: "",
+    introPlaybackRequested() {},
+    introCancellationRequested() {},
+    introHandoffRequested() {},
+    introReleaseRequested() {},
+    tourRestingState: "tour-talk",
+    tourRestingMessage: "WELCOME",
     autoAdvance: true,
     readingWordsPerMinute: 200,
     narrationRestMs: 900,
@@ -160,7 +171,48 @@ function runtime(stepId: string, reducedMotion = true) {
     currentStepHasNoVisibleTarget: { get: () => context.currentStepClosesWindow || context.currentStepIsPractice ||
       Boolean(context.currentStep?.completion?.windowState?.specialWorkspace) },
     narrationEnabled: { get: () => context.audioEnabled && context.speechEnabled && context.speechVolume > 0 },
+    characterName: { get: () => context.characterStore.selectedPack?.id || "" },
+    characterIndex: { get: () => context.characterStore.packs },
+    characterNotice: { get: () => context.characterStore.notice },
+    characterDisplayName: { get: () => context.characterStore.selectedPack?.manifest.displayName || "Coach" },
   });
+  context.characterStore = {
+    appRoot: "/app",
+    requestedId: "hexon",
+    ready: true,
+    fallbackId: "hexon",
+    diagnostics: [],
+    narrationNotice: "",
+    packs: ["hexon", "owl", "custom-coach"].map((id) => ({
+      id, root: `/packs/${id}`, assetUrl: `file:///packs/${id}`,
+      manifest: {
+        formatVersion: 1, id, displayName: id === "owl" ? "OLLIE" : id.toUpperCase(),
+        description: "A coach", preview: { sprite: "idle", frame: 0 },
+        sprites: { idle: { path: "sprites/body.png", frameWidth: 192, frameHeight: 192, frames: 1 } },
+        effects: { thrusters: false }, motion: { tourFlight: "sprite" },
+        narration: { mode: "own", audioSet: id },
+      },
+      intro: null,
+    })),
+    get selectedPack() {
+      return this.packs.find((pack) => pack.id === this.requestedId)
+        || this.packs.find((pack) => pack.id === this.fallbackId) || null;
+    },
+    get notice() {
+      if (!this.ready) return "Loading character packs…";
+      if (!this.selectedPack) return "No valid character packs are available.";
+      return this.selectedPack.id !== this.requestedId
+        ? `Character pack '${this.requestedId}' is unavailable; using ${this.selectedPack.manifest.displayName}.` : "";
+    },
+    refresh() {},
+    select(id: string) { this.requestedId = id; },
+    audioPath(relativePath: string, spokenText: string, courseDir: string) {
+      const narration = this.selectedPack?.manifest.narration;
+      if (!relativePath || !narration || narration.mode === "silent" ||
+          (narration.mode === "borrowed" && /HEXON|OLLIE/i.test(spokenText || ""))) return "";
+      return `${courseDir}/${relativePath.replace(/([^/]*)$/, `${narration.audioSet}/$1`)}`;
+    },
+  };
   for (const match of shell.matchAll(/^\s+id: (\w+Timer)$/gm)) {
     context[match[1]] = timer();
   }
@@ -169,6 +221,7 @@ function runtime(stepId: string, reducedMotion = true) {
   runInContext(functions.map(([source]) => source).join("\n"), context);
   context.root = context;
   context.captureWorkspaceStart = () => {};
+  context.productionStartCharacterStep = context.startCharacterStep;
   context.startCharacterStep = () => {};
   context.currentWorkspaceId = () => 1;
   return context;
@@ -983,7 +1036,7 @@ test("lesson starts resume bookmarks but explicit replay and practice start at t
 test("selecting the tour always restarts its welcome and opening scene", () => {
   for (const character of ["owl", "hexon"]) {
     const state = runtime("tour-omarchy-menu", false);
-    state.characterName = character;
+    state.characterStore.select(character);
     state.lessonBookmarks["omarchy-tour"] = "tour-omarchy-menu";
     state.completedLessons["omarchy-tour"] = true;
     state.startLesson(0);
@@ -1495,12 +1548,381 @@ test("skipping the opening scene keeps the welcome activity", () => {
   const state = runtime("tour-welcome");
   state.characterState = "intro";
   state.introActive = true;
-  let started = false;
-  state.startCharacterStep = () => { started = true; };
+  state.Qt.callLater = (callback: () => void) => callback();
   state.skipIntroScene();
-  assert.equal(started, true);
+  assert.equal(state.characterState, state.tourRestingState);
+  assert.equal(state.tourAdvanceTimer.running, true);
   assert.equal(state.introActive, false);
   assert.equal(state.currentStep.id, "tour-welcome");
+});
+
+function introRuntime(reducedMotion = false) {
+  const state = runtime("tour-welcome", reducedMotion);
+  const deferred: Array<() => void> = [];
+  state.Qt.callLater = (callback: () => void) => deferred.push(callback);
+  state.flushCallbacks = () => { while (deferred.length) deferred.shift()!(); };
+  state.startCharacterStep = state.productionStartCharacterStep;
+  const screens = [true, false].map((shouldShow) => {
+    const overlay = { shouldShow };
+    const coach = { x: 320, y: 640, userX: 0, userY: 0, userPlaced: false };
+    const player = {
+      sequence: state.characterStore.selectedPack.intro,
+      assetRoot: state.characterStore.selectedPack.assetUrl,
+      displayName: state.characterDisplayName,
+      reducedMotion, running: false, playbackGeneration: -1, handoffPinned: false,
+      characterX: 328, characterY: 708, characterScale: 1, characterOpacity: 1,
+      characterVisible: true, characterPose: "idle", characterFacing: 1, characterFlying: false,
+      plays: 0,
+      play() { this.running = true; this.plays++; },
+      cancel() {
+        const running = this.running;
+        this.running = false;
+        if (running && overlay.shouldShow && state.introActive && this.playbackGeneration === state.introGeneration)
+          state.finishIntro(this.playbackGeneration, "Interrupted");
+      },
+      reset() { this.cancel(); },
+      finish() {
+        this.running = false;
+        if (overlay.shouldShow) state.finishIntro(this.playbackGeneration);
+      },
+      fail(message: string) {
+        this.running = false;
+        if (overlay.shouldShow) state.finishIntro(this.playbackGeneration, message);
+      },
+    };
+    const context = createContext({ root: state, overlay, introPlayer: player, hexonCoach: coach, introStartTimer: state.introStartTimer });
+    function handler(name: string) {
+      const expression = new RegExp(`^            function ${name}\\([^\\n]*\\) \\{[\\s\\S]*?^            \\}`, "m");
+      const source = shell.match(expression)?.[0];
+      assert.ok(source, name);
+      return runInContext(`(${source})`, context);
+    }
+    return {
+      overlay, coach, player,
+      start: handler("onIntroPlaybackRequested"),
+      cancel: handler("onIntroCancellationRequested"),
+      pin: handler("onIntroHandoffRequested"),
+      release: handler("onIntroReleaseRequested"),
+      screenChanged: handler("onShouldShowChanged"),
+    };
+  });
+  state.introPlaybackRequested = (generation: number) => screens.forEach((screen) => screen.start(generation));
+  state.introCancellationRequested = (keep: boolean) => screens.forEach((screen) => screen.cancel(keep));
+  state.introHandoffRequested = (generation: number) => screens.forEach((screen) => screen.pin(generation));
+  state.introReleaseRequested = () => screens.forEach((screen) => screen.release());
+  return { state, screens };
+}
+
+test("saved selection and first-run tour wait for resolved pack readiness", () => {
+  const state = runtime("tour-welcome");
+  state.phase = "menu";
+  state.lessonIndex = -1;
+  state.characterStore.ready = false;
+  state.loadSettings(JSON.stringify({ character: "owl", tourSeen: false }));
+  assert.equal(state.requestedCharacter, "owl");
+  assert.equal(state.characterName, "owl");
+  assert.equal(state.tourSeen, false);
+  state.startLesson(0);
+  assert.equal(state.lessonIndex, -1);
+  state.characterStore.ready = true;
+  state.characterPacksReady();
+  assert.equal(state.lessonIndex, 0);
+  assert.equal(state.tourSeen, true);
+  assert.equal(state.introRequested, true);
+  state.characterPacksReady();
+  assert.equal(state.currentStep.id, "tour-welcome");
+});
+
+test("missing saved selections show the fallback without silently rewriting settings", () => {
+  const state = runtime("tour-welcome");
+  state.phase = "menu";
+  state.lessonIndex = -1;
+  state.loadSettings(JSON.stringify({ character: "removed-coach", tourSeen: true }));
+  assert.equal(state.characterName, "hexon");
+  assert.equal(state.savedCharacter, "removed-coach");
+  assert.equal(state.requestedCharacter, "removed-coach");
+  assert.match(state.characterNotice, /removed-coach.*unavailable/);
+  state.chooseCharacter("custom-coach");
+  assert.equal(state.characterName, "custom-coach");
+  assert.equal(state.savedCharacter, "custom-coach");
+  state.chooseCharacter("invalid-pack");
+  assert.equal(state.savedCharacter, "custom-coach");
+});
+
+test("an empty catalog opens useful settings and can be refreshed", () => {
+  const state = runtime("tour-welcome");
+  state.phase = "menu";
+  state.lessonIndex = -1;
+  state.characterStore.packs = [];
+  state.characterPacksReady();
+  assert.equal(state.phase, "settings");
+  assert.match(state.characterNotice, /No valid character packs/);
+  let refreshes = 0;
+  state.characterStore.refresh = () => refreshes++;
+  state.refreshCharacters();
+  assert.equal(refreshes, 1);
+  state.startLesson(0);
+  assert.equal(state.phase, "settings");
+  assert.equal(state.lessonIndex, -1);
+  assert.match(shell, /label: "REFRESH COACHES"/);
+});
+
+test("only the active display plays an intro and completion hands off exactly once", () => {
+  const { state, screens } = introRuntime();
+  state.startIntro();
+  state.beginIntroScene();
+  state.beginIntroScene();
+  assert.deepEqual(screens.map((screen) => screen.player.plays), [1, 0]);
+  assert.equal(state.characterTourArrivalTimer.running, false);
+  assert.equal(state.tourAdvanceTimer.running, false);
+  const generation = state.introGeneration;
+  screens[0].player.finish();
+  screens[0].player.finish();
+  state.finishIntro(generation);
+  assert.equal(state.characterState, "tour-fly");
+  assert.equal(screens[0].coach.userPlaced, true);
+  assert.equal(screens[0].coach.userX, 320);
+  assert.equal(screens[0].coach.userY, 640);
+  assert.equal(state.characterTourArrivalTimer.running, false);
+  state.flushCallbacks();
+  assert.equal(screens[0].coach.userPlaced, false);
+  assert.equal(state.characterTourArrivalTimer.running, true);
+  assert.equal(state.introDeparting, true);
+  assert.equal(state.tourAdvanceTimer.running, false);
+  assert.equal(state.currentStep.id, "tour-welcome");
+});
+
+test("skip, failure and reduced motion keep the same welcome and narrate only after arrival", () => {
+  for (const finish of ["skip", "failure", "reduced"] as const) {
+    const { state, screens } = introRuntime(finish === "reduced");
+    state.introRequested = true;
+    state.startCharacterStep();
+    state.beginIntroScene();
+    assert.equal(screens[0].player.plays, 1);
+    assert.equal(screens[0].player.reducedMotion, finish === "reduced");
+    assert.equal(state.tourAdvanceTimer.running, false);
+    if (finish === "skip") state.skipCurrentStep();
+    else if (finish === "failure") screens[0].player.fail("Missing optional intro asset");
+    else screens[0].player.finish();
+    state.flushCallbacks();
+    assert.equal(state.currentStep.id, "tour-welcome");
+    assert.equal(state.introActive, false);
+    assert.equal(state.characterTourArrivalTimer.running, finish !== "reduced");
+    assert.equal(state.tourAdvanceTimer.running, finish === "reduced");
+    if (finish === "failure") assert.match(state.introNotice, /Missing optional intro asset/);
+    state.characterState = state.tourRestingState;
+    state.beginTourNarration();
+    assert.equal(state.introDeparting, false);
+    assert.equal(state.tourAdvanceTimer.running, true);
+  }
+});
+
+test("restart and explicit cancellation reject stale player and deferred handoff callbacks", () => {
+  const { state, screens } = introRuntime();
+  state.startIntro();
+  state.beginIntroScene();
+  const previous = state.introGeneration;
+  screens[0].player.finish();
+  state.startIntro();
+  state.beginIntroScene();
+  state.finishIntro(previous, "stale");
+  state.flushCallbacks();
+  assert.equal(state.introActive, true);
+  assert.equal(state.characterTourArrivalTimer.running, false);
+  assert.equal(state.introNotice, "");
+  state.cancelIntro();
+  state.finishIntro(state.introGeneration - 1);
+  assert.equal(state.introActive, false);
+  assert.equal(screens[0].player.running, false);
+  assert.equal(screens[0].coach.userPlaced, false);
+  assert.equal(state.tourAdvanceTimer.running, false);
+});
+
+test("first ascent keeps its gentle timing and defers narration despite audio controls", () => {
+  const { state, screens } = introRuntime();
+  state.startIntro();
+  state.beginIntroScene();
+  screens[0].player.finish();
+  state.flushCallbacks();
+  assert.equal(state.introActive, false);
+  assert.equal(state.introDeparting, true);
+  assert.equal(state.travelDurationForDistance(10, state.introDeparting), 1200);
+  assert.equal(state.travelDurationForDistance(5000, state.introDeparting), 1900);
+  state.beginTourNarration();
+  state.toggleAudio();
+  state.replayCurrentAudio();
+  assert.equal(state.introDeparting, true);
+  assert.equal(state.audioProcess.running, false);
+  assert.equal(state.tourAdvanceTimer.running, false);
+  state.toggleAudio();
+  assert.equal(state.tourAdvanceTimer.running, false);
+  state.characterState = state.tourRestingState;
+  state.beginTourNarration();
+  assert.equal(state.introDeparting, false);
+  assert.equal(state.tourAdvanceTimer.running, true);
+  assert.equal(state.travelDurationForDistance(10, state.introDeparting), 420);
+});
+
+test("changing displays cancels the old intro and rejects its later completion", () => {
+  const { state, screens } = introRuntime();
+  state.startIntro();
+  state.beginIntroScene();
+  const generation = state.introGeneration;
+  screens[0].overlay.shouldShow = false;
+  screens[1].overlay.shouldShow = true;
+  screens[0].screenChanged();
+  state.flushCallbacks();
+  assert.equal(state.introActive, false);
+  assert.equal(screens[0].player.running, false);
+  assert.equal(screens[1].player.plays, 0);
+  assert.equal(state.characterTourArrivalTimer.running, true);
+  state.finishIntro(generation);
+  assert.equal(state.currentStep.id, "tour-welcome");
+});
+
+test("an initially unavailable focused display can claim the pending intro later", () => {
+  const { state, screens } = introRuntime();
+  screens[0].overlay.shouldShow = false;
+  state.startIntro();
+  state.beginIntroScene();
+  assert.equal(state.introPlaybackStarted, false);
+  assert.deepEqual(screens.map((screen) => screen.player.plays), [0, 0]);
+  screens[1].overlay.shouldShow = true;
+  screens[1].screenChanged();
+  assert.equal(state.introPlaybackStarted, true);
+  assert.deepEqual(screens.map((screen) => screen.player.plays), [0, 1]);
+});
+
+test("switching packs in paused settings keeps lesson progress and window ownership", () => {
+  const { state, screens } = introRuntime();
+  state.startIntro();
+  state.beginIntroScene();
+  const generation = state.introGeneration;
+  state.tutorialWindows = ["0x123"];
+  state.tutorialWindowsByStep = { "launch-terminal": "0x123" };
+  state.stepResults = { "launch-terminal": "practiced" };
+  state.openSettings("settings");
+  state.audioProcess.running = true;
+  state.audioPaused = true;
+  state.audioProcessPath = state.currentAudioPath();
+  state.chooseCharacter("custom-coach");
+  state.finishIntro(generation);
+  assert.equal(state.phase, "settings");
+  assert.equal(state.settingsReturnToLesson, true);
+  assert.equal(state.audioProcess.running, false);
+  assert.equal(screens[0].player.running, false);
+  assert.deepEqual(Array.from(state.tutorialWindows), ["0x123"]);
+  assert.equal(state.tutorialWindowsByStep["launch-terminal"], "0x123");
+  assert.equal(state.stepResults["launch-terminal"], "practiced");
+  state.closeSettings();
+  assert.equal(state.phase, "waiting");
+  assert.equal(state.currentStep.id, "tour-welcome");
+  assert.equal(state.characterName, "custom-coach");
+});
+
+test("refreshing an emptied catalog preserves a paused lesson's Settings return target", () => {
+  const state = runtime("launch-terminal");
+  state.openSettings("settings");
+  const packs = state.characterStore.packs;
+  state.characterStore.packs = [];
+  state.characterPacksReady();
+  assert.equal(state.phase, "settings");
+  assert.equal(state.settingsReturnToLesson, true);
+  state.closeSettings();
+  assert.equal(state.phase, "settings");
+  state.characterStore.packs = packs;
+  state.characterPacksReady();
+  state.closeSettings();
+  assert.equal(state.phase, "waiting");
+  assert.equal(state.currentStep.id, "launch-terminal");
+});
+
+test("narration policy suppresses borrowed name lines, disables Replay, and keeps fallback timing", () => {
+  const state = runtime("tour-welcome");
+  state.phase = "menu";
+  state.chooseCharacter("custom-coach");
+  state.phase = "waiting";
+  state.audioEnabled = true;
+  state.characterStore.selectedPack.manifest.narration = { mode: "borrowed", audioSet: "hexon" };
+  assert.match(state.currentStep.instruction, /HEXON/);
+  assert.equal(state.currentAudioPath(), "");
+  assert.match(state.characterText(state.currentStep.instruction), /CUSTOM-COACH/);
+  state.beginTourNarration();
+  assert.equal(state.tourAdvanceTimer.running, true);
+  state.replayCurrentAudio();
+  assert.equal(state.audioProcess.running, false);
+  assert.equal(state.tourAdvanceTimer.running, true);
+  state.characterStore.selectedPack.manifest.narration.mode = "silent";
+  state.currentStep.completionAudio = "audio/result.mp3";
+  assert.equal(state.completionAudioPath(), "");
+  assert.match(shell, /visible: root\.phase === "waiting" && !root\.introActive && root\.currentAudioPath\(\) !== ""/);
+});
+
+test("main rendering contains no coach-specific manifest paths or intro choreography", () => {
+  assert.doesNotMatch(shell, /introKind|introStage|introAnchor|introScene|rocketArt|treeArt|intro-stand|intro-exit|intro-land|config\.prefix|characterFile|characterIndexFile/);
+  assert.match(shell, /root\.characterConfig\.motion\.tourFlight === "upright"/);
+  assert.match(shell, /characterConfig\.effects\.thrusters/);
+  assert.match(shell, /modelData\.assetUrl \+ "\/" \+ characterCard\.previewSprite\.path/);
+  const renderer = shell.match(/CharacterSprite \{([\s\S]*?)\n            \}/)?.[1];
+  assert.ok(renderer);
+  assert.match(renderer, /pack: root\.resolvedPack/);
+  assert.doesNotMatch(renderer, /\b(?:assetRoot|config):/);
+});
+
+test("intro palette forwards the current application theme", () => {
+  const palette = shell.match(/palette: \(\{([\s\S]*?)\}\)/)?.[1];
+  assert.ok(palette);
+  for (const color of ["accent", "instruction", "foreground", "background", "muted", "urgent"])
+    assert.match(palette, new RegExp(`${color}: root\\.${color}`));
+});
+
+test("pack names preserve Unicode, markup and replacement characters literally", () => {
+  const state = runtime("tour-welcome");
+  const name = "<b>雪 $& café</b>";
+  state.characterStore.selectedPack.manifest.displayName = name;
+  assert.equal(state.characterText("Meet HEXON. HEXON can help."), `Meet ${name}. ${name} can help.`);
+  for (const expression of [
+    "button.label", "button.description", "characterCard.modelData.manifest.displayName",
+    'characterCard.modelData.manifest.description || ""',
+    "root.characterText(lessonCard.modelData.description)",
+    'coachArt.errorMessage + "\\nOpen Settings to choose another coach."',
+  ]) {
+    const start = shell.indexOf(`text: ${expression}\n`);
+    assert.notEqual(start, -1, expression);
+    assert.match(shell.slice(start, shell.indexOf("\n", start + `text: ${expression}\n`.length)),
+      /textFormat: Text\.PlainText/, expression);
+  }
+});
+
+test("intro sounds accept only allowlisted cues from the active generation and respect preferences", () => {
+  const state = runtime("tour-welcome", false);
+  state.introActive = true;
+  state.audioEnabled = true;
+  state.playIntroSound("rocket-land.opus", state.introGeneration);
+  assert.equal(state.sfxProcess.running, true);
+  assert.deepEqual(Array.from(state.sfxProcess.command), [
+    "mpv", "--no-video", "--really-quiet", "--volume=45", "--", "/app/assets/sounds/rocket-land.opus",
+  ]);
+  state.sfxProcess.running = false;
+  for (const cue of ["../../other", "https://example.invalid/audio", "__proto__", "constructor", "unknown"])
+    state.playIntroSound(cue, state.introGeneration);
+  assert.equal(state.sfxProcess.running, false);
+  state.playIntroSound("rocket-liftoff.opus", state.introGeneration - 1);
+  assert.equal(state.sfxProcess.running, false);
+  for (const [setting, value] of [
+    ["audioEnabled", false], ["effectsEnabled", false], ["effectsVolume", 0], ["reducedMotion", true],
+  ] as const) {
+    const previous = state[setting];
+    state[setting] = value;
+    state.playIntroSound("rocket-liftoff.opus", state.introGeneration);
+    assert.equal(state.sfxProcess.running, false, setting);
+    state[setting] = previous;
+  }
+  state.playIntroSound("rocket-liftoff.opus", state.introGeneration);
+  assert.equal(state.sfxProcess.running, true);
+  assert.equal(state.sfxProcess.command.at(-1), "/app/assets/sounds/rocket-liftoff.opus");
+  state.cancelIntro();
+  assert.equal(state.sfxProcess.running, false);
 });
 
 test("cleanup resolves owned targets and refuses a missing target", () => {

@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "character": {
+    "x": 0.5, "y": 0.75, "offsetX": -272, "offsetY": -192,
+    "scale": 0.35, "opacity": 0, "visible": false
+  },
+  "layers": [
+    {
+      "id": "ribbon", "type": "effect", "effect": "strip", "count": 12,
+      "width": 360, "height": 14, "anchorX": 0.5,
+      "colors": ["#ffcb66", "#58d5c9"], "border": "#58d5c9", "z": -2,
+      "state": { "x": 0.5, "y": 0.75, "offsetY": 12, "opacity": 0, "scale": 0.1 }
+    },
+    {
+      "id": "confetti", "type": "effect", "effect": "specks", "count": 24,
+      "width": 480, "height": 220, "anchorX": 0.5, "anchorY": 1,
+      "colors": ["#ffcb66", "#58d5c9", "#fa86c4"], "amplitude": 28, "period": 1200,
+      "z": -1, "state": { "x": 0.5, "y": 0.75, "opacity": 0, "rotation": -12 }
+    },
+    {
+      "id": "greeting", "type": "text", "fontSize": 20, "typewriter": true,
+      "state": { "offsetX": 28, "offsetY": 58, "text": "> MAKE SOME ROOM FOR {displayName}!", "opacity": 0 }
+    }
+  ],
+  "steps": [
+    {
+      "type": "parallel", "branches": [
+        [{ "type": "tween", "target": "ribbon", "to": { "opacity": 1, "scale": 1 }, "duration": 650, "easing": "outBack" }],
+        [{ "type": "tween", "target": "confetti", "to": { "opacity": 1, "rotation": 0 }, "duration": 900, "easing": "outCubic" }],
+        [{ "type": "tween", "target": "greeting", "to": { "opacity": 1 }, "duration": 300 }]
+      ]
+    },
+    { "type": "set", "target": "character", "to": { "visible": true } },
+    { "type": "tween", "target": "character", "to": { "offsetX": -112, "scale": 1, "opacity": 1 }, "duration": 850, "easing": "outBack" },
+    { "type": "set", "target": "character", "to": { "pose": "point" } },
+    { "type": "wait", "duration": 700 },
+    { "type": "set", "target": "character", "to": { "pose": "idle" } },
+    {
+      "type": "parallel", "branches": [
+        [{ "type": "tween", "target": "ribbon", "to": { "opacity": 0 }, "duration": 500 }],
+        [{ "type": "tween", "target": "confetti", "to": { "opacity": 0 }, "duration": 500 }],
+        [{ "type": "tween", "target": "greeting", "to": { "opacity": 0 }, "duration": 500 }]
+      ]
+    }
+  ]
+}

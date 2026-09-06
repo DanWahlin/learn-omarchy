@@ -18,15 +18,13 @@ test:
 install:
 	install -d "$(APP_DIR)" "$(APP_DIR)/bin" "$(APP_DIR)/assets/characters" "$(APP_DIR)/assets/sounds" "$(BIN_DIR)" "$(DESKTOP_DIR)" "$(ICON_DIR)"
 	install -m 644 share/icons/hicolor/256x256/apps/learn-omarchy.png "$(ICON_DIR)/learn-omarchy.png"
-	install -m 644 assets/characters/index.json "$(APP_DIR)/assets/characters/index.json"
-	cp -R app courses experiments integrations src tools package.json character-lab.qml "$(APP_DIR)/"
+	cp -R app courses integrations src package.json character-lab.qml "$(APP_DIR)/"
+	install -d "$(APP_DIR)/tools" "$(APP_DIR)/experiments/hexon-lab" "$(APP_DIR)/docs"
+	install -m 644 experiments/hexon-lab/shell.qml experiments/hexon-lab/qmldir "$(APP_DIR)/experiments/hexon-lab/"
+	install -m 644 tools/character-packs.ts tools/validate-course.ts tools/capture-practice.mjs tools/verify-window-owner.mjs "$(APP_DIR)/tools/"
+	install -m 644 docs/character-packs.md docs/character-intros.md "$(APP_DIR)/docs/"
 	cp -R assets/sounds "$(APP_DIR)/assets/"
-	for character in assets/characters/*/; do \
-		name="$$(basename "$$character")"; \
-		install -d "$(APP_DIR)/assets/characters/$$name"; \
-		cp -R "$$character/sprites" "$(APP_DIR)/assets/characters/$$name/"; \
-		[ -f "$$character/character.json" ] && install -m 644 "$$character/character.json" "$(APP_DIR)/assets/characters/$$name/character.json" || true; \
-	done
+	node --experimental-strip-types tools/install-character-packs.ts assets/characters "$(APP_DIR)/assets/characters"
 	install -m 755 bin/hexon-lab "$(BIN_DIR)/hexon-lab"
 	install -m 755 bin/learn-omarchy "$(BIN_DIR)/learn-omarchy"
 	install -m 755 bin/learn-omarchy-practice "$(APP_DIR)/bin/learn-omarchy-practice"

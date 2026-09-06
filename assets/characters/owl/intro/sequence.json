@@ -1,0 +1,70 @@
+{
+  "version": 1,
+  "character": {
+    "x": { "layer": "canopy", "anchor": 0.84, "offset": -112 },
+    "y": { "layer": "canopy", "anchor": 0.63, "offset": -184 },
+    "offsetX": 0, "offsetY": 0, "visible": false, "opacity": 0
+  },
+  "layers": [
+    {
+      "id": "stars", "type": "effect", "effect": "specks", "count": 48,
+      "width": { "viewport": 1, "min": 1, "max": 4096 },
+      "height": { "viewport": 0.8, "min": 1, "max": 4096 },
+      "colors": ["theme:foreground", "theme:foreground", "theme:instruction"], "amplitude": 0, "period": 1800,
+      "z": -5, "state": { "offsetY": 40, "opacity": 0 }
+    },
+    {
+      "id": "prompt", "type": "text", "fontSize": 20, "typewriter": true, "z": 8,
+      "colors": ["theme:instruction"], "background": "theme:background", "border": "theme:accent",
+      "state": { "offsetX": 28, "offsetY": 58, "text": "> SOMETHING STIRS IN THE TREE...", "opacity": 0 }
+    },
+    {
+      "id": "canopy", "type": "image", "images": ["sprites/owl-intro.png"],
+      "height": { "viewport": 0.46, "min": 320, "max": 640 },
+      "anchorX": 0.72, "anchorY": 1, "z": 1,
+      "state": { "x": 0.5, "y": 1, "offsetY": -10, "scale": 0.1 }
+    },
+    {
+      "id": "fireflies", "type": "effect", "effect": "specks", "count": 7,
+      "width": { "viewport": 0.39984615, "axis": "height", "min": 278, "max": 556 },
+      "height": { "viewport": 0.23, "min": 160, "max": 320 },
+      "z": 2, "period": 2600, "amplitude": 18, "colors": ["theme:instruction"],
+      "state": { "x": { "layer": "canopy", "anchor": 0.1 }, "y": { "layer": "canopy", "anchor": 0.08 }, "opacity": 0 }
+    }
+  ],
+  "steps": [
+    {
+      "type": "parallel", "branches": [
+        [
+          {
+            "type": "parallel", "branches": [
+              [{ "type": "tween", "target": "canopy", "to": { "scale": 1 }, "duration": 1000, "easing": "outBack" }],
+              [{ "type": "tween", "target": "stars", "to": { "opacity": 1 }, "duration": 450, "easing": "inOutSine" }],
+              [{ "type": "tween", "target": "prompt", "to": { "opacity": 1 }, "duration": 450, "easing": "inOutSine" }],
+              [{ "type": "wait", "duration": 300 }, { "type": "tween", "target": "fireflies", "to": { "opacity": 1 }, "duration": 800 }]
+            ]
+          },
+          { "type": "set", "target": "prompt", "to": { "text": "> {displayName} IS AWAKE." } },
+          { "type": "set", "target": "character", "to": { "visible": true } },
+          { "type": "tween", "target": "character", "to": { "opacity": 1 }, "duration": 320 },
+          { "type": "wait", "duration": 1180 },
+          { "type": "set", "target": "prompt", "to": { "text": "> TOUR STARTING" } },
+          { "type": "set", "target": "character", "to": { "flying": true, "facing": 1 } },
+          { "type": "tween", "target": "character", "to": { "offsetY": -32 }, "duration": 450, "easing": "outQuad" },
+          {
+            "type": "parallel", "branches": [
+              [{ "type": "tween", "target": "canopy", "to": { "opacity": 0 }, "duration": 650, "easing": "inOutSine" }],
+              [{ "type": "tween", "target": "fireflies", "to": { "opacity": 0 }, "duration": 650, "easing": "inOutSine" }],
+              [{ "type": "tween", "target": "stars", "to": { "opacity": 0 }, "duration": 650, "easing": "inOutSine" }],
+              [{ "type": "tween", "target": "prompt", "to": { "opacity": 0 }, "duration": 650, "easing": "inOutSine" }]
+            ]
+          }
+        ],
+        [
+          { "type": "tween", "target": "canopy", "to": { "rotation": 0.8 }, "duration": 1900, "easing": "inOutSine" },
+          { "type": "tween", "target": "canopy", "to": { "rotation": -0.8 }, "duration": 1800, "easing": "inOutSine" }
+        ]
+      ]
+    }
+  ]
+}

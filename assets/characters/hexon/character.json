@@ -1,41 +1,26 @@
 {
+  "formatVersion": 1,
+  "id": "hexon",
   "displayName": "HEXON",
-  "prefix": "hexon",
-  "flames": true,
-  "idleFlames": [
-    [
-      96,
-      181
-    ],
-    [
-      130,
-      181
-    ]
-  ],
-  "pointFlames": [
-    [
-      80,
-      153
-    ],
-    [
-      122,
-      150
-    ]
-  ],
-  "pointPoseScale": 1.13,
-  "pointUpPoseScale": 1.13,
-  "pointTip": {
-    "x": 165,
-    "y": 75
+  "description": "Pixel robot with a CRT head and boot flames. Precise, upbeat, and always pointing the way.",
+  "author": { "name": null, "status": "unresolved", "note": "Existing artwork attribution has not been established by the repository." },
+  "license": { "status": "unresolved", "note": "The repository does not declare an asset license. Confirm redistribution rights before republishing artwork." },
+  "preview": { "sprite": "idle", "frame": 0 },
+  "sprites": {
+    "idle": { "path": "sprites/hexon-idle.png", "frameWidth": 192, "frameHeight": 192, "frames": 16, "timeline": [
+      { "frame": 0, "durationMs": 3000 }, { "frame": 11, "durationMs": 50 },
+      { "frame": 12, "durationMs": 100 }, { "frame": 13, "durationMs": 50 }
+    ] },
+    "talk": { "path": "sprites/hexon-talk.png", "frameWidth": 192, "frameHeight": 192, "frames": 8, "fps": 8 },
+    "flight": { "path": "sprites/hexon-flight.png", "frameWidth": 256, "frameHeight": 192, "frames": 1, "fps": 1 },
+    "point": { "path": "sprites/hexon-point.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "point-up": { "path": "sprites/hexon-point-up.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "point-blink": { "path": "sprites/hexon-point-blink.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 },
+    "point-up-blink": { "path": "sprites/hexon-point-up-blink.png", "frameWidth": 224, "frameHeight": 192, "frames": 1 }
   },
-  "upTip": {
-    "x": 147,
-    "y": 42
-  },
-  "pointBlink": true,
-  "flightFrames": 1,
-  "flightFrameRate": 1,
-  "poseMid": true,
+  "effects": { "thrusters": true },
+  "motion": { "tourFlight": "upright" },
+  "blink": { "periodMs": 3200, "startMs": 3050, "durationMs": 100 },
   "renderer": {
     "canvas": { "width": 224, "height": 192 },
     "baseline": 190,
@@ -68,10 +53,10 @@
     }
   },
   "intro": {
-    "kind": "rocket",
-    "anchorX": 0.5,
-    "anchorY": 0.7
+    "sequence": "intro/sequence.json"
   },
-  "voice": "en-US-Andrew:DragonHDLatestNeural",
-  "edgeVoice": "en-US-GuyNeural"
+  "narration": {
+    "mode": "own", "audioSet": "hexon",
+    "voices": { "azure": "en-US-Andrew:DragonHDLatestNeural", "edge": "en-US-GuyNeural" }
+  }
 }

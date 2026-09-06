@@ -7,12 +7,13 @@ import "../../app" as App
 
 ShellRoot {
   id: root
-  readonly property string charactersRoot: Quickshell.env("CHARACTER_LAB_ROOT")
-    || (Quickshell.shellDir + "/assets/characters")
-  property string characterName: Quickshell.env("CHARACTER_LAB_CHARACTER") || "hexon"
-  property var characters: []
-  property var characterConfig: ({})
-  property string loadError: ""
+  readonly property string appRoot: Quickshell.env("CHARACTER_LAB_APP_ROOT") || Quickshell.shellDir
+  readonly property string characterName: packStore.selectedPack ? packStore.selectedPack.id : ""
+  readonly property var characters: packStore.packs
+  readonly property var characterConfig: packStore.selectedPack ? packStore.selectedPack.manifest : ({})
+  readonly property string loadError: packStore.diagnostics.join("\n")
+  property string introError: ""
+  property bool introActive: false
   property string animationState: "idle"
   property string selectedPose: "idle"
   property bool speaking: false
@@ -32,16 +33,43 @@ ShellRoot {
 
   function selectCharacter(name) {
     if (!characters.some(function(c) { return c.id === name })) return "invalid-character"
-    if (name === characterName) return "ok"
-    characterConfig = ({})
-    loadError = ""
-    characterName = name
+    if (name === characterName) { packStore.select(name); return "ok" }
+    stopIntro()
+    packStore.select(name)
     frame = -1
     return "ok"
   }
 
+  function playIntro() {
+    if (!packStore.selectedPack) return "no-character"
+    stopIntro()
+    demoRunning = false
+    introError = ""
+    introActive = true
+    introPlayer.play()
+    return "ok"
+  }
+
+  function stopIntro() {
+    if (introPlayer) introPlayer.cancel()
+    introActive = false
+  }
+
+  function resetPreview() {
+    stopIntro()
+    introPlayer.reset()
+    introError = ""
+    demoRunning = false
+    direction = 1
+    playing = true
+    movedRight = false
+    spriteScale = 1
+    setState("idle")
+  }
+
   function setState(name) {
     if (states.indexOf(name) < 0) return "invalid-state"
+    stopIntro()
     animationState = name
     selectedPose = name === "point" || name === "point-up" ? name : name === "guide" ? "point" : "idle"
     speaking = name === "talk" || name === "guide"
@@ -67,23 +95,12 @@ ShellRoot {
     playing = !playing
   }
 
-  FileView {
-    path: root.charactersRoot + "/index.json"
-    onLoaded: {
-      try { root.characters = JSON.parse(text()).characters }
-      catch (error) { root.loadError = "Invalid character index: " + error }
-    }
-    onLoadFailed: root.loadError = "Cannot load character index"
-  }
-  FileView {
-    path: root.charactersRoot + "/" + root.characterName + "/character.json"
-    onLoaded: {
-      try {
-        root.characterConfig = JSON.parse(text())
-        root.loadError = ""
-      } catch (error) { root.loadError = "Invalid character manifest: " + error }
-    }
-    onLoadFailed: root.loadError = "Cannot load character manifest"
+  App.CharacterPackStore {
+    id: packStore
+    appRoot: root.appRoot
+    bundledRoot: Quickshell.env("CHARACTER_LAB_ROOT") || appRoot + "/assets/characters"
+    requestedId: Quickshell.env("CHARACTER_LAB_CHARACTER") || "hexon"
+    onSelectedPackChanged: { root.stopIntro(); root.frame = -1 }
   }
 
   NumberAnimation {
@@ -94,7 +111,7 @@ ShellRoot {
     to: 1
     duration: root.animationState === "guide" ? 6000 : 4000
     loops: Animation.Infinite
-    running: window.visible && (root.inFlight || root.animationState === "guide")
+    running: window.visible && !root.introActive && (root.inFlight || root.animationState === "guide")
       && !root.reducedMotion
     paused: running && (!root.playing || root.frame >= 0)
   }
@@ -119,14 +136,23 @@ ShellRoot {
         previewFrame: root.frame, currentFrame: coach.currentFrame, frameCount: coach.frameCount,
         landmarks: root.landmarks, movedRight: root.movedRight,
         demoRunning: root.demoRunning, error: root.loadError || coach.errorMessage,
+        introRunning: introPlayer.running, introActive: root.introActive,
+        introAvailable: !!packStore.selectedPack?.intro, introError: root.introError,
+        notice: packStore.notice, diagnostics: packStore.diagnostics,
+        packs: packStore.packs.map(function(pack) { return pack.id }),
         pointTip: [coach.pointTipX, coach.pointTipY], upTip: [coach.upTipX, coach.upTipY],
         flameSockets: coach.flameSockets
       })
     }
     function character(name: string): string { return root.selectCharacter(name) }
+    function refresh(): string { packStore.refresh(); return "ok" }
+    function intro(): string { return root.playIntro() }
+    function stop(): string { root.stopIntro(); return "ok" }
+    function reset(): string { root.resetPreview(); return "ok" }
     function state(name: string): string { return root.selectState(name) }
     function pose(name: string): string {
       if (["idle", "point", "point-up"].indexOf(name) < 0) return "invalid-pose"
+      root.stopIntro()
       root.demoRunning = false
       root.animationState = name
       root.selectedPose = name
@@ -177,6 +203,7 @@ ShellRoot {
     color: selected ? "#334665" : mouse.containsMouse ? "#26314f" : "#171d30"
     border.color: selected ? "#7aa2f7" : "#555e7b"
     Text {
+      textFormat: Text.PlainText
       id: labelText
       anchors.centerIn: parent
       text: button.label
@@ -199,18 +226,22 @@ ShellRoot {
     implicitWidth: 1080
     implicitHeight: 760
     color: "#111521"
+    onVisibleChanged: if (!visible) root.stopIntro()
+    onScreenChanged: if (root.introActive) root.stopIntro()
 
     ColumnLayout {
       anchors.fill: parent
       anchors.margins: 20
       spacing: 10
       Text {
+        textFormat: Text.PlainText
         text: "CHARACTER LAB · " + (root.characterConfig.displayName || root.characterName)
         color: "#c0caf5"
         font.pixelSize: 22
         font.bold: true
       }
       Text {
+        textFormat: Text.PlainText
         text: "Production renderer · cyan: body / baseline · red: side tip · green: up tip · amber: flame sockets"
         color: "#a9b1d6"
         font.pixelSize: 13
@@ -223,11 +254,12 @@ ShellRoot {
           model: root.characters
           LabButton {
             required property var modelData
-            label: modelData.displayName
+            label: modelData.manifest.displayName
             selected: root.characterName === modelData.id
             onActivated: root.selectCharacter(modelData.id)
           }
         }
+        LabButton { label: packStore.loading ? "Refreshing…" : "Refresh packs"; onActivated: packStore.refresh() }
         Repeater {
           model: root.states
           LabButton {
@@ -260,7 +292,7 @@ ShellRoot {
         }
         Rectangle {
           id: guideTarget
-          visible: root.animationState === "guide"
+          visible: !root.introActive && root.animationState === "guide"
           x: root.direction > 0 ? stage.width - 130 : 30
           y: stage.height / 2 - 12
           width: 100
@@ -268,32 +300,48 @@ ShellRoot {
           radius: 8
           color: "#171d30"
           border.color: "#bb9af7"
-          Text { anchors.centerIn: parent; text: "APPS MENU"; color: "#c0caf5"; font.pixelSize: 12 }
+          Text { textFormat: Text.PlainText; anchors.centerIn: parent; text: "APPS MENU"; color: "#c0caf5"; font.pixelSize: 12 }
+        }
+        App.IntroPlayer {
+          id: introPlayer
+          anchors.fill: parent
+          visible: root.introActive
+          sequence: packStore.selectedPack ? packStore.selectedPack.intro : null
+          assetRoot: packStore.selectedPack ? packStore.selectedPack.assetUrl : ""
+          displayName: root.characterConfig.displayName || ""
+          reducedMotion: root.reducedMotion
+          onFinished: root.introActive = false
+          onCancelled: root.introActive = false
+          onFailed: function(message) { root.introError = message; root.introActive = false }
+          onDiagnostic: function(message) { root.introError = message }
         }
         App.CharacterSprite {
           id: coach
           readonly property bool guiding: root.animationState === "guide"
           readonly property real approach: root.reducedMotion ? 1 : Math.min(1, root.progress * 3)
           readonly property real approachStart: root.direction > 0 ? -224 * scale : stage.width
-          assetRoot: root.charactersRoot + "/" + root.characterName
-          config: root.characterConfig
-          pose: root.selectedPose
-          talking: root.speaking
-          flying: root.inFlight || (guiding && approach < 1)
-          facing: root.direction
+          pack: packStore.selectedPack
+          pose: root.introActive ? introPlayer.characterPose : root.selectedPose
+          talking: !root.introActive && root.speaking
+          flying: root.introActive ? introPlayer.characterFlying : root.inFlight || (guiding && approach < 1)
+          facing: root.introActive ? introPlayer.characterFacing : root.direction
           reducedMotion: root.reducedMotion
-          animated: root.playing
-          previewFrame: root.frame
+          animated: root.introActive || root.playing
+          previewFrame: root.introActive ? -1 : root.frame
           showLandmarks: root.landmarks
-          scale: root.spriteScale
-          transformOrigin: Item.TopLeft
-          x: guiding
+          visible: !!packStore.selectedPack && (!root.introActive || introPlayer.characterVisible)
+          opacity: root.introActive ? introPlayer.characterOpacity : 1
+          rotation: root.introActive ? introPlayer.characterRotation : 0
+          scale: root.introActive ? introPlayer.characterScale : root.spriteScale
+          transformOrigin: root.introActive ? Item.Bottom : Item.TopLeft
+          x: root.introActive ? introPlayer.characterX : guiding
             ? approachStart + (guideTarget.x + (root.direction < 0 ? guideTarget.width : 0)
                 - pointTipX * scale - approachStart) * approach
             : root.inFlight && root.animationState !== "fly-up" && !root.reducedMotion
               ? -224 * scale + (stage.width + 224 * scale) * (root.direction > 0 ? root.progress : 1 - root.progress)
               : root.movedRight ? stage.width - 224 * scale - 35 : (stage.width - 224 * scale) / 2
-          y: guiding ? guideTarget.y + 35 - pointTipY * scale - (root.reducedMotion ? 0 : Math.sin(approach * Math.PI) * 60)
+          y: root.introActive ? introPlayer.characterY
+            : guiding ? guideTarget.y + 35 - pointTipY * scale - (root.reducedMotion ? 0 : Math.sin(approach * Math.PI) * 60)
             : root.animationState === "fly-up" && !root.reducedMotion
               ? stage.height - (stage.height + 192 * scale) * root.progress
               : (stage.height - 192 * scale) / 2
@@ -303,6 +351,13 @@ ShellRoot {
         Layout.fillWidth: true
         Layout.preferredHeight: childrenRect.height
         spacing: 6
+        LabButton {
+          label: root.introActive ? "Replay intro" : packStore.selectedPack?.intro ? "Play intro" : "Preview fallback"
+          selected: root.introActive
+          onActivated: root.playIntro()
+        }
+        LabButton { label: "Stop intro"; onActivated: root.stopIntro() }
+        LabButton { label: "Reset"; onActivated: root.resetPreview() }
         LabButton { label: "Speech"; selected: root.speaking; onActivated: root.speaking = !root.speaking }
         LabButton { label: "Flight"; selected: root.inFlight; onActivated: root.inFlight = !root.inFlight }
         LabButton { label: root.direction > 0 ? "Facing →" : "Facing ←"; onActivated: root.direction *= -1 }
@@ -337,6 +392,7 @@ ShellRoot {
         LabButton { label: "‹ Frame"; onActivated: root.scrub((coach.currentFrame + coach.frameCount - 1) % coach.frameCount) }
         LabButton { label: "Frame ›"; onActivated: root.scrub((coach.currentFrame + 1) % coach.frameCount) }
         Text {
+          textFormat: Text.PlainText
           text: "  Frame " + coach.currentFrame + "/" + (coach.frameCount - 1) + (root.frame < 0 ? " · automatic" : " · scrubbed")
           color: "#c0caf5"
           height: 32
@@ -344,9 +400,12 @@ ShellRoot {
         }
       }
       Text {
+        textFormat: Text.PlainText
         Layout.fillWidth: true
-        text: root.loadError || coach.errorMessage || "Space: pause/play · ←/→: frame · Esc: close · IPC target: hexon-lab"
-        color: root.loadError || coach.errorMessage ? "#ff7777" : "#a9b1d6"
+        text: [root.introError, root.loadError, packStore.notice, packStore.narrationNotice,
+          packStore.selectedPack ? coach.errorMessage : "",
+          "Space: pause/play · ←/→: frame · Esc: close · IPC target: hexon-lab"].filter(function(line) { return !!line }).join("\n")
+        color: root.introError || root.loadError || coach.errorMessage ? "#ff7777" : "#a9b1d6"
         wrapMode: Text.Wrap
       }
     }
@@ -357,7 +416,7 @@ ShellRoot {
         if (event.key === Qt.Key_Space) root.togglePlay()
         else if (event.key === Qt.Key_Left) root.scrub((coach.currentFrame + coach.frameCount - 1) % coach.frameCount)
         else if (event.key === Qt.Key_Right) root.scrub((coach.currentFrame + 1) % coach.frameCount)
-        else if (event.key === Qt.Key_Escape) Qt.quit()
+        else if (event.key === Qt.Key_Escape) { root.stopIntro(); Qt.quit() }
         else return
         event.accepted = true
       }

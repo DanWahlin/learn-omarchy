@@ -7,6 +7,8 @@
 # concept sheets under assets/characters/<character>/concepts/, then writes
 # <character>-idle.png, -talk.png, -flight.png, -point.png, and -point-up.png
 # into assets/characters/<character>/sprites/. All output is deterministic.
+# Trusted repository authoring only: sprites.conf is executable Bash.
+# Runtime character packs need only validated JSON and finished PNGs.
 set -euo pipefail
 
 character="${1:-}"
