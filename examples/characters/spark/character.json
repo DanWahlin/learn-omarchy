@@ -28,5 +28,5 @@
   "effects": { "thrusters": false },
   "motion": { "tourFlight": "upright" },
   "intro": { "sequence": "intro/sequence.json" },
-  "narration": { "mode": "borrowed", "audioSet": "hexon" }
+  "narration": { "mode": "borrowed", "audioSet": "ohm-1" }
 }

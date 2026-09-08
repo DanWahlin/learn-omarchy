@@ -1,9 +1,9 @@
 {
   "formatVersion": 1,
   "id": "owl",
-  "displayName": "OLLIE",
+  "displayName": "Ollie",
   "description": "A wise little owl with a pink scarf. Glides between stops and explains things calmly.",
-  "author": { "name": null, "status": "unresolved", "note": "Existing artwork attribution has not been established by the repository." },
+  "author": { "name": "Dan Wahlin", "status": "declared" },
   "license": { "status": "unresolved", "note": "The repository does not declare an asset license. Confirm redistribution rights before republishing artwork." },
   "preview": { "sprite": "idle", "frame": 0 },
   "sprites": {

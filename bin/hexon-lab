@@ -11,7 +11,7 @@ fi
 
 if [[ $# -gt 1 || "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   echo "usage: hexon-lab [character-id]"
-  echo "Preview bundled and user character packs with the production renderer (default: hexon)."
+  echo "Preview bundled and user character packs with the production renderer (default: ohm-1)."
   exit 0
 fi
 for tool in qs node; do
@@ -20,7 +20,7 @@ for tool in qs node; do
     exit 1
   }
 done
-character="${1:-${CHARACTER_LAB_CHARACTER:-hexon}}"
+character="${1:-${CHARACTER_LAB_CHARACTER:-ohm-1}}"
 if [[ ${#character} -gt 64 || ! "$character" =~ ^[a-z][a-z0-9]*(-[a-z0-9]+)*$ ]]; then
   echo "hexon-lab: invalid character ID: $character" >&2
   exit 2

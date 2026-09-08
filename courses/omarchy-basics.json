@@ -3,20 +3,40 @@
   "id": "omarchy-essentials",
   "title": "Learn Omarchy",
   "description": "Build practical desktop skills with guided shortcuts and real exercises. Optional modules let you explore further.",
+  "wrapUp": {
+    "assisted": {
+      "text": "Nice work exploring this topic with some guidance. You can use Practice whenever you'd like to try the activities on your own.",
+      "audio": "audio/lesson-wrapup-assisted.mp3"
+    },
+    "explored": {
+      "text": "That's the end of this topic. You can revisit anything you skipped or want to practice, or choose another topic.",
+      "audio": "audio/lesson-wrapup-explored.mp3"
+    }
+  },
   "lessons": [
     {
-      "id": "omarchy-tour",
-      "title": "Omarchy tour",
-      "description": "Let HEXON introduce the menu bar, then open the Omarchy menu with your first hotkey.",
+      "id": "welcome",
+      "kind": "welcome",
+      "title": "Welcome to Omarchy",
+      "description": "Meet your coach and discover how to make this desktop your own. Replay the welcome anytime.",
       "icon": "01",
-      "estimatedMinutes": 2,
+      "estimatedMinutes": 1,
+      "steps": []
+    },
+    {
+      "id": "omarchy-tour",
+      "wrapUp": { "text": "Nice work, that's the tour. You've explored the desktop bar, switched workspaces, and opened the Omarchy menu.", "audio": "audio/wrapup-omarchy-tour.mp3" },
+      "title": "Omarchy tour",
+      "description": "Get oriented with the desktop bar, try switching workspaces, then open the Omarchy menu.",
+      "icon": "02",
+      "estimatedMinutes": 3,
       "steps": [
         {
           "id": "tour-welcome",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Hi there! I'm HEXON. Welcome to Omarchy! Super means the Windows key, or Command on a Mac keyboard. Let's take a quick tour.",
-          "detail": "Super is the Windows key on most keyboards, or Command on a Mac keyboard. Keep your existing work open; the course uses its own practice windows.",
+          "instruction": "Let's start with the highlighted desktop bar. It gives you quick access to workspaces, the clock, and system controls. Super is the Windows key, or Command on a Mac. Alt is the Option key on a Mac.",
+          "detail": "Follow the highlighted area if your bar is in a different position. Read along or listen, then press Enter to continue. Help can demonstrate shortcuts when you need it.",
           "keys": [],
           "audio": "audio/tour-welcome.mp3",
           "completion": {
@@ -39,8 +59,8 @@
         {
           "id": "tour-workspaces",
           "kind": "tour",
-          "instruction": "See those numbers up in the top left? Those are your workspaces. Each one is its own desktop, and the highlighted one is where you are right now.",
-          "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
+          "instruction": "These numbers are your workspaces: separate desktops for different tasks. The highlighted number shows the workspace you're using. Switching workspaces keeps your windows open.",
+          "detail": "Follow the highlighted area. Choose Next or press Enter when you're ready to continue.",
           "keys": [],
           "audio": "audio/tour-workspaces.mp3",
           "completion": {
@@ -66,10 +86,72 @@
           }
         },
         {
+          "id": "tour-workspace-two",
+          "instruction": "Let's try it. Hold Super and tap 2 on the top row of your keyboard. Then release both keys. This switches to workspace two.",
+          "detail": "Switching workspaces doesn't close or move your windows. Workspace two may already have windows in it. If you're already there, we'll move on to switching to workspace one.",
+          "keys": ["SUPER", "+", "2"],
+          "audio": "audio/tour-workspace-two.mp3",
+          "help": {
+            "label": "Switch for me",
+            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.focus({ workspace = \"2\" }))"]
+          },
+          "completion": {
+            "type": "hyprland-workspace-is",
+            "id": 2
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 2
+          },
+          "completionMessage": "You're on workspace two. Notice how its number is now highlighted in the bar. Your other windows are still on their own workspaces.",
+          "completionAudio": "audio/tour-workspace-two-done.mp3"
+        },
+        {
+          "id": "tour-workspace-one",
+          "instruction": "Now hold Super and tap 1 on the top row. Then release both keys. You're heading to workspace one.",
+          "detail": "If you started on workspace one, this brings you back. If you started elsewhere, it takes you to workspace one instead. Nothing is closed or moved.",
+          "keys": ["SUPER", "+", "1"],
+          "audio": "audio/tour-workspace-one.mp3",
+          "help": {
+            "label": "Switch for me",
+            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.focus({ workspace = \"1\" }))"]
+          },
+          "completion": {
+            "type": "hyprland-workspace-is",
+            "id": 1
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 180,
+            "height": 27,
+            "borderWidth": 3,
+            "radius": 8,
+            "dynamic": "workspaces",
+            "durationMs": 1800,
+            "target": "workspace",
+            "workspaceId": 1
+          },
+          "completionMessage": "You're on workspace one. You can use the same shortcut whenever you want to switch workspaces. Let's continue along the bar.",
+          "completionAudio": "audio/tour-workspace-one-done.mp3"
+        },
+        {
           "id": "tour-clock",
           "kind": "tour",
-          "instruction": "Front and center, you've got the date, the time, and today's weather. Click there later and it turns into your calendar. And here's a secret: hover over that area and a row of quick tools appears, like dictation, screen recording, reminders, night light, and more.",
-          "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
+          "instruction": "Here's the date and time, with weather alongside it if enabled. The clock opens a calendar. Hovering over this area can also reveal quick tools, including reminders and screen recording.",
+          "detail": "Follow the highlighted area. Choose Next or press Enter when you're ready to continue.",
           "keys": [],
           "audio": "audio/tour-clock.mp3",
           "completion": {
@@ -96,8 +178,8 @@
         {
           "id": "tour-status",
           "kind": "tour",
-          "instruction": "Over on the right is your status crew: network, Bluetooth, audio, display, and battery. Click any of them and it opens its own panel.",
-          "detail": "HEXON is giving the tour. Press Enter to continue early, or Skip to jump ahead.",
+          "instruction": "These indicators show system status, including network, Bluetooth, sound, and power. Select an indicator to open its controls. What you see depends on your hardware and bar settings.",
+          "detail": "Follow the highlighted area. Choose Next or press Enter when you're ready to continue.",
           "keys": [],
           "audio": "audio/tour-status.mp3",
           "completion": {
@@ -126,8 +208,8 @@
         },
         {
           "id": "tour-omarchy-menu",
-          "instruction": "Ready for your first hotkey? Press Super and Space together, and the Omarchy menu opens.",
-          "detail": "This menu is home base. Pick an app, change a setting, or reach anything else in Omarchy from here.",
+          "instruction": "Let's try another shortcut. Hold Super and tap Space to open the Omarchy menu.",
+          "detail": "The Omarchy menu brings together apps, settings, and system tools. In guided activities, the course captures your shortcut keys; Release Keys lets you interact with the opened menu.",
           "keys": [
             "SUPER",
             "+",
@@ -162,27 +244,50 @@
             "borderWidth": 10,
             "radius": 12,
             "durationMs": 2200,
-            "target": "panel",
-            "barWidgets": [
-              "omarchy.menu"
-            ]
+            "target": "panel"
           },
-          "completionMessage": "And that's the Omarchy menu. Type a few letters or use the arrow keys, then press Enter to launch whatever you picked.",
+          "completionMessage": "That's the Omarchy menu in the center of your screen. It brings together apps, settings, and system tools. Super and Space opens it whenever you need it.",
           "completionAudio": "audio/tour-omarchy-menu-done.mp3"
+        },
+        {
+          "id": "tour-menu-icon",
+          "kind": "tour",
+          "instruction": "You can also click this icon in the desktop bar to open the same menu, with apps, settings, and other resources. Use whichever way is more convenient.",
+          "detail": "The previous menu is closed so you can see the icon clearly. This is the mouse alternative to Super and Space; you don't need to click it to finish the tour.",
+          "keys": [],
+          "audio": "audio/tour-menu-icon.mp3",
+          "completion": {
+            "type": "narration-complete",
+            "delayMs": 900,
+            "durationMs": 7000
+          },
+          "highlight": {
+            "shape": "rectangle",
+            "anchor": "top-left",
+            "x": 8,
+            "y": 1,
+            "width": 32,
+            "height": 30,
+            "borderWidth": 3,
+            "radius": 6,
+            "barWidgets": ["omarchy.menu"],
+            "durationMs": 1200
+          }
         }
       ]
     },
     {
       "id": "menus-and-apps",
+      "wrapUp": { "text": "That wraps up menus and apps. You have a starting point for finding commands, opening apps, and looking up shortcuts.", "audio": "audio/wrapup-menus-and-apps.mp3" },
       "title": "Menus and apps",
       "description": "Find commands, installed apps, and the built-in shortcut guide.",
-      "icon": "02",
+      "icon": "03",
       "estimatedMinutes": 3,
       "steps": [
         {
           "id": "open-root-menu",
-          "instruction": "You met this one on the tour, so it's a quick warm-up. Press Super and Space to open the Omarchy menu, or hit Skip if you've already got it.",
-          "detail": "Everything in Omarchy is reachable from this menu, so it's worth making this shortcut muscle memory.",
+          "instruction": "Press Super and Space to open the Omarchy menu. If you tried this on the tour, use it as a quick refresher or choose Skip.",
+          "detail": "This menu is a useful starting point for apps, settings, and system tools.",
           "keys": [
             "SUPER",
             "+",
@@ -222,13 +327,13 @@
               "omarchy.menu"
             ]
           },
-          "completionMessage": "There it is. Type to search or use the arrows, and Escape backs out whenever you like.",
+          "completionMessage": "The menu is open. Choose Release Keys before typing or browsing here. Escape closes the menu; Capture Keys returns control to the course.",
           "completionAudio": "audio/open-root-menu-done.mp3"
         },
         {
           "id": "open-apps",
           "instruction": "Now for your apps. Hold Super and Alt, then tap Space, and the Apps menu opens.",
-          "detail": "The Apps menu lists everything installed. Start typing and the list narrows instantly.",
+          "detail": "The Apps menu lists launchable apps, not every installed package. Choose Release Keys to search it, then Capture Keys to return to the course.",
           "keys": [
             "SUPER",
             "+",
@@ -270,7 +375,7 @@
               "omarchy.menu"
             ]
           },
-          "completionMessage": "Nice. Type a few letters, hit Enter, and the app launches. No mouse required.",
+          "completionMessage": "The Apps menu is open. The next exercise lets you search for and launch an app yourself.",
           "completionAudio": "audio/open-apps-done.mp3"
         },
         {
@@ -295,13 +400,13 @@
             "height": 120,
             "borderWidth": 3
           },
-          "completionMessage": "You completed the real task. That's a skill you can use outside this course.",
+          "completionMessage": "You opened the menu, launched a new terminal, and closed that window. Searching the Apps menu is a useful way to find an app when you don't know its shortcut.",
           "completionAudio": "audio/apps-search-practice-done.mp3"
         },
         {
           "id": "open-keybindings",
-          "instruction": "Forget a shortcut? Press Super and K to see every keybinding at once.",
-          "detail": "This searchable list is your cheat sheet. Type any word to filter it.",
+          "instruction": "Need to look up a shortcut? Press Super and K to open the shortcut guide.",
+          "detail": "This searchable list is your cheat sheet. Choose Release Keys to type a filter. Close the guide with Escape, then choose Capture Keys to continue.",
           "keys": [
             "SUPER",
             "+",
@@ -337,22 +442,23 @@
             "durationMs": 2200,
             "target": "panel"
           },
-          "completionMessage": "Keep this one handy. Whenever you're stuck, Super plus K has the answer.",
+          "completionMessage": "The shortcut guide is open. Use it whenever you want to look up or revisit a key combination.",
           "completionAudio": "audio/open-keybindings-done.mp3"
         }
       ]
     },
     {
       "id": "everyday-apps",
+      "wrapUp": { "text": "Nicely done. You've practiced opening everyday apps and closing the windows you no longer need.", "audio": "audio/wrapup-everyday-apps.mp3" },
       "title": "Everyday apps",
       "description": "Launch the terminal, browser, and file manager, and learn to close what you open.",
-      "icon": "03",
+      "icon": "04",
       "estimatedMinutes": 3,
       "steps": [
         {
           "id": "launch-terminal",
-          "instruction": "Time for a terminal. Press Super and Return, and one pops up right where you are.",
-          "detail": "Omarchy tiles the new terminal next to your other windows automatically.",
+          "instruction": "Press Super and Return to open a terminal. Return is the Enter key on most keyboards.",
+          "detail": "A terminal is a window where you can type commands. You won't need to enter commands in this activity. Omarchy fits the new window alongside your existing work.",
           "keys": [
             "SUPER",
             "+",
@@ -389,7 +495,7 @@
           "id": "close-terminal",
           "windowFromStep": "launch-terminal",
           "instruction": "Now let's tidy up. Press Super and W to close that terminal.",
-          "detail": "Super plus W closes whatever window has focus. You'll use it constantly, so it's worth learning right away.",
+          "detail": "Outside the course, this closes the active window: the one receiving your input. Here, the guided action targets only the terminal opened for this activity.",
           "keys": [
             "SUPER",
             "+",
@@ -423,7 +529,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "Gone. Open with a shortcut, close with a shortcut. That's the rhythm of Omarchy.",
+          "completionMessage": "The practice terminal is closed. Super and Return opens one; Super and W closes the active window.",
           "completionAudio": "audio/close-terminal-done.mp3"
         },
         {
@@ -500,14 +606,14 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "There are your files. Same trick, different letter.",
+          "completionMessage": "The file manager is open. Use it to browse folders, find documents, and manage files.",
           "completionAudio": "audio/launch-files-done.mp3"
         },
         {
           "id": "close-files",
           "windowFromStep": "launch-files",
           "instruction": "Same move again. Press Super and W to close the file manager.",
-          "detail": "Closing windows is just as quick as opening them, so there's no reason to let clutter build up.",
+          "detail": "The guided action closes the course's file-manager window, not another window you had open.",
           "keys": [
             "SUPER",
             "+",
@@ -541,22 +647,23 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "Nice and clean. You can leave the browser open; we'll come back to it.",
+          "completionMessage": "The file manager is closed. You can keep the browser open or close it when you're finished with it.",
           "completionAudio": "audio/close-files-done.mp3"
         }
       ]
     },
     {
       "id": "windows",
+      "wrapUp": { "text": "Nice work. You've practiced arranging windows and switching your focus between them. Use the layout that suits your task.", "audio": "audio/wrapup-windows.mp3" },
       "title": "Windows",
       "description": "Tile, focus, float, and fullscreen windows without touching the mouse.",
-      "icon": "04",
+      "icon": "05",
       "estimatedMinutes": 7,
       "steps": [
         {
           "id": "windows-open-first",
           "instruction": "Let's see how tiling works. Press Super and Return to open a terminal.",
-          "detail": "Omarchy tiles every new window automatically. One window gets the whole screen.",
+          "detail": "Tiling arranges windows without overlap. A single tiled window fills the available workspace; additional windows share that space.",
           "keys": [
             "SUPER",
             "+",
@@ -586,7 +693,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "There's the first one, filling the space it has. Now watch what happens when we add another.",
+          "completionMessage": "The terminal has joined your layout. Next, open another to see how the available space is shared.",
           "completionAudio": "audio/windows-open-first-done.mp3"
         },
         {
@@ -629,7 +736,7 @@
           "id": "windows-focus-next",
           "windowFromStep": "windows-open-first",
           "instruction": "Two windows, one keyboard. Press Alt and Tab to hop to the other terminal.",
-          "detail": "Alt plus Tab cycles through the windows on this workspace. Super plus an arrow key moves focus in that direction instead. The highlighted border shows where you are.",
+          "detail": "Focus means which window receives keyboard input. Alt and Tab switches windows; the active border helps you spot the change. This guided step selects your other practice terminal.",
           "keys": [
             "ALT",
             "+",
@@ -666,7 +773,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "You just switched windows without reaching for the mouse. Try Super plus Left or Right later and you'll feel the tiling.",
+          "completionMessage": "The other terminal now receives your keyboard input. You can switch between windows without moving them.",
           "completionAudio": "audio/windows-focus-next-done.mp3"
         },
         {
@@ -754,7 +861,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "Full screen, no distractions. Super plus F again takes you right back to the tiles.",
+          "completionMessage": "The terminal is fullscreen. Press the same shortcut in the next activity to leave fullscreen.",
           "completionAudio": "audio/windows-fullscreen-done.mp3"
         },
         {
@@ -769,7 +876,7 @@
           ],
           "audio": "audio/windows-exit-fullscreen.mp3",
           "help": {
-            "label": "Show me",
+            "label": "Show me how",
             "command": [
               "hyprctl",
               "eval",
@@ -816,7 +923,7 @@
           ],
           "audio": "audio/windows-retile.mp3",
           "help": {
-            "label": "Show me",
+            "label": "Show me how",
             "command": [
               "hyprctl",
               "eval",
@@ -848,7 +955,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "Your terminal is tiled again. Hyprland manages its size and position alongside the other windows.",
+          "completionMessage": "Your terminal is tiled again. Omarchy manages its size and position alongside the other windows.",
           "completionAudio": "audio/windows-retile-done.mp3"
         },
         {
@@ -864,7 +971,7 @@
           ],
           "audio": "audio/windows-focus-right.mp3",
           "help": {
-            "label": "Show me",
+            "label": "Show me how",
             "command": [
               "hyprctl",
               "eval",
@@ -913,7 +1020,7 @@
           ],
           "audio": "audio/windows-swap.mp3",
           "help": {
-            "label": "Show me",
+            "label": "Show me how",
             "command": [
               "hyprctl",
               "eval",
@@ -987,7 +1094,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "One down. Notice how the other terminal grew to fill the gap.",
+          "completionMessage": "The first practice terminal is closed. The remaining windows can use the space it released.",
           "completionAudio": "audio/windows-close-one-done.mp3"
         },
         {
@@ -1028,16 +1135,17 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "Spotless. You now know more about window management than most people learn in a month.",
+          "completionMessage": "Both practice terminals are closed. You've covered opening, arranging, switching between, and closing windows.",
           "completionAudio": "audio/windows-close-two-done.mp3"
         }
       ]
     },
     {
       "id": "workspaces",
+      "wrapUp": { "text": "That wraps up workspaces. You can keep different tasks on separate desktops and switch between them without closing your windows.", "audio": "audio/wrapup-workspaces.mp3" },
       "title": "Workspaces",
       "description": "Jump between desktops, send windows where they belong, and stash things in the scratchpad.",
-      "icon": "05",
+      "icon": "06",
       "estimatedMinutes": 7,
       "steps": [
         {
@@ -1076,7 +1184,7 @@
             "target": "workspace",
             "workspaceId": 1
           },
-          "completionMessage": "Workspace one. That's home base for this module.",
+          "completionMessage": "You're on workspace one. We'll use it as the starting point for this lesson.",
           "completionAudio": "audio/workspaces-home-done.mp3"
         },
         {
@@ -1112,7 +1220,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "Perfect. Keep an eye on the numbers in the bar as we go.",
+          "completionMessage": "The practice terminal is open. Watch the workspace numbers as you move between desktops.",
           "completionAudio": "audio/workspaces-open-terminal-done.mp3"
         },
         {
@@ -1156,8 +1264,8 @@
         },
         {
           "id": "workspaces-back",
-          "instruction": "Press Super, Control, and Tab to return to your former workspace.",
-          "detail": "Former means the workspace you were just using. Here that takes us back to workspace one.",
+          "instruction": "Press Super, Control, and Tab to return to the workspace you were just using.",
+          "detail": "This shortcut returns to the last workspace you visited. In this activity, that's workspace one.",
           "keys": [
             "SUPER",
             "+",
@@ -1242,7 +1350,7 @@
             "target": "workspace",
             "workspaceId": 2
           },
-          "completionMessage": "The terminal came along for the ride. That's how you sort windows onto the desktops where they belong.",
+          "completionMessage": "The terminal is now on workspace two, and you've followed it there. Moving a window lets you keep related work together.",
           "completionAudio": "audio/workspaces-send-done.mp3"
         },
         {
@@ -1316,7 +1424,7 @@
             "durationMs": 1700,
             "target": "workspace"
           },
-          "completionMessage": "And you're back. By the way, Super plus any number jumps straight to that workspace.",
+          "completionMessage": "You're back on the previous workspace. Shift reverses the direction of this shortcut.",
           "completionAudio": "audio/previous-workspace-done.mp3"
         },
         {
@@ -1333,7 +1441,7 @@
           ],
           "audio": "audio/workspaces-stash.mp3",
           "help": {
-            "label": "Show me",
+            "label": "Show me how",
             "command": [
               "hyprctl",
               "eval",
@@ -1367,13 +1475,13 @@
             "target": "workspace",
             "workspaceId": 2
           },
-          "completionMessage": "That's the expected window change, confirmed on your practice terminal.",
+          "completionMessage": "The terminal is in the scratchpad. Next, reveal it over your current workspace.",
           "completionAudio": "audio/workspaces-stash-done.mp3"
         },
         {
           "id": "workspaces-scratchpad",
           "instruction": "Press Super and S to reveal the scratchpad with your terminal in it.",
-          "detail": "The scratchpad is a hidden workspace that slides over the top of whatever you're doing. Super plus S shows and hides it.",
+          "detail": "The scratchpad is a hidden workspace you can show over your current one. Super and S shows or hides it.",
           "keys": [
             "SUPER",
             "+",
@@ -1447,14 +1555,39 @@
             "durationMs": 1800,
             "target": "workspace"
           },
-          "completionMessage": "Hidden again, and still there whenever you need it. You can close the terminal whenever you like with Super plus W.",
+          "completionMessage": "The scratchpad is hidden, but its terminal is still open. We'll reveal it again before moving the terminal to a numbered workspace.",
           "completionAudio": "audio/workspaces-scratchpad-hide-done.mp3"
+        },
+        {
+          "id": "workspaces-reveal-before-restore",
+          "windowFromStep": "workspaces-open-terminal",
+          "instruction": "Reveal the scratchpad again with Super and S. We'll move the practice terminal only after it has focus.",
+          "detail": "If the scratchpad contains other windows, select the terminal we opened. The next shortcut moves the focused window, not a window hidden in the scratchpad.",
+          "keys": ["SUPER", "+", "S"],
+          "audio": "audio/workspaces-reveal-before-restore.mp3",
+          "help": {
+            "label": "Reveal it for me",
+            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.workspace.toggle_special(\"scratchpad\"))"]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": ["activespecialv2", "activespecial", "activewindowv2"],
+            "target": "tutorial-window",
+            "windowState": { "specialWorkspace": "scratchpad", "focused": true }
+          },
+          "highlight": {
+            "shape": "rectangle", "anchor": "center", "x": 0, "y": -40,
+            "width": 1280, "height": 760, "borderWidth": 10, "radius": 12,
+            "durationMs": 1800, "target": "window"
+          },
+          "completionMessage": "The practice terminal is visible and focused. Now you can move it out of the scratchpad.",
+          "completionAudio": "audio/workspaces-reveal-before-restore-done.mp3"
         },
         {
           "id": "workspaces-restore",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Press Super, Shift, and 2 to bring the practice terminal back to workspace two.",
-          "detail": "Sending a scratchpad window to a numbered workspace takes it out of the scratchpad.",
+          "detail": "The terminal must be visible and focused. Sending it to a numbered workspace takes it out of the scratchpad.",
           "keys": [
             "SUPER",
             "+",
@@ -1464,7 +1597,7 @@
           ],
           "audio": "audio/workspaces-restore.mp3",
           "help": {
-            "label": "Show me",
+            "label": "Show me how",
             "command": [
               "hyprctl",
               "eval",
@@ -1499,14 +1632,14 @@
             "target": "workspace",
             "workspaceId": 2
           },
-          "completionMessage": "That's the expected window change, confirmed on your practice terminal.",
+          "completionMessage": "The terminal is back on workspace two and no longer in the scratchpad.",
           "completionAudio": "audio/workspaces-restore-done.mp3"
         },
         {
           "id": "workspaces-close",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Let's leave the desktop tidy. Press Super and W to close our practice terminal.",
-          "detail": "Super plus W closes whatever window has focus. You'll use it constantly, so it's worth learning right away.",
+          "detail": "This guided action closes only the terminal from this lesson. Your other work stays open.",
           "keys": [
             "SUPER",
             "+",
@@ -1540,21 +1673,22 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "Gone. Open with a shortcut, close with a shortcut. That's the rhythm of Omarchy.",
+          "completionMessage": "The practice terminal is closed. You've moved between workspaces, moved a window, and used the scratchpad.",
           "completionAudio": "audio/workspaces-close-done.mp3"
         }
       ]
     },
     {
       "id": "bar-panels",
+      "wrapUp": { "text": "You've explored the desktop controls. The bar gives you a quick place to check your system and reach the settings you need.", "audio": "audio/wrapup-bar-panels.mp3" },
       "title": "Desktop controls",
       "description": "Optional: understand status, preview themes, and explore desktop controls safely.",
-      "icon": "06",
+      "icon": "07",
       "estimatedMinutes": 6,
       "steps": [
         {
           "id": "audio-panel",
-          "instruction": "Let's turn it up. Hold Super and Control, then press A to open the Audio panel.",
+          "instruction": "Hold Super and Control, then press A to open the Audio panel.",
           "detail": "Output is where sound plays; input is your microphone. Release Keys to explore the panel, Escape to close it, then Capture Keys to return. No volume changes are required.",
           "keys": [
             "SUPER",
@@ -1598,12 +1732,12 @@
               "omarchy.audio"
             ]
           },
-          "completionMessage": "Volume, outputs, and a mixer, all without leaving the keyboard.",
+          "completionMessage": "The Audio panel shows volume and sound devices. You don't need to change any settings for this activity.",
           "completionAudio": "audio/audio-panel-done.mp3"
         },
         {
           "id": "network-panel",
-          "instruction": "Wi-Fi time. Hold Super and Control, then press W to open the Network panel.",
+          "instruction": "Hold Super and Control, then press W to open the Network panel.",
           "detail": "Read the connection status without disconnecting. Release Keys to use the panel, Escape to close it, and Capture Keys to return.",
           "keys": [
             "SUPER",
@@ -1647,7 +1781,7 @@
               "omarchy.network"
             ]
           },
-          "completionMessage": "That's your Network panel. Pick a network, connect, done.",
+          "completionMessage": "The Network panel is open. You can check your connection without disconnecting or changing networks.",
           "completionAudio": "audio/network-panel-done.mp3"
         },
         {
@@ -1798,7 +1932,7 @@
         },
         {
           "id": "theme-menu",
-          "instruction": "Let's go bigger. Hold Super, Shift, and Control, then press Space to open the Theme menu.",
+          "instruction": "Hold Super, Shift, and Control, then press Space to open the Theme menu.",
           "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
           "keys": [
             "SUPER",
@@ -1841,7 +1975,7 @@
             "durationMs": 2000,
             "target": "panel"
           },
-          "completionMessage": "Choose a theme and everything changes together. If you're not sure, Escape leaves things exactly as they are.",
+          "completionMessage": "Themes coordinate the desktop's appearance. Selecting one applies a change; close the menu without choosing to keep your current theme.",
           "completionAudio": "audio/theme-menu-done.mp3"
         },
         {
@@ -1886,7 +2020,7 @@
             "durationMs": 2000,
             "target": "panel"
           },
-          "completionMessage": "Each entry flips one setting, and Escape closes it without touching anything.",
+          "completionMessage": "The Toggle menu is open. Selecting an entry changes that setting; closing the menu alone doesn't undo changes you've made.",
           "completionAudio": "audio/toggle-menu-done.mp3"
         }
       ],
@@ -1894,16 +2028,17 @@
     },
     {
       "id": "clipboard-and-helpers",
+      "wrapUp": { "text": "Nicely done. You've explored clipboard history and practiced Compose sequences. A few useful characters and shortcuts can save you time.", "audio": "audio/wrapup-clipboard-and-helpers.mp3" },
       "title": "Clipboard and Compose",
       "description": "Retrieve older clipboard entries and type emojis with sequential Compose keys.",
-      "icon": "07",
+      "icon": "08",
       "estimatedMinutes": 5,
       "steps": [
         {
           "id": "helpers-universal-copy",
           "kind": "tour",
-          "instruction": "Here's a small thing you'll love. In Omarchy, Super and C copies and Super and V pastes, everywhere. Terminal, browser, editor, it doesn't matter. One shortcut for all of them.",
-          "detail": "HEXON is talking you through this one. Press Enter to continue early, or Skip to jump ahead.",
+          "instruction": "Omarchy provides shared copy and paste shortcuts: Super and C to copy, and Super and V to paste. They work across supported apps, including the terminal, where the usual shortcuts can differ.",
+          "detail": "Select text before copying, then choose where to paste it. Custom bindings and individual apps can affect these shortcuts.",
           "keys": [],
           "audio": "audio/helpers-universal-copy.mp3",
           "completion": {
@@ -1927,7 +2062,7 @@
         {
           "id": "clipboard-history",
           "instruction": "Copied something earlier? Hold Super and Control, then press V to open your clipboard history.",
-          "detail": "Everything you've copied recently is here. Pick an entry to paste it again.",
+          "detail": "Clipboard history keeps recent copied items. Activating an entry normally pastes it into the previously focused field. Shift+Enter copies an entry without pasting. Be mindful of private information in your history.",
           "keys": [
             "SUPER",
             "+",
@@ -1967,7 +2102,7 @@
             "durationMs": 2000,
             "target": "panel"
           },
-          "completionMessage": "Your clipboard remembers. Choose an entry and it's ready to paste.",
+          "completionMessage": "Clipboard history is open. After releasing the keys, select an entry and use Shift and Enter to copy it without pasting. Regular Enter pastes into the previous field.",
           "completionAudio": "audio/clipboard-history-done.mp3"
         },
         {
@@ -1975,7 +2110,7 @@
           "kind": "practice",
           "practice": "clipboard",
           "optional": false,
-          "instruction": "Let's make clipboard history useful. Copy two sample notes, retrieve the older one, and paste it.",
+          "instruction": "Let's make clipboard history useful. Copy two sample notes. Find the older one in history, use Shift and Enter to copy it without pasting, then paste it into the exercise.",
           "detail": "The exercise uses harmless text, but it replaces the current clipboard. Keys go to the exercise window until you finish or close it.",
           "keys": [],
           "actionLabel": "Start exercise",
@@ -1992,7 +2127,7 @@
             "height": 120,
             "borderWidth": 3
           },
-          "completionMessage": "You completed the real task. That's a skill you can use outside this course.",
+          "completionMessage": "You retrieved an older clipboard entry and pasted it. That's useful when a newer copy replaces something you still need.",
           "completionAudio": "audio/clipboard-practice-done.mp3"
         },
         {
@@ -2000,7 +2135,7 @@
           "kind": "tour",
           "pose": "talk",
           "instruction": "Caps Lock has a second job in Omarchy: it's the Compose key. Tap and release Caps Lock, then m, then s for a smile. These are separate presses, not a shortcut you hold together.",
-          "detail": "Use lowercase letters without Shift. Other defaults: m then o for okay, m then 1 for one hundred, m then l for love, m then k for a kiss, and m then h for a heart. There isn't a default m then j sequence. Custom keyboard configurations can change Compose.",
+          "detail": "Compose uses separate key presses, not keys held together. Use lowercase letters without Shift. We'll practice a smile and a heart next. Custom keyboard settings may use a different Compose key.",
           "keys": [],
           "audio": "audio/compose-intro.mp3",
           "completion": {
@@ -2049,9 +2184,10 @@
     },
     {
       "id": "capture-and-share",
+      "wrapUp": { "text": "That wraps up capture. You've practiced making a screenshot and a short recording. Remember to check for private information before sharing.", "audio": "audio/wrapup-capture-and-share.mp3" },
       "title": "Capture",
       "description": "Capture an image, record and replay a short clip, and optionally extract text or decode a QR code.",
-      "icon": "08",
+      "icon": "09",
       "estimatedMinutes": 8,
       "steps": [
         {
@@ -2103,8 +2239,8 @@
           "id": "capture-native-workflow",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "For an everyday screenshot, press Print, or search Screenshot in the Omarchy menu. Drag a region, or use Tab to choose a window and Enter to capture it. Control and Enter captures the whole screen. Escape cancels.",
-          "detail": "Outside this exercise, Omarchy's screenshot picker freezes the screen. It saves to your configured Pictures directory and the clipboard. Click the screenshot notification to edit it, or use Super+Alt+Comma while it's the latest actionable notification. Avoid private content before capturing.",
+          "instruction": "To take a screenshot, press Print. No Print key? Search Screenshot in the Omarchy menu instead. Drag over the area you want to capture. Escape cancels.",
+          "detail": "The native picker freezes the screen. Tab selects a window and Enter captures it; Control+Enter captures the whole screen. Screenshots save to your configured Pictures directory and clipboard. Click the screenshot notification to edit it, or use Super+Alt+Comma while it's the latest actionable notification. Avoid private content before capturing.",
           "keys": [],
           "audio": "audio/capture-native-workflow.mp3",
           "completion": {
@@ -2132,8 +2268,8 @@
           "kind": "practice",
           "practice": "capture",
           "optional": false,
-          "instruction": "Capture the harmless practice card, inspect the saved image, and explore its copy and edit controls.",
-          "detail": "The course uses its own tracked capture tools, so it won't terminate another screenshot session. This is a safe equivalent of the native workflow, not a test of your Print binding. Nothing is uploaded.",
+          "instruction": "Capture the practice card, inspect the saved image, copy its file path, and add a label to the preview.",
+          "detail": "Only capture the sample card, not private windows or notifications. The exercise uses its own capture tools. Preview labels don't alter the saved image, and nothing is uploaded.",
           "keys": [],
           "actionLabel": "Start exercise",
           "audio": "audio/capture-practice.mp3",
@@ -2149,14 +2285,14 @@
             "height": 120,
             "borderWidth": 3
           },
-          "completionMessage": "Your capture is saved and ready to inspect. In everyday work, Print or the Capture menu gets you there.",
+          "completionMessage": "You've captured and reviewed an image, copied its path, and labeled the preview. The saved image itself is unchanged.",
           "completionAudio": "audio/capture-practice-done.mp3"
         },
         {
           "id": "recording-intro",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Screen recording is built in too. Alt and Print opens the recording choices when nothing is recording, and stops a recording that's running. The Capture menu works on keyboards without Print. Watch the recording indicator so you always know when you're on camera.",
+          "instruction": "Alt and Print opens recording choices, or stops a recording that's already running. Without a Print key, use the Capture menu. Watch the recording indicator, and make sure you know how to stop before starting.",
           "detail": "Native recordings go to your configured Videos directory. No audio, desktop audio, microphone, and webcam are different choices. Never include someone else's voice, private windows, or notifications without permission. Our practice recording is silent and limited to a region you choose.",
           "keys": [],
           "audio": "audio/recording-intro.mp3",
@@ -2259,8 +2395,9 @@
     },
     {
       "id": "apps-and-upkeep",
+      "wrapUp": { "text": "You've explored where to find apps and upkeep tools. Knowing where a setting lives is a useful first step. Read the changes before confirming them.", "audio": "audio/wrapup-apps-and-upkeep.mp3" },
       "title": "Apps and upkeep",
-      "icon": "09",
+      "icon": "10",
       "estimatedMinutes": 4,
       "description": "Find install, removal, defaults, updates, and recovery tools without changing the system.",
       "steps": [
@@ -2268,7 +2405,7 @@
           "id": "upkeep-install",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Need another app? Open the Omarchy menu and search Install. Start with official packages. The AUR is community maintained, so review what you're installing rather than treating every result as equally trusted.",
+          "instruction": "Search Install in the Omarchy menu. Just note the location; don't install anything for this lesson. A package is installable software. Prefer official packages. Community packages from the Arch User Repository, or AUR, need closer review.",
           "detail": "This is an introduction, not an installation task. Use Release Keys if you'd like to locate Install, then Escape and Capture Keys to return. Installing software can request your password and change the system. No installation is required for completion.",
           "keys": [],
           "audio": "audio/upkeep-install.mp3",
@@ -2296,8 +2433,8 @@
           "id": "upkeep-remove",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Remove is where you uninstall something you no longer need. Check the exact package and any dependencies before confirming. Removing all preinstalled apps is a broad change, not a routine cleanup shortcut.",
-          "detail": "Find Remove from the Omarchy menu if you want to explore. Cancel before removing anything. The course never removes packages, debloats your desktop, or asks you to use Close all windows.",
+          "instruction": "The Remove menu uninstalls software you no longer need. Before confirming, check the package name and any other software it would remove. There's nothing to uninstall in this lesson.",
+          "detail": "A dependency is software another app needs. Explore the menu if useful, but cancel before removing anything.",
           "keys": [],
           "audio": "audio/upkeep-remove.mp3",
           "completion": {
@@ -2324,7 +2461,7 @@
           "id": "upkeep-defaults",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Your shortcuts can follow your preferences. In Setup, Defaults, choose the browser, terminal, or editor you want Omarchy to open. Installing an app and making it the default are separate decisions.",
+          "instruction": "Setup, Defaults is where you choose which apps Omarchy opens. For now, just note the location; keep your current settings. Installing an app and making it the default are separate decisions.",
           "detail": "Open Super+Space, then search Defaults. Selecting a default changes future launches immediately. This lesson only introduces the location; keep your current defaults unless you intentionally want to change them.",
           "keys": [],
           "audio": "audio/upkeep-defaults.mp3",
@@ -2352,8 +2489,8 @@
           "id": "upkeep-updates",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "The Update menu keeps Omarchy and its packages current. Save your work first and read the proposed changes. Stay on the stable channel unless you deliberately want to help test newer software.",
-          "detail": "On supported Btrfs installations, update snapshots can help recover from problems. A snapshot isn't an independent backup of your personal files. Locate Update without starting it during this course.",
+          "instruction": "The Update menu keeps Omarchy and its packages current. We're not running an update in this lesson. When you do update, save your work first and read the proposed changes. Stay on the stable channel for everyday use.",
+          "detail": "Some installations create filesystem snapshots before updates, allowing system changes to be rolled back. A snapshot isn't an independent backup of your personal files. This lesson doesn't run an update.",
           "keys": [],
           "audio": "audio/upkeep-updates.mp3",
           "completion": {
@@ -2380,7 +2517,7 @@
           "id": "upkeep-recovery",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "If one device stops working, a targeted hardware restart may help without rebooting everything. Look under Update, Hardware. Keep resets separate from updates: resetting configuration can replace your custom settings.",
+          "instruction": "If one device stops working, Update, Hardware offers targeted restarts. Just note the location for now; don't restart anything during this lesson. Resetting configuration is different from updating and can replace your custom settings.",
           "detail": "Your user settings generally live under ~/.config; packaged Omarchy defaults live under /usr/share/omarchy and shouldn't be edited. Back up your changes before resets. Restarting network or audio services can interrupt active calls, downloads, and recordings, so this lesson performs none.",
           "keys": [],
           "audio": "audio/upkeep-recovery.mp3",
@@ -2408,9 +2545,10 @@
     },
     {
       "id": "setup-and-install",
+      "wrapUp": { "text": "That wraps up setup and system controls. You know where to look when you need them, without changing settings just for practice.", "audio": "audio/wrapup-setup-and-install.mp3" },
       "title": "Setup and system",
       "description": "Reach hardware setup, display settings, and safe system actions from the keyboard.",
-      "icon": "10",
+      "icon": "11",
       "estimatedMinutes": 3,
       "steps": [
         {
@@ -2460,7 +2598,7 @@
         },
         {
           "id": "display-panel",
-          "instruction": "Let's sort out your screens. Hold Super and Control, then press D to open the Display panel.",
+          "instruction": "Hold Super and Control, then press D to open the Display panel.",
           "detail": "Display changes apply immediately. Read the panel without changing scale or resolution during this lesson. Release Keys to explore; Escape closes it.",
           "keys": [
             "SUPER",
@@ -2504,12 +2642,12 @@
               "omarchy.monitor"
             ]
           },
-          "completionMessage": "Display changes apply immediately, so you can preview scaling before you commit.",
+          "completionMessage": "The Display panel is open. Resolution and scaling changes apply immediately, so leave them unchanged unless you intend to adjust your display.",
           "completionAudio": "audio/display-panel-done.mp3"
         },
         {
           "id": "system-menu",
-          "instruction": "Last one. Hold Super and press Escape to open the System menu.",
+          "instruction": "Hold Super and press Escape to open the System menu.",
           "detail": "Lock, suspend, log out, reboot, or shut down from one keyboard-driven list.",
           "keys": [
             "SUPER",
@@ -2547,7 +2685,7 @@
             "durationMs": 2100,
             "target": "panel"
           },
-          "completionMessage": "Nothing happens until you choose an entry, so Escape closes it safely. Lock, suspend, and shutdown all live here when you need them.",
+          "completionMessage": "The System menu is open. Close it without selecting an action to keep working; actions such as logout or shutdown can interrupt your session.",
           "completionAudio": "audio/system-menu-done.mp3"
         },
         {
@@ -2572,13 +2710,14 @@
             "height": 120,
             "borderWidth": 3
           },
-          "completionMessage": "You completed the real task. That's a skill you can use outside this course.",
+          "completionMessage": "You've locked the computer and returned after unlocking it. Use that shortcut when you step away.",
           "completionAudio": "audio/lock-practice-done.mp3"
         }
       ]
     },
     {
       "id": "productivity-extras",
+      "wrapUp": { "text": "That wraps up productivity extras. You've explored emojis, reminders, and dictation. Choose the tools that help with your own work.", "audio": "audio/wrapup-productivity-extras.mp3" },
       "title": "Productivity extras",
       "optional": true,
       "icon": "+",
@@ -2674,7 +2813,7 @@
             "durationMs": 2200,
             "target": "panel"
           },
-          "completionMessage": "That's your reminder prompt. It's the easiest way to stop forgetting the little things.",
+          "completionMessage": "The reminder prompt is open. You can set a timed reminder or close it without scheduling one.",
           "completionAudio": "audio/helpers-reminder-done.mp3"
         },
         {
@@ -2682,8 +2821,8 @@
           "kind": "practice",
           "practice": "dictation",
           "optional": true,
-          "instruction": "If local dictation is installed, you can speak into a text field. This optional exercise checks availability and asks before using your microphone.",
-          "detail": "Omarchy's current shortcuts are Super+Ctrl+X to toggle dictation, or hold F9 for push-to-talk when Voxtype is installed. Choose a quiet moment and avoid private information. Missing software or microphone access is a reason to skip, not to install anything automatically.",
+          "instruction": "If local dictation is installed, try speaking into a text field. Super, Control, and X starts and stops dictation, so you don't need an F9 key. You control the microphone.",
+          "detail": "You can also hold F9 for push-to-talk with Voxtype. The exercise checks availability and the sample text you enter and review, not whether dictation produced it. It doesn't start your microphone. Skip if dictation isn't available.",
           "keys": [],
           "actionLabel": "Start exercise",
           "audio": "audio/dictation-practice.mp3",
@@ -2734,6 +2873,7 @@
     },
     {
       "id": "useful-tools",
+      "wrapUp": { "text": "That wraps up useful tools. You have places to check resource use, do a quick calculation, and investigate disk space before deleting anything.", "audio": "audio/wrapup-useful-tools.mp3" },
       "title": "Useful tools",
       "optional": true,
       "icon": "+",
@@ -2743,7 +2883,7 @@
         {
           "id": "tools-monitor-open",
           "instruction": "Wondering what's using your computer? Press Super, Control, and T to open the activity monitor.",
-          "detail": "Btop shows CPU, memory, disks, and processes. Release Keys to inspect it. Don't terminate processes to complete the lesson; Capture Keys returns to the coach.",
+          "detail": "The activity monitor shows processor use, memory, storage, and running programs. Release Keys to explore, then Capture Keys to return. Don't stop any programs for this lesson.",
           "keys": [
             "SUPER",
             "+",
@@ -2777,7 +2917,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "The tool is open. Release Keys to explore, then Capture Keys to return to your coach.",
+          "completionMessage": "The activity monitor is open. Use it to understand resource use before deciding whether anything needs attention.",
           "completionAudio": "audio/tools-monitor-open-done.mp3"
         },
         {
@@ -2824,7 +2964,7 @@
         {
           "id": "tools-calculator-open",
           "instruction": "For a quick calculation, press Super, Control, and Q. The calculator is built right in.",
-          "detail": "Release Keys and try 5 + 5, then Capture Keys to return. Opening the calculator is verified; the course doesn't claim to have checked your arithmetic. If an existing calculator is reused, it won't gain permission to close it.",
+          "detail": "Release Keys and try 5 + 5, then Capture Keys to return. This activity checks that the calculator opened, not the calculation. An existing calculator window won't be closed by the course.",
           "keys": [
             "SUPER",
             "+",
@@ -2854,7 +2994,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "The tool is open. Release Keys to explore, then Capture Keys to return to your coach.",
+          "completionMessage": "The calculator is open. You can try a calculation before returning to the lesson.",
           "completionAudio": "audio/tools-calculator-open-done.mp3"
         },
         {
@@ -2930,6 +3070,7 @@
     },
     {
       "id": "create-and-share",
+      "wrapUp": { "text": "Nice work exploring these creation and sharing tools. Preview what you've made, and check the file and recipient before sending anything.", "audio": "audio/wrapup-create-and-share.mp3" },
       "title": "Create and share",
       "optional": true,
       "icon": "+",
@@ -2941,8 +3082,8 @@
           "kind": "practice",
           "practice": "web-app",
           "optional": true,
-          "instruction": "A website can have its own launcher instead of getting lost in browser tabs. Let's explore a harmless demo web app and how to remove its entry afterward.",
-          "detail": "In everyday Omarchy, search Install Web App to supply a name and URL, and Remove Web App to undo it. This exercise must use only its own demo entry, never overwrite another launcher, and ask before creating anything.",
+          "instruction": "A web app gives a website its own launcher. Create a local demo entry, preview it, then remove it. This practice doesn't add anything to your Apps menu.",
+          "detail": "In everyday Omarchy, Install Web App asks for a name and website address; Remove Web App removes its launcher. This exercise uses a temporary local preview and makes no network request.",
           "keys": [],
           "actionLabel": "Start exercise",
           "audio": "audio/web-app-practice.mp3",
@@ -3036,8 +3177,8 @@
           "kind": "practice",
           "practice": "sharing",
           "optional": true,
-          "instruction": "LocalSend can share files with nearby devices. Let's prepare a harmless sample and review the content and recipient before any send.",
-          "detail": "Opening Share sends nothing. Both devices need LocalSend and network access to each other. Sending remains your explicit choice; preparing or reviewing a share must not be reported as confirmed delivery.",
+          "instruction": "LocalSend shares files with nearby devices. In this rehearsal, review a sample file and choose an intended demo recipient. Nothing will be sent.",
+          "detail": "Real transfers need LocalSend on both devices and a network connection between them. Check both the file and recipient before sending. This exercise doesn't discover devices or confirm delivery.",
           "keys": [],
           "actionLabel": "Start exercise",
           "audio": "audio/sharing-practice.mp3",
@@ -3060,15 +3201,16 @@
     },
     {
       "id": "first-real-session",
+      "wrapUp": { "text": "Nicely done. You've brought app, window, and workspace shortcuts together in one workflow. Super and K opens the shortcut guide whenever you need a reminder. Keep the shortcuts that help you. Your desktop. Your way.", "audio": "audio/wrapup-first-real-session.mp3" },
       "title": "Your first real session",
-      "description": "Put it all together: open, arrange, sort onto workspaces, and clean up like a pro.",
-      "icon": "14",
+      "description": "Combine app, window, and workspace shortcuts in one practical workflow.",
+      "icon": "12",
       "estimatedMinutes": 4,
       "steps": [
         {
           "id": "finale-intro",
           "kind": "tour",
-          "instruction": "Time to put it all together. No new shortcuts here, just the ones you already know, used the way you'll use them every day. Ready? Let's go.",
+          "instruction": "Bring the shortcuts together in a short workflow: open a terminal and browser, move the browser to another workspace, then close both. Use Help whenever you need a reminder.",
           "detail": "Use your existing desktop. We'll verify only the windows opened by this lesson and leave your other work alone.",
           "keys": [],
           "audio": "audio/finale-intro.mp3",
@@ -3132,7 +3274,7 @@
         {
           "id": "finale-terminal",
           "instruction": "Start with a terminal. Press Super and Return.",
-          "detail": "Every session starts somewhere. For most Omarchy users, it's here.",
+          "detail": "We'll use this terminal as the first window in the workflow.",
           "keys": [
             "SUPER",
             "+",
@@ -3200,7 +3342,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "Two windows, tiled, zero dragging.",
+          "completionMessage": "Both practice windows are open. Next, give the browser its own workspace.",
           "completionAudio": "audio/finale-browser-done.mp3"
         },
         {
@@ -3250,13 +3392,13 @@
             "target": "workspace",
             "workspaceId": 2
           },
-          "completionMessage": "Browser on two, terminal on one. Now your work has rooms.",
+          "completionMessage": "The browser is on workspace two; the terminal stays on workspace one.",
           "completionAudio": "audio/finale-send-browser-done.mp3"
         },
         {
           "id": "finale-back-to-one",
-          "instruction": "Press Super and 1 to pop back to the terminal.",
-          "detail": "Jumping by number is the fastest way around.",
+          "instruction": "Press Super and 1 to return to the terminal's workspace.",
+          "detail": "A workspace number takes you directly to that desktop.",
           "keys": [
             "SUPER",
             "+",
@@ -3296,7 +3438,7 @@
           "id": "finale-close-terminal",
           "windowFromStep": "finale-terminal",
           "instruction": "Done with the terminal for now. Press Super and W.",
-          "detail": "Clean as you go and the desktop never gets messy.",
+          "detail": "Close the practice terminal when you're finished with it.",
           "keys": [
             "SUPER",
             "+",
@@ -3410,33 +3552,8 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "That's the whole loop, and you did every bit of it from the keyboard.",
+          "completionMessage": "Both practice windows are closed.",
           "completionAudio": "audio/finale-close-browser-done.mp3"
-        },
-        {
-          "id": "finale-graduate",
-          "kind": "tour",
-          "instruction": "That's it. You just ran a real Omarchy session, start to finish, without touching the mouse. Everything else builds on what you did today. Super and K is your cheat sheet whenever you need it, and I'm always here in the Learn menu. Go make something.",
-          "detail": "HEXON is talking you through this one. Press Enter to continue early, or Skip to jump ahead.",
-          "keys": [],
-          "audio": "audio/finale-graduate.mp3",
-          "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 14000
-          },
-          "highlight": {
-            "shape": "circle",
-            "anchor": "center",
-            "x": 0,
-            "y": -60,
-            "width": 12,
-            "height": 12,
-            "borderWidth": 2,
-            "radius": 6,
-            "durationMs": 1000
-          },
-          "pose": "talk"
         }
       ]
     }

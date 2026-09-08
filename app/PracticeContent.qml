@@ -3,6 +3,7 @@ import QtQuick
 import QtQuick.Controls as Controls
 import QtQuick.Layouts
 import QtMultimedia
+import "ThemeColors.js" as ThemeColors
 
 Rectangle {
   id: root
@@ -11,11 +12,24 @@ Rectangle {
   implicitHeight: 620
   property string mode: "clipboard"
   property real textScale: 1
-  property color backgroundColor: "#171d2b"
-  property color foreground: "#d5dff4"
-  property color accent: "#7aa2f7"
-  property color errorColor: "#f7768e"
-  readonly property color muted: Qt.rgba(foreground.r, foreground.g, foreground.b, 0.78)
+  property color backgroundColor: ThemeColors.defaults.background
+  property color foreground: ThemeColors.defaults.foreground
+  property color accent: ThemeColors.defaults.accent
+  property color errorColor: ThemeColors.defaults.urgent
+  property color muted: Qt.tint(backgroundColor, Qt.rgba(foreground.r, foreground.g, foreground.b, 0.78))
+  ThemePalette {
+    id: controlPalette
+    backgroundColor: root.backgroundColor
+    foregroundColor: root.foreground
+    accentColor: root.accent
+    mutedColor: root.muted
+  }
+  component PracticePalette: ThemePalette {
+    backgroundColor: root.backgroundColor
+    foregroundColor: root.foreground
+    accentColor: root.accent
+    mutedColor: root.muted
+  }
   property string sample: "Omarchy practice " + Date.now().toString().slice(-6)
   property string secondSample: "A newer note " + sample
   property bool copiedFirst: false
@@ -28,13 +42,13 @@ Rectangle {
   property string screenshot: ""
   readonly property var exercises: ({
     "compose": ["Type with Compose", "Tap and release Caps Lock, then m, then s for 😄. In the second field, tap Caps Lock, m, h for ❤️. Do not hold the keys together. Custom Compose mappings may differ; return and skip rather than changing settings."],
-    "screen-recording": ["Record, stop, replay", "Select only the harmless animated card, review the region coordinates, then explicitly start. Record for at least one second, stop your recording yourself, and play the saved silent clip. No microphone or webcam is enabled; other recorders are never stopped. Requires gpu-screen-recorder, slurp and ffprobe."],
+    "screen-recording": ["Record, stop, replay", "Select the animated practice card and check the region before starting. Record for at least one second, stop, then play the saved clip. This recording has no sound or webcam footage and won't stop another recorder."],
     "ocr": ["Turn pixels into text", "Select only the sample card and extract its words. OCR (optical character recognition) may make mistakes. Copy the extracted sample, paste it below, and compare it with the card. Requires slurp, grim and tesseract."],
     "qr": ["Read a QR code safely", "Create the harmless sample QR code, select it, and decode it. Copy the decoded text and paste it below to inspect the contents. No links are opened. Requires qrencode, slurp, grim and zbarimg."],
-    "dictation": ["Try local dictation", "Check whether Voxtype is installed, then explicitly enable the practice field. Say “Omarchy practice” using Super+Ctrl+X to start and stop, or hold F9 for push-to-talk. Stop before reviewing. This exercise never starts a microphone itself. If dictation or microphone access is unavailable, return and skip."],
+    "dictation": ["Try local dictation", "Check availability, then enable the practice field. Use Super+Ctrl+X to start and stop dictation, or hold F9 while speaking. Try “Omarchy practice,” then stop and review the words. You control the microphone; this exercise doesn't start it. Return and skip if dictation isn't available."],
     "web-app": ["Explore a demo web-app entry", "This isolated demo creates an entry only in the exercise folder, not your Apps menu. Explicitly create it, open its local preview, then remove it. Everyday Omarchy: Install Web App asks for a name and URL; Remove Web App removes a launcher, not your account."],
     "transcode": ["Create a smaller media copy", "Generate a harmless silent sample clip, play the original, choose a lower resolution, and convert a separate MP4 copy. Play the output and compare its size and quality. Requires ffmpeg and ffprobe. No original files are changed."],
-    "sharing": ["Review before sharing", "Prepare a harmless local sample and inspect its contents. Choose the intended demo recipient and review it before finishing. This rehearsal never sends anything or discovers real devices. For an actual transfer, both devices need LocalSend and network access; delivery is a separate action."]
+    "sharing": ["Review before sharing", "Prepare the sample file, read its contents, and choose the intended demo recipient. This rehearsal doesn't discover real devices or send anything. For a real transfer, check that both devices have LocalSend and can reach each other on the network."]
   })
   readonly property bool extendedMode: exercises[mode] !== undefined
   property int stage: 0
@@ -222,6 +236,7 @@ Rectangle {
 
   component PracticeButton: Controls.Button {
     id: control
+    PracticePalette { target: control }
     property bool primary: false
     onActiveFocusChanged: if (activeFocus) Qt.callLater(function() { root.revealControl(control) })
     font.pixelSize: 15 * root.textScale
@@ -230,38 +245,64 @@ Rectangle {
     topPadding: 10
     bottomPadding: 10
     implicitHeight: Math.max(44, contentItem.implicitHeight + 20)
-    opacity: enabled ? 1 : 0.5
     contentItem: Text {
       text: control.text
       font: control.font
-      color: control.primary ? root.backgroundColor : root.foreground
+      color: control.primary ? controlPalette.highlightedText
+        : control.enabled ? controlPalette.buttonText : controlPalette.disabled.buttonText
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       wrapMode: Text.WordWrap
     }
     background: Rectangle {
       radius: 8
-      color: control.primary ? root.accent : Qt.rgba(root.accent.r, root.accent.g, root.accent.b, control.hovered ? 0.22 : 0.12)
-      border.width: control.activeFocus ? 2 : 1
-      border.color: control.activeFocus ? root.foreground : root.accent
+      color: control.primary ? root.accent : control.enabled ? controlPalette.button : root.backgroundColor
+      border.width: control.activeFocus || control.hovered ? 2 : 1
+      border.color: control.activeFocus ? root.foreground : control.enabled ? root.accent : controlPalette.secondaryText
     }
   }
 
   component NoteArea: Controls.TextArea {
     id: control
+    PracticePalette { target: control }
     onActiveFocusChanged: if (activeFocus) Qt.callLater(function() { root.revealControl(control) })
     font.pixelSize: 16 * root.textScale
     padding: 12
-    color: root.foreground
-    placeholderTextColor: root.muted
+    color: enabled ? controlPalette.text : controlPalette.disabled.text
+    placeholderTextColor: controlPalette.placeholderText
     selectionColor: root.accent
-    selectedTextColor: root.backgroundColor
-    opacity: enabled ? 1 : 0.6
+    selectedTextColor: controlPalette.highlightedText
     background: Rectangle {
       radius: 8
-      color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.08)
+      color: controlPalette.base
       border.width: control.activeFocus ? 2 : 1
       border.color: control.activeFocus ? root.accent : Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.4)
+    }
+  }
+
+  component PracticeComboBox: Controls.ComboBox {
+    id: control
+    PracticePalette { target: control }
+    PracticePalette { target: control.popup }
+    delegate: Controls.ItemDelegate {
+      id: option
+      required property int index
+      required property var modelData
+      width: control.width
+      text: modelData
+      font: control.font
+      highlighted: control.highlightedIndex === index
+      PracticePalette { target: option }
+      contentItem: Text {
+        text: option.text
+        font: option.font
+        color: option.highlighted ? controlPalette.highlightedText : controlPalette.text
+        verticalAlignment: Text.AlignVCenter
+        elide: Text.ElideRight
+      }
+      background: Rectangle {
+        color: option.highlighted ? controlPalette.highlight : controlPalette.base
+      }
     }
   }
 
@@ -283,6 +324,15 @@ Rectangle {
     }
     Controls.ScrollView {
       id: scrollArea
+      PracticePalette { target: scrollArea }
+      Controls.ScrollBar.vertical: Controls.ScrollBar {
+        id: verticalScrollBar
+        PracticePalette { target: verticalScrollBar }
+      }
+      Controls.ScrollBar.horizontal: Controls.ScrollBar {
+        id: horizontalScrollBar
+        PracticePalette { target: horizontalScrollBar }
+      }
       Layout.fillWidth: true
       Layout.fillHeight: true
       Layout.minimumHeight: 0
@@ -292,11 +342,12 @@ Rectangle {
         width: scrollArea.availableWidth
         spacing: 12
     Text {
+      objectName: "exerciseInstructions"
       Layout.fillWidth: true
       text: root.extendedMode ? root.exercises[root.mode][1] : root.mode === "clipboard"
-        ? "This exercise replaces your clipboard with harmless sample text. Copy the first note with Super+C, then the newer note. Open history with Super+Ctrl+V, retrieve the first note, and paste it below with Super+V."
+        ? "This exercise replaces your clipboard with harmless sample text. Copy both notes in order with Super+C. Open history with Super+Ctrl+V, highlight the first note, and use Shift+Enter to copy without pasting. Then click the destination field and paste once with Super+V."
         : root.mode === "capture"
-        ? "Select only the practice card below. Escape cancels without completing. Inspect the saved image, copy its path, and try the local preview annotation control. The original image isn't modified or uploaded; its private path appears below."
+        ? "Select only the practice card below. Inspect the saved image, copy its file path, and add a label to the preview. The label appears here only; it doesn't change the saved image. Nothing is uploaded. Escape cancels the selection."
         : root.mode === "screen-lock"
         ? "Super+Ctrl+L locks your computer; it doesn't suspend it. Save your work and make sure you know your password. Lock now is optional and requires your explicit click. After unlocking, return here."
         : "Press Super+Alt+Space, search for your terminal (for example Terminal or Ghostty), and press Return. Then close that newly opened terminal with Super+W. Existing windows don't count and aren't closed by this exercise."
@@ -467,7 +518,7 @@ Rectangle {
           text: "Play original sample"
           onClicked: root.playMedia(root.original)
         }
-        Controls.ComboBox {
+        PracticeComboBox {
           id: resolution
           objectName: "outputResolution"
           visible: root.mode === "transcode"
@@ -549,7 +600,7 @@ Rectangle {
           font.pixelSize: 16 * root.textScale
           wrapMode: Text.WordWrap
         }
-        Controls.ComboBox {
+        PracticeComboBox {
           id: recipient
           objectName: "shareRecipient"
           visible: root.mode === "sharing"
@@ -564,7 +615,7 @@ Rectangle {
           objectName: "reviewShare"
           visible: root.mode === "sharing"
           enabled: root.stage === 1 && recipient.currentIndex === 1
-          text: "Content and intended recipient reviewed — do not send"
+          text: "I've checked the file and demo recipient. Don't send anything."
           onClicked: { root.verified = true; root.status = "Preparation reviewed. No transfer attempted or delivery confirmed." }
         }
         Text {
@@ -629,9 +680,10 @@ Rectangle {
           onClicked: { second.forceActiveFocus(); second.selectAll() }
         }
         Text {
+          objectName: "clipboardHistoryInstructions"
           visible: root.mode === "clipboard"
           Layout.fillWidth: true
-          text: "3. Open Super+Ctrl+V, retrieve the FIRST note, then paste here with Super+V."
+          text: "3. Open history with Super+Ctrl+V. Use the arrows to highlight the FIRST note, then Shift+Enter to copy it without pasting."
           wrapMode: Text.WordWrap
           color: root.accent
           font.pixelSize: 16 * root.textScale
@@ -642,10 +694,10 @@ Rectangle {
           visible: root.mode === "clipboard"
           enabled: root.copiedSecond
           Layout.fillWidth: true
-          placeholderText: "Paste the first note here"
+          placeholderText: "4. Click here, then Super+V to paste the first note"
           selectByMouse: true
           wrapMode: TextEdit.Wrap
-          Accessible.name: "Paste the first note"
+          Accessible.name: "Paste the first note after copying it with Shift+Enter"
           KeyNavigation.priority: KeyNavigation.BeforeItem
           KeyNavigation.tab: cancelButton
           KeyNavigation.backtab: selectNewerButton
@@ -759,8 +811,8 @@ Rectangle {
         Text {
           Layout.fillWidth: true
           text: root.verified ? (root.mode === "sharing" ? "Sharing review complete. Nothing sent; delivery isn't confirmed."
-            : root.mode === "dictation" ? "Words reviewed. This does not independently verify microphone use."
-            : "Task verified. You can return to your coach.") : root.status
+            : root.mode === "dictation" ? "Text review complete. Microphone use wasn't checked."
+            : "Exercise complete. Choose Finish exercise to return to your coach.") : root.status
           color: root.verified ? root.accent : root.foreground
           wrapMode: Text.WordWrap
           font.pixelSize: 16 * root.textScale

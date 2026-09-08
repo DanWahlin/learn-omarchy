@@ -99,7 +99,7 @@ ShellRoot {
     id: packStore
     appRoot: root.appRoot
     bundledRoot: Quickshell.env("CHARACTER_LAB_ROOT") || appRoot + "/assets/characters"
-    requestedId: Quickshell.env("CHARACTER_LAB_CHARACTER") || "hexon"
+    requestedId: Quickshell.env("CHARACTER_LAB_CHARACTER") || "ohm-1"
     onSelectedPackChanged: { root.stopIntro(); root.frame = -1 }
   }
 

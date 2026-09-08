@@ -1,0 +1,22 @@
+{
+  "asset": "learn-omarchy.png",
+  "purpose": "Learn Omarchy startup illustration featuring Ohm-1 beside a three-pane tiled desktop and Ollie perched on its top-right corner",
+  "generation": {
+    "provider": "Azure OpenAI",
+    "model": "gpt-image-2",
+    "operation": "image edit of the previous splash with an original abstract tiling-layout guide",
+    "size": "1536x1024",
+    "quality": "high"
+  },
+  "references": [
+    "Previous generated splash illustration",
+    "Original layout guide: one tall left pane, two equal right panes, workspace numbers 1-5; no screenshot content uploaded",
+    "assets/characters/ohm-1/sprites/ohm-1-idle.png (first frame)",
+    "assets/characters/owl/sprites/owl-idle.png (first frame)"
+  ],
+  "postprocessing": "Rebalanced the illustration with a smaller corner-perched owl and a lower desktop. Equalized both right panes to 435x179 pixels. Moved both title lines down 30 pixels. Replaced the subtitle locally with 'YOUR DESKTOP. YOUR WAY.' in cyan JetBrains Mono lettering, leaving the lower illustration unchanged.",
+  "license": {
+    "status": "unresolved",
+    "note": "Derived from character artwork authored by Dan Wahlin. Redistribution terms remain unresolved; no new license is asserted."
+  }
+}

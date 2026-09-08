@@ -80,7 +80,12 @@ derive_mid_angle=38
 derive_up_mid_angle=-58
 # "concept": build point-up from its own concept sheet.
 # "derive": lift the arm from the finished pointing sprite (HEXON's method).
+# "rotate": rotate the original arm around its shoulder, without mirroring or stretching.
 point_up_mode="concept"
+derive_up_angle=-45
+derive_up_arm_keep="$derive_arm_keep"
+derive_up_joint_keep=""
+derive_up_trim=""
 derive_arm_crop="40x34+130+66"
 derive_arm_scale="100%x130%"
 derive_erase="131,62 200,104"
@@ -363,6 +368,28 @@ fit_poses "$output_dir/$character-point.png" "$output_dir/$character-point-blink
 
 derive_point_up() {
   local source="$1"; local output="$2"
+  if [[ "$point_up_mode" == "rotate" ]]; then
+    local joint_mask=()
+    if [[ -n "$derive_up_joint_keep" ]]; then
+      joint_mask=('(' -size "${point_frame_width}x${frame_size}" xc:none -fill white
+        -draw "polygon $derive_up_joint_keep" ')' -compose DstOut -composite)
+    fi
+    magick "$source" \
+      \( -size "${point_frame_width}x${frame_size}" xc:none -fill white -draw "rectangle $derive_up_arm_keep" \) \
+      -compose DstIn -composite -virtual-pixel transparent -filter point \
+      -define "distort:viewport=${point_frame_width}x${frame_size}+0+0" \
+      -distort SRT "$derive_shoulder $derive_up_angle" +repage "$work/point-arm-up.png"
+    magick "$source" \
+      \( -size "${point_frame_width}x${frame_size}" xc:none -fill white -draw "rectangle $derive_erase" "${joint_mask[@]}" \) \
+      -compose DstOut -composite "$work/point-arm-up.png" -compose Over -composite \
+      -strip -define png:color-type=6 "$output"
+    if [[ -n "$derive_up_trim" ]]; then
+      magick "$output" \
+        \( -size "${point_frame_width}x${frame_size}" xc:none -fill white -draw "polygon $derive_up_trim" \) \
+        -compose DstOut -composite -strip -define png:color-type=6 "$output"
+    fi
+    return
+  fi
   magick "$source" -crop "$derive_arm_crop" +repage "$work/point-arm.png"
   magick "$work/point-arm.png" -rotate -90 -flop -filter point -resize "$derive_arm_scale" "$work/point-arm-up.png"
   magick "$source" \

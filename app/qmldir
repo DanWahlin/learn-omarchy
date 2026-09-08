@@ -3,3 +3,6 @@ CharacterSprite 1.0 CharacterSprite.qml
 IntroEffect 1.0 IntroEffect.qml
 IntroPlayer 1.0 IntroPlayer.qml
 PracticeContent 1.0 PracticeContent.qml
+OmarchyTheme 1.0 OmarchyTheme.qml
+ThemePalette 1.0 ThemePalette.qml
+SplashScreen 1.0 SplashScreen.qml

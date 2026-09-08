@@ -22,7 +22,7 @@ Item {
       var bindings = source.slice(start, source.indexOf("        readonly property real tourCenterX:", start))
       var leftEdge = source.match(/        function leftEdgePointX\([^\n]*\) \{[\s\S]*?\n        \}/)
       start = source.indexOf("        Rectangle {\n          id: tourOutline")
-      var outline = source.slice(start, source.indexOf("        Rectangle {\n          id: tourCaption", start))
+      var outline = source.slice(start, source.indexOf("        Rectangle {\n          id: welcomeCaption", start))
       verify(bindings.length > 100 && leftEdge !== null)
       fixture = Qt.createQmlObject(
         "import QtQuick\nItem { id: root; width: 1920; height: 1200\n"

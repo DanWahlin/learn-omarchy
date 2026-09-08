@@ -7,7 +7,7 @@ so keep audio under the course directory:
 courses/
   omarchy-basics.json
   audio/
-    hexon/open-apps.mp3
+    ohm-1/open-apps.mp3
     owl/open-apps.mp3
     production-manifest.json
 ```
@@ -90,7 +90,7 @@ Means are per-clip arithmetic means, not a concatenated-program measurement.
 195 clips landed within 1 LU of the target; the other 11 are between -21.05
 and -21.76 LUFS. These short/peak-limited narration results were retained rather
 than repeatedly encoding or aggressively compressing them to chase a number.
-For example, `hexon/tour-welcome.mp3` changed from -24.10 to -21.21 LUFS
+For example, `ohm-1/tour-welcome.mp3` changed from -24.10 to -21.21 LUFS
 (-1.94 dBTP output), while `owl/tour-welcome.mp3` changed from -20.33 to
 -20.44 LUFS (-5.19 dBTP output).
 
@@ -101,10 +101,25 @@ fingerprints have been invented for them.
 
 ## Speech generation and freshness
 
+`npm run audio:check` audits every instruction, completion, lesson wrap-up, and host-welcome
+recording required by the bundled packs. It fails on missing files, unverified
+wording, changed speech or voices, mismatched file hashes, and outdated production
+settings. It runs offline and is included in `npm run check`.
+
+Historical pack IDs and display-name spellings do not themselves invalidate a
+recording: the check compares the prepared spoken text, including `spokenName`
+and the expected `Omaachi` pronunciation. An inherited recording without text
+provenance must be regenerated before it counts as release-ready.
+
 Generation resolves the same validated character packs as the app and lab.
 Only packs with `narration.mode: "own"` need generation; backend voice choices
 come from `narration.voices.azure` and `narration.voices.edge`, with the explicit
 environment override still taking precedence.
+
+Name substitution uses the pack's optional `spokenName`, falling back to
+`displayName`. This lets `Ohm-1` appear on screen while the voice says `Ohm`.
+The prepared-text fingerprint tracks pronunciation changes; a display-only
+rename doesn't require replacing audio that already says the correct name.
 
 Graphics-only packs can borrow an official audio set or remain silent, without
 credentials or new recordings. Borrowed clips that introduce the source coach
@@ -113,9 +128,32 @@ pack's visible text and normal reading-time fallback remain available.
 See [the pack format](../docs/character-packs.md) for the complete policy.
 
 ```bash
-npm run audio:generate -- --character hexon --backend edge --missing
+npm run audio:generate -- --character ohm-1 --backend edge --missing
 npm run audio:generate -- --character owl --backend azure --match Omarchy
 npm run audio:generate -- --backend azure --steps tour-welcome,launch-browser
+```
+
+The host's center-screen greeting is separate from lesson narration and is
+defined in `courses/welcome.json`. Add `--welcome` to include that greeting:
+
+```bash
+npm run audio:generate -- --backend azure --steps tour-welcome --welcome
+```
+
+This updates only the host greeting and tour opening for each selected coach.
+The greeting introduces the coach; the tour opening introduces the features
+without repeating the coach's name. Both use the configured pronunciation map.
+
+Each taught lesson's `wrapUp` contains its completion `text` and `audio` path.
+Course-level `wrapUp.assisted` and `wrapUp.explored` provide alternatives for
+guided work and skipped or unfinished activities. The app uses the same selected
+message for the completion panel and narration, starting after the coach arrives.
+Welcome uses its existing menu handoff instead.
+
+Generate only these wrap-up recordings, without replacing activity narration:
+
+```bash
+npm run audio:generate -- --backend azure --wrapups-only
 ```
 
 **Generation contacts the selected speech service; Azure may incur charges.**
@@ -126,6 +164,9 @@ clips. Use `--character`, `--match`, or `--steps` to bound that operation.
 `--steps` selects exact comma-separated activity IDs and regenerates their
 instruction/completion clips for the selected coaches. Unknown or empty IDs
 are rejected before contacting the speech service.
+Use `--part instruction` or `--part completion` when editing only one side of
+an activity; the default `both` retains the existing behavior. This avoids
+regenerating unchanged recordings during an editorial pass.
 
 Generation records a deterministic fingerprint of the original text hash,
 prepared speech hash, character ID/display name, selected voice/backend,

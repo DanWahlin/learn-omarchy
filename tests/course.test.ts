@@ -3,6 +3,39 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { parseCourseJson, validateCourse, type Course } from "../src/course.ts";
 
+test("welcome lessons reuse the standalone flow and cannot contain hidden course actions", async () => {
+  const original = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
+  assert.deepEqual(parseCourseJson(JSON.stringify(original)).errors, []);
+  for (const mutate of [
+    (course: any) => { course.lessons[0].kind = "unknown"; },
+    (course: any) => { course.lessons[0].steps = [course.lessons[1].steps[0]]; },
+    (course: any) => { course.lessons[0].steps = null; },
+    (course: any) => { course.lessons.push(course.lessons.shift()); },
+  ]) {
+    const course = structuredClone(original);
+    mutate(course);
+    assert.ok(parseCourseJson(JSON.stringify(course)).errors.length > 0);
+  }
+});
+
+test("every taught topic has a wrap-up and malformed narration metadata is rejected", async () => {
+  const original = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
+  for (const lesson of original.lessons.filter((lesson: any) => lesson.kind !== "welcome")) {
+    assert.ok(lesson.wrapUp.text.trim());
+    assert.match(lesson.wrapUp.audio, /^audio\/wrapup-.*\.mp3$/);
+  }
+  for (const mutate of [
+    (course: any) => { course.wrapUp.assisted.text = ""; },
+    (course: any) => { course.wrapUp.explored.audio = "../outside.mp3"; },
+    (course: any) => { delete course.wrapUp.assisted; },
+    (course: any) => { course.lessons[1].wrapUp = { text: "Done." }; },
+  ]) {
+    const course = structuredClone(original);
+    mutate(course);
+    assert.ok(parseCourseJson(JSON.stringify(course)).errors.length > 0);
+  }
+});
+
 test("bundled course is valid and covers the core curriculum", async () => {
   const json = await readFile(
     new URL("../courses/omarchy-basics.json", import.meta.url),
@@ -27,6 +60,8 @@ test("bundled course is valid and covers the core curriculum", async () => {
   );
 
   const expectedShortcuts = new Map([
+    ["tour-workspace-two", "SUPER + 2"],
+    ["tour-workspace-one", "SUPER + 1"],
     ["tour-omarchy-menu", "SUPER + SPACE"],
     ["open-root-menu", "SUPER + SPACE"],
     ["open-apps", "SUPER + ALT + SPACE"],
@@ -53,6 +88,7 @@ test("bundled course is valid and covers the core curriculum", async () => {
     ["windows-swap", "SUPER + SHIFT + RIGHT"],
     ["workspaces-stash", "SUPER + ALT + S"],
     ["workspaces-restore", "SUPER + SHIFT + 2"],
+    ["workspaces-reveal-before-restore", "SUPER + S"],
     ["workspaces-close", "SUPER + W"],
     ["workspaces-send", "SUPER + SHIFT + 2"],
     ["next-workspace", "SUPER + TAB"],
@@ -89,7 +125,9 @@ test("bundled course is valid and covers the core curriculum", async () => {
   ]);
   const allSteps = result.course?.lessons.flatMap((lesson) => lesson.steps) ?? [];
   const tourSteps = allSteps.filter((step) => step.kind === "tour");
-  assert.equal(result.course?.lessons[0]?.id, "omarchy-tour");
+  assert.equal(result.course?.lessons[0]?.id, "welcome");
+  assert.equal(result.course?.lessons[0]?.kind, "welcome");
+  assert.equal(result.course?.lessons[1]?.id, "omarchy-tour");
   assert.ok(tourSteps.length >= 3);
   assert.ok(
     tourSteps.every(

@@ -79,21 +79,34 @@ display or session bus. Without Quickshell, that integration test is skipped.
 
 ## Course controls
 
-On the very first run, after you choose a coach, the Omarchy tour opens
-straight away instead of the module picker. Completed modules are recorded
-per course in `~/.local/state/learn-omarchy/progress.json`, and the fact that
-the tour has been opened once is recorded in `settings.json` next to it, so a
-skipped tour is never forced again; it stays available from the picker.
+On the very first run, choosing a coach automatically starts **Welcome to
+Omarchy**, lesson #1. Your coach enters, flies to the center, narrates the
+greeting, and then introduces the course menu while pointing at **Omarchy tour**,
+now lesson #2. The tour is
+recommended, not started: choose any lesson with the mouse or keyboard.
+Captions fade in only after the coach arrives, with time to read each message.
+Choose **Welcome to Omarchy** anytime to replay the entrance and greeting with
+your selected coach. There's no need to reset settings or lesson progress.
+The welcome reuses `courses/welcome.json` and its existing recordings; its
+course entry has `kind: "welcome"` and an empty `steps` array rather than
+duplicating the greeting as an activity.
 
-The tour opens with a short pixel-art scene before the first stop: HEXON's
+The welcome opens with the selected pack's short pixel-art scene: Ohm's
 rocket drops down the middle of the screen, lands on a pad at the bottom, and
 he steps out of the lit hatch; OLLIE's tree grows from the ground and she
-takes off from its branch. The desktop dims and the instruction panel fades
-while it plays, a booster rumble (synthesized with ffmpeg into
-`assets/sounds/`) plays for the landing and liftoff, and `Enter` or Skip
-cuts it short. It is skipped entirely
-under `LEARN_OMARCHY_REDUCED_MOTION=1`. Selecting the tour always starts at the
-welcome with the rocket or tree again; other modules resume their bookmarks.
+takes off from its branch. The desktop dims; the existing landing and liftoff
+effects play when requested by the pack. **Skip scene** or `Enter` moves on
+to the greeting, **Show lessons** advances to the menu, and **Skip welcome**
+(or `Escape` before the menu) bypasses the whole welcome.
+Reduced motion uses a brief static entrance and immediate placement, retaining
+readable captions and manual controls.
+
+Completed modules are recorded per course in
+`~/.local/state/learn-omarchy/progress.json`. A `welcomeSeen` flag in the adjacent
+`settings.json` records the welcome when it begins, so closing or skipping it
+does not replay it next time. Returning users with an older `tourSeen` flag or
+recorded progress go directly to the menu. Selecting the tour starts at its
+first activity without replaying a pack entrance; other modules resume their bookmarks.
 Controls move to the opposite corner when a tour stop uses the right
 end of the bar; mute, pause, keyboard capture, and exit remain available.
 The workspace overview boxes the menu icon and workspace numbers together;
@@ -149,11 +162,24 @@ later workspace-switching activities use individual destination markers.
 - **Release Keys** releases the keyboard to your other
   windows so you can keep working while the course stays open. A pill at the
   top of the screen brings the keys back; so does the control itself.
-- Use **Replay** beside the instruction to replay it.
+- Hardware volume up, volume down, and mute still work while keys are captured,
+  including during the welcome and in Settings. They adjust system output
+  through Omarchy's normal volume controls; Alt + volume uses one-percent steps.
+- During narrated tour stops, a compact bottom row keeps navigation separate
+  from the coach's caption. **Details** reveals extra guidance and **Replay**;
+  automatic progression waits while Details is open. Narration can finish,
+  and closing Details restores reading time rather than immediately moving on.
+  **Next** moves on manually. Hands-on activities keep their instructions and keycaps.
+- Use **Replay** to hear the instruction again.
 - Select **Back** to revisit an activity without automatically repeating its
   action, **Skip** to move past it, or **Topics** to return to the module picker.
 - Results appear immediately, with **Continue** available throughout. Turn off
   automatic advancement in Settings to inspect results at your own pace.
+- At the end of each taught topic, the coach delivers a short wrap-up after
+  arriving beside the completion panel. Skipped or unfinished activities use
+  an invitation to revisit them; assisted activities acknowledge the guidance.
+  The matching text remains visible with narration muted or unavailable.
+  Welcome retains its existing greeting and menu handoff.
 - Press **P** on the topic picker, or choose **Practice** after a module, to
   recall shortcuts without visible keycaps or spoken answers. **H** reveals a
   hint, and Help remains available. Practice still dispatches course-guided
@@ -179,13 +205,16 @@ so an arrow doesn't claim the other terminal is on the right when it's on the le
 
 Hands-on exercises deliberately use narrow completion conditions:
 
-- App search observes the Apps menu opening, a new terminal opening, and that
+- App search observes an Omarchy menu opening, a new terminal opening, and that
   exact terminal closing. It doesn't inspect the search text or close existing
   windows.
 - Clipboard practice requires native copy events for two harmless notes, opening
   clipboard history, and a native paste of the older note. Typing the answer
   doesn't count. This replaces the clipboard; previous clipboard contents aren't
-  read or logged by the exercise.
+  read or logged by the exercise. Learners use **Shift + Enter** in history to
+  copy without pasting, then **Super + V** in the destination field. Ordinary
+  history selection pastes immediately, so the exercise doesn't ask for that
+  followed by a second paste.
 - Capture uses `slurp` and `grim` to select an explicit region and load the saved
   image, then asks you to copy its path and add a local preview annotation.
   The original image is unchanged. Cancellation doesn't count. The image stays
@@ -243,7 +272,7 @@ also verify that Hyprland's focused workspace actually changed before reporting
 success. Missing narration leaves the written lesson available instead of
 ending the activity.
 
-HEXON coaches each activity alongside the existing keycap feedback. He flies
+Ohm coaches each activity alongside the existing keycap feedback. He flies
 into position when a step begins, talks with narration, reacts to correct and
 incorrect keys, celebrates completed shortcuts, and flies toward the controls
 while a requested Help action runs immediately. He waits beside the keycaps during
@@ -251,10 +280,10 @@ an activity, follows selected cards in the lesson picker, and travels to the
 configured target after a shortcut succeeds. Scrolling the picker advances
 through lessons in order and keeps the selected row in view; cards moving
 under a stationary pointer don't change the selection. He points right toward
-the selected card using a short vertical pointing-pose transition. Click HEXON for a
+the selected card using a short vertical pointing-pose transition. Click Ohm for a
 reaction, or drag him to another position and release him to let gravity return
 him to the lower screen boundary.
-Completion guidance scales and positions HEXON from the available screen
+Completion guidance scales and positions Ohm from the available screen
 space, keeps him outside the target, and points at its vertical center. Travel
 uses distance-based easing. Settled and
 pointing poses hover by a few pixels with smaller animated boot flames, blink
@@ -263,7 +292,7 @@ from snapping into place. Takeoffs and landings squash and stretch slightly,
 and a short trail of fading pixels follows each flight. Coaches travel in
 their flying pose facing the direction of travel, land in the standing pose,
 and keep speech independent of the pointing pose. At
-module completion, HEXON flies beside the summary panel before celebrating.
+module completion, Ohm flies beside the summary panel before celebrating.
 Reliable targets use a small reticle. Outlines appear for measured windows,
 panels, bar buttons, and workspace indicators; unknown panel bounds don't add a
 second border. Coaches retain a readable minimum size, with a short connector
@@ -484,6 +513,12 @@ two monitors have identical resolutions. Exact workspace-cell bounds take
 precedence over subdivision of the workspace widget; subdivisions remain
 explicitly estimated.
 
+The service also measures the visible stock Omarchy menu card from its live
+content item, rather than using the transparent fullscreen layer. The opening
+tour points to that card after Super + Space, then closes it and introduces the
+bar icon in a separate narrated stop. Unsupported menu layouts remain unmeasured
+instead of redirecting the opening step to the icon.
+
 Enable the read-only measurement service for your user:
 
 ```bash
@@ -518,6 +553,13 @@ and instruction colors from:
 ~/.local/state/omarchy/current/theme/colors.toml
 ```
 
+The main UI and open practice windows share a live theme loader. Buttons,
+captions, text fields, dropdowns, selection highlights, tooltips, sliders, and
+scrollbars use the same palette, including focus and disabled states. Text
+contrast is adjusted when needed for light or dark themes; character artwork
+and the exercise's sample images keep their original colors. If theme colors
+can't be read, the app reports the problem and uses a readable fallback palette.
+
 ### Narration
 
 Narration begins with each activity and stops during transitions or when the
@@ -527,7 +569,7 @@ starts shortly after it finishes, or right away on Enter. MP3, Opus, Ogg, FLAC, 
 safe paths relative to the course file.
 
 The repository includes separate MP3 tracks for both coaches. Current generation
-uses the configured Azure HD Andrew voice for HEXON and Ada for OLLIE. To
+uses the configured Azure HD Andrew voice for Ohm and Ada for OLLIE. To
 regenerate it with the same service, put `AZURE_SPEECH_KEY` and either
 `AZURE_SPEECH_REGION` or `AZURE_SPEECH_ENDPOINT` in `~/.env` (or pass
 `--env-file`), optionally `AZURE_SPEECH_MALE_VOICE_US` or
@@ -548,7 +590,7 @@ npm run audio:generate
 
 Narration is recorded once per coach, under `courses/audio/<character>/`:
 the spoken text says the coach's name where the course text says HEXON, and
-each pack's `character.json` names `narration.voices.azure` (HEXON uses Andrew,
+each pack's `character.json` names `narration.voices.azure` (Ohm uses Andrew,
 OLLIE uses Ada, both HD voices) and `narration.voices.edge`.
 `LEARN_OMARCHY_TTS_VOICE` overrides both. With no `--character` flag, bundled
 packs with `narration.mode: "own"` are generated. Borrowed and silent packs don't
@@ -594,18 +636,36 @@ diagnostics.
 
 ## Characters
 
-HEXON is the default coach. On first launch a "Choose your coach" screen
+On startup, a short splash illustration introduces Ohm-1 and Ollie together.
+It dismisses automatically once the app is ready, or immediately with a click,
+Enter, Space, or Escape. Reduced motion removes the display delay. The splash
+doesn't start a lesson or change the selected coach.
+
+Ohm-1 (pronounced "Ohm") is the default coach, with pack ID `ohm-1`, assets under
+`assets/characters/ohm-1/`, and narration under `courses/audio/ohm-1/`. The
+`HEXON` token in course text is replaced with the selected coach's display name.
+An optional `spokenName` supplies a different name to narration generation:
+Ohm-1 displays as `Ohm-1` and uses `Ohm` as his spoken short name.
+His welcome says, "Hi! I'm Ohm-1, but you can call me Ohm for short."
+`courses/welcome.json` supports character-specific `instructions` keyed by pack
+ID; other coaches use the shared `instruction`. Captions and audio generation
+select the same greeting.
+On first launch a "Choose your coach" screen
 shows every character side by side; pick with the arrow keys or the mouse and
 confirm with Enter. The choice is saved to
 `~/.local/state/learn-omarchy/settings.json`. The Settings button in the toolbar
 lets you switch coaches and
-reset progress (two clicks, or press R twice); a reset clears every module
+reset progress (Reset Progress, then Confirm Reset, or press R twice).
+The confirmation stays open until confirmed, cancelled, or Settings is closed.
+A confirmed reset clears every module
 checkmark and the coach choice, so closing Settings asks for a coach again
-and then starts the tour, like a fresh install. The module picker always
+and then replays the welcome, like a fresh install. An explicit character
+override skips the coach picker but still replays the welcome after Done.
+The module picker normally
 selects unfinished core modules before optional ones, so the coach points at what's next.
 
 Characters are **data-only packs**. The bundled catalog at
-`assets/characters/index.json` reserves the official `hexon` and `owl` IDs.
+`assets/characters/index.json` reserves the official `ohm-1` and `owl` IDs.
 Community packs are discovered from
 `${XDG_DATA_HOME:-$HOME/.local/share}/learn-omarchy/characters/<id>/`; they don't
 need a catalog edit, sudo, or changes to the application. Bundled IDs can't be
@@ -638,12 +698,12 @@ A launch flag overrides the saved choice and skips the picker:
 Graphics-only contributions can use silent narration or borrow an official
 audio set. Borrowed clips that name the original coach are intentionally omitted:
 the selected character's text stays visible and the normal reading-time fallback
-applies. Existing HEXON and OLLIE recordings are unchanged.
+applies. Ohm and OLLIE retain their existing voices and audio-set directories.
 
-**Artwork licensing:** the repository does not currently establish an asset
-license or author attribution for the existing generated character art. The
-official manifests explicitly flag that unresolved provenance; don't assume
-their artwork is licensed for redistribution merely because it is bundled.
+**Artwork attribution and licensing:** Dan Wahlin is the declared author of
+Ohm-1 and Ollie. An asset license has not yet been selected; the official
+manifests flag that separately. Don't assume the artwork is licensed for
+redistribution merely because it is bundled.
 
 ### Trusted repository artwork tools
 
@@ -708,8 +768,8 @@ Quickshell's configuration boundary. IPC uses that same entrypoint:
 qs ipc -p character-lab.qml call hexon-lab status
 ```
 
-The generated concept art is under `assets/characters/hexon/concepts/`.
-Normalized runtime assets are under `assets/characters/hexon/sprites/`.
+The generated concept art is under `assets/characters/ohm-1/concepts/`.
+Normalized runtime assets are under `assets/characters/ohm-1/sprites/`.
 Idle and talk use packed 192×192 frames. Showcase flight uses a wider 256×192
 frame, and guided interactions add a dedicated 224×192 pointing pose plus an
 upward-pointing variant derived from it for tour stops beneath the bar. Rebuild

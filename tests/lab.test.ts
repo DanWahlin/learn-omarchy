@@ -17,7 +17,7 @@ function harness() {
     _snapshot: { version: 1, packs: [], diagnostics: [], fallbackId: null },
     _generation: 0, _pending: false, _loading: false, _stopping: false, _awaitingExit: false,
     _ready: false, _failure: "",
-    requestedId: "hexon", appRoot: "/app with spaces", bundledRoot: "/bundled", userRoot: "/user",
+    requestedId: "ohm-1", appRoot: "/app with spaces", bundledRoot: "/bundled", userRoot: "/user",
     worker: { generation: 0, command: [], running: false },
     timeout: {
       generation: 0, running: false, starts: 0, stops: 0,
@@ -37,7 +37,7 @@ function harness() {
 const pack = (id: string, narration: object = { mode: "own", audioSet: id }) => ({
   id, assetUrl: `file:///packs/${id}`, manifest: { formatVersion: 1, id, displayName: id, narration },
 });
-const catalog = (packs = [pack("hexon"), pack("owl"), pack("third")], fallbackId: string | null = "hexon") =>
+const catalog = (packs = [pack("ohm-1"), pack("owl"), pack("third")], fallbackId: string | null = "ohm-1") =>
   JSON.stringify({ version: 1, packs, diagnostics: [], fallbackId });
 
 test("pack store consumes only centralized CLI results; main and lab share one renderer", () => {
@@ -89,13 +89,13 @@ test("all lab text, including reusable buttons and pack diagnostics, renders as 
 test("selection honors the latest requested ID, third-party packs, and the CLI fallback", () => {
   const { context: c } = harness();
   c.acceptResult(catalog(), "", 0);
-  assert.equal(c.selectedPack.id, "hexon");
+  assert.equal(c.selectedPack.id, "ohm-1");
   assert.equal(c.select("third"), true);
   assert.equal(c.requestedId, "third");
   assert.equal(c.selectedPack.id, "third");
   assert.equal(c.select("missing"), false);
   assert.equal(c.requestedId, "missing");
-  assert.equal(c.selectedPack.id, "hexon");
+  assert.equal(c.selectedPack.id, "ohm-1");
   c.acceptResult(catalog([pack("owl")], "owl"), "", 0);
   assert.equal(c.selectedPack.id, "owl");
   c.acceptResult(catalog([], null), "", 0);
@@ -145,7 +145,7 @@ test("queued refresh rejects stale catalogs and selection changes do not restart
   assert.equal(c._generation, 1);
   c.refresh();
   assert.equal(c._pending, true);
-  c.finishDiscovery(catalog([pack("hexon")]), "", 1);
+  c.finishDiscovery(catalog([pack("ohm-1")]), "", 1);
   assert.equal(c._snapshot.packs.length, 0, "stale discovery cannot replace the catalog");
   callbacks.shift()!();
   assert.equal(c.worker.generation, 2);
@@ -225,7 +225,7 @@ test("a queued refresh waits for timeout cancellation even when running clears b
   callbacks.shift()!();
   assert.equal(c.worker.generation, 2);
   c.finishDiscovery(catalog(), "", 2);
-  assert.equal(c.selectedPack.id, "hexon");
+  assert.equal(c.selectedPack.id, "ohm-1");
 });
 
 test("failed launches without a started process release the queue without waiting for an exit", () => {
@@ -246,7 +246,7 @@ test("failed launches without a started process release the queue without waitin
   callbacks.shift()!();
   assert.equal(c.worker.generation, 3);
   c.finishDiscovery(catalog(), "", 3);
-  assert.equal(c.selectedPack.id, "hexon");
+  assert.equal(c.selectedPack.id, "ohm-1");
   assert.equal(c._failure, "");
 });
 
@@ -257,10 +257,10 @@ test("own, silent, and borrowed narration resolve without speaking the wrong coa
   assert.equal(c.audioPath("done.mp3", "", "/course/"), "/course/third/done.mp3");
   c.acceptResult(catalog([pack("third", { mode: "silent" })], "third"), "", 0);
   assert.equal(c.audioPath("audio/welcome.mp3", "Hello", "/course"), "");
-  for (const audioSet of ["hexon", "owl"]) {
+  for (const audioSet of ["ohm-1", "owl"]) {
     c.acceptResult(catalog([pack("third", { mode: "borrowed", audioSet })], "third"), "", 0);
     assert.equal(c.audioPath("audio/welcome.mp3", "Press Super", "/course"), `/course/audio/${audioSet}/welcome.mp3`);
-    for (const text of ["I am HEXON", "Hexon's next step", "ollie says hello", "Meet OLLIE"]) {
+    for (const text of ["I am HEXON", "Hexon's next step", "I'm Archie", "ARCHIE can help", "I'm Ohm", "Meet Ohm-1", "OMARI can help", "ollie says hello", "Meet OLLIE"]) {
       assert.equal(c.audioPath("audio/welcome.mp3", text, "/course"), "");
     }
   }

@@ -34,24 +34,38 @@ test("default user root honors only absolute XDG/HOME paths and falls back to th
     assert.equal(defaultUserPackRoot({ HOME }), join(homedir(), ".local/share/learn-omarchy/characters"));
 });
 
+test("spoken names are optional bounded text independent of display names", async () => {
+  const manifest = await example();
+  assert.doesNotThrow(() => validateCharacterManifest(manifest));
+  manifest.displayName = "Ohm-1";
+  manifest.spokenName = "Ohm";
+  assert.doesNotThrow(() => validateCharacterManifest(manifest));
+  for (const spokenName of ["", "   ", null, 42, {}, "x".repeat(81), "bad\u0000name"]) {
+    manifest.spokenName = spokenName;
+    assert.throws(() => validateCharacterManifest(manifest), /spokenName/);
+  }
+});
+
 test("bundled packs preserve IDs, registration, voice metadata and asset filenames", async () => {
   const catalog = await discoverCharacterPacks({ bundledRoot });
   assert.equal(catalog.version, 1);
-  assert.equal(catalog.fallbackId, "hexon");
+  assert.equal(catalog.fallbackId, "ohm-1");
   assert.deepEqual(catalog.invalidBundledIds, []);
-  for (const id of ["hexon", "owl"]) {
+  for (const id of ["ohm-1", "owl"]) {
     const pack = catalog.packs.find(item => item.id === id)!;
     assert.ok(pack);
     assert.equal(pack.manifest.id, id);
     assert.equal(pack.manifest.sprites.idle.frames, 16);
     assert.deepEqual(pack.manifest.sprites.idle.timeline, [
-      { frame: 0, durationMs: 3000 }, { frame: 11, durationMs: 50 },
+      { frame: 0, durationMs: id === "ohm-1" ? 5200 : 3000 }, { frame: 11, durationMs: 50 },
       { frame: 12, durationMs: 100 }, { frame: 13, durationMs: 50 },
     ]);
-    assert.equal(pack.manifest.sprites.talk.fps, 8);
-    assert.equal(pack.manifest.sprites.talk.frames, 8);
+    assert.equal(pack.manifest.sprites.talk.fps, id === "ohm-1" ? undefined : 8);
+    assert.equal(pack.manifest.sprites.talk.frames, id === "ohm-1" ? 16 : 8);
     assert.equal(pack.manifest.sprites.idle.path, `sprites/${id}-idle.png`);
-    assert.equal(pack.manifest.author.status, "unresolved");
+    assert.equal(pack.manifest.author.status, "declared");
+    assert.equal(pack.manifest.author.name, "Dan Wahlin");
+    assert.ok(!pack.diagnostics.some(message => message.includes("author is unresolved")));
     assert.equal(pack.manifest.license.status, "unresolved");
     assert.ok(pack.diagnostics.some(message => message.includes("license is unresolved")));
     assert.ok(pack.assetUrl.startsWith("file:///"));
@@ -63,11 +77,11 @@ test("bundled packs preserve IDs, registration, voice metadata and asset filenam
       assert.ok(!pack.runtimeFiles.includes(`sprites/${id}-${role}.png`));
     }
   }
-  const hexon = catalog.packs.find(pack => pack.id === "hexon")!.manifest;
-  assert.deepEqual(hexon.narration, { mode: "own", audioSet: "hexon", voices: {
+  const ohm = catalog.packs.find(pack => pack.id === "ohm-1")!.manifest;
+  assert.deepEqual(ohm.narration, { mode: "own", audioSet: "ohm-1", voices: {
     azure: "en-US-Andrew:DragonHDLatestNeural", edge: "en-US-GuyNeural",
   } });
-  assert.equal(hexon.motion.tourFlight, "upright");
+  assert.equal(ohm.motion.tourFlight, "upright");
   assert.equal(catalog.packs.find(pack => pack.id === "owl")!.manifest.sprites.speech.frameHeight, 30);
 });
 
@@ -80,9 +94,9 @@ test("third-party static single-frame example discovers without a catalog or ren
   const pack = catalog.packs.find(item => item.id === "spark")!;
   assert.ok(pack);
   assert.equal(pack.manifest.sprites.idle.frames, 1);
-  assert.deepEqual(pack.manifest.narration, { mode: "borrowed", audioSet: "hexon" });
+  assert.deepEqual(pack.manifest.narration, { mode: "borrowed", audioSet: "ohm-1" });
   assert.equal(pack.manifest.license.identifier, "CC0-1.0");
-  assert.equal(catalog.fallbackId, "hexon");
+  assert.equal(catalog.fallbackId, "ohm-1");
 });
 
 test("talk strips must fit their shared idle pose registration", async () => {
@@ -95,13 +109,13 @@ test("reserved bundled IDs cannot be overridden even when the bundled pack is br
   const root = await fixture(t);
   const bundles = join(root, "bundles"), users = join(root, "users");
   await mkdir(bundles); await mkdir(users);
-  await writeFile(join(bundles, "index.json"), JSON.stringify({ formatVersion: 1, characters: [{ id: "hexon" }, { id: "future-coach" }] }));
-  await copyExample(join(users, "hexon"), "hexon");
+  await writeFile(join(bundles, "index.json"), JSON.stringify({ formatVersion: 1, characters: [{ id: "ohm-1" }, { id: "future-coach" }] }));
+  await copyExample(join(users, "ohm-1"), "ohm-1");
   await copyExample(join(users, "future-coach"), "future-coach");
   await copyExample(join(users, "spark"));
   const result = await discoverCharacterPacks({ bundledRoot: bundles, userRoot: users });
   assert.deepEqual(result.packs.map(pack => pack.id), ["spark"]);
-  assert.deepEqual(result.invalidBundledIds, ["future-coach", "hexon"]);
+  assert.deepEqual(result.invalidBundledIds, ["future-coach", "ohm-1"]);
   assert.equal(result.fallbackId, "spark");
   assert.equal(result.diagnostics.filter(message => message.includes("reserved")).length, 2);
 });
@@ -318,7 +332,7 @@ test("CLI discover emits machine-readable JSON and validate rejects bad input", 
   const discovery = spawnSync(process.execPath, ["--experimental-strip-types", "tools/character-packs.ts", "discover",
     "--bundled-root", bundledRoot, "--user-root", root], { encoding: "utf8" });
   assert.equal(discovery.status, 0, discovery.stderr);
-  assert.equal(JSON.parse(discovery.stdout).fallbackId, "hexon");
+  assert.equal(JSON.parse(discovery.stdout).fallbackId, "ohm-1");
   const validation = spawnSync(process.execPath, ["--experimental-strip-types", "tools/character-packs.ts", "validate", root], { encoding: "utf8" });
   assert.equal(validation.status, 1);
   assert.match(validation.stderr, /Character packs:/);

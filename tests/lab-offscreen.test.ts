@@ -64,7 +64,7 @@ test(`isolated ${packaged ? "installed" : "checkout"} lab discovers, plays, canc
       }
 
       const ready = await Promise.race([
-        waitStatus(s => s.character === "spark" && s.packs.includes("hexon") && s.packs.includes("owl")),
+        waitStatus(s => s.character === "spark" && s.packs.includes("ohm-1") && s.packs.includes("owl")),
         launchError,
       ]);
       assert.equal(ready.frameCount, 1, "the starter does not need official strip frame counts");
@@ -83,7 +83,7 @@ test(`isolated ${packaged ? "installed" : "checkout"} lab discovers, plays, canc
       assert.equal(ipc("reset"), "ok");
       await waitStatus(s => s.pose === "idle" && s.facing === 1 && !s.talking);
 
-      for (const id of ["hexon", "owl"]) {
+      for (const id of ["ohm-1", "owl"]) {
         assert.equal(ipc("character", id), "ok");
         await waitStatus(s => s.character === id && s.introAvailable);
         assert.equal(ipc("intro"), "ok");
@@ -115,7 +115,7 @@ test(`isolated ${packaged ? "installed" : "checkout"} lab discovers, plays, canc
 
       await rm(installed, { recursive: true });
       assert.equal(ipc("refresh"), "ok");
-      const recovery = await waitStatus(s => s.character === "hexon" && !s.packs.includes("spark"));
+      const recovery = await waitStatus(s => s.character === "ohm-1" && !s.packs.includes("spark"));
       assert.match(recovery.notice, /spark.*unavailable/);
       assert.doesNotMatch(log, /ReferenceError|TypeError|Binding loop|Cannot assign to non-existent property|Failed to load configuration/);
     } finally {

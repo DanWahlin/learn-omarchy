@@ -33,26 +33,29 @@ Item {
   readonly property var geometry: poses[activePose] || ({})
   readonly property var speech: geometry.speech || null
   readonly property bool pointing: activePose === "point" || activePose === "point-up"
-  readonly property bool speechOverlay: talking && pointing && speech !== null
+  readonly property bool independentSpeech: !!poses.idle?.speech
+  readonly property bool speechOverlay: !isFlyingSprite && speech !== null && (talking || speech.restFrame !== undefined)
   readonly property string speechRole: speech && speech.sprite ? speech.sprite : "talk"
   readonly property string animationRole: isFlyingSprite ? "flight"
-    : speechOverlay ? speechRole : talking && !pointing ? "talk" : activePose
+    : speechOverlay && talking ? speechRole : talking && !pointing ? "talk" : activePose
   readonly property var animationSprite: sprites[animationRole] || ({})
   readonly property int frameCount: Math.max(1, Number(animationSprite.frames || 1))
   readonly property int currentFrame: previewFrame >= 0 ? Math.min(frameCount - 1, previewFrame)
     : reducedMotion ? 0
     : frameAt(animationSprite, elapsed)
   readonly property var blink: manifest.blink || ({})
-  readonly property int blinkPhase: elapsed % Math.max(1, Number(blink.periodMs || 1))
+  readonly property int blinkPhase: (independentSpeech ? blinkElapsed : elapsed) % Math.max(1, Number(blink.periodMs || 1))
   readonly property bool blinking: pointing && (!talking || speechOverlay)
     && previewFrame < 0 && !reducedMotion && !!manifest.blink
     && blinkPhase >= Number(blink.startMs)
     && blinkPhase < Number(blink.startMs) + Number(blink.durationMs)
   readonly property string bodyName: isFlyingSprite ? "flight"
     : pointing ? activePose + (blinking && sprites[activePose + "-blink"] ? "-blink" : "")
-    : talking ? "talk" : "idle"
+    : talking && !speechOverlay ? "talk" : "idle"
   readonly property var bodySprite: sprites[bodyName] || ({})
-  readonly property int bodyFrame: speechOverlay ? frameAt(bodySprite, reducedMotion || previewFrame >= 0 ? 0 : elapsed)
+  readonly property int bodyFrame: speechOverlay ? (previewFrame >= 0 && !talking
+      ? Math.min(Number(bodySprite.frames || 1) - 1, previewFrame)
+      : frameAt(bodySprite, reducedMotion || previewFrame >= 0 ? 0 : independentSpeech ? blinkElapsed : elapsed))
     : Math.min(Number(bodySprite.frames || 1) - 1, currentFrame)
   readonly property bool animationActive: visible && opacity > 0 && animated
     && !reducedMotion && previewFrame < 0 && !errorMessage
@@ -77,6 +80,8 @@ Item {
         y: registeredCoordinate(geometry, socket, "y") }
     })
   property real elapsed: 0
+  property real blinkElapsed: 0
+  readonly property int speechFrame: !talking && speech && speech.restFrame !== undefined ? speech.restFrame : currentFrame
   property string displayedPose: ""
   property int displayedFacing: 1
   property string previousPose: ""
@@ -153,13 +158,13 @@ Item {
     return Math.floor(time * Number(sprite.fps || 0) / 1000) % count
   }
 
-  onPackChanged: { elapsed = 0; resetPoseTransition() }
-  onConfigChanged: if (!pack) { elapsed = 0; resetPoseTransition() }
+  onPackChanged: { elapsed = 0; blinkElapsed = 0; resetPoseTransition() }
+  onConfigChanged: if (!pack) { elapsed = 0; blinkElapsed = 0; resetPoseTransition() }
   onAssetRootChanged: if (!pack) resetPoseTransition()
   onActivePoseChanged: { elapsed = 0; transitionPose() }
   onFacingChanged: transitionPose()
   onTalkingChanged: elapsed = 0
-  onReducedMotionChanged: { elapsed = 0; resetPoseTransition() }
+  onReducedMotionChanged: { elapsed = 0; blinkElapsed = 0; resetPoseTransition() }
   onAnimatedChanged: if (!animated) resetPoseTransition()
   onPreviewFrameChanged: if (previewFrame >= 0) resetPoseTransition()
   onVisibleChanged: if (!visible) resetPoseTransition()
@@ -182,7 +187,10 @@ Item {
     onTriggered: {
       // Ancestor visibility can be reentrant during layer construction.
       // Inspect it on a frame instead of binding the timer to the whole tree.
-      if (root.isPresented()) root.elapsed += interval
+      if (root.isPresented()) {
+        root.elapsed += interval
+        root.blinkElapsed += interval
+      }
     }
   }
 
@@ -241,7 +249,7 @@ Item {
         height: root.speech ? root.speech.destination.height : 0
         source: visible ? root.spriteSource(root.speechRole) : ""
         sourceClipRect: root.speech
-          ? Qt.rect(root.currentFrame * Number(root.sprites[root.speechRole]?.frameWidth || 1) + root.speech.source.x,
+          ? Qt.rect(root.speechFrame * Number(root.sprites[root.speechRole]?.frameWidth || 1) + root.speech.source.x,
             root.speech.source.y, root.speech.source.width, root.speech.source.height)
           : Qt.rect(0, 0, 1, 1)
         smooth: false

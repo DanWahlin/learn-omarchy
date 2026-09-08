@@ -1,0 +1,8 @@
+{
+  "instruction": "Hi! I'm HEXON. Welcome to Omarchy. A few good shortcuts can change how you work: opening apps, moving between workspaces, and keeping everything within reach. You'll learn by doing, with guidance when you need it. Start with a quick tour, or choose something you want to get better at. Find what works for you. Your desktop. Your way.",
+  "instructions": {
+    "ohm-1": "Hi! I'm Ohm-1, but you can call me Ohm for short. Welcome to Omarchy. A few good shortcuts can change how you work: opening apps, moving between workspaces, and keeping everything within reach. You'll learn by doing, with guidance when you need it. Start with a quick tour, or choose something you want to get better at. Find what works for you. Your desktop. Your way."
+  },
+  "recommendation": "Here's what we'll cover. The Omarchy tour is a good starting point, but there's no required order. Pick what's useful to you.",
+  "audio": "audio/host-welcome.mp3"
+}

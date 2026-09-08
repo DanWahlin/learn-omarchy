@@ -133,7 +133,42 @@ function popupCards(widget, bar, screen, namespaceForWindow) {
   return pending.length ? [] : cards
 }
 
-function snapshot(bar, namespaceForWindow, activeBarId) {
+function appendMenuCard(result, shell, namespaceForWindow) {
+  var loader = shell && shell.panelLoaders ? shell.panelLoaders["omarchy.menu"] : null
+  var menu = loader ? loader.item : null
+  if (!menu || !menu.manifest || menu.manifest.id !== "omarchy.menu" ||
+      menu.opened !== true || menu.rowsLoaded !== true || typeof namespaceForWindow !== "function") return
+  var objects = menu.data || []
+  for (var i = 0; i < objects.length; i++) {
+    var window = objects[i]
+    if (!window || !window.contentItem || !window.screen || window.visible !== true ||
+        namespaceForWindow(window) !== "omarchy-menu") continue
+    var screen = window.screen
+    var anchors = window.anchors, margins = window.margins
+    if (!anchors || !anchors.top || !anchors.bottom || !anchors.left || !anchors.right ||
+        !margins || margins.top !== 0 || margins.bottom !== 0 || margins.left !== 0 || margins.right !== 0 ||
+        window.width !== screen.width || window.height !== screen.height ||
+        !finite(window.effectiveCardTop) || !finite(menu.cardWidth)) continue
+    // Match the stock menu's painted BorderSurface, not its fullscreen scrim.
+    var cards = (window.contentItem.children || []).filter(function(child) {
+      return child && child.borderSpec !== undefined && child.padding === menu.contentMargin &&
+        child.width === menu.cardWidth && child.y === window.effectiveCardTop &&
+        itemVisible(child) && child.width > 0 && child.height > 0
+    })
+    if (cards.length !== 1) continue
+    var rect = bounds(cards[0], { x: 0, y: 0 })
+    if (rect.x < 0 || rect.y < 0 || rect.x + rect.width > screen.width || rect.y + rect.height > screen.height) continue
+    var output = result.screens.find(function(entry) { return entry.name === screen.name })
+    if (!output) {
+      output = { name: screen.name, width: screen.width, height: screen.height, widgets: [] }
+      result.screens.push(output)
+    }
+    if (output.width !== screen.width || output.height !== screen.height) continue
+    output.widgets.push(Object.assign(rect, { id: "panel:omarchy-menu", visible: true, itemVisible: true }))
+  }
+}
+
+function snapshot(bar, namespaceForWindow, activeBarId, shell) {
   // The host can construct the stock bar before manifest discovery finishes.
   // Its active ID remains authoritative even when bar.manifest is still null.
   var barId = activeBarId === undefined ? bar && bar.manifest && bar.manifest.id : activeBarId
@@ -179,5 +214,7 @@ function snapshot(bar, namespaceForWindow, activeBarId) {
     }
   }
   requireCapability(result.screens.length > 0, "no live bar slots")
+  try { appendMenuCard(result, shell, namespaceForWindow) }
+  catch (error) { console.warn("learnGeometry: menu card measurement unavailable:", error) }
   return result
 }

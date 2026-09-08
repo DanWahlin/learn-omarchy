@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "character": {
+    "x": { "layer": "hull", "anchor": 0.5, "offset": -112 },
+    "y": { "layer": "hull", "anchor": 0.7, "offset": -188 },
+    "offsetX": 0, "offsetY": 0, "visible": false, "opacity": 0
+  },
+  "layers": [
+    {
+      "id": "stars", "type": "effect", "effect": "specks", "count": 48,
+      "width": { "viewport": 1, "min": 1, "max": 4096 },
+      "height": { "viewport": 0.8, "min": 1, "max": 4096 },
+      "colors": ["theme:foreground", "theme:foreground", "theme:instruction"], "amplitude": 0, "period": 1800,
+      "z": -5, "state": { "offsetY": 40, "opacity": 0 }
+    },
+    {
+      "id": "prompt", "type": "text", "fontSize": 20, "typewriter": true, "z": 8,
+      "colors": ["theme:instruction"], "background": "theme:background", "border": "theme:accent",
+      "state": { "offsetX": 28, "offsetY": 58, "text": "> INCOMING TRANSMISSION...", "opacity": 0 }
+    },
+    {
+      "id": "pad", "type": "effect", "effect": "strip", "count": 10,
+      "height": 14, "width": { "viewport": 0.370546875, "axis": "height", "min": 267, "max": 519 },
+      "anchorX": 0.5, "anchorY": 1, "colors": ["theme:instruction", "theme:accent"],
+      "background": "theme:background", "border": "theme:muted",
+      "z": -2, "state": { "x": 0.5, "y": 1, "offsetY": -6, "opacity": 0 }
+    },
+    {
+      "id": "hull", "type": "image", "images": ["sprites/ohm-1-intro.png"],
+      "height": { "viewport": 0.5, "min": 360, "max": 700 },
+      "anchorX": 0.5, "anchorY": 1, "z": 1,
+      "state": { "x": 0.5, "y": 0, "offsetY": -80 }
+    },
+    {
+      "id": "hatch", "type": "image", "images": ["sprites/ohm-1-intro-open.png"],
+      "height": { "viewport": 0.5, "min": 360, "max": 700 }, "z": 2,
+      "state": { "x": { "layer": "hull", "anchor": 0 }, "y": { "layer": "hull", "anchor": 0 }, "opacity": 0 }
+    },
+    {
+      "id": "exhaust", "type": "effect", "effect": "plume", "count": 3,
+      "width": { "viewport": 0.07846875, "axis": "height", "min": 56.5, "max": 110 }, "height": 26,
+      "anchorX": 0.5, "z": 0, "period": 210, "colors": ["theme:foreground", "theme:instruction", "theme:urgent"],
+      "state": { "x": { "layer": "hull", "anchor": 0.5 }, "y": { "layer": "hull", "anchor": 0.9 } }
+    },
+    {
+      "id": "dust", "type": "effect", "effect": "burst", "count": 10,
+      "width": 1, "height": 1, "z": 3, "colors": ["theme:muted", "theme:foreground"],
+      "state": { "x": 0.5, "y": 1, "offsetY": -18, "visible": false }
+    }
+  ],
+  "steps": [
+    { "type": "sound", "cue": "rocket-land.opus" },
+    {
+      "type": "parallel",
+      "branches": [
+        [
+          {
+            "type": "parallel", "branches": [
+              [
+                { "type": "tween", "target": "hull", "to": { "y": 1, "offsetY": -10 }, "duration": 1600, "easing": "outQuad" },
+                { "type": "set", "target": "exhaust", "to": { "visible": false } },
+                { "type": "wait", "duration": 400 }
+              ],
+              [{ "type": "tween", "target": "stars", "to": { "opacity": 1 }, "duration": 450, "easing": "inOutSine" }],
+              [{ "type": "tween", "target": "pad", "to": { "opacity": 1 }, "duration": 450, "easing": "inOutSine" }],
+              [{ "type": "tween", "target": "prompt", "to": { "opacity": 1 }, "duration": 450, "easing": "inOutSine" }]
+            ]
+          },
+          { "type": "set", "target": "prompt", "to": { "text": "> {displayName} HAS LANDED." } },
+          { "type": "set", "target": "character", "to": { "visible": true } },
+          {
+            "type": "parallel", "branches": [
+              [{ "type": "tween", "target": "hull", "to": { "opacity": 0 }, "duration": 160 }],
+              [{ "type": "tween", "target": "hatch", "to": { "opacity": 1 }, "duration": 160 }],
+              [{ "type": "tween", "target": "character", "to": { "opacity": 1 }, "duration": 320 }],
+              [{ "type": "wait", "duration": 800 }]
+            ]
+          },
+          { "type": "set", "target": "character", "to": { "flying": true, "facing": 1 } },
+          { "type": "tween", "target": "character",
+            "to": { "x": { "layer": "hull", "anchor": 0.5, "offset": 158 }, "y": 1, "offsetY": -214 },
+            "duration": 1000, "easing": "inOutSine" },
+          { "type": "set", "target": "character", "to": { "flying": false } },
+          { "type": "wait", "duration": 600 },
+          { "type": "set", "target": "prompt", "to": { "text": "> TOUR STARTING" } },
+          { "type": "set", "target": "hull", "to": { "opacity": 1 } },
+          { "type": "set", "target": "hatch", "to": { "opacity": 0 } },
+          { "type": "set", "target": "exhaust", "to": { "visible": true } },
+          { "type": "sound", "cue": "rocket-liftoff.opus" },
+          { "type": "tween", "target": "hull", "to": { "y": 0, "offsetY": -120 }, "duration": 1600, "easing": "inQuad" },
+          { "type": "set", "target": "exhaust", "to": { "visible": false } },
+          { "type": "wait", "duration": 150 },
+          {
+            "type": "parallel", "branches": [
+              [{ "type": "tween", "target": "stars", "to": { "opacity": 0 }, "duration": 650, "easing": "inOutSine" }],
+              [{ "type": "tween", "target": "pad", "to": { "opacity": 0 }, "duration": 650, "easing": "inOutSine" }],
+              [{ "type": "tween", "target": "prompt", "to": { "opacity": 0 }, "duration": 650, "easing": "inOutSine" }]
+            ]
+          }
+        ],
+        [
+          { "type": "wait", "duration": 1600 },
+          { "type": "set", "target": "dust", "to": { "visible": true } },
+          { "type": "tween", "target": "dust", "to": { "progress": 1 }, "duration": 680, "easing": "outCubic" },
+          { "type": "set", "target": "dust", "to": { "visible": false } }
+        ]
+      ]
+    }
+  ]
+}

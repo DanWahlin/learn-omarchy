@@ -22,9 +22,17 @@ ShellRoot {
   property string savedCharacter: ""
   property bool settingsResolved: false
   property bool progressResolved: false
-  // Set once the tour has been opened automatically, so a skipped tour is not
-  // forced again; completion itself lives in the progress file like any lesson.
+  // Retained for migration from the original automatic-tour first run.
   property bool tourSeen: false
+  property bool welcomeSeen: false
+  property bool welcomeSettingPresent: false
+  property bool splashActive: true
+
+  function finishSplash() {
+    if (!splashActive) return
+    splashActive = false
+    maybeBeginWelcome()
+  }
   readonly property var characterIndex: characterStore.packs
   property int characterPick: 0
   // "first-run" asks for a coach and proceeds on pick; "settings" stays open.
@@ -59,7 +67,7 @@ ShellRoot {
         openSettings(characterChosen() ? "settings" : "first-run")
       return
     }
-    if (settingsResolved && characterChosen()) maybeAutoStartTour()
+    if (settingsResolved && characterChosen()) maybeBeginWelcome()
   }
 
   function refreshCharacters() {
@@ -101,6 +109,20 @@ ShellRoot {
     return String(text || "").replace(/HEXON/g, function() { return characterDisplayName })
   }
 
+  function captionText(text) {
+    var value = String(text || "")
+    var paragraphStart = 0
+    if (value.indexOf("\n") === -1) {
+      value = value.replace(/([.!?])\s+(?=[A-Z])/g, function(match, punctuation, offset) {
+        if (offset - paragraphStart < 150 || value.length - offset < 60) return match
+        paragraphStart = offset + match.length
+        return punctuation + "\n\n"
+      })
+    }
+    // Keep each paragraph's last two words together without changing narration.
+    return value.replace(/(\S+)[ \t]+(\S+)(?=[ \t]*(?:\n|$))/g, "$1\u00a0$2")
+  }
+
   function characterChosen() {
     return characterOverride !== "" || savedCharacter !== ""
   }
@@ -120,6 +142,8 @@ ShellRoot {
       var parsed = JSON.parse(String(raw || "{}"))
       savedCharacter = parsed && typeof parsed.character === "string" ? parsed.character.toLowerCase() : ""
       tourSeen = Boolean(parsed && parsed.tourSeen === true)
+      welcomeSettingPresent = typeof parsed.welcomeSeen === "boolean"
+      welcomeSeen = welcomeSettingPresent ? parsed.welcomeSeen : tourSeen
       audioEnabled = parsed.audioEnabled !== false
       speechEnabled = parsed.speechEnabled !== false
       effectsEnabled = parsed.effectsEnabled !== false
@@ -133,12 +157,14 @@ ShellRoot {
       console.warn("learn-omarchy: settings file couldn't be parsed:", error)
       savedCharacter = ""
       tourSeen = false
+      welcomeSeen = false
+      welcomeSettingPresent = false
     }
     if (characterOverride === "" && savedCharacter !== "") applyCharacter(savedCharacter)
     settingsResolved = true
     if (phase === "menu" && lessonIndex < 0) {
       if (!characterChosen()) openCharacterPicker()
-      else maybeAutoStartTour()
+      else maybeBeginWelcome()
     }
   }
 
@@ -147,6 +173,7 @@ ShellRoot {
       schemaVersion: 1,
       character: savedCharacter,
       tourSeen: tourSeen,
+      welcomeSeen: welcomeSeen,
       audioEnabled: audioEnabled,
       speechEnabled: speechEnabled,
       effectsEnabled: effectsEnabled,
@@ -159,17 +186,29 @@ ShellRoot {
     }, null, 2) + "\n")
   }
 
-  // First run: open the tour straight away instead of the topic menu. Only
-  // when progress is known, the tour was never completed, and it was never
-  // auto-opened before.
-  function maybeAutoStartTour() {
-    if (!course || !settingsResolved || !progressResolved || !characterStore.ready ||
-        !characterStore.selectedPack || tourSeen) return false
+  function maybeBeginWelcome() {
+    if (splashActive || !course || !settingsResolved || !progressResolved || !characterStore.ready ||
+        !characterStore.selectedPack || !characterChosen()) return false
     if (phase !== "menu" || lessonIndex >= 0 || course.lessons.length === 0) return false
-    if (completedLessons[course.lessons[0].id]) return false
-    tourSeen = true
+    // Only migrate an absent flag. Explicit false is a reset, even if another
+    // course still has saved progress. Empty progress files are not prior use.
+    if (!welcomeSettingPresent) {
+      welcomeSeen = tourSeen || Object.keys(progressByCourse).some(function(id) {
+        return progressByCourse[id].length > 0
+      }) || Object.keys(progressDetails).some(function(id) {
+        var detail = progressDetails[id] || {}
+        return ["steps", "credits", "bookmarks"].some(function(key) {
+          return Object.keys(detail[key] || {}).length > 0
+        })
+      })
+      welcomeSettingPresent = true
+      persistSettings()
+    }
+    if (welcomeSeen) return false
+    // An interrupted or skipped welcome counts as seen; never trap the user in it.
+    welcomeSeen = true
     persistSettings()
-    startLesson(0)
+    startIntro()
     return true
   }
 
@@ -181,7 +220,7 @@ ShellRoot {
     }
     selectedLessonIndex = firstIncompleteLessonIndex()
     setCharacterState("menu-point", "CHOOSE A LESSON")
-    maybeAutoStartTour()
+    maybeBeginWelcome()
   }
 
   function applyCharacter(id) {
@@ -215,6 +254,7 @@ ShellRoot {
 
   function openSettings(mode) {
     if (phase === "loading" || phase === "error" || lessonTransitionRunning) return
+    if (welcomeStage !== "") cancelIntro()
     settingsReturnToLesson = false
     if (phase === "waiting" || phase === "highlight" || phase === "paused") {
       if (phase !== "paused" && !pauseLesson()) return
@@ -255,10 +295,10 @@ ShellRoot {
   function firstIncompleteLessonIndex() {
     if (!course) return 0
     for (var i = 0; i < course.lessons.length; i++) {
-      if (!course.lessons[i].optional && !completedLessons[course.lessons[i].id]) return i
+      if (!course.lessons[i].optional && !lessonCompleted(course.lessons[i])) return i
     }
     for (var j = 0; j < course.lessons.length; j++) {
-      if (!completedLessons[course.lessons[j].id]) return j
+      if (!lessonCompleted(course.lessons[j])) return j
     }
     return 0
   }
@@ -266,10 +306,8 @@ ShellRoot {
   function requestResetProgress() {
     if (!resetConfirmPending) {
       resetConfirmPending = true
-      resetConfirmTimer.restart()
       return
     }
-    resetConfirmTimer.stop()
     resetConfirmPending = false
     completedLessons = ({})
     stepResults = ({})
@@ -282,6 +320,8 @@ ShellRoot {
     }
     persistProgress()
     tourSeen = false
+    welcomeSeen = false
+    welcomeSettingPresent = true
     // Forget the coach as well, so the next open starts like a fresh install.
     savedCharacter = ""
     persistSettings()
@@ -295,8 +335,6 @@ ShellRoot {
   }
 
   readonly property string progressPath: stateHome + "/learn-omarchy/progress.json"
-  readonly property string themePath: stateHome + "/omarchy/current/theme"
-  readonly property string themeNamePath: stateHome + "/omarchy/current/theme.name"
   property bool motionReduced: false
   readonly property bool reducedMotion: motionReduced ||
     Quickshell.env("LEARN_OMARCHY_REDUCED_MOTION") === "1"
@@ -311,6 +349,7 @@ ShellRoot {
   property int stepIndex: 0
   property string phase: "loading"
   onPhaseChanged: {
+    tourDetailsExpanded = false
     if (phase === "menu") {
       menuWheelRemainder = 0
       menuPointerX = NaN
@@ -396,6 +435,8 @@ ShellRoot {
   property real speechRate: 1
   property real textScale: 1
   property bool autoAdvance: true
+  property bool tourDetailsExpanded: false
+  onTourDetailsExpandedChanged: updateTourDetails()
   property real highlightStartedAt: 0
   property bool completionNarrationDone: false
   property bool audioStopRequested: false
@@ -449,12 +490,19 @@ ShellRoot {
   readonly property int narrationRestMs: 900
   property int characterTravelDuration: reducedMotion ? 0 : 900
 
-  property color accent: "#7aa2f7"
-  property color foreground: "#a9b1d6"
-  property color background: "#1a1b26"
-  property color muted: "#8992b7"
-  property color urgent: "#f7768e"
-  property color instruction: "#e0af68"
+  readonly property color accent: appTheme.colors.accent
+  readonly property color foreground: appTheme.colors.foreground
+  readonly property color background: appTheme.colors.background
+  readonly property color muted: appTheme.colors.muted
+  readonly property color urgent: appTheme.colors.urgent
+  readonly property color instruction: appTheme.colors.instruction
+  OmarchyTheme { id: appTheme }
+  property ThemePalette controlPalette: ThemePalette {
+    backgroundColor: root.background
+    foregroundColor: root.foreground
+    accentColor: root.accent
+    mutedColor: root.muted
+  }
   onReducedMotionChanged: characterTravelDuration = reducedMotion ? 0 : 900
 
   onSelectedLessonIndexChanged: {
@@ -463,17 +511,19 @@ ShellRoot {
     var crossesColumn = nextColumn !== characterMenuColumn
     characterMenuColumn = nextColumn
     if (phase !== "menu" || !course) return
+    if (welcomeStage !== "") finishWelcome()
     characterMenuPointTimer.stop()
     if (reducedMotion || !crossesColumn) {
       setCharacterState("menu-point", "CHOOSE A LESSON")
     } else {
-      setCharacterState("menu-fly", "MOVING OVER!")
+      setCharacterState("menu-fly", "MOVING OVER")
       characterMenuPointTimer.restart()
     }
   }
 
   readonly property var currentLesson: course && lessonIndex >= 0 ? course.lessons[lessonIndex] : null
   readonly property var currentStep: currentLesson ? currentLesson.steps[stepIndex] : null
+  onCurrentStepChanged: tourDetailsExpanded = false
   readonly property bool currentStepIsTour: Boolean(currentStep && currentStep.kind === "tour")
   readonly property bool currentStepIsPractice: Boolean(currentStep && currentStep.kind === "practice")
   readonly property bool currentStepClosesWindow: Boolean(currentStep &&
@@ -488,13 +538,13 @@ ShellRoot {
     if (!course) return 0
     var count = 0
     for (var i = 0; i < course.lessons.length; i++) {
-      if (completedLessons[course.lessons[i].id]) count++
+      if (lessonCompleted(course.lessons[i])) count++
     }
     return count
   }
   readonly property int coreLessonCount: course ? course.lessons.filter(function(lesson) { return !lesson.optional }).length : 0
   readonly property int coreCompletedCount: course ? course.lessons.filter(function(lesson) {
-    return !lesson.optional && completedLessons[lesson.id]
+    return !lesson.optional && lessonCompleted(lesson)
   }).length : 0
 
   function colorWithAlpha(colorValue, alpha) {
@@ -537,6 +587,10 @@ ShellRoot {
     persistProgress()
   }
 
+  function lessonCompleted(lesson) {
+    return lesson && (lesson.kind === "welcome" ? welcomeSeen : completedLessons[lesson.id] === true)
+  }
+
   function lessonResultSummary(lesson) {
     var counts = { introduced: 0, assisted: 0, practiced: 0, skipped: 0, remaining: 0 }
     if (!lesson) return counts
@@ -550,10 +604,57 @@ ShellRoot {
 
   function lessonFullyExplored(lesson) {
     if (!lesson) return false
+    if (lesson.kind === "welcome") return welcomeSeen
     return lesson.steps.every(function(step) {
       return step.optional || stepCredits[step.id] === true ||
         ["introduced", "assisted", "practiced"].indexOf(stepResults[step.id]) !== -1
     })
+  }
+
+  property bool lessonWrapupPlayed: false
+  property bool lessonWrapupReady: false
+  onLessonWrapupReadyChanged: if (lessonWrapupReady) playLessonWrapup()
+  property bool lessonWrapupStopping: false
+  property int lessonWrapupGeneration: 0
+
+  function currentLessonWrapup() {
+    if (!course || !currentLesson || !currentLesson.wrapUp) return null
+    var result = lessonResultSummary(currentLesson)
+    if (course.wrapUp && (result.skipped > 0 || result.remaining > 0)) return course.wrapUp.explored
+    if (course.wrapUp && result.assisted > 0) return course.wrapUp.assisted
+    return currentLesson.wrapUp
+  }
+
+  function playLessonWrapup() {
+    if (!lessonWrapupReady || phase !== "lesson-complete" || characterState !== "celebrate" || lessonTransitionRunning ||
+        lessonWrapupPlayed || lessonWrapupStopping || !narrationEnabled) return
+    var message = currentLessonWrapup()
+    if (!message) return
+    var path = characterStore.audioPath(message.audio, message.text, courseDir)
+    if (path === "") return
+    lessonWrapupPlayed = true
+    lessonWrapupSpeech.generation = lessonWrapupGeneration
+    lessonWrapupSpeech.command = ["mpv", "--no-video", "--really-quiet",
+      "--volume=" + speechVolume, "--speed=" + speechRate, "--", path]
+    lessonWrapupSpeech.running = true
+  }
+
+  function stopLessonWrapup() {
+    lessonWrapupGeneration++
+    if (lessonWrapupSpeech.running) {
+      lessonWrapupStopping = true
+      lessonWrapupSpeech.running = false
+    }
+  }
+
+  function lessonWrapupExited(exitCode, generation) {
+    if (lessonWrapupStopping) {
+      lessonWrapupStopping = false
+      playLessonWrapup()
+      return
+    }
+    if (generation !== lessonWrapupGeneration || phase !== "lesson-complete") return
+    if (exitCode !== 0) console.warn("learn-omarchy: lesson wrap-up audio unavailable; the message remains visible")
   }
 
   function previousStep() {
@@ -611,7 +712,7 @@ ShellRoot {
       stopAudio()
     }
     if (phase === "highlight") {
-      setCharacterState("target-point", "HERE IT IS!")
+      setCharacterState("target-point", "HERE IT IS")
       if (!resumedAudio) {
         if (!completionNarrationDone && narrationEnabled && completionAudioPath() !== "") playCompletionNarration()
         else finishCompletionNarration()
@@ -682,10 +783,24 @@ ShellRoot {
     property string kind: "secondary"
     property bool compact: false
     property string description: label
+    property string icon: ""
+    readonly property var iconPaths: ({
+      settings: "M9 3H15L16 6L19 7L22 11L20 14L20 17L15 21L12 20L9 21L4 17L4 14L2 11L5 7L8 6Z M16 12A4 4 0 1 0 8 12A4 4 0 1 0 16 12",
+      keyboard: "M3 5H21V19H3Z M6 9H7 M11 9H12 M16 9H17 M6 12H7 M11 12H12 M16 12H17 M7 16H17",
+      "keyboard-off": "M3 5H21V19H3Z M6 9H7 M11 9H12 M16 9H17 M7 16H17 M2 2L22 22",
+      volume: "M3 9H7L12 5V19L7 15H3Z M16 8Q20 12 16 16 M19 4Q26 12 19 20",
+      muted: "M3 9H7L12 5V19L7 15H3Z M16 9L22 15 M22 9L16 15",
+      play: "M7 4L20 12L7 20Z",
+      pause: "M7 4V20 M17 4V20",
+      help: "M22 12A10 10 0 1 0 2 12A10 10 0 1 0 22 12 M9 8C9 4 17 5 15 9L12 12V14 M12 17V18",
+      skip: "M4 5L15 12L4 19Z M19 5V19",
+      close: "M6 6L18 18 M18 6L6 18"
+    })
     signal clicked()
     activeFocusOnTab: true
     Accessible.role: Accessible.Button
-    Accessible.name: description
+    Accessible.name: label
+    Accessible.description: description
     Accessible.onPressAction: clicked()
     Keys.onPressed: function(event) {
       var plain = !(event.modifiers & (Qt.MetaModifier | Qt.ControlModifier | Qt.AltModifier | Qt.ShiftModifier))
@@ -701,9 +816,14 @@ ShellRoot {
     readonly property bool primary: kind === "primary"
     readonly property bool danger: kind === "danger"
     readonly property bool ghost: kind === "ghost"
+    readonly property real windowX: {
+      var position = x
+      for (var ancestor = parent; ancestor; ancestor = ancestor.parent) position += ancestor.x
+      return position
+    }
 
-    implicitWidth: buttonLabel.implicitWidth + (compact ? 24 : 32)
-    implicitHeight: compact ? 32 : 40
+    implicitWidth: icon !== "" ? implicitHeight : buttonLabel.implicitWidth + (compact ? 24 : 32)
+    implicitHeight: icon !== "" ? 44 * root.textScale : compact ? 32 : 40
     radius: 9
     color: primary
       ? (hovered ? Qt.lighter(root.accent, 1.18) : root.accent)
@@ -725,14 +845,29 @@ ShellRoot {
 
     Text {
       id: buttonLabel
+      visible: button.icon === ""
       anchors.centerIn: parent
       text: button.label
       textFormat: Text.PlainText
-      color: button.primary ? root.background : root.foreground
+      color: button.primary ? root.controlPalette.highlightedText : root.foreground
       font.family: "monospace"
       font.pixelSize: (button.compact ? 11 : 12) * root.textScale
       font.weight: Font.Bold
       font.letterSpacing: 1.1
+    }
+
+    Image {
+      visible: button.icon !== ""
+      anchors.centerIn: parent
+      width: 22 * root.textScale
+      height: width
+      sourceSize.width: width
+      sourceSize.height: height
+      source: button.icon === "" ? "" : "data:image/svg+xml;utf8," + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="'
+        + (button.primary ? root.controlPalette.highlightedText : root.foreground)
+        + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="'
+        + button.iconPaths[button.icon] + '"/></svg>')
     }
 
     MouseArea {
@@ -744,12 +879,14 @@ ShellRoot {
     }
 
     Rectangle {
-      visible: button.hovered && button.description !== button.label
+      objectName: "buttonTooltip"
+      visible: button.enabled && (button.hovered || button.activeFocus)
+        && (button.icon !== "" || button.description !== button.label)
       z: 100
       anchors.top: parent.bottom
       anchors.topMargin: 6
-      anchors.right: parent.right
-      width: hintText.implicitWidth + 20
+      x: Math.max(8 - button.windowX, button.width - width)
+      width: Math.min(320 * root.textScale, hintText.implicitWidth + 20)
       height: hintText.implicitHeight + 14
       radius: 6
       color: root.background
@@ -757,10 +894,12 @@ ShellRoot {
       Text {
         id: hintText
         anchors.centerIn: parent
-        text: button.description
+        width: parent.width - 20
+        text: button.description === button.label ? button.label : button.label + "\n" + button.description
         textFormat: Text.PlainText
+        wrapMode: Text.WordWrap
         color: root.foreground
-        font.pixelSize: 12
+        font.pixelSize: 12 * root.textScale
       }
     }
   }
@@ -786,6 +925,8 @@ ShellRoot {
     }
     Controls.Slider {
       id: preferenceControl
+      Keys.onPressed: function(event) { root.handleSystemVolumeKey(event) }
+      ThemePalette { target: preferenceControl; colors: appTheme.colors }
       Layout.fillWidth: true
       Layout.preferredHeight: 32
       from: preference.minimum
@@ -860,7 +1001,7 @@ ShellRoot {
       anchors.verticalCenterOffset: keycap.isPlus ? 0 : -(keycap.small ? 1 : 2)
       text: keycap.label
       textFormat: Text.PlainText
-      color: keycap.isPlus ? root.muted : (keycap.active ? root.background : root.foreground)
+      color: keycap.isPlus ? root.muted : (keycap.active ? root.controlPalette.highlightedText : root.foreground)
       font.family: "monospace"
       font.pixelSize: (keycap.small ? 11 : 17) * root.textScale
       font.weight: Font.Bold
@@ -898,7 +1039,7 @@ ShellRoot {
       if (targetMonitorGeometry) targetScreenId = Number(targetMonitorGeometry.id)
       highlightStartedAt = Date.now()
       completionNarrationDone = false
-      setCharacterState("celebrate", "NICE WORK!")
+      setCharacterState("celebrate", "STEP COMPLETE")
       characterTargetFlyTimer.restart()
       playCompletionNarration()
       if (!narrationEnabled || completionAudioPath() === "") finishCompletionNarration()
@@ -915,11 +1056,12 @@ ShellRoot {
     if (kind === "lesson-complete") {
       runCleanup()
       markCurrentLessonComplete()
+      lessonWrapupPlayed = false
       phase = "lesson-complete"
       if (reducedMotion) {
         setCharacterState("celebrate", lessonFullyExplored(currentLesson) ? "MODULE COMPLETE!" : "MODULE EXPLORED")
       } else {
-        setCharacterState("module-fly", "GREAT WORK!")
+        setCharacterState("module-fly", "LESSON FINISHED")
         characterModuleArrivalTimer.restart()
       }
     }
@@ -1150,6 +1292,7 @@ ShellRoot {
   }
 
   function lessonShortcutLabel(lesson) {
+    if (lesson && lesson.kind === "welcome") return "WELCOME"
     if (!lesson || !lesson.steps) return "GUIDED ACTIONS"
     for (var i = 0; i < lesson.steps.length; i++) {
       var keys = lesson.steps[i].keys
@@ -1177,7 +1320,23 @@ ShellRoot {
     characterReactionTimer.restart()
   }
 
-  property bool introRequested: false
+  // The pack owns the scene; the host owns the welcome and menu handoff.
+  property string welcomeStage: ""
+  property var welcomeNarration: null
+  property bool welcomeNarrationStarted: false
+  property bool welcomeNarrationFinished: false
+  property bool welcomeSpeechStopping: false
+  function welcomeInstruction() {
+    if (!welcomeNarration) return "Welcome to Omarchy! Let's look at what you can learn."
+    var instructions = welcomeNarration.instructions
+    return instructions && Object.prototype.hasOwnProperty.call(instructions, characterName)
+      ? instructions[characterName] : welcomeNarration.instruction
+  }
+
+  readonly property string welcomeText: welcomeStage === "welcome"
+    ? characterText(welcomeInstruction())
+    : (welcomeNarration && welcomeNarration.recommendation
+      ? welcomeNarration.recommendation : "Choose a lesson to get started.")
   property bool introActive: false
   property int introGeneration: 0
   property bool introPlaybackStarted: false
@@ -1186,12 +1345,13 @@ ShellRoot {
   signal introCancellationRequested(bool keepPosition)
   signal introHandoffRequested(int generation)
   signal introReleaseRequested()
-  property real introPanelOpacity: introActive ? 0 : 1
 
   function startIntro() {
     if (!characterStore.ready || !characterStore.selectedPack) return
     cancelIntro()
     stopAudio()
+    phase = "welcome"
+    welcomeStage = "scene"
     introNotice = ""
     introActive = true
     setCharacterState("intro", "")
@@ -1199,16 +1359,27 @@ ShellRoot {
   }
 
   function beginIntroScene() {
-    if (!introActive || phase !== "waiting" || !currentStepIsTour || characterState !== "intro") return
+    if (!introActive || phase !== "welcome" || welcomeStage !== "scene" || characterState !== "intro") return
     introStartTimer.stop()
     introPlaybackRequested(introGeneration)
   }
 
-  function cancelIntro(keepRequested, keepPosition) {
+  function cancelIntro(keepPosition) {
     // Invalidate callbacks before cancelling players: cancellation emits synchronously.
     introGeneration++
     introStartTimer.stop()
-    if (!keepRequested) introRequested = false
+    welcomeReadTimer.stop()
+    stopWelcomeSpeech()
+    welcomeNarrationStarted = false
+    welcomeNarrationFinished = false
+    if (!keepPosition) {
+      var wasWelcome = welcomeStage !== ""
+      welcomeStage = ""
+      if (wasWelcome && (phase === "welcome" || phase === "menu")) {
+        phase = "menu"
+        setCharacterState("menu-point", "CHOOSE A LESSON")
+      }
+    }
     introActive = false
     introPlaybackStarted = false
     introDeparting = false
@@ -1217,37 +1388,110 @@ ShellRoot {
   }
 
   function skipIntroScene() {
-    if (phase !== "waiting" || (!introActive && characterState !== "intro")) return
+    if (phase !== "welcome" || !introActive) return
     finishIntro(introGeneration)
   }
 
   function finishIntro(generation, message) {
-    if (generation !== introGeneration || !introActive || phase !== "waiting" || !currentStepIsTour) return
+    if (generation !== introGeneration || !introActive || phase !== "welcome" || welcomeStage !== "scene") return
     if (message) {
       introNotice = String(message)
       console.warn("learn-omarchy: intro:", message)
     }
     introHandoffRequested(generation)
-    cancelIntro(false, true)
+    cancelIntro(true)
     introDeparting = true
+    welcomeStage = "center-flight"
     var nextGeneration = introGeneration
     // Keep the last body position pinned until normal travel bindings are enabled.
-    setCharacterState(reducedMotion ? tourRestingState : "tour-fly", reducedMotion ? tourRestingMessage : "FOLLOW ME")
+    setCharacterState("tour-fly", "")
     Qt.callLater(function() {
-      if (introGeneration !== nextGeneration || phase !== "waiting" || !currentStepIsTour) return
+      if (introGeneration !== nextGeneration || phase !== "welcome" || welcomeStage !== "center-flight") return
       introReleaseRequested()
-      if (reducedMotion) beginTourNarration()
-      else characterTourArrivalTimer.restart()
     })
+  }
+
+  function welcomeArrived(generation) {
+    if (generation !== introGeneration) return
+    if (phase === "welcome" && welcomeStage === "center-flight") {
+      introDeparting = false
+      welcomeStage = "welcome"
+      setCharacterState("tour-talk", "")
+    } else if (phase === "menu" && welcomeStage === "menu-flight") {
+      welcomeStage = "recommendation"
+      setCharacterState("menu-point", "")
+    }
+  }
+
+  function welcomeCaptionShown() {
+    if (welcomeStage !== "welcome" && welcomeStage !== "recommendation") return
+    if (welcomeStage === "welcome" && narrationEnabled && welcomeNarration && !welcomeNarrationFinished) {
+      var path = characterStore.audioPath(welcomeNarration.audio, welcomeInstruction(), appRoot + "/courses")
+      if (path !== "") {
+        if (welcomeSpeechStopping) return
+        if (!welcomeNarrationStarted) {
+          welcomeNarrationStarted = true
+          welcomeSpeech.generation = introGeneration
+          welcomeSpeech.command = ["mpv", "--no-video", "--really-quiet", "--volume=" + speechVolume,
+            "--speed=" + speechRate, "--", path]
+          welcomeSpeech.running = true
+        }
+        return
+      }
+    }
+    welcomeReadTimer.generation = introGeneration
+    welcomeReadTimer.stage = welcomeStage
+    welcomeReadTimer.interval = readingDuration(welcomeText)
+    welcomeReadTimer.restart()
+  }
+
+  function stopWelcomeSpeech() {
+    if (!welcomeSpeech.running) return
+    welcomeSpeechStopping = true
+    welcomeSpeech.running = false
+  }
+
+  function welcomeSpeechExited(exitCode, generation) {
+    if (welcomeSpeechStopping) {
+      welcomeSpeechStopping = false
+      if (phase === "welcome" && welcomeStage === "welcome") welcomeCaptionShown()
+      return
+    }
+    if (generation !== introGeneration || welcomeStage !== "welcome") return
+    welcomeNarrationFinished = true
+    if (exitCode !== 0) {
+      console.warn("learn-omarchy: welcome narration failed; using reading time")
+      welcomeCaptionShown()
+    } else {
+      welcomeReadTimer.generation = introGeneration
+      welcomeReadTimer.stage = "welcome"
+      welcomeReadTimer.interval = narrationRestMs
+      welcomeReadTimer.restart()
+    }
+  }
+
+  function advanceWelcome(generation, stage) {
+    if (generation !== introGeneration || stage !== welcomeStage) return
+    if (stage === "scene") skipIntroScene()
+    else if (stage === "welcome") {
+      welcomeReadTimer.stop()
+      stopWelcomeSpeech()
+      welcomeStage = "menu-flight"
+      selectedLessonIndex = course && course.lessons[0].kind === "welcome" && course.lessons.length > 1 ? 1 : 0
+      phase = "menu"
+      setCharacterState("menu-fly", "")
+    } else if (stage === "recommendation") finishWelcome()
+  }
+
+  function finishWelcome() {
+    if (welcomeStage === "") return
+    cancelIntro()
+    phase = "menu"
+    setCharacterState("menu-point", "CHOOSE A LESSON")
   }
 
   function startCharacterStep() {
     if (currentStepIsTour) {
-      if (introRequested) {
-        introRequested = false
-        startIntro()
-        return
-      }
       if (reducedMotion) {
         setCharacterState(tourRestingState, tourRestingMessage)
         Qt.callLater(beginTourNarration)
@@ -1267,7 +1511,7 @@ ShellRoot {
       setCharacterState("step-settle", "READY")
       characterTravelSettleTimer.restart()
     } else {
-      setCharacterState("step-fly", "ON MY WAY!")
+      setCharacterState("step-fly", "ON MY WAY")
       characterStepArrivalTimer.restart()
     }
     if (!practiceMode && !reducedMotion) playCurrentAudio(true)
@@ -1297,16 +1541,36 @@ ShellRoot {
       playCurrentAudio(true)
       return
     }
-    if (autoAdvance) {
-      tourAdvanceTimer.interval = tourFallbackDuration()
-      tourAdvanceTimer.restart()
-    }
+    scheduleTourAdvance(tourFallbackDuration())
   }
 
-  function scheduleTourAdvance() {
-    if (phase !== "waiting" || !currentStepIsTour || !autoAdvance) return
-    tourAdvanceTimer.interval = tourAdvanceDelay()
+  function canAutoAdvanceTour() {
+    return phase === "waiting" && currentStepIsTour && autoAdvance && !tourDetailsExpanded &&
+      !introActive && !introDeparting &&
+      !audioProcess.running && !audioStopRequested && pendingAudioPath === ""
+  }
+
+  function updateTourDetails() {
+    tourAdvanceTimer.stop()
+    if (!tourDetailsExpanded)
+      scheduleTourAdvance(Math.max(narrationRestMs, readingDuration(currentStep ? currentStep.detail : "")))
+  }
+
+  function scheduleTourAdvance(delay) {
+    if (!canAutoAdvanceTour() || (lessonTransitionRunning && pendingLessonTransition !== "")) return
+    tourAdvanceTimer.interval = delay === undefined ? Math.max(narrationRestMs, tourAdvanceDelay()) : delay
     tourAdvanceTimer.restart()
+  }
+
+  function advanceTour() {
+    if (canAutoAdvanceTour() && !lessonTransitionRunning) advance()
+  }
+
+  function openedToolKeyboardHint() {
+    return phase === "highlight" && keyboardExclusive && currentStep &&
+      currentStep.completion.type === "hyprland-layer-open" &&
+      !/release keys|releasing (?:the )?keys/i.test(currentStep.completionMessage || "")
+      ? "Use Release Keys to interact with the opened tool." : ""
   }
 
   function settleCharacter() {
@@ -1422,7 +1686,7 @@ ShellRoot {
     for (var key in expected) confirmed[key] = true
     activeKeys = confirmed
     comboTriggered = true
-    setCharacterState("celebrate", "NICE WORK!")
+    setCharacterState("celebrate", "STEP COMPLETE")
     layerCompletionFeedbackTimer.restart()
   }
 
@@ -1453,6 +1717,7 @@ ShellRoot {
 
   function requestPanelGeometry(namespace) {
     targetLayerNamespace = namespace
+    requestBarGeometry()
     if (layerGeometryProcess.running) return
     layerGeometryProcess.requestGeneration = windowGeometryGeneration
     layerGeometryProcess.running = true
@@ -1562,7 +1827,7 @@ ShellRoot {
 
   function matchesWindowState(client, expected) {
     if (!client || client.mapped === false ||
-        (client.hidden === true && !expected.specialWorkspace)) return false
+        (client.hidden === true && (!expected.specialWorkspace || expected.focused === true))) return false
     if (expected.specialWorkspace !== undefined &&
         (!client.workspace || client.workspace.name !== "special:" + expected.specialWorkspace)) return false
     if (expected.workspace !== undefined &&
@@ -1892,40 +2157,6 @@ ShellRoot {
     runStepAction("shortcut")
   }
 
-  function parseTheme(raw) {
-    var next = {
-      accent: root.accent,
-      foreground: root.foreground,
-      background: root.background,
-      muted: root.muted,
-      urgent: root.urgent,
-      instruction: root.instruction
-    }
-    var foundInstruction = false
-    var lines = String(raw || "").split("\n")
-    for (var i = 0; i < lines.length; i++) {
-      var match = lines[i].match(/^\s*([A-Za-z0-9_-]+)\s*=\s*["']?(#[0-9A-Fa-f]{6})/)
-      if (!match) continue
-      if (match[1] === "accent") next.accent = match[2]
-      else if (match[1] === "foreground") next.foreground = match[2]
-      else if (match[1] === "background") next.background = match[2]
-      else if (match[1] === "muted" || match[1] === "dark_foreground") next.muted = match[2]
-      else if (match[1] === "red") next.urgent = match[2]
-      else if (match[1] === "yellow") {
-        next.instruction = match[2]
-        foundInstruction = true
-      }
-    }
-    if (!foundInstruction) next.instruction = next.accent
-    root.accent = next.accent
-    root.foreground = next.foreground
-    root.background = next.background
-    root.muted = next.muted
-    root.muted = readableSecondaryColor(root.muted, root.background)
-    root.urgent = next.urgent
-    root.instruction = next.instruction
-  }
-
   function fail(message) {
     resetLessonRuntime()
     errorMessage = String(message)
@@ -2066,7 +2297,7 @@ ShellRoot {
     progressByCourse = nextByCourse
     applyCourseProgress()
     progressResolved = true
-    if (phase === "menu" && lessonIndex < 0 && characterChosen()) maybeAutoStartTour()
+    if (phase === "menu" && lessonIndex < 0 && characterChosen()) maybeBeginWelcome()
   }
 
   function persistProgress() {
@@ -2129,24 +2360,42 @@ ShellRoot {
     settingsReturnToLesson = false
   }
 
+  function isOpeningTour(index) {
+    if (!course) return false
+    var openingIndex = course.lessons[0].kind === "welcome" ? 1 : 0
+    var lesson = course.lessons[index]
+    return Boolean(index === openingIndex && lesson && lesson.steps[0] && lesson.steps[0].kind === "tour")
+  }
+
   function startLesson(index, practice, resume) {
     if (!course || !characterStore.ready || !characterStore.selectedPack ||
         index < 0 || index >= course.lessons.length) return
     resetLessonRuntime()
     selectedLessonIndex = index
+    if (course.lessons[index].kind === "welcome") {
+      lessonIndex = -1
+      practiceMode = false
+      welcomeSeen = true
+      welcomeSettingPresent = true
+      persistSettings()
+      startIntro()
+      return
+    }
     lessonIndex = index
     stepIndex = 0
     practiceMode = practice === true
-    var firstStep = course.lessons[index].steps[0]
-    var startsWithIntro = index === 0 && firstStep && firstStep.kind === "tour"
-    if (resume !== false && !practiceMode && !startsWithIntro) {
+    var startsWithTour = isOpeningTour(index)
+    if (resume !== false && !practiceMode && !startsWithTour) {
       var bookmark = lessonBookmarks[course.lessons[index].id]
       for (var i = 0; i < course.lessons[index].steps.length; i++) {
         if (course.lessons[index].steps[i].id === bookmark) stepIndex = i
       }
     }
     errorMessage = ""
-    introRequested = Boolean(startsWithIntro && !practiceMode)
+    if (startsWithTour && !tourSeen) {
+      tourSeen = true
+      persistSettings()
+    }
     startCurrentStep()
   }
 
@@ -2236,7 +2485,7 @@ ShellRoot {
     characterTourArrivalTimer.stop()
     tourAdvanceTimer.stop()
     workspaceCompletionTimer.stop()
-    cancelIntro(true)
+    cancelIntro()
     actionRunning = false
     pendingStepAction = false
     pendingActionStepId = ""
@@ -2353,10 +2602,6 @@ ShellRoot {
   }
 
   function skipCurrentStep() {
-    if (introActive) {
-      skipIntroScene()
-      return
-    }
     if (!currentLesson || !currentStep || lessonTransitionRunning) return
     cancelAction()
     stopAudio()
@@ -2459,6 +2704,7 @@ ShellRoot {
     if (!narrationEnabled || introActive || (introDeparting && characterState !== tourRestingState) ||
         path === "" || (phase !== "waiting" && phase !== "highlight")) return
     if (path !== currentAudioPath() && path !== completionAudioPath()) return
+    if (currentStepIsTour && phase === "waiting") tourAdvanceTimer.stop()
     if (path === completionAudioPath() && path !== currentAudioPath()) {
       if (phase !== "highlight") return
       completionTimer.stop()
@@ -2496,6 +2742,7 @@ ShellRoot {
   }
 
   function stopAudio() {
+    stopLessonWrapup()
     pendingAudioPath = ""
     pendingAudioPreserveCharacterState = false
     if (audioProcess.running) {
@@ -2508,10 +2755,18 @@ ShellRoot {
 
   function toggleAudio() {
     audioEnabled = !audioEnabled
+    if (!audioEnabled && welcomeStage === "welcome") {
+      stopWelcomeSpeech()
+      welcomeNarrationFinished = true
+      welcomeCaptionShown()
+    }
     persistSettings()
     if (audioEnabled) {
       if (!speechEnabled || introActive) return
-      if (phase === "highlight") {
+      if (phase === "lesson-complete") {
+        lessonWrapupPlayed = false
+        playLessonWrapup()
+      } else if (phase === "highlight") {
         playCompletionNarration()
       } else if (currentStepIsTour) {
         tourAdvanceTimer.stop()
@@ -2525,10 +2780,7 @@ ShellRoot {
     stopAudio()
     if (sfxProcess.running) sfxProcess.running = false
     if (phase === "highlight") finishCompletionNarration()
-    if (autoAdvance && currentStepIsTour && !introActive && !introDeparting && !wasPlayingTour && phase === "waiting" && !tourAdvanceTimer.running) {
-      tourAdvanceTimer.interval = tourFallbackDuration()
-      tourAdvanceTimer.restart()
-    }
+    if (!wasPlayingTour && !tourAdvanceTimer.running) scheduleTourAdvance(tourFallbackDuration())
   }
 
   function replayCurrentAudio() {
@@ -2592,7 +2844,7 @@ ShellRoot {
       actionStepId = ""
       shortcutArmedUntil = 0
       clearActiveKeys()
-      setCharacterState("coach", "NO COURSE WINDOW - SKIP OR REPEAT MODULE")
+      setCharacterState("coach", "LET'S REOPEN THE PRACTICE WINDOW")
       showRecovery("The required tutorial window isn't available. Return to its launch activity to create a safe target, or skip this activity.", missingStep)
       return
     }
@@ -2760,8 +3012,12 @@ ShellRoot {
       var payload = String(event.data || "")
       if (completion.dataPattern && !(new RegExp(String(completion.dataPattern))).test(payload)) return
       if (completion.target === "tutorial-window") {
+        // Special-workspace events name the workspace, not its window. Verify
+        // the owned client snapshot instead; address-bearing events still match exactly.
+        var specialWorkspaceEvent = (event.name === "activespecial" || event.name === "activespecialv2") &&
+          completion.windowState && completion.windowState.specialWorkspace !== undefined
         var subject = normalizedWindowAddress(payload.split(",")[0])
-        if (expectedTutorialWindow === "" || subject !== expectedTutorialWindow) {
+        if (expectedTutorialWindow === "" || (!specialWorkspaceEvent && subject !== expectedTutorialWindow)) {
           console.info("learn-omarchy: ignoring", event.name, "for", subject, "because it isn't the window required by this activity")
           return
         }
@@ -2819,11 +3075,87 @@ ShellRoot {
     return Math.round(Math.max(minimum, Math.min(maximum, distance * millisecondsPerPixel)))
   }
 
+  property var pendingSystemVolumeActions: []
+
+  function queueSystemVolume(action) {
+    if ([5, -5, 1, -1, "mute-toggle"].indexOf(action) === -1) {
+      console.warn("learn-omarchy: unsupported system volume action")
+      return
+    }
+    var queue = pendingSystemVolumeActions.slice()
+    var last = queue.length - 1
+    // Coalesce key-repeat adjustments while the previous command is running.
+    if (typeof action === "number" && last >= 0 && typeof queue[last] === "number") {
+      queue[last] = Math.max(-100, Math.min(100, queue[last] + action))
+      if (queue[last] === 0) queue.pop()
+    } else queue.push(action)
+    pendingSystemVolumeActions = queue
+    runSystemVolumeAction()
+  }
+
+  function runSystemVolumeAction() {
+    if (systemVolumeProcess.running || pendingSystemVolumeActions.length === 0) return
+    var queue = pendingSystemVolumeActions.slice()
+    var action = queue.shift()
+    pendingSystemVolumeActions = queue
+    systemVolumeProcess.command = ["omarchy", "audio", "output", "volume",
+      typeof action === "number" && action > 0 ? "+" + action : String(action)]
+    systemVolumeProcess.running = true
+  }
+
+  function finishSystemVolumeAction(exitCode) {
+    if (exitCode !== 0) {
+      pendingSystemVolumeActions = []
+      console.warn("learn-omarchy: system volume adjustment failed with exit code", exitCode)
+      Quickshell.execDetached(["notify-send", "Volume adjustment failed",
+        "Learn Omarchy couldn't change the system volume. Check your audio output in the desktop bar."])
+      return
+    }
+    Qt.callLater(runSystemVolumeAction)
+  }
+
+  component SystemVolumeShortcut: Shortcut {
+    property var action
+    context: Qt.ApplicationShortcut
+    enabled: root.keyboardExclusive && root.shortcutInhibitionActive
+    onActivated: root.queueSystemVolume(action)
+  }
+  SystemVolumeShortcut { sequence: "Volume Up"; action: 5 }
+  SystemVolumeShortcut { sequence: "Volume Down"; action: -5 }
+  SystemVolumeShortcut { sequence: "Volume Mute"; action: "mute-toggle"; autoRepeat: false }
+  SystemVolumeShortcut { sequence: "Alt+Volume Up"; action: 1 }
+  SystemVolumeShortcut { sequence: "Alt+Volume Down"; action: -1 }
+
+  Process {
+    id: systemVolumeProcess
+    onExited: function(exitCode) { root.finishSystemVolumeAction(exitCode) }
+  }
+
+  function handleSystemVolumeKey(event) {
+    if (!keyboardExclusive || !shortcutInhibitionActive) return false
+    var modifiers = event.modifiers & (Qt.ShiftModifier | Qt.ControlModifier | Qt.AltModifier | Qt.MetaModifier)
+    if (modifiers !== Qt.NoModifier && modifiers !== Qt.AltModifier) return false
+    var key = event.key
+    // Layer surfaces can receive key events without Qt activating application shortcuts.
+    var up = key === Qt.Key_VolumeUp
+    var down = key === Qt.Key_VolumeDown
+    var mute = key === Qt.Key_VolumeMute
+    if (!up && !down && !mute) return false
+    if (mute && modifiers !== Qt.NoModifier) return false
+    event.accepted = true
+    if (mute && event.isAutoRepeat) return true
+    queueSystemVolume(mute ? "mute-toggle" : (up ? 1 : -1) * (modifiers === Qt.AltModifier ? 1 : 5))
+    return true
+  }
+
   function handleKeyPressed(event) {
+    if (handleSystemVolumeKey(event)) return
     var plain = event.modifiers === Qt.NoModifier
-    if (phase === "waiting" && plain && (introActive || characterState === "intro") &&
-        (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
-      skipIntroScene()
+    if (phase === "welcome" && plain) {
+      if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)
+        advanceWelcome(introGeneration, welcomeStage)
+      else if (isPlainEscape(event)) finishWelcome()
+      else return
       event.accepted = true
       return
     }
@@ -2952,26 +3284,6 @@ ShellRoot {
     onLoadFailed: root.loadProgress("{}")
   }
 
-  FileView {
-    id: colorsFile
-    path: root.themePath + "/colors.toml"
-    watchChanges: true
-    printErrors: false
-    onLoaded: root.parseTheme(text())
-    onFileChanged: reload()
-  }
-
-  FileView {
-    id: themeNameFile
-    path: root.themeNamePath
-    watchChanges: true
-    printErrors: false
-    onFileChanged: {
-      reload()
-      colorsFile.reload()
-    }
-  }
-
   Connections {
     target: Hyprland
     function onRawEvent(event) { root.handleHyprlandEvent(event) }
@@ -3005,6 +3317,8 @@ ShellRoot {
         keyboardExclusive: root.keyboardExclusive,
         keys: root.currentStepKeys,
         tourSeen: root.tourSeen,
+        welcomeSeen: root.welcomeSeen,
+        welcomeStage: root.welcomeStage,
         completedLessons: root.completedLessons,
         stepResults: root.stepResults,
         practiceMode: root.practiceMode,
@@ -3119,9 +3433,9 @@ ShellRoot {
     }
 
     function skip(): string {
+      if (root.welcomeStage !== "") { root.finishWelcome(); return "ok" }
       if (root.phase !== "waiting" || !root.currentStep) return "not-waiting"
-      if (root.introActive) root.skipIntroScene()
-      else root.skipCurrentStep()
+      root.skipCurrentStep()
       return "ok"
     }
   }
@@ -3140,9 +3454,42 @@ ShellRoot {
   }
 
   function playIntroSound(id, generation) {
-    if (!introActive || generation !== introGeneration || phase !== "waiting") return
+    if (!introActive || generation !== introGeneration || phase !== "welcome") return
     if (["rocket-land.opus", "rocket-liftoff.opus"].indexOf(id) < 0) return
     playSound(id)
+  }
+
+  FileView {
+    path: root.appRoot + "/courses/welcome.json"
+    onLoaded: {
+      try {
+        var data = JSON.parse(text())
+        if (typeof data.instruction !== "string" || !data.instruction.trim() ||
+            data.audio !== "audio/host-welcome.mp3") throw new Error("Invalid welcome narration metadata")
+        if (data.instructions !== undefined && (!data.instructions || typeof data.instructions !== "object" ||
+            Array.isArray(data.instructions) || Object.keys(data.instructions).some(function(id) {
+              return typeof data.instructions[id] !== "string" || !data.instructions[id].trim()
+            }))) throw new Error("Invalid character welcome instructions")
+        root.welcomeNarration = data
+      } catch (error) {
+        console.warn("learn-omarchy: welcome narration unavailable:", error)
+      }
+    }
+    onLoadFailed: console.warn("learn-omarchy: welcome narration metadata couldn't be loaded")
+  }
+
+  Process {
+    id: welcomeSpeech
+    property int generation: -1
+    onExited: function(exitCode) {
+      root.welcomeSpeechExited(exitCode, generation)
+    }
+
+    Process {
+      id: lessonWrapupSpeech
+      property int generation: -1
+      onExited: function(exitCode) { root.lessonWrapupExited(exitCode, generation) }
+    }
   }
 
   Process {
@@ -3171,13 +3518,9 @@ ShellRoot {
         } else if (
           root.phase === "waiting" &&
           root.currentStepIsTour &&
-          !root.narrationEnabled &&
-          finishedPath === root.currentAudioPath()
+          !root.narrationEnabled
         ) {
-          if (root.autoAdvance) {
-            tourAdvanceTimer.interval = root.tourFallbackDuration()
-            tourAdvanceTimer.restart()
-          }
+          root.scheduleTourAdvance(root.tourFallbackDuration())
         } else if (root.phase === "highlight" && finishedPath === root.completionAudioPath()) {
           root.finishCompletionNarration()
         } else if (root.phase === "waiting" && root.characterState === "talk") {
@@ -3207,10 +3550,7 @@ ShellRoot {
       ) {
         // The instruction stays on screen; the tour just uses its timed fallback.
         console.warn("learn-omarchy: tour narration failed with exit code", exitCode, "; using the fallback duration")
-        if (root.autoAdvance) {
-          tourAdvanceTimer.interval = root.tourFallbackDuration()
-          tourAdvanceTimer.restart()
-        }
+        root.scheduleTourAdvance(root.tourFallbackDuration())
       } else if (
         exitCode !== 0 &&
         root.phase === "waiting" &&
@@ -3241,6 +3581,14 @@ ShellRoot {
       }
       root.parseSwapBaseline(swapOutput.text, requestGeneration)
     }
+  }
+
+  Timer {
+    id: welcomeReadTimer
+    property int generation: -1
+    property string stage: ""
+    repeat: false
+    onTriggered: root.advanceWelcome(generation, stage)
   }
 
   Timer {
@@ -3572,16 +3920,10 @@ ShellRoot {
     onTriggered: root.beginIntroScene()
   }
 
-  Behavior on introPanelOpacity {
-    NumberAnimation { duration: root.reducedMotion ? 0 : 450; easing.type: Easing.InOutSine }
-  }
-
   Timer {
     id: tourAdvanceTimer
     repeat: false
-    onTriggered: {
-      if (root.phase === "waiting" && root.currentStepIsTour && !root.lessonTransitionRunning) root.advance()
-    }
+    onTriggered: root.advanceTour()
   }
 
   Timer {
@@ -3639,7 +3981,7 @@ ShellRoot {
     interval: root.characterTravelDuration
     repeat: false
     onTriggered: {
-      if (root.phase === "menu" && root.characterState === "menu-fly") {
+      if (root.phase === "menu" && root.welcomeStage === "" && root.characterState === "menu-fly") {
         root.setCharacterState("menu-settle", "CHOOSE A LESSON")
         characterTravelSettleTimer.restart()
       }
@@ -3653,7 +3995,7 @@ ShellRoot {
     onTriggered: {
       if (root.phase === "highlight" && root.currentStep) {
         if (root.reducedMotion) {
-          root.setCharacterState("target-point", "HERE IT IS!")
+          root.setCharacterState("target-point", "HERE IT IS")
         } else {
           root.setCharacterState("target-fly", "LET'S TAKE A LOOK")
           characterTargetPointTimer.restart()
@@ -3688,23 +4030,14 @@ ShellRoot {
         if (!root.introActive) root.beginTourNarration()
       } else if (root.phase === "waiting" && root.characterState === "help-settle") {
         root.setCharacterState("help", "RIGHT HERE")
-      } else if (root.phase === "menu" && root.characterState === "menu-settle") {
+      } else if (root.phase === "menu" && root.welcomeStage === "" && root.characterState === "menu-settle") {
         root.setCharacterState("menu-point", "CHOOSE A LESSON")
       } else if (root.phase === "highlight" && root.characterState === "target-settle") {
-        root.setCharacterState("target-point", "HERE IT IS!")
+        root.setCharacterState("target-point", "HERE IT IS")
       } else if (root.phase === "lesson-complete" && root.characterState === "module-settle") {
         root.setCharacterState("celebrate", root.lessonFullyExplored(root.currentLesson) ? "MODULE COMPLETE!" : "MODULE EXPLORED")
       }
     }
-  }
-
-  Timer {
-    // A pending reset confirmation expires on its own rather than on mouse
-    // movement, since the button resizes under the cursor when its label changes.
-    id: resetConfirmTimer
-    interval: 6000
-    repeat: false
-    onTriggered: root.resetConfirmPending = false
   }
 
   Timer {
@@ -3751,6 +4084,29 @@ ShellRoot {
       required property var modelData
 
       PanelWindow {
+        screen: screenScope.modelData
+        visible: root.splashActive && overlay.isFocusedScreen
+        anchors { top: true; bottom: true; left: true; right: true }
+        color: root.background
+        exclusionMode: ExclusionMode.Ignore
+        WlrLayershell.namespace: "learn-omarchy-splash"
+        WlrLayershell.layer: WlrLayer.Overlay
+        WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+        SplashScreen {
+          anchors.fill: parent
+          source: root.appRoot + "/assets/splash/learn-omarchy.png"
+          active: root.splashActive && overlay.isFocusedScreen
+          ready: root.phase === "error" || (root.course !== null && root.settingsResolved &&
+            root.progressResolved && characterStore.ready)
+          reducedMotion: root.reducedMotion
+          backgroundColor: root.background
+          foregroundColor: root.foreground
+          onFinished: root.finishSplash()
+          onImageFailed: console.warn("learn-omarchy: splash artwork unavailable; using the title fallback")
+        }
+      }
+
+      PanelWindow {
         id: overlay
 
         property real menuSelectionX: width / 2
@@ -3761,7 +4117,7 @@ ShellRoot {
             return monitor && Number(monitor.id) === root.targetScreenId
           return monitor && monitor === Hyprland.focusedMonitor
         }
-        readonly property bool shouldShow: root.phase !== "loading" && !root.exerciseRunning && isFocusedScreen
+        readonly property bool shouldShow: !root.splashActive && root.phase !== "loading" && !root.exerciseRunning && isFocusedScreen
         readonly property var highlight: root.currentStep ? root.currentStep.highlight : null
         readonly property var hyprlandMonitor: Hyprland.monitorFor(screenScope.modelData)
         readonly property bool windowOnThisMonitor:
@@ -3885,6 +4241,7 @@ ShellRoot {
           Region { item: completionPanel }
           Region { item: errorPanel }
           Region { item: pausePanel }
+          Region { item: welcomeControls }
         }
 
         // Omarchy's Apps menu shows a "Launching…" OSD two seconds after a
@@ -4007,6 +4364,8 @@ ShellRoot {
 
         UiPanel {
           id: characterPanel
+          property bool showPackDetails: false
+          onVisibleChanged: if (!visible) showPackDetails = false
           visible: root.phase === "settings"
           anchors.centerIn: parent
           width: Math.min(880, parent.width - 48)
@@ -4035,7 +4394,7 @@ ShellRoot {
               }
               Text {
                 Layout.fillWidth: true
-                text: root.settingsMode === "first-run" ? "Pick a guide for your desktop tour. You can change coaches at any time." : "Choose your coach and make the lessons comfortable for you."
+                text: root.settingsMode === "first-run" ? "Pick a guide to welcome you to Omarchy. You can change coaches at any time." : "Choose your coach and make the lessons comfortable for you."
                 color: root.muted
                 wrapMode: Text.WordWrap
                 font.family: "sans-serif"
@@ -4056,6 +4415,7 @@ ShellRoot {
               flickableDirection: Flickable.VerticalFlick
               Controls.ScrollBar.vertical: Controls.ScrollBar {
                 id: settingsScrollbar
+                ThemePalette { target: settingsScrollbar; colors: appTheme.colors }
                 policy: Controls.ScrollBar.AsNeeded
               }
               Connections {
@@ -4102,9 +4462,17 @@ ShellRoot {
                   wrapMode: Text.WordWrap
                   font.pixelSize: 13 * root.textScale
                 }
+                UiButton {
+                  visible: characterStore.diagnostics.length > 0
+                  compact: true
+                  kind: "ghost"
+                  label: (characterPanel.showPackDetails ? "HIDE" : "SHOW") + " COACH PACK DETAILS (" + characterStore.diagnostics.length + ")"
+                  onClicked: characterPanel.showPackDetails = !characterPanel.showPackDetails
+                }
                 Text {
+                  objectName: "packDetails"
                   Layout.fillWidth: true
-                  visible: text !== ""
+                  visible: characterPanel.showPackDetails && text !== ""
                   text: characterStore.diagnostics.map(function(item) { return item.message || String(item) }).join("\n")
                   textFormat: Text.PlainText
                   color: root.muted
@@ -4362,8 +4730,11 @@ ShellRoot {
 
                   Text {
                     Layout.fillWidth: true
-                    text: root.resetJustDone ? "Progress reset. Closing Settings asks for a coach again, then starts the tour." : root.completedCount + " of " + (root.course ? root.course.lessons.length : 0) + " modules complete. Reset clears your progress and saved coach."
-                    color: root.resetJustDone ? root.instruction : root.foreground
+                    text: root.resetConfirmPending
+                      ? "Reset all lesson progress, including the tour? Click CONFIRM RESET to clear progress and your saved coach, or CANCEL to keep them."
+                      : root.resetJustDone ? "Progress reset, including the tour. Click Done to choose a coach and replay the welcome."
+                      : root.completedCount + " of " + (root.course ? root.course.lessons.length : 0) + " modules complete. Reset clears your progress and saved coach."
+                    color: root.resetJustDone || root.resetConfirmPending ? root.instruction : root.foreground
                     opacity: 0.85
                     wrapMode: Text.WordWrap
                     font.family: "sans-serif"
@@ -4387,6 +4758,11 @@ ShellRoot {
                       font.weight: Font.Bold
                       font.letterSpacing: 1.1
                     }
+                  }
+                  UiButton {
+                    visible: root.resetConfirmPending
+                    label: "CANCEL"
+                    onClicked: root.resetConfirmPending = false
                   }
                 }
               }
@@ -4558,7 +4934,7 @@ ShellRoot {
                     required property int index
                     required property var modelData
                     readonly property bool selected: index === root.selectedLessonIndex
-                    readonly property bool completed: root.completedLessons[modelData.id] === true
+                    readonly property bool completed: root.lessonCompleted(modelData)
 
                     Layout.fillWidth: true
                     Layout.preferredHeight: lessonColumn.rowHeight
@@ -4585,6 +4961,7 @@ ShellRoot {
                     Connections {
                       target: lessonList
                       function onContentYChanged() { if (lessonCard.selected) Qt.callLater(lessonCard.syncCharacterTarget) }
+                      function onYChanged() { if (lessonCard.selected) Qt.callLater(lessonCard.syncCharacterTarget) }
                     }
 
                     Rectangle {
@@ -4621,7 +4998,7 @@ ShellRoot {
                         Text {
                           anchors.centerIn: parent
                           text: lessonCard.completed ? "✓" : lessonCard.modelData.icon
-                          color: lessonCard.completed ? root.background : root.accent
+                          color: lessonCard.completed ? root.controlPalette.highlightedText : root.controlPalette.link
                           font.family: "monospace"
                           font.pixelSize: 15
                           font.weight: Font.Bold
@@ -4669,8 +5046,9 @@ ShellRoot {
                       Text {
                         Layout.preferredWidth: 96
                         horizontalAlignment: Text.AlignRight
-                        text: root.lessonBookmarks[lessonCard.modelData.id] &&
-                          !(lessonCard.index === 0 && lessonCard.modelData.steps[0].kind === "tour")
+                        text: lessonCard.modelData.kind === "welcome" ? (root.welcomeSeen ? "REPLAY" : "WELCOME")
+                          : root.lessonBookmarks[lessonCard.modelData.id] &&
+                          !root.isOpeningTour(lessonCard.index)
                           ? "RESUME"
                           : lessonCard.completed
                             ? (root.lessonResultSummary(lessonCard.modelData).assisted > 0 ? "ASSISTED" : "DONE")
@@ -4712,12 +5090,22 @@ ShellRoot {
               }
             }
 
+            Item {
+              id: welcomeMenuSlot
+              Layout.fillWidth: true
+              Layout.preferredHeight: visible ? welcomeCaption.height : 0
+              visible: root.welcomeStage === "menu-flight" || root.welcomeStage === "recommendation"
+            }
+
             RowLayout {
               Layout.alignment: Qt.AlignHCenter
               spacing: 18
 
               Repeater {
-                model: [["↑ ↓", "CHOOSE"], ["⏎", "START / RESUME"], ["P", "PRACTICE"], ["ESC", "CLOSE"]]
+                model: root.course && root.course.lessons[root.selectedLessonIndex] &&
+                  root.course.lessons[root.selectedLessonIndex].kind === "welcome"
+                  ? [["↑ ↓", "CHOOSE"], ["⏎", root.welcomeSeen ? "REPLAY WELCOME" : "START WELCOME"], ["ESC", "CLOSE"]]
+                  : [["↑ ↓", "CHOOSE"], ["⏎", "START / RESUME"], ["P", "PRACTICE"], ["ESC", "CLOSE"]]
 
                 RowLayout {
                   required property var modelData
@@ -4778,17 +5166,19 @@ ShellRoot {
 
         UiPanel {
           id: teachingContent
+          readonly property bool compactTour: root.phase === "waiting" && root.currentStepIsTour
+          readonly property bool detailsExpanded: root.tourDetailsExpanded
           visible: root.phase === "waiting" || root.phase === "highlight"
-          opacity: root.lessonContentOpacity * root.introPanelOpacity
+          opacity: root.lessonContentOpacity
           anchors {
             horizontalCenter: parent.horizontalCenter
             bottom: parent.bottom
             bottomMargin: 30
           }
-          width: Math.min(900, overlay.width - 48)
-          height: consoleColumn.implicitHeight + 38
+          width: Math.min(compactTour ? 680 * root.textScale : 900, overlay.width - 48)
+          height: consoleColumn.implicitHeight + (compactTour ? 24 : 38)
           radius: 16
-          stripe: root.phase === "waiting" ? root.instruction : root.accent
+          stripe: compactTour ? "transparent" : root.phase === "waiting" ? root.instruction : root.accent
 
           ColumnLayout {
             id: consoleColumn
@@ -4798,22 +5188,28 @@ ShellRoot {
               top: parent.top
               leftMargin: 20
               rightMargin: 20
-              topMargin: 18
+              topMargin: teachingContent.compactTour ? 12 : 18
             }
             spacing: 12
 
-            RowLayout {
+            GridLayout {
               id: lessonNavigation
               Layout.fillWidth: true
-              spacing: 10
+              readonly property bool stacked: teachingContent.compactTour && teachingContent.width <
+                topicsButton.implicitWidth + backButton.implicitWidth + 8 + navRightGroup.implicitWidth +
+                stepCounter.implicitWidth + columnSpacing * 4 + 40
+              columns: stacked ? 1 : 5
+              columnSpacing: 10
+              rowSpacing: 8
 
-              // Both side slots share one width so the title stays centred
-              // even when Replay and Skip are hidden.
+              // Full-panel navigation keeps the title centred as actions change.
               readonly property real sideWidth: Math.max(topicsButton.implicitWidth + backButton.implicitWidth + 8, navRightGroup.implicitWidth)
 
               Item {
-                Layout.preferredWidth: lessonNavigation.sideWidth
-                Layout.minimumWidth: lessonNavigation.sideWidth
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: teachingContent.compactTour
+                  ? topicsButton.implicitWidth + backButton.implicitWidth + 8 : lessonNavigation.sideWidth
+                Layout.minimumWidth: Layout.preferredWidth
                 implicitHeight: topicsButton.implicitHeight
 
                 RowLayout {
@@ -4837,12 +5233,14 @@ ShellRoot {
                 }
               }
 
-              Item { Layout.fillWidth: true }
+              Item { visible: !lessonNavigation.stacked; Layout.fillWidth: true }
 
               ColumnLayout {
+                Layout.alignment: Qt.AlignHCenter
                 spacing: 5
 
                 Text {
+                  visible: !teachingContent.compactTour
                   Layout.alignment: Qt.AlignHCenter
                   text: root.currentLesson ? root.currentLesson.title : ""
                   color: root.foreground
@@ -4856,7 +5254,7 @@ ShellRoot {
                   spacing: 6
 
                   Repeater {
-                    model: root.currentLesson ? root.currentLesson.steps.length : 0
+                    model: !teachingContent.compactTour && root.currentLesson ? root.currentLesson.steps.length : 0
 
                     Rectangle {
                       required property int index
@@ -4878,7 +5276,8 @@ ShellRoot {
                   }
 
                   Text {
-                    Layout.leftMargin: 10
+                    id: stepCounter
+                    Layout.leftMargin: teachingContent.compactTour ? 0 : 10
                     text: root.currentLesson ? "STEP " + (root.stepIndex + 1) + " OF " + root.currentLesson.steps.length +
                       (root.currentStep && root.currentStep.optional ? " · OPTIONAL" : "") : ""
                     color: root.muted
@@ -4890,11 +5289,12 @@ ShellRoot {
                 }
               }
 
-              Item { Layout.fillWidth: true }
+              Item { visible: !lessonNavigation.stacked; Layout.fillWidth: true }
 
               Item {
-                Layout.preferredWidth: lessonNavigation.sideWidth
-                Layout.minimumWidth: lessonNavigation.sideWidth
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredWidth: teachingContent.compactTour ? navRightGroup.implicitWidth : lessonNavigation.sideWidth
+                Layout.minimumWidth: Layout.preferredWidth
                 implicitHeight: navRightGroup.implicitHeight
 
                 RowLayout {
@@ -4904,6 +5304,7 @@ ShellRoot {
 
                   UiButton {
                     visible: root.phase === "waiting" && !root.introActive && root.currentAudioPath() !== ""
+                      && (!teachingContent.compactTour || teachingContent.detailsExpanded)
                     compact: true
                     label: "▶ REPLAY"
                     onClicked: {
@@ -4913,35 +5314,56 @@ ShellRoot {
                   }
 
                   UiButton {
-                    visible: root.phase === "waiting"
+                    visible: root.phase === "waiting" && !teachingContent.compactTour
                     kind: "ghost"
                     compact: true
                     label: "SKIP →"
                     onClicked: root.skipCurrentStep()
+                  }
+
+                  UiButton {
+                    visible: teachingContent.compactTour
+                    compact: true
+                    kind: "ghost"
+                    label: teachingContent.detailsExpanded ? "LESS" : "DETAILS"
+                    description: "Show or hide extra guidance and narration replay"
+                    onClicked: root.tourDetailsExpanded = !root.tourDetailsExpanded
+                  }
+
+                  UiButton {
+                    visible: teachingContent.compactTour
+                    compact: true
+                    kind: "primary"
+                    label: "NEXT"
+                    onClicked: { root.stopAudio(); root.advance() }
                   }
                 }
               }
             }
 
             Rectangle {
+              visible: !teachingContent.compactTour
               Layout.fillWidth: true
               Layout.preferredHeight: 1
               color: root.panelBorder
             }
 
             Text {
+              id: teachingInstruction
+              visible: !teachingContent.compactTour || teachingContent.detailsExpanded
               Layout.fillWidth: true
               Layout.leftMargin: 8
               Layout.rightMargin: 8
               horizontalAlignment: Text.AlignHCenter
-              wrapMode: Text.WordWrap
+              wrapMode: Text.Wrap
               textFormat: Text.PlainText
               color: root.phase === "waiting" ? root.instruction : root.foreground
               font.family: "sans-serif"
               font.pixelSize: 21 * root.textScale
               font.weight: Font.Bold
               lineHeight: 1.15
-              text: {
+              text: root.captionText(message)
+              readonly property string message: {
                 if (root.phase === "highlight" && root.currentStep && root.currentStep.completionMessage)
                   return root.characterText(root.currentStep.completionMessage)
                 if (root.practiceMode && !root.practiceHintVisible && root.currentStep && root.currentStep.help)
@@ -4996,6 +5418,19 @@ ShellRoot {
             }
 
             Text {
+              id: openedToolKeyboardHint
+              text: root.openedToolKeyboardHint()
+              visible: text !== ""
+              Layout.fillWidth: true
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+              color: root.instruction
+              font.pixelSize: 14 * root.textScale
+              Accessible.role: Accessible.StaticText
+              Accessible.name: text
+            }
+
+            Text {
               visible: root.recoveryMessage !== ""
               Layout.fillWidth: true
               text: root.recoveryMessage
@@ -5010,14 +5445,14 @@ ShellRoot {
             UiButton {
               visible: root.recoveryStepId !== "" && root.phase === "waiting"
               Layout.alignment: Qt.AlignHCenter
-              label: "RETURN TO WINDOW LAUNCH"
+              label: "REOPEN PRACTICE WINDOW"
               onClicked: root.recoverTutorialWindow()
             }
             UiButton {
-              visible: root.phase === "highlight" || (root.phase === "waiting" && root.currentStepIsTour)
+              visible: root.phase === "highlight"
               Layout.alignment: Qt.AlignHCenter
               kind: "primary"
-              label: root.phase === "highlight" ? "CONTINUE" : "NEXT"
+              label: "CONTINUE"
               onClicked: { root.stopAudio(); root.advance() }
             }
 
@@ -5055,19 +5490,21 @@ ShellRoot {
           }
           width: implicitWidth
           x: leftDock ? 24 : parent.width - width - 24
-          columns: overlay.width < 900 ? 3 : 6
+          columns: overlay.width < 480 * root.textScale ? 3 : 7
           columnSpacing: 8
           rowSpacing: 8
 
           UiButton {
             visible: root.phase !== "settings"
             compact: true
+            icon: "settings"
             label: "SETTINGS"
             onClicked: root.openSettings("settings")
           }
 
           UiButton {
             compact: true
+            icon: root.keyboardExclusive ? "keyboard" : "keyboard-off"
             label: root.keyboardExclusive ? "RELEASE KEYS" : "CAPTURE KEYS"
             enabled: !root.exerciseRunning
             description: "Choose whether shortcuts go to the course or your other windows"
@@ -5076,6 +5513,7 @@ ShellRoot {
 
           UiButton {
             compact: true
+            icon: root.audioEnabled ? "volume" : "muted"
             label: root.audioEnabled ? "MUTE" : "UNMUTE"
             description: "Mute or unmute narration and effects"
             onClicked: root.toggleAudio()
@@ -5084,6 +5522,7 @@ ShellRoot {
           UiButton {
             visible: root.phase === "waiting" || root.phase === "highlight" || root.phase === "paused"
             compact: true
+            icon: root.phase === "paused" ? "play" : "pause"
             label: root.phase === "paused" ? "RESUME" : "PAUSE"
             onClicked: root.phase === "paused" ? root.resumePausedLesson() : root.pauseLesson()
           }
@@ -5093,20 +5532,23 @@ ShellRoot {
             enabled: !root.actionRunning && root.outcomeAddress === ""
             opacity: enabled ? 1 : 0.5
             compact: true
-            label: "?  HELP"
+            icon: "help"
+            label: "HELP"
             onClicked: root.requestHelpAction()
           }
 
           UiButton {
-            visible: root.phase === "waiting" && (root.introActive || root.characterState === "intro")
+            visible: root.welcomeStage !== ""
             compact: true
-            label: "SKIP INTRO"
-            onClicked: root.skipIntroScene()
+            icon: "skip"
+            label: "SKIP WELCOME"
+            onClicked: root.finishWelcome()
           }
 
           UiButton {
             compact: true
             kind: "danger"
+            icon: "close"
             label: "EXIT"
             onClicked: {
               root.runCleanup()
@@ -5145,6 +5587,15 @@ ShellRoot {
 
         UiPanel {
           id: completionPanel
+          readonly property bool narrationReady: visible && overlay.shouldShow && root.lessonContentOpacity === 1 &&
+            root.characterState === "celebrate" && !coachTravelX.running && !coachTravelY.running &&
+            !root.lessonTransitionRunning
+          Binding {
+            target: root
+            property: "lessonWrapupReady"
+            when: overlay.shouldShow
+            value: completionPanel.narrationReady
+          }
           visible: root.phase === "lesson-complete" && root.currentLesson
           opacity: root.lessonContentOpacity
           anchors.centerIn: parent
@@ -5198,11 +5649,22 @@ ShellRoot {
             }
             Text {
               Layout.fillWidth: true
+              visible: root.currentLessonWrapup() !== null
+              text: root.currentLessonWrapup() ? root.captionText(root.characterText(root.currentLessonWrapup().text)) : ""
+              textFormat: Text.PlainText
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.Wrap
+              color: root.foreground
+              font.pixelSize: 18 * root.textScale
+              lineHeight: 1.2
+            }
+            Text {
+              Layout.fillWidth: true
               horizontalAlignment: Text.AlignHCenter
               text: {
                 var result = root.lessonResultSummary(root.currentLesson)
                 return result.practiced + " practiced, " + result.assisted + " assisted, " +
-                  result.introduced + " introduced, " + result.skipped + " skipped. Practice again to recall the shortcuts without hints."
+                  result.introduced + " introduced, " + result.skipped + " skipped."
               }
               color: root.foreground
               opacity: 0.8
@@ -5233,6 +5695,19 @@ ShellRoot {
                 onClicked: root.startLesson(root.lessonIndex, true, false)
               }
             }
+          }
+        }
+
+        RowLayout {
+          id: welcomeControls
+          visible: root.phase === "welcome" && root.welcomeStage === "welcome"
+          anchors.horizontalCenter: parent.horizontalCenter
+          anchors.bottom: parent.bottom
+          anchors.bottomMargin: 24
+          UiButton {
+            kind: "primary"
+            label: "SHOW LESSONS"
+            onClicked: root.advanceWelcome(root.introGeneration, root.welcomeStage)
           }
         }
 
@@ -5306,11 +5781,15 @@ ShellRoot {
         }
         color: "transparent"
         exclusionMode: ExclusionMode.Ignore
-        WlrLayershell.namespace: "learn-omarchy-hexon"
+        WlrLayershell.namespace: "learn-omarchy-ohm-1"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
         mask: Region {
           Region { item: hexonCoach }
+          Region { item: welcomeCaption.visible && !welcomeCaption.recommendation &&
+            welcomeCaptionScroll.contentHeight > welcomeCaptionScroll.height ? welcomeCaption : null }
+          Region { item: tourCaption.visible &&
+            tourCaptionScroll.contentHeight > tourCaptionScroll.height ? tourCaption : null }
         }
 
         function raise() {
@@ -5468,6 +5947,63 @@ ShellRoot {
         }
 
         Rectangle {
+          id: welcomeCaption
+          z: 11
+          readonly property bool recommendation: root.phase === "menu"
+          readonly property bool ready: overlay.shouldShow && hexonCoach.visible &&
+            ((root.phase === "welcome" && root.welcomeStage === "welcome" && root.characterState === "tour-talk") ||
+             (recommendation && root.welcomeStage === "recommendation" && root.characterState === "menu-point"))
+            && !coachTravelX.running && !coachTravelY.running
+            && !characterMouse.pressed && !fallAnimation.running
+          parent: recommendation ? welcomeMenuSlot : hexonWindow.contentItem
+          visible: opacity > 0
+          opacity: ready ? 1 : 0
+          onReadyChanged: {
+            if (ready && overlay.shouldShow) root.welcomeCaptionShown()
+            else if (overlay.shouldShow) welcomeReadTimer.stop()
+          }
+          Behavior on opacity {
+            onTargetValueChanged: welcomeFade.duration = targetValue > 0 && !root.reducedMotion ? 240 : 0
+            NumberAnimation { id: welcomeFade; duration: 0; easing.type: Easing.InOutSine }
+          }
+          width: recommendation ? welcomeMenuSlot.width : Math.min(920, overlay.width - 48)
+          height: Math.min(welcomeCaptionText.implicitHeight + 40, Math.max(100, overlay.height - 120))
+          x: recommendation ? 0 : Math.max(12, Math.min(overlay.width - width - 12,
+            hexonCoach.x + hexonCoach.width / 2 - width / 2))
+          y: recommendation ? 0 : Math.max(12, Math.min(overlay.height - height - 90,
+            hexonCoach.y + hexonCoach.height + 16))
+          radius: 12
+          color: root.panelColor
+          border.color: root.colorWithAlpha(root.instruction, 0.8)
+          Flickable {
+            id: welcomeCaptionScroll
+            anchors.fill: parent
+            anchors.margins: 20
+            contentWidth: width
+            contentHeight: welcomeCaptionText.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.VerticalFlick
+            Controls.ScrollBar.vertical: Controls.ScrollBar {
+              id: welcomeScrollBar
+              ThemePalette { target: welcomeScrollBar; colors: appTheme.colors }
+            }
+            Text {
+              id: welcomeCaptionText
+              width: welcomeCaptionScroll.width
+              text: root.captionText(root.welcomeText)
+              onTextChanged: welcomeCaptionScroll.contentY = 0
+              textFormat: Text.PlainText
+              horizontalAlignment: Text.AlignLeft
+              wrapMode: Text.Wrap
+              color: root.instruction
+              font.pixelSize: (welcomeCaption.recommendation ? 17 : 21) * root.textScale
+              lineHeight: 1.2
+            }
+          }
+        }
+
+        Rectangle {
           id: tourCaption
           z: 11
           readonly property bool ready: hexonCoach.visible && root.phase === "waiting"
@@ -5485,29 +6021,43 @@ ShellRoot {
               easing.type: Easing.InOutSine
             }
           }
-          width: Math.min(680, overlay.width - 24, Math.max(260, tourCaptionText.implicitWidth + 44))
-          height: tourCaptionText.implicitHeight + 32
+          width: Math.min(880, overlay.width - 48)
+          height: Math.min(tourCaptionText.implicitHeight + 40, Math.max(100, overlay.height - 48))
           // Centre under HEXON, but never leave the screen.
           x: Math.round(Math.max(12, Math.min(overlay.width - width - 12,
             hexonCoach.x + (hexonCoach.width / 2) - (width / 2))))
-          y: Math.round(Math.min(overlay.height - height - 12, hexonCoach.y + hexonCoach.arcOffset + hexonCoach.height + 8))
+          y: Math.round(Math.max(12, Math.min(overlay.height - height - 12, hexonCoach.y + hexonCoach.arcOffset + hexonCoach.height + 16)))
           radius: 12
           color: root.panelColor
           border.color: root.colorWithAlpha(root.instruction, 0.8)
           border.width: 1
 
-          Text {
-            id: tourCaptionText
-            width: Math.min(tourCaption.width - 44, implicitWidth)
-            anchors.centerIn: parent
-            text: root.currentStep ? root.characterText(root.currentStep.instruction) : ""
-            textFormat: Text.PlainText
-            horizontalAlignment: Text.AlignHCenter
-            wrapMode: Text.WordWrap
-            color: root.instruction
-            font.family: "sans-serif"
-            font.pixelSize: 21
-            font.weight: Font.Bold
+          Flickable {
+            id: tourCaptionScroll
+            anchors.fill: parent
+            anchors.margins: 20
+            contentWidth: width
+            contentHeight: tourCaptionText.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            flickableDirection: Flickable.VerticalFlick
+            Controls.ScrollBar.vertical: Controls.ScrollBar {
+              id: tourScrollBar
+              ThemePalette { target: tourScrollBar; colors: appTheme.colors }
+            }
+            Text {
+              id: tourCaptionText
+              width: tourCaptionScroll.width
+              text: root.currentStep ? root.captionText(root.characterText(root.currentStep.instruction)) : ""
+              onTextChanged: tourCaptionScroll.contentY = 0
+              textFormat: Text.PlainText
+              horizontalAlignment: Text.AlignLeft
+              wrapMode: Text.Wrap
+              color: root.instruction
+              font.family: "sans-serif"
+              font.pixelSize: 21 * root.textScale
+              lineHeight: 1.2
+            }
           }
         }
 
@@ -5532,7 +6082,7 @@ ShellRoot {
           })
           Component.onDestruction: {
             if (root.introActive && playbackGeneration === root.introGeneration)
-              root.finishIntro(playbackGeneration, "Display removed; continuing the tour.")
+              root.finishIntro(playbackGeneration, "Display removed; continuing the welcome.")
           }
 
           onFinished: if (overlay.shouldShow) root.finishIntro(playbackGeneration)
@@ -5541,7 +6091,7 @@ ShellRoot {
           }
           onCancelled: {
             if (root.introActive && playbackGeneration === root.introGeneration && overlay.shouldShow)
-              root.finishIntro(playbackGeneration, "The introduction was interrupted; continuing the tour.")
+              root.finishIntro(playbackGeneration, "The introduction was interrupted; continuing the welcome.")
           }
           onDiagnostic: function(message) {
             if (overlay.shouldShow) {
@@ -5588,7 +6138,7 @@ ShellRoot {
                 root.beginIntroScene()
               if (!overlay.shouldShow && root.introActive &&
                   introPlayer.playbackGeneration === root.introGeneration)
-                root.finishIntro(introPlayer.playbackGeneration, "Display changed; continuing the tour on the active display.")
+                root.finishIntro(introPlayer.playbackGeneration, "Display changed; continuing the welcome on the active display.")
             }
           }
         }
@@ -5652,6 +6202,7 @@ ShellRoot {
           readonly property bool isPointingUp: root.characterState === "tour-point" ||
             (root.characterState === "target-point" && completionPointsUp)
           readonly property bool targetsIntro: root.characterState === "intro"
+          readonly property bool targetsWelcome: root.phase === "welcome" && !targetsIntro
           readonly property bool targetsMenu:
             root.characterState === "menu-fly" ||
             root.characterState === "menu-settle" ||
@@ -5724,6 +6275,7 @@ ShellRoot {
           readonly property real bottomY: overlay.height - height - 28
           readonly property real contextX: targetsIntro
             ? introPlayer.characterX - 8
+            : targetsWelcome ? (overlay.width - width) / 2
             : targetsMenu
             ? Math.max(18, Math.min(overlay.width - width - 18, menuTargetX - width + 45))
             : targetsTour
@@ -5735,6 +6287,7 @@ ShellRoot {
               : waitingX
           readonly property real contextY: targetsIntro
             ? introPlayer.characterY - (height - 192)
+            : targetsWelcome ? Math.max(40, (overlay.height - height) / 2 - 40)
             : targetsMenu
             ? Math.max(50, menuTargetY - (height * 0.55))
             : targetsTour
@@ -5745,7 +6298,7 @@ ShellRoot {
                 ? moduleTargetY
               : waitingY
 
-          visible: (root.phase === "menu" ||
+          visible: (root.phase === "menu" || root.phase === "welcome" ||
             root.phase === "waiting" ||
             root.phase === "highlight" ||
             root.phase === "lesson-complete") &&
@@ -5784,6 +6337,20 @@ ShellRoot {
           }
           property real lastTrackedX: 0
           onYChanged: if (overlay.shouldShow) root.characterY = y
+
+          Timer {
+            interval: 32
+            repeat: true
+            running: overlay.shouldShow &&
+              (root.welcomeStage === "center-flight" || root.welcomeStage === "menu-flight")
+            onTriggered: {
+              if (!introPlayer.handoffPinned && !coachTravelX.running && !coachTravelY.running &&
+                  !characterMouse.pressed && !fallAnimation.running &&
+                  Math.abs(hexonCoach.x - hexonCoach.contextX) < 1 &&
+                  Math.abs(hexonCoach.y - hexonCoach.contextY) < 1)
+                root.welcomeArrived(root.introGeneration)
+            }
+          }
 
           Behavior on presentationScale {
             enabled: hexonCoach.visible && !root.reducedMotion && !hexonCoach.targetsIntro
@@ -6368,7 +6935,8 @@ ShellRoot {
               pack: root.resolvedPack
               pose: hexonCoach.targetsIntro ? introPlayer.characterPose :
                 hexonCoach.isPointing ? (hexonCoach.isPointingUp ? "point-up" : "point") : "idle"
-              talking: audioProcess.running && !root.audioPaused && !root.audioStopRequested
+              talking: welcomeCaption.ready || (audioProcess.running && !root.audioPaused && !root.audioStopRequested) ||
+                (lessonWrapupSpeech.running && !root.lessonWrapupStopping)
               flying: hexonCoach.targetsIntro ? introPlayer.characterFlying :
                 hexonCoach.isFlying && !hexonCoach.uprightFlight
               // Keep target landmarks stable throughout an approach, rather

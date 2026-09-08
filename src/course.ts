@@ -107,7 +107,14 @@ export interface CourseStep {
   completionAudio?: string | null;
 }
 
+export interface LessonWrapUp {
+  text: string;
+  audio: string;
+}
+
 export interface CourseLesson {
+  wrapUp?: LessonWrapUp;
+  kind?: "welcome";
   id: string;
   title: string;
   description: string;
@@ -118,6 +125,7 @@ export interface CourseLesson {
 }
 
 export interface Course {
+  wrapUp?: { assisted: LessonWrapUp; explored: LessonWrapUp };
   schemaVersion: 2;
   id: string;
   title: string;
@@ -499,11 +507,28 @@ const validateStep = (
   }
 };
 
+function validateWrapUp(errors: string[], value: unknown, path: string) {
+  if (!isRecord(value)) {
+    errors.push(`${path} must be an object`);
+    return;
+  }
+  addStringError(errors, value.text, `${path}.text`);
+  if (addStringError(errors, value.audio, `${path}.audio`))
+    validateRelativePath(errors, value.audio, `${path}.audio`);
+}
+
 export function validateCourse(value: unknown): string[] {
   const errors: string[] = [];
   if (!isRecord(value)) return ["course must be an object"];
 
   if (value.schemaVersion !== 2) errors.push("course.schemaVersion must be 2");
+  if (value.wrapUp !== undefined) {
+    if (!isRecord(value.wrapUp)) errors.push("course.wrapUp must be an object");
+    else {
+      validateWrapUp(errors, value.wrapUp.assisted, "course.wrapUp.assisted");
+      validateWrapUp(errors, value.wrapUp.explored, "course.wrapUp.explored");
+    }
+  }
   addStringError(errors, value.id, "course.id");
   addStringError(errors, value.title, "course.title");
   addStringError(errors, value.description, "course.description");
@@ -535,9 +560,16 @@ export function validateCourse(value: unknown): string[] {
     }
     addStringError(errors, lesson.title, `${path}.title`);
     addStringError(errors, lesson.description, `${path}.description`);
+    if (lesson.wrapUp !== undefined) validateWrapUp(errors, lesson.wrapUp, `${path}.wrapUp`);
+    if (lesson.kind !== undefined && lesson.kind !== "welcome") errors.push(`${path}.kind must be welcome when provided`);
     if (lesson.optional !== undefined && typeof lesson.optional !== "boolean") errors.push(`${path}.optional must be a boolean`);
     addStringError(errors, lesson.icon, `${path}.icon`);
     addPositiveNumberError(errors, lesson.estimatedMinutes, `${path}.estimatedMinutes`);
+    if (lesson.kind === "welcome") {
+      if (!Array.isArray(lesson.steps) || lesson.steps.length !== 0) errors.push(`${path}.steps must be empty for a welcome lesson`);
+      if (lessonIndex !== 0) errors.push(`${path}: the welcome lesson must be first`);
+      return;
+    }
     if (!Array.isArray(lesson.steps) || lesson.steps.length === 0) {
       errors.push(`${path}.steps must be a non-empty array`);
       return;

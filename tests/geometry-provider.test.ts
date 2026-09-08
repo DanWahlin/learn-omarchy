@@ -50,6 +50,38 @@ test("unequal screens and refreshed slots are not inferred from monitor order", 
   assert.equal(screens[1].widgets[0].x, 80);
 });
 
+test("the stock Omarchy menu exposes its painted card instead of the bar icon or fullscreen layer", () => {
+  const bar = fixture();
+  const card = { ...item(590, 150, 420, 600), borderSpec: {}, padding: 16 };
+  const window = { visible: true, screen: bar.moduleSlots[0].window.screen, width: 1600, height: 900,
+    anchors: { top: true, bottom: true, left: true, right: true },
+    margins: { top: 0, bottom: 0, left: 0, right: 0 }, effectiveCardTop: 150,
+    contentItem: { children: [item(0, 0, 1600, 900), card] } };
+  const menu = { manifest: { id: "omarchy.menu" }, opened: true, rowsLoaded: true, cardWidth: 420,
+    contentMargin: 16, data: [window] };
+  const shell = { panelLoaders: { "omarchy.menu": { item: menu } } };
+  const get = () => JSON.parse(JSON.stringify(geometry.snapshot(bar, () => "omarchy-menu", "omarchy.bar", shell)))
+    .screens[0].widgets.filter((widget: any) => widget.id === "panel:omarchy-menu");
+  assert.deepEqual(get(), [{ id: "panel:omarchy-menu", x: 590, y: 150, width: 420, height: 600, visible: true, itemVisible: true }]);
+  card.height = 400;
+  assert.equal(get()[0].height, 400);
+  menu.opened = false;
+  assert.deepEqual(get(), []);
+  menu.opened = true;
+  window.contentItem.children.push({ ...card });
+  assert.deepEqual(get(), [], "ambiguous painted surfaces must not produce a guessed rectangle");
+  window.contentItem.children.pop();
+  window.width -= 10;
+  assert.deepEqual(get(), [], "unsupported window placement must not be reported as exact");
+  window.width = 1280;
+  window.height = 720;
+  window.screen = { name: "DP-2", width: 1280, height: 720 };
+  card.x = 430;
+  const screens = geometry.snapshot(bar, () => "omarchy-menu", "omarchy.bar", shell).screens;
+  assert.equal(screens[0].widgets.some((widget: any) => widget.id === "panel:omarchy-menu"), false);
+  assert.equal(screens[1].name, "DP-2");
+  assert.equal(screens[1].widgets[0].x, 430, "card coordinates belong to the menu's logical screen, not the bar's");
+});
 test("hidden parked bars and invisible active widgets cannot become visible targets", () => {
   for (const edge of ["top", "bottom", "left", "right"]) {
     const bar = fixture(edge);

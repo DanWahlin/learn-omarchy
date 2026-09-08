@@ -5,6 +5,7 @@ import { createContext, runInContext } from "node:vm";
 import type { Course } from "../src/course.ts";
 
 const shell = await readFile(new URL("../app/shell.qml", import.meta.url), "utf8");
+const welcomeSource = await readFile(new URL("../courses/welcome.json", import.meta.url), "utf8");
 const course: Course = JSON.parse(
   await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"),
 );
@@ -30,17 +31,31 @@ function runtime(stepId: string, reducedMotion = true) {
   const context = createContext({
     course: structuredClone(course),
     courseDir: "/course",
-    requestedCharacter: "hexon",
+    requestedCharacter: "ohm-1",
     characterState: "coach",
+    characterParked: false,
     characterIndex: [],
     characterPick: 0,
-    savedCharacter: "hexon",
+    savedCharacter: "ohm-1",
     characterOverride: "",
     settingsResolved: true,
     progressResolved: true,
     tourSeen: true,
+    welcomeSeen: true,
+    welcomeSettingPresent: true,
+    welcomeStage: "",
+    splashActive: false,
+    welcomeNarration: JSON.parse(welcomeSource),
+    welcomeNarrationStarted: false,
+    welcomeNarrationFinished: false,
+    welcomeSpeechStopping: false,
+    welcomeSpeech: { running: false, generation: -1, command: [] },
+    lessonWrapupSpeech: { running: false, generation: -1, command: [] },
+    lessonWrapupReady: false,
+    lessonWrapupPlayed: false,
+    lessonWrapupStopping: false,
+    lessonWrapupGeneration: 0,
     introActive: false,
-    introRequested: false,
     introGeneration: 0,
     introPlaybackStarted: false,
     introDeparting: false,
@@ -52,6 +67,7 @@ function runtime(stepId: string, reducedMotion = true) {
     tourRestingState: "tour-talk",
     tourRestingMessage: "WELCOME",
     autoAdvance: true,
+    tourDetailsExpanded: false,
     readingWordsPerMinute: 200,
     narrationRestMs: 900,
     menuWheelRemainder: 0,
@@ -175,15 +191,17 @@ function runtime(stepId: string, reducedMotion = true) {
     characterIndex: { get: () => context.characterStore.packs },
     characterNotice: { get: () => context.characterStore.notice },
     characterDisplayName: { get: () => context.characterStore.selectedPack?.manifest.displayName || "Coach" },
+    welcomeText: { get: () => runInContext(
+      shell.match(/readonly property string welcomeText: ([\s\S]*?)\n  property bool introActive/)![1], context) },
   });
   context.characterStore = {
     appRoot: "/app",
-    requestedId: "hexon",
+    requestedId: "ohm-1",
     ready: true,
-    fallbackId: "hexon",
+    fallbackId: "ohm-1",
     diagnostics: [],
     narrationNotice: "",
-    packs: ["hexon", "owl", "custom-coach"].map((id) => ({
+    packs: ["ohm-1", "owl", "custom-coach"].map((id) => ({
       id, root: `/packs/${id}`, assetUrl: `file:///packs/${id}`,
       manifest: {
         formatVersion: 1, id, displayName: id === "owl" ? "OLLIE" : id.toUpperCase(),
@@ -209,7 +227,7 @@ function runtime(stepId: string, reducedMotion = true) {
     audioPath(relativePath: string, spokenText: string, courseDir: string) {
       const narration = this.selectedPack?.manifest.narration;
       if (!relativePath || !narration || narration.mode === "silent" ||
-          (narration.mode === "borrowed" && /HEXON|OLLIE/i.test(spokenText || ""))) return "";
+          (narration.mode === "borrowed" && /HEXON|ARCHIE|OLLIE/i.test(spokenText || ""))) return "";
       return `${courseDir}/${relativePath.replace(/([^/]*)$/, `${narration.audioSet}/$1`)}`;
     },
   };
@@ -220,6 +238,10 @@ function runtime(stepId: string, reducedMotion = true) {
   assert.ok(functions.length > 0);
   runInContext(functions.map(([source]) => source).join("\n"), context);
   context.root = context;
+  const audioProcessSource = shell.match(/  Process \{\n    id: audioProcess[\s\S]*?\n  \}/)![0];
+  context.audioExited = runInContext("(" + audioProcessSource.slice(
+    audioProcessSource.indexOf("function(exitCode)"), audioProcessSource.lastIndexOf("\n  }"),
+  ) + ")", context);
   context.captureWorkspaceStart = () => {};
   context.productionStartCharacterStep = context.startCharacterStep;
   context.startCharacterStep = () => {};
@@ -246,6 +268,149 @@ function exerciseRuntime() {
   };
   return state;
 }
+
+test("lesson wrap-ups acknowledge completion, assistance, and skipped activities accurately", () => {
+  const state = runtime("tour-welcome");
+  state.stepResults = Object.fromEntries(state.currentLesson.steps.map((step: any) => [step.id, "introduced"]));
+  assert.equal(state.currentLessonWrapup().audio, "audio/wrapup-omarchy-tour.mp3");
+  state.stepResults["tour-workspace-two"] = "assisted";
+  assert.equal(state.currentLessonWrapup().audio, "audio/lesson-wrapup-assisted.mp3");
+  state.stepResults["tour-clock"] = "skipped";
+  assert.equal(state.currentLessonWrapup().audio, "audio/lesson-wrapup-explored.mp3");
+  delete state.stepResults["tour-clock"];
+  assert.equal(state.currentLessonWrapup().audio, "audio/lesson-wrapup-explored.mp3");
+});
+
+test("wrap-up speech waits for the visible settled panel and plays only once", () => {
+  const state = runtime("tour-welcome");
+  state.audioEnabled = true;
+  state.phase = "lesson-complete";
+  state.characterState = "module-fly";
+  state.playLessonWrapup();
+  assert.equal(state.lessonWrapupSpeech.running, false);
+  state.characterState = "celebrate";
+  state.playLessonWrapup();
+  assert.equal(state.lessonWrapupSpeech.running, false, "pose alone isn't proof the coach arrived");
+  state.lessonWrapupReady = true;
+  state.playLessonWrapup();
+  assert.equal(state.lessonWrapupSpeech.running, true);
+  assert.match(state.lessonWrapupSpeech.command.at(-1), /ohm-1\/lesson-wrapup-explored\.mp3$/);
+  state.lessonWrapupSpeech.running = false;
+  state.lessonWrapupExited(0, state.lessonWrapupSpeech.generation);
+  state.playLessonWrapup();
+  assert.equal(state.lessonWrapupSpeech.running, false);
+  assert.equal(state.phase, "lesson-complete", "a wrap-up never starts another topic automatically");
+});
+
+test("leaving or muting wrap-ups cancels speech and late exits cannot advance lessons", () => {
+  const state = runtime("tour-welcome");
+  state.audioEnabled = true;
+  state.phase = "lesson-complete";
+  state.characterState = "celebrate";
+  state.lessonWrapupReady = true;
+  state.playLessonWrapup();
+  const generation = state.lessonWrapupSpeech.generation;
+  state.toggleAudio();
+  assert.equal(state.lessonWrapupSpeech.running, false);
+  state.lessonWrapupExited(0, generation);
+  assert.equal(state.lessonWrapupSpeech.running, false);
+  assert.equal(state.phase, "lesson-complete");
+  state.toggleAudio();
+  assert.equal(state.lessonWrapupSpeech.running, true);
+  state.returnToMenu();
+  state.lessonWrapupExited(0, generation);
+  assert.equal(state.phase, "menu");
+  assert.equal(state.lessonWrapupSpeech.running, false);
+});
+
+test("wrap-ups preserve visible feedback when muted, silent, or missing audio", () => {
+  const state = runtime("tour-welcome");
+  state.phase = "lesson-complete";
+  state.characterState = "celebrate";
+  state.lessonWrapupReady = true;
+  state.playLessonWrapup();
+  assert.equal(state.lessonWrapupSpeech.running, false);
+  assert.ok(state.currentLessonWrapup().text.length > 0);
+  state.audioEnabled = true;
+  state.characterStore.selectedPack.manifest.narration = { mode: "silent" };
+  state.playLessonWrapup();
+  assert.equal(state.lessonWrapupSpeech.running, false);
+  state.characterStore.selectedPack.manifest.narration = { mode: "own", audioSet: "ohm-1" };
+  state.playLessonWrapup();
+  state.lessonWrapupSpeech.running = false;
+  state.lessonWrapupExited(1, state.lessonWrapupSpeech.generation);
+  assert.equal(state.phase, "lesson-complete");
+  assert.ok(state.currentLessonWrapup().text.length > 0);
+});
+
+test("system volume adjustments serialize repeats without touching lesson or narration state", () => {
+  const state = runtime("tour-welcome");
+  state.systemVolumeProcess = { running: false, command: [] };
+  state.pendingSystemVolumeActions = [];
+  state.Qt.callLater = (callback: () => void) => callback();
+  for (const phase of ["welcome", "menu", "waiting", "highlight", "paused", "settings"]) {
+    state.phase = phase;
+    state.queueSystemVolume(-5);
+    assert.deepEqual(Array.from(state.systemVolumeProcess.command), ["omarchy", "audio", "output", "volume", "-5"]);
+    for (let i = 0; i < 30; i++) state.queueSystemVolume(-5);
+    assert.deepEqual(Array.from(state.pendingSystemVolumeActions), [-100]);
+    state.queueSystemVolume("mute-toggle");
+    state.systemVolumeProcess.running = false;
+    state.finishSystemVolumeAction(0);
+    assert.equal(state.systemVolumeProcess.command.at(-1), "-100");
+    state.systemVolumeProcess.running = false;
+    state.finishSystemVolumeAction(0);
+    assert.equal(state.systemVolumeProcess.command.at(-1), "mute-toggle");
+    state.systemVolumeProcess.running = false;
+    state.finishSystemVolumeAction(0);
+    assert.equal(state.phase, phase);
+    assert.equal(state.currentStep.id, "tour-welcome");
+    assert.equal(state.speechVolume, 80);
+    assert.equal(state.welcomeStage, "");
+  }
+});
+
+test("direct media-key events work on layer surfaces before any lesson key handling", () => {
+  const state = runtime("tour-welcome");
+  Object.assign(state.Qt, { NoModifier: 0, ShiftModifier: 1, ControlModifier: 2, AltModifier: 4, MetaModifier: 8,
+    Key_VolumeUp: 0x01000072, Key_VolumeDown: 0x01000070, Key_VolumeMute: 0x01000071 });
+  state.keyboardExclusive = true;
+  state.shortcutInhibitionActive = true;
+  const actions: (string | number)[] = [];
+  state.queueSystemVolume = (action: string | number) => actions.push(action);
+  for (const phase of ["welcome", "menu", "waiting", "highlight", "paused", "settings"]) {
+    state.phase = phase;
+    state.lessonTransitionRunning = true;
+    const event = { key: state.Qt.Key_VolumeDown, modifiers: 0, nativeScanCode: 122, accepted: false };
+    state.handleKeyPressed(event);
+    assert.equal(event.accepted, true);
+    assert.equal(actions.at(-1), -5);
+    assert.equal(state.phase, phase);
+  }
+  state.handleSystemVolumeKey({ key: state.Qt.Key_VolumeUp, modifiers: 4, isAutoRepeat: true });
+  assert.equal(actions.at(-1), 1);
+  const count = actions.length;
+  assert.equal(state.handleSystemVolumeKey({ key: state.Qt.Key_VolumeMute, modifiers: 0, isAutoRepeat: true }), true);
+  assert.equal(actions.length, count);
+  assert.equal(state.handleSystemVolumeKey({ key: state.Qt.Key_VolumeMute, modifiers: 1 }), false);
+  state.shortcutInhibitionActive = false;
+  assert.equal(state.handleSystemVolumeKey({ key: state.Qt.Key_VolumeDown, modifiers: 0 }), false);
+  assert.equal(actions.length, count);
+});
+
+test("system volume failures notify the learner and clear pending repeats", () => {
+  const state = runtime("tour-welcome");
+  state.systemVolumeProcess = { running: false, command: [] };
+  state.pendingSystemVolumeActions = [5];
+  const notifications: string[][] = [];
+  state.Quickshell.execDetached = (command: string[]) => notifications.push(Array.from(command));
+  state.finishSystemVolumeAction(1);
+  assert.equal(state.pendingSystemVolumeActions.length, 0);
+  assert.equal(notifications.length, 1);
+  assert.equal(notifications[0][0], "notify-send");
+  state.queueSystemVolume("unexpected");
+  assert.equal(state.systemVolumeProcess.running, false);
+});
 
 test("hands-on exercises release keys and require a verified result", () => {
   const state = exerciseRuntime();
@@ -319,7 +484,12 @@ test("lesson-only legacy progress preserves old work without crediting new activ
   ]) {
     const state = runtime("tour-welcome");
     state.loadProgress(JSON.stringify(legacy));
-    assert.equal(state.completedLessons["omarchy-tour"], true);
+    assert.equal(state.completedLessons["omarchy-tour"], false);
+    assert.equal(state.stepCredits["tour-omarchy-menu"], true);
+    assert.equal(state.stepCredits["tour-menu-icon"], undefined);
+    assert.equal(state.stepCredits["tour-workspace-two"], undefined);
+    assert.equal(state.stepCredits["tour-workspace-one"], undefined);
+    assert.equal(state.lessonBookmarks["omarchy-tour"], "tour-workspace-two");
     assert.equal(state.completedLessons.windows, false);
     assert.equal(state.stepCredits["windows-open-first"], true);
     assert.equal(state.stepCredits["windows-swap"], undefined);
@@ -330,10 +500,41 @@ test("lesson-only legacy progress preserves old work without crediting new activ
     state.persistProgress();
     const restored = runtime("tour-welcome");
     restored.loadProgress(saved);
-    assert.equal(restored.completedLessons["omarchy-tour"], true);
+    assert.equal(restored.completedLessons["omarchy-tour"], false);
+    assert.equal(restored.stepCredits["tour-omarchy-menu"], true);
     assert.equal(restored.stepCredits["windows-open-first"], true);
     assert.equal(restored.stepCredits["windows-swap"], undefined);
   }
+});
+
+test("tour workspace actions wait for their exact destination and continue in sequence", () => {
+  for (const [id, destination, next] of [
+    ["tour-workspace-two", 2, "tour-workspace-one"],
+    ["tour-workspace-one", 1, "tour-clock"],
+  ] as const) {
+    const state = runtime(id);
+    state.currentWorkspaceId = () => 7;
+    state.workspaceCheckAttempts = 0;
+    state.startCurrentStep();
+    assert.equal(state.phase, "waiting");
+    state.checkWorkspaceCompletion();
+    assert.equal(state.phase, "waiting", "another workspace cannot satisfy the action");
+    state.currentWorkspaceId = () => destination;
+    state.checkWorkspaceCompletion();
+    assert.equal(state.phase, "highlight");
+    state.advance();
+    assert.equal(state.currentStep.id, next);
+  }
+});
+
+test("starting the tour workspace action at its destination safely skips that satisfied action", () => {
+  const state = runtime("tour-workspace-two");
+  state.currentWorkspaceId = () => 2;
+  state.startCurrentStep();
+  assert.equal(state.currentStep.id, "tour-workspace-one");
+  assert.equal(state.phase, "waiting");
+  assert.equal(state.stepResults["tour-workspace-two"], "introduced");
+  assert.equal(state.helpProcess.running, false);
 });
 
 test("legacy credits are scoped to the bundled course and never override modern empty credits", () => {
@@ -448,6 +649,63 @@ test("hidden scratchpad windows must match the named special workspace", () => {
   assert.equal(state.matchesWindowState(hidden, { workspace: 2 }), false);
   assert.equal(state.matchesWindowState({ ...hidden, workspace: { id: -98, name: "special:other" } },
     { specialWorkspace: "scratchpad" }), false);
+  assert.equal(state.matchesWindowState({ ...hidden, focusHistoryID: 0 },
+    { specialWorkspace: "scratchpad", focused: true }), false);
+});
+
+test("scratchpad reveal verifies the exact owned visible focused window for every supported event", () => {
+  const visible = { ...client("0xabc"), focusHistoryID: 0,
+    workspace: { id: -99, name: "special:scratchpad" } };
+  for (const event of [
+    { name: "activespecialv2", data: "-99,special:scratchpad,eDP-1" },
+    { name: "activespecial", data: "special:scratchpad,eDP-1" },
+    { name: "activewindowv2", data: "abc" },
+  ]) {
+    for (const invalid of [
+      { ...visible, address: "0xother" },
+      { ...visible, hidden: true },
+      { ...visible, mapped: false },
+      { ...visible, focusHistoryID: 1 },
+      { ...visible, workspace: { id: -98, name: "special:other" } },
+      { ...visible, workspace: { id: 1, name: "1" } },
+    ]) {
+      const state = runtime("workspaces-reveal-before-restore");
+      state.windowGeometryMaxAttempts = 3;
+      state.rememberTutorialWindow("abc", "workspaces-open-terminal");
+      state.shortcutArmedUntil = Date.now() + 8000;
+      state.handleHyprlandEvent(event);
+      assert.equal(state.outcomeProcess.running, true, event.name);
+      assert.equal(state.outcomeAddress, "0xabc");
+      assert.equal(state.layerCompletionFeedbackTimer.running, false);
+      state.parseOutcome(JSON.stringify([invalid]), state.outcomeGeneration);
+      assert.equal(state.layerCompletionFeedbackTimer.running, false, JSON.stringify(invalid));
+      assert.equal(state.outcomeAddress, "0xabc");
+      state.parseOutcome(JSON.stringify([visible]), state.outcomeGeneration);
+      assert.equal(state.outcomeAddress, "");
+      assert.equal(state.layerCompletionFeedbackTimer.running, true, event.name);
+      assert.equal(state.targetWindowGeometry, null);
+    }
+  }
+});
+
+test("scratchpad reveal rejects unarmed, unowned, wrong-window, and stale outcomes", () => {
+  const state = runtime("workspaces-reveal-before-restore");
+  const specialEvent = { name: "activespecialv2", data: "-99,special:scratchpad,eDP-1" };
+  state.shortcutArmedUntil = Date.now() + 8000;
+  state.handleHyprlandEvent(specialEvent);
+  assert.equal(state.outcomeProcess.running, false, "an unowned window cannot be a target");
+  state.rememberTutorialWindow("abc", "workspaces-open-terminal");
+  state.shortcutArmedUntil = 0;
+  state.handleHyprlandEvent(specialEvent);
+  assert.equal(state.outcomeProcess.running, false, "an unrelated reveal is not an attempt");
+  state.shortcutArmedUntil = Date.now() + 8000;
+  state.handleHyprlandEvent({ name: "activewindowv2", data: "other" });
+  assert.equal(state.outcomeProcess.running, false, "window events still require the exact address");
+  state.handleHyprlandEvent(specialEvent);
+  state.parseOutcome(JSON.stringify([{ ...client("0xabc"), focusHistoryID: 0,
+    workspace: { id: -99, name: "special:scratchpad" } }]), state.outcomeGeneration - 1);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false);
+  assert.equal(state.outcomeAddress, "0xabc");
 });
 
 function swapRuntime() {
@@ -600,7 +858,7 @@ test("focus-only detection never grants ownership, even after a guided launch", 
     state.startCurrentStep();
     state.runStepAction("help");
     assert.equal(state.helpProcess.running, false);
-    assert.match(state.characterMessage, /NO COURSE WINDOW/);
+    assert.match(state.characterMessage, /REOPEN THE PRACTICE WINDOW/);
   }
 });
 
@@ -1033,21 +1291,58 @@ test("lesson starts resume bookmarks but explicit replay and practice start at t
   assert.equal(state.practiceMode, true);
 });
 
-test("selecting the tour always restarts its welcome and opening scene", () => {
-  for (const character of ["owl", "hexon"]) {
+test("Welcome lesson replays the selected coach without clearing existing progress", () => {
+  for (const character of ["ohm-1", "owl"]) {
+    const { state, screens } = introRuntime();
+    state.characterStore.select(character);
+    state.welcomeSeen = true;
+    state.stepResults = { "tour-workspaces": "introduced", "launch-terminal": "practiced" };
+    state.stepCredits = { "tour-workspaces": true, "launch-terminal": true };
+    state.completedLessons = { "everyday-apps": true };
+    state.lessonBookmarks = { windows: "windows-swap" };
+    const progress = JSON.stringify([state.stepResults, state.stepCredits, state.completedLessons, state.lessonBookmarks]);
+    state.startLesson(0);
+    assert.equal(state.phase, "welcome");
+    assert.equal(state.welcomeStage, "scene");
+    assert.equal(state.characterName, character);
+    assert.equal(state.lessonIndex, -1);
+    assert.equal(state.practiceMode, false);
+    state.beginIntroScene();
+    assert.equal(screens[0].player.plays, 1);
+    screens[0].player.finish();
+    state.flushCallbacks();
+    state.welcomeArrived(state.introGeneration);
+    assert.equal(state.welcomeStage, "welcome");
+    state.advanceWelcome(state.introGeneration, "welcome");
+    assert.equal(state.course.lessons[state.selectedLessonIndex].id, "omarchy-tour");
+    state.finishWelcome();
+    assert.equal(state.phase, "menu");
+    assert.equal(JSON.stringify([state.stepResults, state.stepCredits, state.completedLessons, state.lessonBookmarks]), progress);
+    assert.equal(state.lessonCompleted(state.course.lessons[0]), true);
+    state.startLesson(0, true, false);
+    assert.equal(state.phase, "welcome", "Practice shortcut replays rather than starting an empty exercise");
+    assert.equal(state.practiceMode, false);
+  }
+});
+
+test("selecting the tour restarts its first activity without a pack entrance", () => {
+  for (const character of ["owl", "ohm-1"]) {
     const state = runtime("tour-omarchy-menu", false);
+    state.startCharacterStep = state.productionStartCharacterStep;
     state.characterStore.select(character);
     state.lessonBookmarks["omarchy-tour"] = "tour-omarchy-menu";
     state.completedLessons["omarchy-tour"] = true;
-    state.startLesson(0);
+    const tourIndex = state.course.lessons.findIndex((lesson: any) => lesson.id === "omarchy-tour");
+    state.startLesson(tourIndex);
     assert.equal(state.currentStep.id, "tour-welcome");
-    assert.equal(state.introRequested, true);
+    assert.equal(state.introActive, false);
+    assert.equal(state.welcomeStage, "");
     assert.equal(state.completedLessons["omarchy-tour"], true);
-    state.startLesson(0, false, false);
-    assert.equal(state.introRequested, true);
-    state.startLesson(0, true, false);
+    state.startLesson(tourIndex, false, false);
+    assert.equal(state.introActive, false);
+    state.startLesson(tourIndex, true, false);
     assert.equal(state.currentStep.id, "tour-welcome");
-    assert.equal(state.introRequested, false);
+    assert.equal(state.introActive, false);
   }
 });
 
@@ -1322,6 +1617,22 @@ test("measured bar geometry distinguishes the workspace group from individual nu
   assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0), null);
 });
 
+test("the menu-opening result targets only its center card, while the following stop targets the icon", () => {
+  const state = runtime("tour-omarchy-menu");
+  const screen = state.geometryScreens()[0];
+  const widgets = [{ id: "omarchy.menu", x: 9, y: 0, width: 32, height: 30, visible: true, itemVisible: true }];
+  const update = () => assert.equal(state.parseProviderGeometry(
+    JSON.stringify({ version: 1, screens: [{ ...screen, widgets }] }), state.geometryScreens()), true);
+  update();
+  assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0), null);
+  widgets.push({ id: "panel:omarchy-menu", x: 785, y: 248, width: 350, height: 705, visible: true, itemVisible: true });
+  update();
+  assert.deepEqual(JSON.parse(JSON.stringify(state.barTargetGeometry(state.currentStep.highlight, 0))),
+    { x: 785, y: 248, width: 350, height: 705, panel: true });
+  const icon = state.currentLesson.steps.find((step: any) => step.id === "tour-menu-icon");
+  assert.equal(state.barTargetGeometry(icon.highlight, 0).x, 9);
+});
+
 test("monitor-tagged measurements select the right output even with identical monitor sizes", () => {
   const state = runtime("tour-clock");
   state.Quickshell.screens.push({ name: "DP-1", x: 1920, y: 0, width: 1920, height: 1200 });
@@ -1472,7 +1783,7 @@ test("unrelated windows cannot complete an activity while shortcut capture is in
 
 test("motion and sound settings are bounded when loaded", () => {
   const state = runtime("open-root-menu");
-  state.loadSettings(JSON.stringify({ character: "hexon", speechVolume: 1000, effectsVolume: -5,
+  state.loadSettings(JSON.stringify({ character: "ohm-1", speechVolume: 1000, effectsVolume: -5,
     speechRate: 20, textScale: 5, motionReduced: true, autoAdvance: false, audioEnabled: false }));
   assert.equal(state.speechVolume, 100);
   assert.equal(state.effectsVolume, 0);
@@ -1541,23 +1852,155 @@ test("muting during the instruction-to-completion handoff still advances", () =>
 
 test("muted tour timing accounts for the text the learner needs to read", () => {
   const state = runtime("tour-clock");
-  assert.ok(state.tourFallbackDuration() >= 18000);
+  assert.ok(state.tourFallbackDuration() >= state.readingDuration(state.currentStep.instruction));
 });
 
-test("skipping the opening scene keeps the welcome activity", () => {
+test("tour Details holds timed captions and stale callbacks, then gives fresh reading time", () => {
+  const state = runtime("tour-clock");
+  state.beginTourNarration();
+  assert.equal(state.tourAdvanceTimer.running, true);
+  state.tourDetailsExpanded = true;
+  state.updateTourDetails();
+  assert.equal(state.tourAdvanceTimer.running, false);
+  state.beginTourNarration();
+  state.scheduleTourAdvance();
+  state.advanceTour();
+  assert.equal(state.currentStep.id, "tour-clock");
+  assert.equal(state.tourAdvanceTimer.running, false);
+  state.tourDetailsExpanded = false;
+  state.updateTourDetails();
+  assert.equal(state.tourAdvanceTimer.running, true);
+  assert.ok(state.tourAdvanceTimer.interval >= state.readingDuration(state.currentStep.detail));
+  state.advanceTour();
+  assert.notEqual(state.currentStep.id, "tour-clock");
+  assert.match(shell, /onTriggered: root\.advanceTour\(\)/);
+});
+
+test("tour narration continues through Details and collapse never cuts speech short", () => {
+  for (const closeBeforeEnd of [true, false]) {
+    for (const exitCode of [0, 1]) {
+      const state = runtime("tour-clock");
+      state.audioEnabled = true;
+      state.beginTourNarration();
+      assert.equal(state.audioProcess.running, true);
+      state.tourDetailsExpanded = true;
+      state.updateTourDetails();
+      assert.equal(state.audioProcess.running, true);
+      if (closeBeforeEnd) {
+        state.tourDetailsExpanded = false;
+        state.updateTourDetails();
+        state.advanceTour();
+        assert.equal(state.tourAdvanceTimer.running, false);
+        assert.equal(state.currentStep.id, "tour-clock");
+      }
+      state.audioProcess.running = false;
+      state.audioExited(exitCode);
+      assert.equal(state.tourAdvanceTimer.running, closeBeforeEnd);
+      if (!closeBeforeEnd) {
+        state.advanceTour();
+        assert.equal(state.currentStep.id, "tour-clock");
+        state.tourDetailsExpanded = false;
+        state.updateTourDetails();
+      }
+      assert.equal(state.tourAdvanceTimer.running, true);
+      assert.ok(state.tourAdvanceTimer.interval >= state.narrationRestMs);
+    }
+  }
+});
+
+test("tour Details gates mute fallback, replay, manual mode, pause, and transitions", () => {
+  const state = runtime("tour-clock");
+  state.audioEnabled = true;
+  state.beginTourNarration();
+  state.tourDetailsExpanded = true;
+  state.updateTourDetails();
+  state.toggleAudio();
+  state.audioExited(0);
+  assert.equal(state.tourAdvanceTimer.running, false);
+  state.toggleAudio();
+  assert.equal(state.audioProcess.running, true);
+  state.replayCurrentAudio();
+  assert.equal(state.audioProcess.running, false);
+  assert.equal(state.tourAdvanceTimer.running, false);
+  state.Qt.callLater = (callback: () => void) => callback();
+  state.audioExited(0);
+  assert.equal(state.audioProcess.running, true);
+  state.audioProcess.running = false;
+  state.audioExited(0);
+  state.tourDetailsExpanded = false;
+  state.pendingLessonTransition = "step";
+  for (const [key, value] of [
+    ["autoAdvance", false], ["phase", "paused"], ["phase", "settings"],
+    ["lessonTransitionRunning", true], ["audioStopRequested", true],
+    ["pendingAudioPath", state.currentAudioPath()],
+  ] as const) {
+    const original = state[key];
+    state[key] = value;
+    state.updateTourDetails();
+    state.advanceTour();
+    assert.equal(state.tourAdvanceTimer.running, false, key);
+    assert.equal(state.currentStep.id, "tour-clock", key);
+    state[key] = original;
+  }
+  state.tourDetailsExpanded = true;
+  state.advance();
+  assert.notEqual(state.currentStep.id, "tour-clock", "manual Next is not gated");
+});
+
+test("tour fallback survives stopped prior narration and the incoming transition", () => {
+  const state = runtime("tour-clock", false);
+  state.audioStopRequested = true;
+  state.audioProcessPath = "/course/audio/ohm-1/prior-step.mp3";
+  state.beginTourNarration();
+  assert.equal(state.tourAdvanceTimer.running, false);
+  state.lessonTransitionRunning = true;
+  state.pendingLessonTransition = "";
+  state.audioExited(0);
+  assert.equal(state.tourAdvanceTimer.running, true);
+  state.advanceTour();
+  assert.equal(state.currentStep.id, "tour-clock");
+  state.lessonTransitionRunning = false;
+  state.advanceTour();
+  assert.equal(state.pendingLessonTransition, "step");
+});
+
+test("detected layer results explain keyboard ownership without releasing or repeating instructions", () => {
+  const state = runtime("calendar-panel");
+  assert.equal(state.openedToolKeyboardHint(), "");
+  state.phase = "highlight";
+  assert.equal(state.openedToolKeyboardHint(), "Use Release Keys to interact with the opened tool.");
+  assert.equal(state.keyboardExclusive, true);
+  state.keyboardExclusive = false;
+  assert.equal(state.openedToolKeyboardHint(), "");
+  state.keyboardExclusive = true;
+  state.currentStep.completionMessage = "Choose Release Keys before typing or browsing here.";
+  assert.equal(state.openedToolKeyboardHint(), "");
+  state.currentStep.completionMessage = "After releasing the keys, select an entry.";
+  assert.equal(state.openedToolKeyboardHint(), "");
+  state.currentStep.completionMessage = "Done.";
+  state.currentStep.completion.type = "hyprland-event";
+  assert.equal(state.openedToolKeyboardHint(), "");
+});
+
+test("skipping the opening scene still travels to the standalone welcome", () => {
   const state = runtime("tour-welcome");
   state.characterState = "intro";
   state.introActive = true;
+  state.phase = "welcome";
+  state.welcomeStage = "scene";
   state.Qt.callLater = (callback: () => void) => callback();
   state.skipIntroScene();
-  assert.equal(state.characterState, state.tourRestingState);
-  assert.equal(state.tourAdvanceTimer.running, true);
+  assert.equal(state.characterState, "tour-fly");
+  assert.equal(state.welcomeStage, "center-flight");
+  assert.equal(state.tourAdvanceTimer.running, false);
   assert.equal(state.introActive, false);
   assert.equal(state.currentStep.id, "tour-welcome");
 });
 
 function introRuntime(reducedMotion = false) {
   const state = runtime("tour-welcome", reducedMotion);
+  state.phase = "menu";
+  state.lessonIndex = -1;
   const deferred: Array<() => void> = [];
   state.Qt.callLater = (callback: () => void) => deferred.push(callback);
   state.flushCallbacks = () => { while (deferred.length) deferred.shift()!(); };
@@ -1613,7 +2056,7 @@ function introRuntime(reducedMotion = false) {
   return { state, screens };
 }
 
-test("saved selection and first-run tour wait for resolved pack readiness", () => {
+test("saved selection and first-run welcome wait for resolved pack readiness", () => {
   const state = runtime("tour-welcome");
   state.phase = "menu";
   state.lessonIndex = -1;
@@ -1626,11 +2069,265 @@ test("saved selection and first-run tour wait for resolved pack readiness", () =
   assert.equal(state.lessonIndex, -1);
   state.characterStore.ready = true;
   state.characterPacksReady();
-  assert.equal(state.lessonIndex, 0);
-  assert.equal(state.tourSeen, true);
-  assert.equal(state.introRequested, true);
+  assert.equal(state.lessonIndex, -1);
+  assert.equal(state.tourSeen, false);
+  assert.equal(state.welcomeSeen, true);
+  assert.equal(state.introActive, true);
   state.characterPacksReady();
-  assert.equal(state.currentStep.id, "tour-welcome");
+  assert.equal(state.phase, "welcome");
+});
+
+test("welcome migrates prior use but not empty progress, regardless of load order", () => {
+  for (const settingsFirst of [true, false]) {
+    for (const prior of ["none", "tour", "completed", "steps", "bookmark"]) {
+      const state = runtime("tour-welcome");
+      state.phase = "menu";
+      state.lessonIndex = -1;
+      state.settingsResolved = false;
+      state.progressResolved = false;
+      let saved: any;
+      state.settingsFile.setText = (text: string) => saved = JSON.parse(text);
+      const settings = JSON.stringify({ character: "owl", tourSeen: prior === "tour" });
+      const progress = JSON.stringify({
+        schemaVersion: 2,
+        courses: { "old-course": prior === "completed" ? ["old-lesson"] : [] },
+        details: { "old-course": prior === "steps" ? { steps: { old: "skipped" } }
+          : prior === "bookmark" ? { bookmarks: { lesson: "step" } } : {} },
+      });
+      if (settingsFirst) {
+        state.loadSettings(settings);
+        assert.equal(state.phase, "menu");
+        state.loadProgress(progress);
+      } else {
+        state.loadProgress(progress);
+        assert.equal(state.phase, "menu");
+        state.loadSettings(settings);
+      }
+      assert.equal(state.phase, prior === "none" ? "welcome" : "menu", `${settingsFirst}/${prior}`);
+      assert.equal(state.lessonIndex, -1);
+      assert.equal(saved.welcomeSeen, true);
+      state.finishWelcome();
+      state.enterHome();
+      assert.equal(state.phase, "menu");
+      const returning = runtime("tour-welcome");
+      returning.phase = "menu";
+      returning.lessonIndex = -1;
+      returning.loadSettings(JSON.stringify(saved));
+      assert.equal(returning.phase, "menu");
+    }
+  }
+});
+
+test("first coach choice precedes entrance and confirmed reset replays after Done and choice", () => {
+  const { state } = introRuntime();
+  state.savedCharacter = "";
+  state.welcomeSeen = false;
+  state.loadSettings("{}");
+  assert.equal(state.phase, "settings");
+  assert.equal(state.introActive, false);
+  state.chooseCharacter("owl");
+  assert.equal(state.phase, "welcome");
+  assert.equal(state.characterName, "owl");
+  state.finishWelcome();
+  state.openSettings("settings");
+  let saved: any;
+  state.settingsFile.setText = (text: string) => saved = JSON.parse(text);
+  state.requestResetProgress();
+  assert.equal(state.welcomeSeen, true);
+  state.requestResetProgress();
+  assert.equal(saved.welcomeSeen, false);
+  assert.equal(saved.tourSeen, false);
+  assert.equal(state.phase, "settings");
+  state.closeSettings();
+  assert.equal(state.settingsMode, "first-run");
+  assert.equal(state.phase, "settings");
+  state.chooseCharacter("custom-coach");
+  assert.equal(state.phase, "welcome");
+  assert.equal(state.characterName, "custom-coach");
+  assert.equal(state.lessonIndex, -1);
+});
+
+test("confirmed reset clears completed tour results and credits across a saved reload", () => {
+  for (const fromLesson of [false, true]) {
+    const state = runtime("tour-welcome");
+    const steps = Object.fromEntries(state.currentLesson.steps.map((step: { id: string }) => [step.id, "introduced"]));
+    state.loadProgress(JSON.stringify({
+      schemaVersion: 2,
+      courses: { [state.course.id]: ["omarchy-tour"] },
+      details: { [state.course.id]: { steps, credits: Object.fromEntries(Object.keys(steps).map(id => [id, true])),
+        bookmarks: { "omarchy-tour": "tour-workspaces" } } },
+    }));
+    assert.equal(state.completedLessons["omarchy-tour"], true);
+    if (!fromLesson) { state.lessonIndex = -1; state.phase = "menu"; }
+    state.openSettings("settings");
+    let savedProgress = "";
+    let savedSettings = "";
+    state.progressFile.setText = (text: string) => { savedProgress = text; };
+    state.settingsFile.setText = (text: string) => { savedSettings = text; };
+    state.requestResetProgress();
+    assert.equal(state.resetConfirmPending, true);
+    assert.equal(state.completedLessons["omarchy-tour"], true);
+    assert.equal(savedProgress, "", "asking for confirmation must not erase progress");
+    state.requestResetProgress();
+    assert.equal(state.resetConfirmPending, false);
+    assert.equal(Boolean(state.completedLessons["omarchy-tour"]), false);
+    assert.equal(state.lessonIndex, -1);
+    const restored = runtime("tour-welcome");
+    restored.phase = "settings";
+    restored.loadSettings(savedSettings);
+    restored.loadProgress(savedProgress);
+    assert.equal(restored.completedLessons["omarchy-tour"], false);
+    assert.equal(Object.keys(restored.stepResults).length, 0);
+    assert.equal(Object.keys(restored.stepCredits).length, 0);
+    assert.equal(Object.keys(restored.lessonBookmarks).length, 0);
+    assert.equal(restored.tourSeen, false);
+    assert.equal(restored.welcomeSeen, false);
+  }
+});
+
+test("an explicit reset flag overrides legacy use and a character override skips only the picker", () => {
+  const state = runtime("tour-welcome");
+  state.phase = "menu";
+  state.lessonIndex = -1;
+  state.characterOverride = "owl";
+  state.progressByCourse = { other: ["completed-lesson"] };
+  state.loadSettings(JSON.stringify({ tourSeen: true, welcomeSeen: false }));
+  assert.equal(state.phase, "welcome");
+  state.finishWelcome();
+  state.openSettings("settings");
+  state.requestResetProgress();
+  state.requestResetProgress();
+  state.closeSettings();
+  assert.equal(state.phase, "welcome");
+  assert.equal(state.welcomeStage, "scene");
+});
+
+test("welcome keyboard controls skip scenery, show lessons, or dismiss without starting a tour", () => {
+  const { state } = introRuntime(true);
+  Object.assign(state.Qt, { NoModifier: 0, Key_Return: 13, Key_Enter: 10, Key_Space: 32, Key_Escape: 27 });
+  const press = (key: number) => {
+    const event = { key, modifiers: 0, accepted: false };
+    state.handleKeyPressed(event);
+    assert.equal(event.accepted, true);
+  };
+  state.startIntro();
+  press(13);
+  state.flushCallbacks();
+  assert.equal(state.welcomeStage, "center-flight");
+  state.welcomeArrived(state.introGeneration);
+  press(32);
+  assert.equal(state.phase, "menu");
+  assert.equal(state.lessonIndex, -1);
+  state.startIntro();
+  press(27);
+  assert.equal(state.phase, "menu");
+  assert.equal(state.welcomeStage, "");
+  assert.equal(state.lessonIndex, -1);
+});
+
+test("arrival and reading handoffs reveal an unstarted menu and preserve free lesson choice", () => {
+  const { state, screens } = introRuntime();
+  state.selectedLessonIndex = 5;
+  state.startIntro();
+  state.beginIntroScene();
+  screens[0].player.finish();
+  state.flushCallbacks();
+  assert.equal(state.welcomeReadTimer.running, false);
+  state.welcomeArrived(state.introGeneration);
+  assert.equal(state.welcomeStage, "welcome");
+  assert.equal(state.welcomeReadTimer.running, false, "caption visibility starts the reading clock");
+  state.welcomeCaptionShown();
+  assert.ok(state.welcomeReadTimer.interval >= state.readingDuration(state.welcomeText));
+  state.advanceWelcome(state.welcomeReadTimer.generation, state.welcomeReadTimer.stage);
+  assert.equal(state.phase, "menu");
+  assert.equal(state.course.lessons[state.selectedLessonIndex].id, "omarchy-tour");
+  assert.equal(state.lessonIndex, -1);
+  assert.equal(state.welcomeStage, "menu-flight");
+  state.welcomeArrived(state.introGeneration);
+  assert.equal(state.welcomeStage, "recommendation");
+  assert.equal(state.characterState, "menu-point");
+  state.welcomeCaptionShown();
+  state.advanceWelcome(state.welcomeReadTimer.generation, state.welcomeReadTimer.stage);
+  assert.equal(state.welcomeStage, "");
+  assert.equal(state.phase, "menu");
+  assert.equal(state.lessonIndex, -1);
+  assert.equal(state.audioProcess.running, false);
+});
+
+test("Ohm-1's approved greeting is character-specific and retains its spoken pause", () => {
+  const state = runtime("tour-welcome");
+  state.welcomeStage = "welcome";
+  assert.match(state.welcomeText, /^Hi! I'm Ohm-1, but you can call me Ohm for short\./);
+  state.characterStore.select("owl");
+  assert.match(state.welcomeText, /^Hi! I'm OLLIE\. Welcome to Omarchy\./);
+  assert.doesNotMatch(state.welcomeText, /Ohm/);
+});
+
+test("welcome copy explains the benefits and the menu follow-up avoids repeating them", () => {
+  const { state } = introRuntime();
+  state.characterStore.select("custom-coach");
+  state.welcomeStage = "welcome";
+  assert.match(state.welcomeText, /^Hi! I'm CUSTOM-COACH\. Welcome to Omarchy\./);
+  assert.match(state.welcomeText, /You'll learn by doing/);
+  assert.match(state.welcomeText, /Find what works for you\. Your desktop\. Your way\.$/);
+  assert.doesNotMatch(state.welcomeText, /HEXON|OLLIE|Let's take a quick tour/);
+  state.welcomeStage = "recommendation";
+  assert.match(state.welcomeText, /The Omarchy tour is a good starting point/);
+  assert.match(state.welcomeText, /there's no required order/);
+  assert.doesNotMatch(state.welcomeText, /I'm|shortcuts can change|learn by doing/);
+  assert.equal(state.currentAudioPath(), "");
+});
+
+test("the startup splash defers the welcome and releases it only once", () => {
+  const { state } = introRuntime();
+  state.phase = "menu";
+  state.welcomeSeen = false;
+  state.welcomeSettingPresent = true;
+  state.splashActive = true;
+  assert.equal(state.maybeBeginWelcome(), false);
+  assert.equal(state.introActive, false);
+  state.finishSplash();
+  assert.equal(state.splashActive, false);
+  assert.equal(state.introActive, true);
+  const generation = state.introGeneration;
+  state.finishSplash();
+  assert.equal(state.introGeneration, generation);
+});
+test("early lesson selection, Settings, coach changes and skip invalidate all welcome callbacks", () => {
+  for (const stage of ["scene", "center-flight", "welcome", "menu-flight", "recommendation"]) {
+    for (const action of ["lesson", "settings", "coach", "skip", "close"]) {
+      const { state, screens } = introRuntime();
+      state.startIntro();
+      state.beginIntroScene();
+      if (stage !== "scene") {
+        screens[0].player.finish();
+        state.flushCallbacks();
+        if (stage !== "center-flight") state.welcomeArrived(state.introGeneration);
+        if (stage === "menu-flight" || stage === "recommendation")
+          state.advanceWelcome(state.introGeneration, "welcome");
+        if (stage === "recommendation") state.welcomeArrived(state.introGeneration);
+      }
+      state.welcomeCaptionShown();
+      const generation = state.introGeneration;
+      if (action === "lesson") state.startLesson(1);
+      else if (action === "settings") state.openSettings("settings");
+      else if (action === "coach") state.applyCharacter("owl");
+      else if (action === "skip") state.finishWelcome();
+      else state.cancelIntro();
+      const phase = state.phase;
+      state.finishIntro(generation);
+      state.welcomeArrived(generation);
+      state.advanceWelcome(generation, stage);
+      state.flushCallbacks();
+      assert.equal(state.phase, phase, `${stage}/${action}`);
+      assert.equal(state.welcomeStage, "");
+      assert.equal(state.introActive, false);
+      assert.equal(state.welcomeReadTimer.running, false);
+      assert.equal(screens[0].player.running, false);
+      assert.equal(screens[0].coach.userPlaced, false);
+      if (action === "lesson") assert.equal(state.lessonIndex, 1);
+    }
+  }
 });
 
 test("missing saved selections show the fallback without silently rewriting settings", () => {
@@ -1638,7 +2335,7 @@ test("missing saved selections show the fallback without silently rewriting sett
   state.phase = "menu";
   state.lessonIndex = -1;
   state.loadSettings(JSON.stringify({ character: "removed-coach", tourSeen: true }));
-  assert.equal(state.characterName, "hexon");
+  assert.equal(state.characterName, "ohm-1");
   assert.equal(state.savedCharacter, "removed-coach");
   assert.equal(state.requestedCharacter, "removed-coach");
   assert.match(state.characterNotice, /removed-coach.*unavailable/);
@@ -1686,34 +2383,36 @@ test("only the active display plays an intro and completion hands off exactly on
   assert.equal(state.characterTourArrivalTimer.running, false);
   state.flushCallbacks();
   assert.equal(screens[0].coach.userPlaced, false);
-  assert.equal(state.characterTourArrivalTimer.running, true);
+  assert.equal(state.characterTourArrivalTimer.running, false);
   assert.equal(state.introDeparting, true);
   assert.equal(state.tourAdvanceTimer.running, false);
-  assert.equal(state.currentStep.id, "tour-welcome");
+  assert.equal(state.lessonIndex, -1);
+  assert.equal(state.welcomeStage, "center-flight");
 });
 
 test("skip, failure and reduced motion keep the same welcome and narrate only after arrival", () => {
   for (const finish of ["skip", "failure", "reduced"] as const) {
     const { state, screens } = introRuntime(finish === "reduced");
-    state.introRequested = true;
-    state.startCharacterStep();
+    state.startIntro();
     state.beginIntroScene();
     assert.equal(screens[0].player.plays, 1);
     assert.equal(screens[0].player.reducedMotion, finish === "reduced");
     assert.equal(state.tourAdvanceTimer.running, false);
-    if (finish === "skip") state.skipCurrentStep();
+    if (finish === "skip") state.skipIntroScene();
     else if (finish === "failure") screens[0].player.fail("Missing optional intro asset");
     else screens[0].player.finish();
     state.flushCallbacks();
-    assert.equal(state.currentStep.id, "tour-welcome");
+    assert.equal(state.lessonIndex, -1);
     assert.equal(state.introActive, false);
-    assert.equal(state.characterTourArrivalTimer.running, finish !== "reduced");
-    assert.equal(state.tourAdvanceTimer.running, finish === "reduced");
+    assert.equal(state.characterTourArrivalTimer.running, false);
+    assert.equal(state.tourAdvanceTimer.running, false);
+    assert.equal(state.welcomeStage, "center-flight");
     if (finish === "failure") assert.match(state.introNotice, /Missing optional intro asset/);
-    state.characterState = state.tourRestingState;
-    state.beginTourNarration();
+    state.welcomeArrived(state.introGeneration);
     assert.equal(state.introDeparting, false);
-    assert.equal(state.tourAdvanceTimer.running, true);
+    assert.equal(state.characterState, "tour-talk");
+    assert.equal(state.welcomeStage, "welcome");
+    assert.equal(state.tourAdvanceTimer.running, false);
   }
 });
 
@@ -1756,10 +2455,9 @@ test("first ascent keeps its gentle timing and defers narration despite audio co
   assert.equal(state.tourAdvanceTimer.running, false);
   state.toggleAudio();
   assert.equal(state.tourAdvanceTimer.running, false);
-  state.characterState = state.tourRestingState;
-  state.beginTourNarration();
+  state.welcomeArrived(state.introGeneration);
   assert.equal(state.introDeparting, false);
-  assert.equal(state.tourAdvanceTimer.running, true);
+  assert.equal(state.tourAdvanceTimer.running, false);
   assert.equal(state.travelDurationForDistance(10, state.introDeparting), 420);
 });
 
@@ -1775,9 +2473,9 @@ test("changing displays cancels the old intro and rejects its later completion",
   assert.equal(state.introActive, false);
   assert.equal(screens[0].player.running, false);
   assert.equal(screens[1].player.plays, 0);
-  assert.equal(state.characterTourArrivalTimer.running, true);
+  assert.equal(state.characterTourArrivalTimer.running, false);
   state.finishIntro(generation);
-  assert.equal(state.currentStep.id, "tour-welcome");
+  assert.equal(state.welcomeStage, "center-flight");
 });
 
 test("an initially unavailable focused display can claim the pending intro later", () => {
@@ -1795,8 +2493,7 @@ test("an initially unavailable focused display can claim the pending intro later
 
 test("switching packs in paused settings keeps lesson progress and window ownership", () => {
   const { state, screens } = introRuntime();
-  state.startIntro();
-  state.beginIntroScene();
+  state.startLesson(state.course.lessons.findIndex((lesson: any) => lesson.id === "omarchy-tour"));
   const generation = state.introGeneration;
   state.tutorialWindows = ["0x123"];
   state.tutorialWindowsByStep = { "launch-terminal": "0x123" };
@@ -1843,7 +2540,8 @@ test("narration policy suppresses borrowed name lines, disables Replay, and keep
   state.chooseCharacter("custom-coach");
   state.phase = "waiting";
   state.audioEnabled = true;
-  state.characterStore.selectedPack.manifest.narration = { mode: "borrowed", audioSet: "hexon" };
+  state.characterStore.selectedPack.manifest.narration = { mode: "borrowed", audioSet: "ohm-1" };
+  state.currentStep.instruction = "Hi, I'm HEXON.";
   assert.match(state.currentStep.instruction, /HEXON/);
   assert.equal(state.currentAudioPath(), "");
   assert.match(state.characterText(state.currentStep.instruction), /CUSTOM-COACH/);
@@ -1856,6 +2554,48 @@ test("narration policy suppresses borrowed name lines, disables Replay, and keep
   state.currentStep.completionAudio = "audio/result.mp3";
   assert.equal(state.completionAudioPath(), "");
   assert.match(shell, /visible: root\.phase === "waiting" && !root\.introActive && root\.currentAudioPath\(\) !== ""/);
+});
+
+test("center welcome has its own narration and waits for speech rather than reading time", () => {
+  const state = runtime("tour-welcome");
+  state.phase = "welcome";
+  state.welcomeStage = "welcome";
+  state.audioEnabled = true;
+  state.welcomeCaptionShown();
+  assert.equal(state.welcomeSpeech.running, true);
+  assert.match(state.welcomeSpeech.command.at(-1), /audio\/ohm-1\/host-welcome\.mp3$/);
+  assert.equal(state.welcomeReadTimer.running, false);
+  state.welcomeSpeech.running = false;
+  state.welcomeSpeechExited(0, state.introGeneration);
+  assert.equal(state.welcomeReadTimer.running, true);
+  assert.equal(state.welcomeReadTimer.interval, state.narrationRestMs);
+});
+
+test("cancelled welcome speech cannot advance a later scene and failure uses reading time", () => {
+  const state = runtime("tour-welcome");
+  state.phase = "welcome";
+  state.welcomeStage = "welcome";
+  state.audioEnabled = true;
+  state.welcomeCaptionShown();
+  const generation = state.introGeneration;
+  state.cancelIntro();
+  state.welcomeSpeechExited(0, generation);
+  assert.equal(state.welcomeReadTimer.running, false);
+  state.phase = "welcome";
+  state.welcomeStage = "welcome";
+  state.welcomeCaptionShown();
+  state.welcomeSpeech.running = false;
+  state.welcomeSpeechExited(1, state.introGeneration);
+  assert.ok(state.welcomeReadTimer.interval >= state.readingDuration(state.welcomeText));
+});
+
+test("tour opening begins orientation without repeating the welcome", () => {
+  const state = runtime("tour-welcome");
+  assert.match(state.currentStep.instruction, /highlighted desktop bar/);
+  assert.match(state.currentStep.instruction, /Super is the Windows key/);
+  assert.doesNotMatch(state.currentStep.instruction, /Welcome|I'm|HEXON|Archie|OLLIE|learn by doing/);
+  assert.doesNotMatch(shell, /SKIP SCENE/);
+  assert.match(shell, /id: welcomeControls\s+visible: root\.phase === "welcome" && root\.welcomeStage === "welcome"/);
 });
 
 test("main rendering contains no coach-specific manifest paths or intro choreography", () => {
@@ -1882,7 +2622,7 @@ test("pack names preserve Unicode, markup and replacement characters literally",
   state.characterStore.selectedPack.manifest.displayName = name;
   assert.equal(state.characterText("Meet HEXON. HEXON can help."), `Meet ${name}. ${name} can help.`);
   for (const expression of [
-    "button.label", "button.description", "characterCard.modelData.manifest.displayName",
+    "button.label", 'button.description === button.label ? button.label : button.label + "\\n" + button.description', "characterCard.modelData.manifest.displayName",
     'characterCard.modelData.manifest.description || ""',
     "root.characterText(lessonCard.modelData.description)",
     'coachArt.errorMessage + "\\nOpen Settings to choose another coach."',
@@ -1896,6 +2636,7 @@ test("pack names preserve Unicode, markup and replacement characters literally",
 
 test("intro sounds accept only allowlisted cues from the active generation and respect preferences", () => {
   const state = runtime("tour-welcome", false);
+  state.phase = "welcome";
   state.introActive = true;
   state.audioEnabled = true;
   state.playIntroSound("rocket-land.opus", state.introGeneration);

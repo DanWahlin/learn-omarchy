@@ -89,7 +89,7 @@ Item {
         function test_switchCancelsOldSequence() {
             player.sequence = simple(140)
             player.play()
-            player.assetRoot = Qt.resolvedUrl("../../assets/characters/hexon").toString()
+            player.assetRoot = Qt.resolvedUrl("../../assets/characters/ohm-1").toString()
             compare(cancelled.count, 1)
             wait(180)
             compare(done.count, 0)
@@ -209,7 +209,7 @@ Item {
             compare(player.characterVisible, true)
             tryCompare(failed, "count", 1, 400)
             compare(done.count, 0)
-            player.assetRoot = Qt.resolvedUrl("../../assets/characters/hexon").toString()
+            player.assetRoot = Qt.resolvedUrl("../../assets/characters/ohm-1").toString()
             player.sequence = { version: 1,
                 layers: [{ id: "missing", type: "image", images: ["sprites/does-not-exist.png"] }],
                 steps: [{ type: "wait", duration: 5000 }] }
@@ -231,7 +231,7 @@ Item {
             compare(Timeline.sample(timeline, 0, 2000, 1000, sizes).character.x, 1125)
         }
         function test_officialScenes_data() {
-            return [{ tag: "HEXON", pack: "assets/characters/hexon" },
+            return [{ tag: "HEXON", pack: "assets/characters/ohm-1" },
                     { tag: "OLLIE", pack: "assets/characters/owl" },
                     { tag: "SPARK", pack: "examples/characters/spark" }]
         }

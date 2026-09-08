@@ -36,7 +36,7 @@ Item {
       sprite.assetRoot = Qt.resolvedUrl("../../assets/characters/" + name).toString()
       tryCompare(sprite, "errorMessage", "")
     }
-    function test_presentation_data() { return [{ tag: "HEXON", name: "hexon" }, { tag: "OLLIE", name: "owl" }] }
+    function test_presentation_data() { return [{ tag: "HEXON", name: "ohm-1" }, { tag: "OLLIE", name: "owl" }] }
     function test_presentation(data) {
       configure(data.name)
       var start = sprite.elapsed
@@ -71,7 +71,7 @@ Item {
     }
 
     function test_poseTransitions_data() {
-      return [{ tag: "HEXON", name: "hexon" }, { tag: "OLLIE", name: "owl" }]
+      return [{ tag: "HEXON", name: "ohm-1" }, { tag: "OLLIE", name: "owl" }]
     }
 
     function test_poseTransitions(data) {
@@ -100,7 +100,7 @@ Item {
     }
 
     function test_flightFacingDoesNotMoveLandingLandmarks() {
-      configure("hexon")
+      configure("ohm-1")
       sprite.landmarkFacing = -1
       var x = sprite.upTipX
       var y = sprite.upTipY
@@ -114,7 +114,7 @@ Item {
     }
 
     function test_staticModesDoNotLeaveHalfBlendedSprites() {
-      configure("hexon")
+      configure("ohm-1")
       sprite.pose = "point"
       sprite.reducedMotion = true
       compare(sprite.poseBlend, 1)
@@ -131,10 +131,10 @@ Item {
     }
 
     function test_thirdPackSingleFrameRolesDoNotAssumeOfficialStripLengths() {
-      configure("hexon")
+      configure("ohm-1")
       var geometry = { frameWidth: 224, scale: 1, offset: { x: 0, y: 0 },
         tip: { x: 165, y: 75 } }
-      var single = { path: "sprites/hexon-point.png", frameWidth: 224, frameHeight: 192, frames: 1 }
+      var single = { path: "sprites/ohm-1-point.png", frameWidth: 224, frameHeight: 192, frames: 1 }
       sprite.config = {
         formatVersion: 1, id: "third-coach", displayName: "Third coach",
         sprites: { idle: single, talk: single, point: single, "point-up": single },
@@ -144,7 +144,7 @@ Item {
       }
       sprite.animated = false
       compare(sprite.frameCount, 1)
-      compare(sprite.spriteSource("idle"), sprite.assetRoot + "/sprites/hexon-point.png")
+      compare(sprite.spriteSource("idle"), sprite.assetRoot + "/sprites/ohm-1-point.png")
       compare(sprite.flameSockets.length, 0)
       sprite.elapsed = 3100
       compare(sprite.currentFrame, 0)
@@ -162,26 +162,27 @@ Item {
     }
 
     function test_metadataTimelinesAndRates() {
-      configure("hexon")
+      configure("ohm-1")
       sprite.animated = false
-      sprite.elapsed = 2999
+      sprite.elapsed = 5199
       compare(sprite.currentFrame, 0)
-      sprite.elapsed = 3000
+      sprite.elapsed = 5200
       compare(sprite.currentFrame, 11)
-      sprite.elapsed = 3050
+      sprite.elapsed = 5250
       compare(sprite.currentFrame, 12)
-      sprite.elapsed = 3150
+      sprite.elapsed = 5350
       compare(sprite.currentFrame, 13)
-      sprite.elapsed = 3200
+      sprite.elapsed = 5400
       compare(sprite.currentFrame, 0)
       sprite.talking = true
       sprite.elapsed = 250
       compare(sprite.currentFrame, 2)
       sprite.pose = "point-up"
-      sprite.elapsed = 3100
+      sprite.elapsed = 300
+      sprite.blinkElapsed = 5300
       compare(sprite.bodyName, "point-up-blink")
       verify(sprite.speechOverlay)
-      compare(sprite.currentFrame, 0)
+      compare(sprite.currentFrame, 3)
       sprite.reducedMotion = true
       compare(sprite.currentFrame, 0)
       compare(sprite.bodyName, "point-up")
@@ -196,14 +197,58 @@ Item {
       verify(sprite.errorMessage.indexOf("validated version 1") >= 0)
     }
 
+    function test_chestSpeechNeverDrivesTheEyesOrRestartsTheirBlink() {
+      configure("ohm-1")
+      sprite.animated = false
+      sprite.blinkElapsed = 1000
+      compare(sprite.bodyName, "idle")
+      compare(sprite.bodyFrame, 0)
+      compare(sprite.speechFrame, 1)
+      sprite.talking = true
+      compare(sprite.blinkElapsed, 1000)
+      for (var time = 0; time < 4000; time += 100) {
+        sprite.elapsed = time
+        compare(sprite.bodyName, "idle")
+        compare(sprite.bodyFrame, 0)
+      }
+      sprite.blinkElapsed = 5250
+      compare(sprite.bodyFrame, 12)
+      sprite.talking = false
+      compare(sprite.blinkElapsed, 5250)
+      compare(sprite.bodyFrame, 12)
+      compare(sprite.speechFrame, 1)
+      sprite.pose = "point"
+      compare(sprite.bodyName, "point-blink")
+      sprite.talking = true
+      compare(sprite.bodyName, "point-blink")
+      compare(sprite.speech.destination.y, 92)
+      compare(sprite.speech.destination.height, 13)
+      sprite.reducedMotion = true
+      compare(sprite.bodyName, "point")
+      compare(sprite.speechFrame, 0)
+      sprite.talking = false
+      compare(sprite.speechFrame, 1)
+      sprite.reducedMotion = false
+      sprite.pose = "idle"
+      sprite.previewFrame = 12
+      compare(sprite.bodyFrame, 12)
+      sprite.previewFrame = -1
+      configure("owl")
+      sprite.pose = "idle"
+      sprite.talking = true
+      compare(sprite.independentSpeech, false)
+      compare(sprite.bodyName, "talk")
+      compare(sprite.speechOverlay, false)
+    }
+
     function test_atomicPackSwitchesKeepPathsAndDimensionsTogether() {
       configure("owl")
       var owl = { manifest: sprite.config, assetUrl: sprite.assetRoot }
-      configure("hexon")
+      configure("ohm-1")
       var singleManifest = JSON.parse(JSON.stringify(sprite.config))
       singleManifest.id = "single-frame"
       singleManifest.sprites.idle = {
-        path: "sprites/hexon-point.png", frameWidth: 224, frameHeight: 192, frames: 1
+        path: "sprites/ohm-1-point.png", frameWidth: 224, frameHeight: 192, frames: 1
       }
       singleManifest.renderer.poses.idle = singleManifest.renderer.poses.point
       var single = { manifest: singleManifest, assetUrl: sprite.assetRoot }
@@ -224,7 +269,7 @@ Item {
         wait(1)
         compare(sprite.errorMessage, "")
       }
-      configure("hexon")
+      configure("ohm-1")
     }
   }
 }

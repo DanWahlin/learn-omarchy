@@ -7,7 +7,7 @@ QtObject {
   property string appRoot: ""
   property string bundledRoot: appRoot + "/assets/characters"
   property string userRoot: ""
-  property string requestedId: "hexon"
+  property string requestedId: "ohm-1"
   property bool autoLoad: true
 
   readonly property bool ready: _ready
@@ -133,7 +133,8 @@ QtObject {
     // cannot substitute names, so those lines deliberately remain text-only.
     if (narration.mode === "borrowed") {
       var text = String(spokenText || "").toUpperCase()
-      if (text.indexOf("HEXON") >= 0 || text.indexOf("OLLIE") >= 0) return ""
+      if (text.indexOf("HEXON") >= 0 || text.indexOf("ARCHIE") >= 0 || text.indexOf("OMARI") >= 0 ||
+          text.indexOf("OHM-1") >= 0 || /\bOHM\b/.test(text) || text.indexOf("OLLIE") >= 0) return ""
     }
     var relative = String(relativePath)
     var slash = relative.lastIndexOf("/")

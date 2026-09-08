@@ -34,7 +34,7 @@ test("sequential/parallel tracks join at the longest branch, then set once", () 
 });
 
 test("official and independent third sequence are valid with bounded durations and local art", () => {
-  for (const pack of ["assets/characters/hexon", "assets/characters/owl", "examples/characters/spark"]) {
+  for (const pack of ["assets/characters/ohm-1", "assets/characters/owl", "examples/characters/spark"]) {
     const sequence = readSequence(pack);
     assert.deepEqual(validateIntroSequence(sequence), [], pack);
     const timeline = compileIntroSequence(sequence) as { duration: number };
@@ -49,7 +49,7 @@ test("official and independent third sequence are valid with bounded durations a
 });
 
 test("legacy composition retains native aspect, viewport clamps, hatch and ground handoff", () => {
-  const timeline = compileIntroSequence(readSequence("assets/characters/hexon"));
+  const timeline = compileIntroSequence(readSequence("assets/characters/ohm-1"));
   const sizes = { hull: { width: 279, height: 640 }, hatch: { width: 279, height: 640 } };
   const landed = sample(timeline, 2400, 1920, 1080, sizes);
   assert.equal(landed.hull.height, 540);
@@ -133,12 +133,12 @@ test("bounds, conflicting parallel writes, image frame indices and reference cyc
 test("generic player has no character/scene inference or dynamic pack execution", () => {
   const source = ["IntroPlayer.qml", "IntroEffect.qml", "IntroTimeline.js"]
     .map(file => readFileSync(new URL(`../app/${file}`, import.meta.url), "utf8")).join("\n");
-  assert.doesNotMatch(source, /hexon|ollie|introKind|characterFlames|createQmlObject|\beval\s*\(/i);
+  assert.doesNotMatch(source, /ohm-1|ollie|introKind|characterFlames|createQmlObject|\beval\s*\(/i);
   assert.doesNotMatch(source, /(?:===?|!==?)\s*["'](?:rocket|tree)["']/);
 });
 
 test("sound cues are explicit built-ins, scheduled once, and not pack asset paths", () => {
-  const sequence = readSequence("assets/characters/hexon");
+  const sequence = readSequence("assets/characters/ohm-1");
   const timeline = compileIntroSequence(sequence) as { sounds: { at: number; cue: string }[] };
   assert.equal(timeline.sounds.length, 2);
   assert.equal(timeline.sounds[0].at, 0);

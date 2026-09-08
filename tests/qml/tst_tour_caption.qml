@@ -20,16 +20,24 @@ Item {
       var end = source.indexOf("        IntroPlayer {", start)
       verify(start >= 0 && end > start)
       fixture = Qt.createQmlObject(
-        "import QtQuick\nItem { id: root; width: 1200; height: 800\n"
+        "import QtQuick\nimport QtQuick.Controls as Controls\nimport \"../../app\"\nItem { id: root; width: 1200; height: 800\n"
+        + "QtObject { id: appTheme; property var colors: ({}) }\n"
         + "property string phase: 'waiting'\nproperty bool currentStepIsTour: true\n"
-        + "property bool introActive: false\nproperty bool reducedMotion: false\n"
+        + "property bool introActive: false\nproperty bool reducedMotion: false\nproperty real textScale: 1\n"
         + "property string characterState: 'tour-fly'\nproperty string tourRestingState: 'tour-talk'\n"
         + "property real lessonContentOpacity: 1\nproperty color panelColor: 'black'\n"
         + "property color instruction: 'white'\nproperty var currentStep: ({instruction: 'Welcome'})\n"
         + "function characterText(text) { return text }\nfunction colorWithAlpha(color, alpha) { return color }\n"
+        + source.match(/^  function captionText\([^\n]*\) \{[\s\S]*?^  \}/m)[0] + "\n"
+        + "property alias captionTextItem: tourCaptionText\n"
+        + "property var lineWidths: []\n"
+        + "FontMetrics { id: captionMetrics; font: tourCaptionText.font }\n"
+        + "function textWidth(text) { return captionMetrics.advanceWidth(text) }\n"
+        + "Connections { target: tourCaptionText; function onLineLaidOut(line) {\n"
+        + "if (line.number === 0) root.lineWidths = []; root.lineWidths.push(line.implicitWidth)\n} }\n"
         + "property alias caption: tourCaption\nproperty alias movingX: coachTravelX.running\n"
         + "property alias movingY: coachTravelY.running\n"
-        + "Item { id: overlay; width: 1200; height: 800 }\n"
+        + "Item { id: overlay; width: root.width; height: root.height }\n"
         + "Item { id: hexonCoach; width: 224; height: 192; property real arcOffset: 0 }\n"
         + "QtObject { id: coachTravelX; property bool running: false }\n"
         + "QtObject { id: coachTravelY; property bool running: false }\n"
@@ -46,6 +54,9 @@ Item {
       fixture.movingX = false
       fixture.movingY = false
       fixture.lessonContentOpacity = 1
+      fixture.width = 1200
+      fixture.height = 800
+      fixture.textScale = 1
       wait(10)
       compare(fixture.caption.opacity, 0)
       fixture.reducedMotion = false
@@ -82,9 +93,45 @@ Item {
       fixture.tourRestingState = "tour-point"
       fixture.characterState = "tour-point"
       tryCompare(fixture.caption, "opacity", 1, 50)
+      compare(fixture.caption.y, 192 + 16)
       fixture.introActive = true
       tryCompare(fixture.caption, "opacity", 0, 50)
       fixture.tourRestingState = "tour-talk"
+    }
+
+    function test_captionUsesReadableWidthAlignmentAndTextScale() {
+      fixture.currentStep = {instruction:"Follow the highlighted desktop bar. These controls help you navigate your workspace."}
+      fixture.characterState = "tour-talk"
+      tryCompare(fixture.caption, "opacity", 1)
+      compare(fixture.caption.width, 880)
+      compare(fixture.captionTextItem.horizontalAlignment, Text.AlignLeft)
+      fixture.width = 640
+      fixture.height = 480
+      fixture.textScale = 1.3
+      wait(30)
+      compare(fixture.captionTextItem.font.pixelSize, 27)
+      verify(fixture.caption.x >= 0 && fixture.caption.y >= 0)
+      verify(fixture.caption.x + fixture.caption.width <= fixture.width)
+      verify(fixture.caption.y + fixture.caption.height <= fixture.height)
+    }
+
+    function test_lastTwoWordsStayTogetherAcrossWidthsAndTextSizes() {
+      var instruction = "You can also click this icon in the desktop bar to open the same menu, with apps, settings, and other resources. Use whichever way is more convenient."
+      fixture.currentStep = {instruction: instruction}
+      fixture.characterState = "tour-talk"
+      for (var size of [[1200, 1], [640, 1], [640, 1.3], [360, 1.3]]) {
+        fixture.width = size[0]
+        fixture.textScale = size[1]
+        wait(30)
+        var textItem = fixture.captionTextItem
+        compare(textItem.text.replace(/\s+/g, " "), instruction)
+        verify(fixture.lineWidths.length > 0)
+        verify(fixture.lineWidths[fixture.lineWidths.length - 1] >= fixture.textWidth("more\u00a0convenient.") - 1,
+          "The final rendered line must contain at least the final two words.")
+        verify(textItem.contentWidth <= textItem.width)
+      }
+      compare(fixture.captionText("First paragraph ends here.\n\nSecond paragraph stays together."),
+        "First paragraph ends\u00a0here.\n\nSecond paragraph stays\u00a0together.")
     }
   }
 }

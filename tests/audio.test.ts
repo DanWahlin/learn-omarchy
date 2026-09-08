@@ -35,6 +35,38 @@ test("activity-scoped generation rejects unknown IDs before contacting a speech 
   }
 });
 
+test("narration-part selection rejects invalid values before contacting a speech service", () => {
+  for (const args of [["--part"], ["--part", "other"], ["--part", "--welcome"]]) {
+    const result = spawnSync(process.execPath, [
+      "--experimental-strip-types", "tools/generate-course-audio.ts",
+      "courses/omarchy-basics.json", "--backend", "azure", ...args,
+    ], { encoding: "utf8" });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /--part must be/);
+    assert.doesNotMatch(result.stderr, /AZURE_SPEECH_KEY|Azure Speech returned/);
+  }
+});
+test("Ohm-1 displays his designation but uses Ohm and Andrew in his welcome recording", async () => {
+  const pack = JSON.parse(await readFile(new URL("../assets/characters/ohm-1/character.json", import.meta.url), "utf8"));
+  const welcome = JSON.parse(await readFile(new URL("../courses/welcome.json", import.meta.url), "utf8"));
+  assert.equal(pack.id, "ohm-1");
+  assert.equal(pack.displayName, "Ohm-1");
+  assert.equal(pack.spokenName, "Ohm");
+  assert.equal(pack.narration.audioSet, "ohm-1");
+  const spoken = prepareSpeech(welcome.instructions[pack.id], pack.spokenName ?? pack.displayName, { Omarchy: "Omaachi" });
+  assert.match(spoken, /^Hi! I'm Ohm-1, but you can call me Ohm for short\. Welcome to Omaachi\./);
+  assert.equal(prepareSpeech("I'm HEXON.", pack.spokenName, {}), "I'm Ohm.");
+  assert.match(prepareSpeech(welcome.instruction, "Ollie", {}), /^Hi! I'm Ollie\. Welcome/);
+  assert.doesNotMatch(spoken, /HEXON|Arco/);
+  const manifest = await readManifest(resolve("courses/audio/production-manifest.json"));
+  const greeting = manifest.files["ohm-1/host-welcome.mp3"];
+  assert.equal(greeting?.provenance.kind, "generated");
+  if (greeting.provenance.kind === "generated") {
+    assert.equal(greeting.provenance.spec.character.displayName, pack.displayName);
+    assert.equal(greeting.provenance.spec.voice, "en-US-Andrew:DragonHDLatestNeural");
+    assert.equal(greeting.provenance.spec.preparedTextHash, sha256(spoken));
+  }
+});
 test("graphics-only packs never initiate voice generation", async () => {
   const directory = await mkdtemp(resolve(tmpdir(), "learn-pack-audio-"));
   try {
@@ -61,7 +93,7 @@ test("fingerprints ignore object insertion order but include values and array or
   assert.notEqual(fingerprint(["a", "b"]), fingerprint(["b", "a"]));
   for (const change of [
     { textHash: sha256("Changed") }, { preparedTextHash: sha256("Other") },
-    { character: { id: "hexon", displayName: "HEXON" } }, { voice: "other" },
+    { character: { id: "ohm-1", displayName: "HEXON" } }, { voice: "other" },
     { backend: "azure" }, { pronunciations: { Omarchy: "oh-mah-chee" } },
     { synthesisOptions: { rate: "+5%" } }, { productionOptions: { ...productionOptions, integratedLufs: -19 } },
   ]) {
@@ -206,10 +238,10 @@ test("local normalization verifies output, tracks provenance and skips matching 
 test("bundled audio manifest describes each character file without invented text provenance", async () => {
   const root = resolve("courses/audio");
   const manifest = await readManifest(resolve(root, "production-manifest.json"));
-  const characterFiles = await Promise.all(["hexon", "owl"].map(async (character) =>
+  const characterFiles = await Promise.all(["ohm-1", "owl"].map(async (character) =>
     (await readdir(resolve(root, character))).filter((name) => name.endsWith(".mp3")).sort()));
   assert.deepEqual(characterFiles[0], characterFiles[1]);
-  for (const [index, character] of ["hexon", "owl"].entries()) {
+  for (const [index, character] of ["ohm-1", "owl"].entries()) {
     for (const name of characterFiles[index]) {
       const entry = manifest.files[`${character}/${name}`];
       assert.ok(entry, `${character}/${name} has no manifest entry`);

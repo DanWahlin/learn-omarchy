@@ -13,7 +13,7 @@ import {
 import type { GenerationSpec } from "./audio-production.ts";
 
 // Usage:
-//   generate-course-audio.ts <course.json> [--character ID] [--steps ID,ID] [--missing] [--match TEXT] [--backend edge|azure] [--env-file PATH]
+//   generate-course-audio.ts <course.json> [--character ID] [--steps ID,ID] [--part instruction|completion|both] [--welcome] [--wrapups-only] [--missing] [--match TEXT] [--backend edge|azure] [--env-file PATH]
 //
 // Narration is recorded once per coach: "audio/x.mp3" in the course is written
 // to audio/<character>/x.mp3, "HEXON" in the text becomes the coach's display
@@ -38,11 +38,18 @@ const coursePath = resolve(args.find((value) => !value.startsWith("--") && !isFl
 const onlyMissing = args.includes("--missing");
 const matchText = (readFlag("--match") ?? "").toLowerCase();
 const onlyCharacter = readFlag("--character");
+const includeWelcome = args.includes("--welcome");
+const onlyWrapUps = args.includes("--wrapups-only");
 const stepFilter = readFlag("--steps");
 if (args.includes("--steps") && (!stepFilter || stepFilter.startsWith("--"))) {
   throw new Error("--steps requires comma-separated activity IDs");
 }
 const selectedSteps = stepFilter === undefined ? null : new Set(stepFilter.split(",").map(id => id.trim()));
+const part = readFlag("--part") ?? "both";
+if (!["instruction", "completion", "both"].includes(part) ||
+    (args.includes("--part") && !readFlag("--part"))) {
+  throw new Error("--part must be instruction, completion, or both");
+}
 const charactersDir = fileURLToPath(new URL("../assets/characters", import.meta.url));
 const backend = readFlag("--backend") ?? process.env.LEARN_OMARCHY_TTS_BACKEND ?? "edge";
 const envFile = readFlag("--env-file") ?? resolve(process.env.HOME ?? "", ".env");
@@ -50,7 +57,7 @@ if (backend !== "edge" && backend !== "azure") throw new Error(`Unknown speech b
 
 function isFlagValue(value: string): boolean {
   const index = args.indexOf(value);
-  return index > 0 && ["--backend", "--env-file", "--match", "--character", "--steps"].includes(args[index - 1]);
+  return index > 0 && ["--backend", "--env-file", "--match", "--character", "--steps", "--part"].includes(args[index - 1]);
 }
 
 const result = parseCourseJson(await readFile(coursePath, "utf8"));
@@ -98,7 +105,7 @@ const pronunciations: Record<string, string> = {
   Omarchy: process.env.LEARN_OMARCHY_PRONUNCIATION ?? "Omaachi",
 };
 
-type Character = { id: string; displayName: string; voice?: string; edgeVoice?: string };
+type Character = { id: string; displayName: string; spokenName: string; voice?: string; edgeVoice?: string };
 
 async function loadCharacters(): Promise<Character[]> {
   const userRoot = onlyCharacter ? defaultUserPackRoot() : undefined;
@@ -115,6 +122,7 @@ async function loadCharacters(): Promise<Character[]> {
     characters.push({
       id: pack.id,
       displayName: pack.manifest.displayName,
+      spokenName: pack.manifest.spokenName ?? pack.manifest.displayName,
       voice: narration.voices?.azure,
       edgeVoice: narration.voices?.edge,
     });
@@ -210,7 +218,7 @@ for (const character of await loadCharacters()) {
   const generate = async (text: string, relativePath: string): Promise<void> => {
     const named = text.replace(/HEXON/g, () => character.displayName);
     if (matchText !== "" && !named.toLowerCase().includes(matchText)) return;
-    const spoken = prepareSpeech(text, character.displayName, pronunciations);
+    const spoken = prepareSpeech(text, character.spokenName, pronunciations);
     const relative = characterOutputPath(relativePath, character);
     const output = resolve(dirname(coursePath), relative);
     if (!output.endsWith(".mp3")) throw new Error(`Narration production requires an .mp3 path: ${relative}`);
@@ -243,16 +251,32 @@ for (const character of await loadCharacters()) {
     console.log(`Generated ${relative}`);
   };
   console.log(`${character.displayName} (${character.id}) speaks with ${synthesizer.voice} via ${backend}.`);
+  if (onlyWrapUps) {
+    const wrapUps = [
+      ...Object.values(result.course.wrapUp ?? {}),
+      ...result.course.lessons.flatMap(lesson => lesson.wrapUp ? [lesson.wrapUp] : []),
+    ];
+    for (const wrapUp of wrapUps) await generate(wrapUp.text, wrapUp.audio);
+    continue;
+  }
+  if (includeWelcome) {
+    const welcome = JSON.parse(await readFile(resolve(dirname(coursePath), "welcome.json"), "utf8"));
+    if (typeof welcome.instruction !== "string" || !welcome.instruction.trim() ||
+        welcome.audio !== "audio/host-welcome.mp3") throw new Error("Invalid welcome narration metadata");
+    const instruction = welcome.instructions?.[character.id] ?? welcome.instruction;
+    if (typeof instruction !== "string" || !instruction.trim()) throw new Error("Invalid character welcome instruction");
+    await generate(instruction, welcome.audio);
+  }
   for (const lesson of result.course.lessons) {
     for (const step of lesson.steps) {
       if (selectedSteps && !selectedSteps.has(step.id)) continue;
-      if (step.audio) await generate(step.instruction, step.audio);
+      if (part !== "completion" && step.audio) await generate(step.instruction, step.audio);
     }
   }
   for (const lesson of result.course.lessons) {
     for (const step of lesson.steps) {
       if (selectedSteps && !selectedSteps.has(step.id)) continue;
-      if (step.completionAudio && step.completionMessage) await generate(step.completionMessage, step.completionAudio);
+      if (part !== "instruction" && step.completionAudio && step.completionMessage) await generate(step.completionMessage, step.completionAudio);
     }
   }
 }

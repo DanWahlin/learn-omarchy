@@ -27,7 +27,7 @@ command never scans user packs and is suitable for developer/package checks.
 Bundled IDs are reserved by `assets/characters/index.json`:
 
 ```json
-{ "formatVersion": 1, "characters": [{ "id": "hexon" }, { "id": "owl" }] }
+{ "formatVersion": 1, "characters": [{ "id": "ohm-1" }, { "id": "owl" }] }
 ```
 
 The manifests, not catalog display text, are authoritative. User packs live at
@@ -46,7 +46,7 @@ packs to override any reserved bundled ID, even when the bundled pack is broken.
 When the bundled catalog is malformed, safe directory IDs under the bounded
 bundled root are reserved too. If that reservation scan cannot complete within
 its limit, user discovery is disabled rather than permitting impersonation.
-The fallback is valid `hexon`, otherwise the first valid sorted pack, otherwise
+The fallback is valid `ohm-1`, otherwise the first valid sorted pack, otherwise
 `null` with a diagnostic. A missing user directory is normal.
 
 To try the original starter without touching official artwork:
@@ -74,7 +74,7 @@ installed files. No
 network requests, executable files, package installation or asset generation are
 part of discovery.
 The lab's **Preview fallback** button also exercises the same brief static entrance
-used by the tour when an optional intro is missing or invalid. Moving the lab to
+used by the welcome when an optional intro is missing or invalid. Moving the lab to
 another screen cancels an active intro; replay it on the new screen.
 
 ### Update one installed pack
@@ -106,7 +106,7 @@ bundled assets to uninstall a user pack.
 
 Refresh the lab or restart the application. If the removed ID was selected,
 the application reports that it is unavailable and uses the valid fallback:
-HEXON, otherwise the first valid sorted pack. With no valid packs, discovery
+Ohm (stable ID `ohm-1`), otherwise the first valid sorted pack. With no valid packs, discovery
 returns `fallbackId: null` and diagnostics rather than silently choosing a
 missing character. Select an available character to update your preference.
 
@@ -119,6 +119,7 @@ Required fields:
 | --- | --- |
 | `formatVersion` | Exactly `1` |
 | `id`, `displayName`, `description` | Stable safe ID, human name, concise description |
+| `spokenName` (optional) | Name used in generated speech instead of `displayName`; nonempty text, maximum 80 characters |
 | `author` | `{ "name": "Your name", "status": "declared" }`, or `name: null`, `status: "unresolved"`; optional `note` |
 | `license` | `{ "status": "declared", "identifier": "CC0-1.0" }`, or `status: "unresolved"`; optional `note` |
 | `preview` | `{ "sprite": "idle", "frame": 0 }`; no duplicate preview PNG |
@@ -175,8 +176,8 @@ requirement exists. Official idle pacing remains:
 The talking silhouette must use the same body centre and baseline as idle.
 
 Optional `blink` defines `periodMs`, `startMs`, and `durationMs` for pointing
-blink variants. The blink must finish within its period. Existing packs use
-`3200`, `3050`, and `100` respectively. Omit blink roles when
+blink variants. The blink must finish within its period. Ollie uses
+`3200`, `3050`, and `100`; Ohm-1 uses `5400`, `5250`, and `100`. Omit blink roles when
 the artwork does not need them.
 
 ### Registration, not resizing guesses
@@ -202,6 +203,30 @@ destination crops must fit the pose frame. Registration coordinates must be
 finite, scales 0.1–4, and transformed frames bounded and intersecting the canvas.
 Use `registrationNote` to explain the anatomical anchors.
 
+Speech patches also work on the idle pose. When declared there, the idle
+body animation supplies natural blinking on a clock independent of speech.
+Optional `restFrame` is a valid frame index displayed while not talking;
+without it, the patch is hidden between speech. Reduced motion holds speaking
+patches on frame zero. Existing packs without idle speech keep their talk-strip
+behavior.
+
+Ohm-1 keeps his original cyan eyes and uses a warm glow in his existing chest
+panel while speaking. The resting frame is transparent, leaving the original
+panel visible. The glow indicates speech
+activity, not measured audio amplitude or phoneme synchronization. Regenerate
+this data-only sprite with `node tools/prepare-ohm-chest-light.mjs`. Each frame
+contains separate native-size patches for the idle and pointing chest lenses.
+No speech animation covers or moves the eyes.
+
+Ohm-1's upward pose uses the original sideways-pointing arm rotated 45 degrees
+around its shoulder, without flipping or stretching the hand. Both eye variants
+use the same `point_up_mode="rotate"` recipe in `sprites.conf`; `derive_up_joint_keep`
+retains the original elbow pixels beneath the raised sleeve to avoid a gap.
+`derive_up_trim` removes only the small remnants below that joint, without
+applying a global alpha cutoff or altering the hand. The fingertip
+registration is `(149, 54)`; the renderer mirrors the complete pose for the
+other direction.
+
 The official registered geometry and original PNG filenames are unchanged.
 The loader never trims, regenerates or copies official artwork.
 
@@ -211,9 +236,9 @@ The loader never trims, regenerates or copies official artwork.
   the pack ID. Optional `voices: { "azure": "...", "edge": "..." }` carries
   authoring voice identifiers, not commands. Existing official voice strings
   are preserved here.
-* Borrowed: `{ "mode": "borrowed", "audioSet": "hexon" }` or `"owl"`.
+* Borrowed: `{ "mode": "borrowed", "audioSet": "ohm-1" }` or `"owl"`.
   Only these bundled audio sets are supported. The runtime deliberately
-  presents text only for borrowed clips whose source text identifies HEXON or
+  presents text only for borrowed clips whose source text identifies HEXON, Ohm, or
   OLLIE, regardless of which voice set is borrowed, so Spark does not introduce
   itself as either bundled coach.
 * Silent: `{ "mode": "silent" }`. Display course text without recorded narration.
@@ -226,6 +251,10 @@ Own audio is produced through the project's separate trusted course-audio workfl
 
 `"intro": { "sequence": "intro/sequence.json" }` refers to a declarative
 sequence. See [Character intros](character-intros.md) for the shared grammar.
+The course app plays it during one-time onboarding after coach selection, not
+when a tour lesson starts. The app owns the subsequent central greeting,
+menu flight, and tour recommendation; packs need no lesson-specific logic.
+Lab previews still replay the sequence on demand.
 The same path-containment and PNG validation applies to every intro asset.
 Missing, unsafe or invalid intro data disables the intro with a diagnostic,
 leaving the character usable with a safe handoff to the ordinary tour.
@@ -274,8 +303,8 @@ The idle frame-zero preview reuses each pack's installed idle PNG.
 
 Declared metadata records the publisher's claim; validation does not determine
 copyright ownership. Unresolved author/license status warns rather than blocking
-local use. HEXON and OLLIE intentionally have unresolved authorship and asset
-licenses because the repository does not declare them. Do not infer a license
+local use. Dan Wahlin is the declared author of Ohm-1 and Ollie. Their asset
+licenses remain unresolved until redistribution terms are selected. Do not infer a license
 from project code or packaging and do not redistribute that artwork without
 clarification.
 

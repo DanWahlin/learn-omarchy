@@ -16,6 +16,16 @@ ShellRoot {
   property bool clipboardSeen: false
   property bool closing: false
 
+  OmarchyTheme {
+    id: theme
+    fallbackColors: ({
+      background: Quickshell.env("LEARN_OMARCHY_PRACTICE_BACKGROUND"),
+      foreground: Quickshell.env("LEARN_OMARCHY_PRACTICE_FOREGROUND"),
+      accent: Quickshell.env("LEARN_OMARCHY_PRACTICE_ACCENT"),
+      urgent: Quickshell.env("LEARN_OMARCHY_PRACTICE_ERROR")
+    })
+  }
+
   function closeNativeSurfaces() {
     if (clipboardSeen) Quickshell.execDetached(["omarchy-shell", "shell", "hide", "omarchy.clipboard"])
     if (menuSeen) Quickshell.execDetached(["omarchy", "menu", "close"])
@@ -100,6 +110,7 @@ ShellRoot {
     implicitWidth: 760
     implicitHeight: 680
     minimumSize: Qt.size(460, 480)
+    color: theme.colors.background
     visible: true
     onClosed: root.closePractice()
     PracticeContent {
@@ -107,10 +118,11 @@ ShellRoot {
       anchors.fill: parent
       mode: root.mode
       textScale: Number(Quickshell.env("LEARN_OMARCHY_PRACTICE_SCALE") || "1")
-      backgroundColor: Quickshell.env("LEARN_OMARCHY_PRACTICE_BACKGROUND") || "#171d2b"
-      foreground: Quickshell.env("LEARN_OMARCHY_PRACTICE_FOREGROUND") || "#d5dff4"
-      accent: Quickshell.env("LEARN_OMARCHY_PRACTICE_ACCENT") || "#7aa2f7"
-      errorColor: Quickshell.env("LEARN_OMARCHY_PRACTICE_ERROR") || "#f7768e"
+      backgroundColor: theme.colors.background
+      foreground: theme.colors.foreground
+      accent: theme.colors.accent
+      muted: theme.colors.muted
+      errorColor: theme.colors.urgent
       onCancelled: root.closePractice()
       onFinished: {
         if (!verified || root.closing) return

@@ -1,16 +1,20 @@
 # Data-only character intros
 
-An optional character-pack intro points to a version-1 JSON sequence. The sequence describes scenery and character choreography; the application owns execution, character rendering, tour destinations, audio/narration, and lesson progress. Omitting the intro deliberately produces a brief static character entrance.
+An optional character-pack intro points to a version-1 JSON sequence. The sequence describes scenery and character choreography; the application owns execution, character rendering, welcome/menu destinations, audio/narration, and lesson progress. Omitting the intro deliberately produces a brief static character entrance.
+
+In the course app, this entrance belongs to **Welcome to Omarchy**, lesson #1, not the tour lesson. It starts automatically after first-time coach selection and can be replayed from the lesson list without resetting progress. The pack scene finishes, the host flies the coach to the center for a greeting, then reveals the menu and points at **Omarchy tour**, lesson #2. The host's captions appear only after both travel axes stop in the appropriate resting state. The menu recommends the tour without starting it; any lesson remains available. The lab can still preview/replay the pack sequence independently.
+
+The app persists `welcomeSeen` when onboarding begins. Absent flags migrate from the legacy `tourSeen` marker or any recorded lesson/activity/bookmark progress; an explicit false flag requests a fresh welcome. Confirmed reset clears that flag and the coach choice. Done leads through coach selection before replaying the welcome (an explicit character override keeps its selected pack). Skipping the entire welcome, opening Settings, changing packs, selecting a lesson, or closing cancels pending playback, reading timers, and deferred handoffs. The new greeting/recommendation use plain text and talking animation: existing tour recordings announce a tour and are deliberately not reused here.
 
 The official examples are:
 
 | Pack | Sequence | Duration | Choreography |
 | --- | --- | --- | --- |
-| HEXON | `assets/characters/hexon/intro/sequence.json` | 6,800 ms | Star field and prompt, landing pad, 1,600 ms descent with pixel exhaust, touchdown dust, hatch crossfade, character reveal/exit, 1,600 ms departure, scenery fade |
+| Ohm | `assets/characters/ohm-1/intro/sequence.json` | 6,800 ms | Star field and prompt, landing pad, 1,600 ms descent with pixel exhaust, touchdown dust, hatch crossfade, character reveal/exit, 1,600 ms departure, scenery fade |
 | OLLIE | `assets/characters/owl/intro/sequence.json` | 3,700 ms | Bottom-pivot tree growth, sway and fireflies, perch reveal, short takeoff, scenery fade |
 | SPARK | `examples/characters/spark/intro/sequence.json` | 2,950 ms | Two independent decorative layers arriving in parallel, then character scale/slide/reveal |
 
-The application has no character-ID, sprite-prefix, propulsion, rocket, or tree dispatch. The first two sequences reference the existing `sprites/hexon-intro.png`, `sprites/hexon-intro-open.png`, and `sprites/owl-intro.png` in their respective packs. These files are not duplicated. Their presence does not establish their license.
+The application has no character-ID, sprite-prefix, propulsion, rocket, or tree dispatch. The first two sequences reference the existing `sprites/ohm-1-intro.png`, `sprites/ohm-1-intro-open.png`, and `sprites/owl-intro.png` in their respective packs. These files are not duplicated. Their presence does not establish their license.
 
 ## Version 1 grammar
 
@@ -157,7 +161,7 @@ The same single player clock drives all effects. They have no private timers, in
 * `running` includes asset preloading and brief fallback presentation.
 * `characterX/Y` are the nominal 224×192 body canvas top-left. Other outputs are `characterScale`, `characterOpacity`, `characterVisible`, `characterPose`, `characterFacing`, `characterFlying`, and `characterRotation`. `handoff` exposes the final state.
 * The host binds its existing `CharacterSprite` to these outputs. A 240×260 coach container whose body starts at (8,68) subtracts those offsets from characterX/Y and keeps its bottom-center transform pivot.
-* Successful playback emits `finished()` exactly once, after all branches join. It removes scenery but retains the last character placement. The host then flies from that position to its application-owned tour target and starts narration only after settling.
+* Successful playback emits `finished()` exactly once, after all branches join. It removes scenery but retains the last character placement. The course host pins that position until normal travel bindings are enabled, then flies to its central welcome destination. Greeting and menu recommendation captions fade in only after arrival; this does not advance a lesson.
 * Optional/missing intros and reduced motion reveal a static character and finish after about 250 ms (one timer-frame rounding, below 400 ms under normal scheduling). No decorative assets are loaded in reduced motion.
 * Invalid data and missing/unloadable assets emit `diagnostic(message)`, show the same brief static entrance, then emit `failed(message)` **instead of** `finished()`. Asset preload timeout is two seconds. Hosts treat finished/failed as alternative terminal signals and guard their own continuation once.
 * Cancelling an active run emits `cancelled()` once, never `finished()`. Changing sequence or asset root cancels safely, including during loading. Image callbacks carry generation tokens; stale callbacks cannot move a new character or complete a later run.

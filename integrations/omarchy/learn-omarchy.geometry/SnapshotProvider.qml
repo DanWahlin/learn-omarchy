@@ -19,7 +19,7 @@ Item {
 
   function snapshot(): string {
     try {
-      return JSON.stringify(Geometry.snapshot(shell ? shell.bar : null, panelNamespace, shell ? shell.activeBarId : undefined))
+      return JSON.stringify(Geometry.snapshot(shell ? shell.bar : null, panelNamespace, shell ? shell.activeBarId : undefined, shell))
     } catch (error) {
       return "learnGeometry unavailable: " + error.message
     }

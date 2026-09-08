@@ -14,7 +14,7 @@ test("installation copies complete validated runtime packs without authoring mac
   try {
     const destination = join(directory, "characters");
     const ids = await installBundledPacks(bundledRoot, destination);
-    assert.ok(ids.includes("hexon") && ids.includes("owl"));
+    assert.ok(ids.includes("ohm-1") && ids.includes("owl"));
     const installed = await discoverCharacterPacks({ bundledRoot: destination });
     assert.deepEqual(installed.invalidBundledIds, []);
     assert.equal(installed.packs.length, ids.length);
@@ -39,7 +39,7 @@ test("installation cannot write through a pack-directory symlink or overwrite it
     const outside = join(directory, "outside");
     await mkdir(destination);
     await mkdir(outside);
-    await symlink(outside, join(destination, "hexon"));
+    await symlink(outside, join(destination, "ohm-1"));
     await assert.rejects(installBundledPacks(bundledRoot, destination), /symlink/);
     assert.deepEqual(await readdir(outside), []);
   } finally {
@@ -55,17 +55,24 @@ test("the package install includes shared pack code and pack-owned intro assets"
     const root = join(directory, "usr/share/learn-omarchy");
     for (const file of [
       "app/CharacterPackStore.qml", "app/IntroPlayer.qml", "app/CharacterSprite.qml",
+      "app/SplashScreen.qml", "assets/splash/learn-omarchy.png",
       "app/IntroTimeline.js", "app/IntroEffect.qml", "app/qmldir",
       "src/character-packs.ts", "src/intro-sequence.ts", "tools/character-packs.ts",
+      "tools/validate-course-audio.ts", "tools/audio-coverage.ts", "tools/audio-production.ts",
       "tools/validate-course.ts", "tools/capture-practice.mjs", "tools/verify-window-owner.mjs",
       "docs/character-packs.md", "docs/character-intros.md", "experiments/hexon-lab/shell.qml",
       "experiments/hexon-lab/qmldir",
-      "assets/characters/hexon/intro/sequence.json", "assets/characters/owl/intro/sequence.json",
+      "assets/characters/ohm-1/intro/sequence.json", "assets/characters/owl/intro/sequence.json",
     ]) {
       assert.ok((await readFile(join(root, file))).length > 0, file);
     }
     assert.deepEqual((await readdir(join(root, "tools"))).sort(),
-      ["capture-practice.mjs", "character-packs.ts", "validate-course.ts", "verify-window-owner.mjs"]);
+      ["audio-coverage.ts", "audio-production.ts", "capture-practice.mjs", "character-packs.ts",
+        "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
+    const audioCheck = spawnSync(process.execPath, ["--experimental-strip-types",
+      join(root, "tools/validate-course-audio.ts"), join(root, "courses/omarchy-basics.json")],
+    { encoding: "utf8" });
+    assert.equal(audioCheck.status, 0, audioCheck.stderr || audioCheck.stdout);
     const catalog = await discoverCharacterPacks({ bundledRoot: join(root, "assets/characters") });
     assert.deepEqual(catalog.invalidBundledIds, []);
     assert.ok(catalog.packs.every(pack => pack.intro !== null));

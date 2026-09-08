@@ -64,6 +64,8 @@ Item {
       verify(practice.verified)
     }
     function test_nativeCopyAndPaste() {
+      verify(findChild(practice, "exerciseInstructions").text.indexOf("Shift+Enter to copy without pasting") !== -1)
+      verify(findChild(practice, "clipboardHistoryInstructions").text.indexOf("Shift+Enter") !== -1)
       var first = findChild(practice, "firstNote")
       var second = findChild(practice, "secondNote")
       var destination = findChild(practice, "pasteDestination")

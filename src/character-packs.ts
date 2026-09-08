@@ -37,10 +37,10 @@ export type Sprite = {
 export type Pose = {
   frameWidth: number; scale: number; offset: Point; baseline?: number; bodyAnchorX?: number;
   tip?: Point; flameSockets?: Point[];
-  speech?: { sprite?: string; frameWidth?: number; source: Box; destination: Box };
+  speech?: { sprite?: string; frameWidth?: number; restFrame?: number; source: Box; destination: Box };
 };
 export type CharacterManifest = {
-  formatVersion: 1; id: string; displayName: string; description: string;
+  formatVersion: 1; id: string; displayName: string; spokenName?: string; description: string;
   author: { name: string | null; status: "declared" | "unresolved"; note?: string };
   license: { status: "declared" | "unresolved"; identifier?: string; note?: string };
   preview: { sprite: "idle"; frame: 0 };
@@ -52,7 +52,7 @@ export type CharacterManifest = {
   blink?: { periodMs: number; startMs: number; durationMs: number };
   intro?: { sequence: string };
   narration: { mode: "own"; audioSet: string; voices?: { azure?: string; edge?: string } }
-    | { mode: "borrowed"; audioSet: "hexon" | "owl" } | { mode: "silent" };
+    | { mode: "borrowed"; audioSet: "ohm-1" | "owl" } | { mode: "silent" };
 };
 export type ResolvedPack = {
   id: string; root: string; assetUrl: string; manifest: CharacterManifest;
@@ -98,10 +98,11 @@ function box(value: unknown, label: string, width: number, height: number) {
 
 export function validateCharacterManifest(value: unknown): asserts value is CharacterManifest {
   record(value, "manifest");
-  keys(value, ["formatVersion", "id", "displayName", "description", "author", "license", "preview", "sprites",
+  keys(value, ["formatVersion", "id", "displayName", "spokenName", "description", "author", "license", "preview", "sprites",
     "renderer", "effects", "motion", "blink", "intro", "narration"], "manifest");
   if (value.formatVersion !== 1) fail("formatVersion must be 1");
   safeId(value.id); text(value.displayName, "displayName", 80); text(value.description, "description");
+  if (value.spokenName !== undefined) text(value.spokenName, "spokenName", 80);
   for (const label of ["author", "license"]) {
     const item = value[label]; record(item, label);
     keys(item, label === "author" ? ["name", "status", "note"] : ["identifier", "status", "note"], label);
@@ -181,10 +182,11 @@ export function validateCharacterManifest(value: unknown): asserts value is Char
     }
     if (pose.speech !== undefined) {
       const speech = pose.speech; record(speech, `${name}.speech`);
-      keys(speech, ["sprite", "frameWidth", "source", "destination"], `${name}.speech`);
+      keys(speech, ["sprite", "frameWidth", "restFrame", "source", "destination"], `${name}.speech`);
       const sourceName = speech.sprite ?? "talk";
       if (!["talk", "speech"].includes(sourceName) || !value.sprites[sourceName]) fail(`${name}.speech references an unknown speech sprite`);
       const source = value.sprites[sourceName];
+      if (speech.restFrame !== undefined) number(speech.restFrame, `${name}.speech.restFrame`, 0, source.frames - 1, true);
       if (speech.frameWidth !== undefined && speech.frameWidth !== source.frameWidth) fail(`${name}.speech.frameWidth mismatch`);
       box(speech.source, `${name}.speech.source`, source.frameWidth, source.frameHeight);
       box(speech.destination, `${name}.speech.destination`, sprite.frameWidth, 192);
@@ -217,7 +219,7 @@ export function validateCharacterManifest(value: unknown): asserts value is Char
       record(narration.voices, "narration.voices"); keys(narration.voices, ["azure", "edge"], "narration.voices");
       for (const [name, voice] of Object.entries(narration.voices)) text(voice, `narration.voices.${name}`, 200);
     }
-  } else if (narration.mode === "borrowed" && !["hexon", "owl"].includes(narration.audioSet)) fail("Borrowed narration.audioSet must be hexon or owl");
+  } else if (narration.mode === "borrowed" && !["ohm-1", "owl"].includes(narration.audioSet)) fail("Borrowed narration.audioSet must be ohm-1 or owl");
 }
 
 function contained(root: string, target: string) {
@@ -400,12 +402,12 @@ export async function discoverCharacterPacks(options: { bundledRoot: string; use
   } catch (error) {
     result.diagnostics.push(`Bundled catalog: ${message(error)}`);
     // Without a trustworthy catalog, never let local packs impersonate shipped IDs.
-    reserved.add("hexon"); reserved.add("owl");
+    reserved.add("ohm-1"); reserved.add("owl");
     bundleRoot = undefined;
   }
   const bundledIds = [...reserved].sort();
   if (catalogRoot && (!bundleRoot || result.invalidBundledIds.includes("index.json"))) {
-    reserved.add("hexon"); reserved.add("owl");
+    reserved.add("ohm-1"); reserved.add("owl");
     try {
       let entries = 0;
       for await (const entry of await opendir(catalogRoot)) {
@@ -461,7 +463,7 @@ export async function discoverCharacterPacks(options: { bundledRoot: string; use
     }
   }
   result.packs.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
-  result.fallbackId = result.packs.some(pack => pack.id === "hexon") ? "hexon" : result.packs[0]?.id ?? null;
+  result.fallbackId = result.packs.some(pack => pack.id === "ohm-1") ? "ohm-1" : result.packs[0]?.id ?? null;
   if (!result.packs.length) result.diagnostics.push("No valid character packs are available");
   result.diagnostics = result.diagnostics.slice(0, 200).map(diagnostic => diagnostic.slice(0, 400));
   return result;

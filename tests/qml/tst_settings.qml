@@ -39,9 +39,16 @@ Item {
   property color panelColor: background
   property color panelBorder: "#414868"
   property color subtleFill: "#24283b"
+  property Palette controlPalette: Palette { highlightedText: "black" }
+  QtObject {
+    id: appTheme
+    property var colors: ({background:root.background.toString(),foreground:root.foreground.toString(),
+      accent:root.accent.toString(),muted:root.muted.toString()})
+  }
   property bool keyboardExclusive: true
   property bool currentStepIsTour: false
   property bool introActive: false
+  property string welcomeStage: ""
   property string characterState: "hidden"
   property var currentStep: null
   property bool actionRunning: false
@@ -54,7 +61,7 @@ Item {
   Item { id: sfxProcess; property bool running: false }
   Item {
     id: characterStore
-    property string fallbackId: "hexon"
+    property string fallbackId: "ohm-1"
     property string narrationNotice: ""
     property var diagnostics: []
   }
@@ -67,6 +74,7 @@ Item {
   function colorWithAlpha(color, alpha) { return Qt.rgba(color.r, color.g, color.b, alpha) }
   function persistSettings() { savedCount++ }
   function stopAudio() {}
+  function finishWelcome() { welcomeStage = "" }
   function toggleAudio() { audioEnabled = !audioEnabled; persistSettings() }
   function closeSettings() { phase = "menu" }
   function chooseCharacter(id) { characterName = id; persistSettings() }
@@ -74,6 +82,7 @@ Item {
   function currentAudioPath() { return "" }
   function requestResetProgress() { resetConfirmPending = true }
   function handleKeyPressed(event) {}
+  function handleSystemVolumeKey(event) { return false }
   function updateActiveKeys(event, pressed) {}
 
   function readSource(path) {
@@ -115,7 +124,7 @@ Item {
       var controls = source.slice(start, source.indexOf("        UiPanel {\n          id: pausePanel", start))
       verify(panel.length > 1000)
       root.fixture = Qt.createQmlObject(
-        "import QtQuick\nimport QtQuick.Layouts\nimport QtQuick.Controls as Controls\n"
+        "import QtQuick\nimport QtQuick.Layouts\nimport QtQuick.Controls as Controls\nimport \"../../app\"\n"
         + "Item { width: root.width; height: root.height\n"
         + "property alias panel: characterPanel\nproperty alias header: settingsHeader\n"
         + "property alias footer: settingsFooter\nproperty alias scroll: settingsScroll\n"
@@ -131,6 +140,11 @@ Item {
       root.textScale = 1
       root.resetConfirmPending = false
       root.currentStepIsTour = false
+      root.keyboardExclusive = true
+      root.audioEnabled = true
+      root.introActive = false
+      root.welcomeStage = ""
+      root.currentStep = null
       root.characterNotice = ""
       root.introNotice = ""
       characterStore.diagnostics = []
@@ -150,7 +164,9 @@ Item {
       root.characterIndex = [pack]
       wait(50)
       var sprite = pack.manifest.sprites[pack.manifest.preview.sprite]
-      var previews = root.descendants(fixture.panel, function(item) { return "sourceClipRect" in item })
+      var previews = root.descendants(fixture.panel, function(item) {
+        return "sourceClipRect" in item && item.sourceClipRect.width > 0
+      })
       compare(previews.length, 1)
       compare(previews[0].source.toString(), pack.assetUrl + "/" + sprite.path)
       compare(previews[0].sourceClipRect.x, sprite.frameWidth)
@@ -198,6 +214,58 @@ Item {
       }
       refresh.label = "REFRESH COACHES"
       root.characterIndex = original
+    }
+
+    function test_packDiagnosticsAreAvailableWithoutClutteringSettings() {
+      characterStore.diagnostics = [
+        "ohm-1: author is unresolved; review attribution and redistribution rights",
+        "ohm-1: license is unresolved; review attribution and redistribution rights"
+      ]
+      root.characterNotice = "A selected pack is unavailable; using HEXON."
+      wait(30)
+      var details = root.descendants(fixture.panel, function(item) {
+        return item.objectName === "packDetails"
+      })[0]
+      verify(!details.visible)
+      var notices = root.descendants(fixture.panel, function(item) {
+        return "text" in item && item.text === root.characterNotice
+      })
+      verify(notices.length > 0 && notices[0].visible)
+      var toggle = root.button("SHOW COACH PACK DETAILS (2)")
+      verify(toggle !== null && toggle.visible)
+      toggle.forceActiveFocus(Qt.TabFocusReason)
+      keyClick(Qt.Key_Space)
+      tryCompare(details, "visible", true)
+      compare(details.text, characterStore.diagnostics.join("\n"))
+      mouseClick(root.button("HIDE COACH PACK DETAILS (2)"))
+      tryCompare(details, "visible", false)
+      mouseClick(root.button("SHOW COACH PACK DETAILS (2)"))
+      tryCompare(details, "visible", true)
+      root.phase = "menu"
+      wait(20)
+      root.phase = "settings"
+      wait(20)
+      verify(!details.visible)
+      characterStore.diagnostics = []
+      wait(20)
+      verify(!root.button("SHOW COACH PACK DETAILS (0)").visible)
+    }
+
+    function test_resetRequiresExplicitConfirmationAndCanBeCancelled() {
+      mouseClick(root.button("RESET PROGRESS"))
+      verify(root.resetConfirmPending)
+      verify(root.button("CONFIRM RESET").visible)
+      verify(root.button("CANCEL").visible)
+      var prompts = root.descendants(fixture.panel, function(item) {
+        return "text" in item && item.text.indexOf("Reset all lesson progress, including the tour?") === 0
+      })
+      verify(prompts.length === 1 && prompts[0].visible)
+      wait(6200)
+      verify(root.resetConfirmPending, "confirmation must not silently expire");
+      mouseClick(root.button("CANCEL"))
+      verify(!root.resetConfirmPending)
+      verify(root.button("RESET PROGRESS").visible)
+      compare(root.completedCount, 1)
     }
 
     function test_regionsStaySeparated_data() {
@@ -286,6 +354,71 @@ Item {
         compare(fixture.controls.width, fixture.controls.implicitWidth)
         verify(fixture.controls.width < 900)
       }
+    }
+
+    function test_toolbarIconsKeepLabelsTargetsAndTooltips() {
+      root.phase = "waiting"
+      root.currentStep = { help: { label: "Help" } }
+      root.introActive = true
+      root.welcomeStage = "scene"
+      wait(50)
+      var buttons = root.descendants(fixture.controls, function(item) {
+        return "icon" in item && item.visible
+      })
+      compare(buttons.length, 7)
+      for (var button of buttons) {
+        verify(button.icon !== "")
+        verify(button.label !== "")
+        verify(button.width >= 44 && button.height >= 44)
+        compare(button.Accessible.name, button.label)
+        var images = root.descendants(button, function(item) { return "sourceSize" in item })
+        compare(images.length, 1)
+        tryCompare(images[0], "status", Image.Ready)
+        var tooltip = root.descendants(button, function(item) { return item.objectName === "buttonTooltip" })[0]
+        button.forceActiveFocus(Qt.TabFocusReason)
+        tryCompare(tooltip, "visible", true)
+        keyClick(Qt.Key_Tab)
+        mouseMove(fixture, 10, root.height - 10)
+        tryCompare(tooltip, "visible", false)
+        mouseMove(button, button.width / 2, button.height / 2)
+        tryCompare(tooltip, "visible", true)
+        mouseMove(fixture, 10, root.height - 10)
+        tryCompare(tooltip, "visible", false)
+      }
+    }
+
+    function test_toolbarStateIconsAndTextActions() {
+      root.phase = "waiting"
+      wait(50)
+      var buttons = root.descendants(fixture.controls, function(item) { return "icon" in item })
+      var audio = buttons.filter(function(item) { return item.label === "MUTE" })[0]
+      compare(audio.icon, "volume")
+      mouseClick(audio)
+      compare(root.audioEnabled, false)
+      compare(audio.label, "UNMUTE")
+      compare(audio.icon, "muted")
+      compare(root.button("RELEASE KEYS").icon, "keyboard")
+      root.keyboardExclusive = false
+      compare(root.button("CAPTURE KEYS").icon, "keyboard-off")
+      compare(root.button("PAUSE").icon, "pause")
+      root.phase = "paused"
+      compare(root.button("RESUME").icon, "play")
+      root.phase = "settings"
+      compare(root.button("DONE").icon, "")
+    }
+
+    function test_leftDockTooltipRemainsOnscreen() {
+      root.phase = "waiting"
+      root.currentStepIsTour = true
+      overlay.highlight = { anchor: "top-right" }
+      wait(50)
+      var capture = root.button("RELEASE KEYS")
+      capture.forceActiveFocus(Qt.TabFocusReason)
+      var tooltip = root.descendants(capture, function(item) { return item.objectName === "buttonTooltip" })[0]
+      tryCompare(tooltip, "visible", true)
+      var position = tooltip.mapToItem(root, 0, 0)
+      verify(position.x >= 0)
+      verify(position.x + tooltip.width <= root.width)
     }
   }
 }
