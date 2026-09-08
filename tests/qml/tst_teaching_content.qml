@@ -86,10 +86,10 @@ Item {
       xhr.open("GET", Qt.resolvedUrl("../../app/shell.qml"), false)
       xhr.send()
       var source = xhr.responseText
-      var components = source.slice(source.indexOf("  component UiPanel:"), source.indexOf("  component PreferenceSlider:"))
+      var components = source.slice(source.indexOf("  component UiPanel:"), source.indexOf("  component PreferenceSwitch:"))
         + source.slice(source.indexOf("  component Keycap:"), source.indexOf("  function setCharacterState("))
       var start = source.indexOf("        UiPanel {\n          id: teachingContent")
-      var end = source.indexOf("        GridLayout {\n          id: controls", start)
+      var end = source.indexOf("        Rectangle {\n          id: welcomeToolbarOutline", start)
       verify(start >= 0 && end > start)
       var runtimeFunctions = ["readingDuration", "tourAdvanceDelay", "canAutoAdvanceTour",
         "updateTourDetails", "scheduleTourAdvance", "advanceTour", "openedToolKeyboardHint"]
@@ -100,6 +100,8 @@ Item {
         "import QtQuick\nimport QtQuick.Layouts\nItem { anchors.fill: parent\n"
         + "property alias panel: teachingContent\nproperty alias navigation: lessonNavigation\n"
         + "property alias instructionText: teachingInstruction\n"
+        + "property alias note: teachingNote\nproperty alias details: teachingDetails\n"
+        + "property alias keycaps: instructionKeys\nproperty alias actionButton: stepActionButton\n"
         + "property alias keyboardHint: openedToolKeyboardHint\n"
         + runtimeFunctions + components + source.slice(start, end) + "\n}", overlay)
     }
@@ -108,6 +110,11 @@ Item {
       failOnWarning(/.*/)
       root.phase = "waiting"
       root.currentStepIsTour = true
+      root.currentStep = {instruction: "Look at the desktop bar.", detail: "Additional explanation.", keys: [],
+        completionMessage: "The menu is open.", completion: {type: "hyprland-layer-open"}}
+      root.practiceMode = false
+      root.practiceHintVisible = false
+      root.stepAssisted = false
       root.width = 1200
       root.textScale = 1
       root.lastAction = ""
@@ -229,6 +236,67 @@ Item {
       verify(fixture.instructionText.visible)
       compare(fixture.instructionText.text, root.currentStep.completionMessage)
       verify(root.buttons(fixture).some(function(button) { return button.label === "CONTINUE" }))
+    }
+
+    function test_actionShowsInstructionThenKeysThenOneReadableNote() {
+      root.currentStepIsTour = false
+      root.currentStep = {instruction: "Hold Super and tap 2.", keys: ["SUPER", "+", "2"],
+        note: "Your windows stay open when you switch workspaces.",
+        detail: "Workspace two may already contain windows. Switching doesn't close or move them."}
+      wait(30)
+      verify(fixture.instructionText.visible)
+      verify(fixture.keycaps.visible)
+      verify(fixture.note.visible)
+      verify(!fixture.details.visible)
+      compare(fixture.note.font.pixelSize, 17)
+      compare(fixture.note.opacity, 1)
+      verify(fixture.keycaps.y >= fixture.instructionText.y + fixture.instructionText.height)
+      verify(fixture.note.y >= fixture.keycaps.y + fixture.keycaps.height)
+      root.buttons(fixture).find(function(button) { return button.label === "DETAILS" }).clicked()
+      wait(30)
+      verify(fixture.details.visible)
+      compare(fixture.details.text, root.currentStep.detail)
+      compare(fixture.details.font.pixelSize, 17)
+      compare(fixture.instructionText.text, root.currentStep.instruction)
+      root.currentStep = {instruction: "Close this window.", keys: ["SUPER", "+", "W"]}
+      wait(30)
+      verify(!fixture.details.visible)
+      verify(!fixture.note.visible)
+      verify(!root.buttons(fixture).some(function(button) { return button.label === "DETAILS" }))
+    }
+
+    function test_practiceKeepsSafetyNoteAfterActionAndDetailsCountAsAHint() {
+      root.currentStepIsTour = false
+      root.practiceMode = true
+      root.currentStep = {instruction: "Copy the practice notes.", keys: [], actionLabel: "Start exercise",
+        note: "This replaces your clipboard with harmless sample text.", detail: "Copy the older note first."}
+      wait(30)
+      verify(fixture.actionButton.visible)
+      verify(fixture.note.visible)
+      verify(fixture.note.y >= fixture.actionButton.y + fixture.actionButton.height)
+      verify(!fixture.details.visible)
+      root.buttons(fixture).find(function(button) { return button.label === "DETAILS" }).clicked()
+      verify(root.practiceHintVisible)
+      verify(root.stepAssisted)
+      fixture.actionButton.clicked()
+      compare(root.lastAction, "action")
+    }
+
+    function test_actionNotesAndNavigationFitNarrowScreens() {
+      root.currentStepIsTour = false
+      root.currentStep = {instruction: "Hold Super and tap 2.", keys: ["SUPER", "+", "2"],
+        note: "Your windows stay open when you switch workspaces.", detail: "Additional explanation."}
+      for (var size of [[900, 1], [640, 1.3], [460, 1.3]]) {
+        root.width = size[0]
+        root.textScale = size[1]
+        wait(30)
+        verify(fixture.note.contentWidth <= fixture.note.width)
+        for (var button of root.buttons(fixture)) {
+          var position = button.mapToItem(overlay, 0, 0)
+          verify(position.x >= 0)
+          verify(position.x + button.width <= root.width)
+        }
+      }
     }
 
     function test_narrowAndLargeTextLayoutsKeepNavigationOnScreen() {

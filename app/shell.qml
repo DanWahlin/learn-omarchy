@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
+import "CaptionTiming.js" as CaptionTiming
 
 ShellRoot {
   id: root
@@ -38,6 +39,8 @@ ShellRoot {
   // "first-run" asks for a coach and proceeds on pick; "settings" stays open.
   property string settingsMode: "settings"
   property bool resetConfirmPending: false
+  property bool resetOptionsExpanded: false
+  onResetConfirmPendingChanged: if (resetConfirmPending) resetOptionsExpanded = true
   property bool resetJustDone: false
   readonly property string characterAssetRoot: resolvedPack ? resolvedPack.assetUrl : ""
   readonly property var characterConfig: resolvedPack ? resolvedPack.manifest : ({})
@@ -146,9 +149,10 @@ ShellRoot {
       welcomeSeen = welcomeSettingPresent ? parsed.welcomeSeen : tourSeen
       audioEnabled = parsed.audioEnabled !== false
       speechEnabled = parsed.speechEnabled !== false
+      synchronizedWelcomeText = parsed.synchronizedWelcomeText !== false
       effectsEnabled = parsed.effectsEnabled !== false
-      speechVolume = boundedNumber(parsed.speechVolume, 80, 0, 100)
-      effectsVolume = boundedNumber(parsed.effectsVolume, 45, 0, 100)
+      speechVolume = speechEnabled ? boundedNumber(parsed.speechVolume, 80, 0, 100) : 0
+      effectsVolume = effectsEnabled ? boundedNumber(parsed.effectsVolume, 45, 0, 100) : 0
       speechRate = boundedNumber(parsed.speechRate, 1, 0.75, 1.5)
       motionReduced = parsed.motionReduced === true
       autoAdvance = parsed.autoAdvance !== false
@@ -176,6 +180,7 @@ ShellRoot {
       welcomeSeen: welcomeSeen,
       audioEnabled: audioEnabled,
       speechEnabled: speechEnabled,
+      synchronizedWelcomeText: synchronizedWelcomeText,
       effectsEnabled: effectsEnabled,
       speechVolume: speechVolume,
       effectsVolume: effectsVolume,
@@ -262,6 +267,7 @@ ShellRoot {
     }
     settingsMode = mode || "settings"
     resetConfirmPending = false
+    resetOptionsExpanded = false
     syncCharacterPick()
     if (!settingsReturnToLesson) stopAudio()
     phase = "settings"
@@ -904,6 +910,18 @@ ShellRoot {
     }
   }
 
+  component PreferenceSwitch: Controls.Switch {
+    id: preference
+    property string description: ""
+    font.pixelSize: 16 * root.textScale
+    Accessible.name: text
+    Accessible.description: description
+    ThemePalette { target: preference; colors: appTheme.colors }
+    Keys.onPressed: function(event) { root.handleSystemVolumeKey(event) }
+    Controls.ToolTip.visible: hovered && description !== ""
+    Controls.ToolTip.text: description
+  }
+
   component PreferenceSlider: ColumnLayout {
     id: preference
     property string label: ""
@@ -1269,6 +1287,10 @@ ShellRoot {
     if (currentStep.completion.type === "hyprland-workspace-is") {
       if (currentWorkspaceId() === Number(currentStep.completion.id)) completeCurrentStep()
       else if (++workspaceCheckAttempts < 5) workspaceCompletionTimer.restart()
+      else if (!actionRunning && actionStepId === currentStep.id) {
+        clearActiveKeys()
+        showRecovery("The requested workspace isn't active yet. Try the shortcut again, or choose Help.", "")
+      }
       return
     }
     if (currentStep.completion.type !== "hyprland-workspace-change" || workspaceStartId < 0) return
@@ -1326,14 +1348,96 @@ ShellRoot {
   property bool welcomeNarrationStarted: false
   property bool welcomeNarrationFinished: false
   property bool welcomeSpeechStopping: false
+  property bool synchronizedWelcomeText: true
+  property var welcomeWordTimings: []
+  property string welcomeTimingText: ""
+  property real welcomePlaybackMs: -1
+  property bool welcomeTimingFailed: false
+  property bool welcomeReadingActive: false
+  property real welcomeReadingElapsed: 0
+  property int welcomeReadingStartOffset: 0
+  readonly property int welcomeRevealEnd: !synchronizedWelcomeText || reducedMotion ? -1
+    : !narrationEnabled ? CaptionTiming.readingOffset(captionText(welcomeText),
+        welcomeReadingElapsed, readingWordsPerMinute, welcomeReadingStartOffset)
+    : welcomeNarrationFinished || welcomeTimingFailed || !welcomeAudioPath() ? -1
+    : welcomePlaybackMs < 0 ? 0
+    : CaptionTiming.revealOffset(welcomeTimingText, welcomeText, captionText(welcomeText),
+        welcomeWordTimings, welcomePlaybackMs)
+
+  Timer {
+    id: welcomeTimingDeadline
+    interval: 3000
+    onTriggered: {
+      root.welcomeTimingFailed = true
+      console.warn("learn-omarchy: welcome timing didn't arrive; showing full text")
+    }
+  }
+
+  function welcomeAudioPath() {
+    if (!welcomeNarration) return ""
+    var audio = welcomeStage === "recommendation" ? welcomeNarration.recommendationAudio :
+      welcomeStage === "controls" ? welcomeNarration.controls?.audio : welcomeNarration.audio
+    return characterStore.audioPath(audio, welcomeInstruction(), appRoot + "/courses")
+  }
+
+  Timer {
+    id: welcomeReadingClock
+    interval: 50
+    repeat: true
+    running: root.welcomeReadingActive && !root.narrationEnabled && root.synchronizedWelcomeText && !root.reducedMotion
+    onTriggered: root.welcomeReadingElapsed += interval
+  }
+
+  function resetWelcomeReading() {
+    welcomeReadingActive = false
+    welcomeReadingElapsed = 0
+    welcomeReadingStartOffset = 0
+  }
+
+  function resetWelcomeTiming() {
+    welcomeTimingDeadline.stop()
+    welcomeWordTimings = []
+    welcomeTimingText = ""
+    welcomePlaybackMs = -1
+    welcomeTimingFailed = false
+  }
+
+  function receiveWelcomePlayback(raw, generation, stage) {
+    if (generation !== introGeneration || stage !== welcomeStage || welcomeSpeechStopping ||
+        !welcomeSpeech.running || welcomeTimingFailed) return
+    try {
+      var message = JSON.parse(raw)
+      if (message.type === "fallback") {
+        resetWelcomeTiming()
+        welcomeTimingFailed = true
+      } else if (message.type === "timing") {
+        if (message.text !== welcomeInstruction() || !Array.isArray(message.words) || !message.words.length)
+          throw new Error("word timing doesn't match this welcome text")
+        welcomeTimingText = message.text
+        welcomeWordTimings = message.words
+      } else if (message.type === "position") {
+        if (typeof message.positionMs !== "number" || !isFinite(message.positionMs) || message.positionMs < 0)
+          throw new Error("invalid welcome playback position")
+        welcomePlaybackMs = message.positionMs
+        welcomeTimingDeadline.stop()
+      }
+    } catch (error) {
+      resetWelcomeTiming()
+      welcomeTimingFailed = true
+      console.warn("learn-omarchy: synchronized welcome unavailable; showing full text:", error)
+    }
+  }
+
   function welcomeInstruction() {
     if (!welcomeNarration) return "Welcome to Omarchy! Let's look at what you can learn."
+    if (welcomeStage === "recommendation") return welcomeNarration.recommendation
+    if (welcomeStage === "controls" && welcomeNarration.controls) return welcomeNarration.controls.instruction
     var instructions = welcomeNarration.instructions
     return instructions && Object.prototype.hasOwnProperty.call(instructions, characterName)
       ? instructions[characterName] : welcomeNarration.instruction
   }
 
-  readonly property string welcomeText: welcomeStage === "welcome"
+  readonly property string welcomeText: welcomeStage === "welcome" || welcomeStage === "controls"
     ? characterText(welcomeInstruction())
     : (welcomeNarration && welcomeNarration.recommendation
       ? welcomeNarration.recommendation : "Choose a lesson to get started.")
@@ -1369,6 +1473,7 @@ ShellRoot {
     introGeneration++
     introStartTimer.stop()
     welcomeReadTimer.stop()
+    resetWelcomeReading()
     stopWelcomeSpeech()
     welcomeNarrationStarted = false
     welcomeNarrationFinished = false
@@ -1417,6 +1522,9 @@ ShellRoot {
       introDeparting = false
       welcomeStage = "welcome"
       setCharacterState("tour-talk", "")
+    } else if (phase === "welcome" && welcomeStage === "controls-flight") {
+      welcomeStage = "controls"
+      setCharacterState("tour-point", "")
     } else if (phase === "menu" && welcomeStage === "menu-flight") {
       welcomeStage = "recommendation"
       setCharacterState("menu-point", "")
@@ -1424,17 +1532,24 @@ ShellRoot {
   }
 
   function welcomeCaptionShown() {
-    if (welcomeStage !== "welcome" && welcomeStage !== "recommendation") return
-    if (welcomeStage === "welcome" && narrationEnabled && welcomeNarration && !welcomeNarrationFinished) {
-      var path = characterStore.audioPath(welcomeNarration.audio, welcomeInstruction(), appRoot + "/courses")
+    if (welcomeStage !== "welcome" && welcomeStage !== "controls" && welcomeStage !== "recommendation") return
+    welcomeReadingActive = !narrationEnabled
+    if (narrationEnabled && welcomeNarration && !welcomeNarrationFinished) {
+      var path = welcomeAudioPath()
       if (path !== "") {
         if (welcomeSpeechStopping) return
         if (!welcomeNarrationStarted) {
+          resetWelcomeTiming()
           welcomeNarrationStarted = true
           welcomeSpeech.generation = introGeneration
-          welcomeSpeech.command = ["mpv", "--no-video", "--really-quiet", "--volume=" + speechVolume,
-            "--speed=" + speechRate, "--", path]
+          welcomeSpeech.stage = welcomeStage
+          welcomeSpeech.command = synchronizedWelcomeText && !reducedMotion
+            ? ["node", appRoot + "/tools/play-timed-speech.mjs", "--volume", String(speechVolume),
+                "--speed", String(speechRate), "--audio", path]
+            : ["mpv", "--no-video", "--really-quiet", "--volume=" + speechVolume,
+                "--speed=" + speechRate, "--", path]
           welcomeSpeech.running = true
+          if (synchronizedWelcomeText && !reducedMotion) welcomeTimingDeadline.restart()
         }
         return
       }
@@ -1446,25 +1561,28 @@ ShellRoot {
   }
 
   function stopWelcomeSpeech() {
+    resetWelcomeTiming()
     if (!welcomeSpeech.running) return
     welcomeSpeechStopping = true
     welcomeSpeech.running = false
   }
 
-  function welcomeSpeechExited(exitCode, generation) {
+  function welcomeSpeechExited(exitCode, generation, stage) {
     if (welcomeSpeechStopping) {
       welcomeSpeechStopping = false
-      if (phase === "welcome" && welcomeStage === "welcome") welcomeCaptionShown()
+      if ((phase === "welcome" && (welcomeStage === "welcome" || welcomeStage === "controls")) ||
+          (phase === "menu" && welcomeStage === "recommendation")) welcomeCaptionShown()
       return
     }
-    if (generation !== introGeneration || welcomeStage !== "welcome") return
+    if (generation !== introGeneration || welcomeStage !== (stage || "welcome")) return
+    resetWelcomeTiming()
     welcomeNarrationFinished = true
     if (exitCode !== 0) {
       console.warn("learn-omarchy: welcome narration failed; using reading time")
       welcomeCaptionShown()
     } else {
       welcomeReadTimer.generation = introGeneration
-      welcomeReadTimer.stage = "welcome"
+      welcomeReadTimer.stage = welcomeStage
       welcomeReadTimer.interval = narrationRestMs
       welcomeReadTimer.restart()
     }
@@ -1473,9 +1591,17 @@ ShellRoot {
   function advanceWelcome(generation, stage) {
     if (generation !== introGeneration || stage !== welcomeStage) return
     if (stage === "scene") skipIntroScene()
-    else if (stage === "welcome") {
+    else if (stage === "welcome" || stage === "controls") {
       welcomeReadTimer.stop()
+      resetWelcomeReading()
       stopWelcomeSpeech()
+      welcomeNarrationStarted = false
+      welcomeNarrationFinished = false
+      if (stage === "welcome" && welcomeNarration && welcomeNarration.controls) {
+        welcomeStage = "controls-flight"
+        setCharacterState("tour-fly", "")
+        return
+      }
       welcomeStage = "menu-flight"
       selectedLessonIndex = course && course.lessons[0].kind === "welcome" && course.lessons.length > 1 ? 1 : 0
       phase = "menu"
@@ -2754,8 +2880,11 @@ ShellRoot {
   }
 
   function toggleAudio() {
+    var visibleWelcomeEnd = welcomeRevealEnd
     audioEnabled = !audioEnabled
-    if (!audioEnabled && welcomeStage === "welcome") {
+    if (!audioEnabled && (welcomeStage === "welcome" || welcomeStage === "controls" || welcomeStage === "recommendation")) {
+      welcomeReadingStartOffset = visibleWelcomeEnd < 0 ? captionText(welcomeText).length : visibleWelcomeEnd
+      welcomeReadingElapsed = 0
       stopWelcomeSpeech()
       welcomeNarrationFinished = true
       welcomeCaptionShown()
@@ -2763,7 +2892,12 @@ ShellRoot {
     persistSettings()
     if (audioEnabled) {
       if (!speechEnabled || introActive) return
-      if (phase === "lesson-complete") {
+      if ((phase === "welcome" && (welcomeStage === "welcome" || welcomeStage === "controls")) ||
+          (phase === "menu" && welcomeStage === "recommendation")) {
+        welcomeNarrationStarted = false
+        welcomeNarrationFinished = false
+        welcomeCaptionShown()
+      } else if (phase === "lesson-complete") {
         lessonWrapupPlayed = false
         playLessonWrapup()
       } else if (phase === "highlight") {
@@ -2832,6 +2966,8 @@ ShellRoot {
     actionStepId = currentStep.id
     actionCompletionType = currentStep.completion.type
     actionCompletionDelay = Number(currentStep.completion.delayMs || 250)
+    if (actionCompletionType === "hyprland-workspace-is" || actionCompletionType === "hyprland-workspace-change")
+      workspaceCheckAttempts = 0
     armHelpDetection()
     var tutorialWindow = currentTutorialWindow()
     var command = resolveWindowCommand(currentStep.help.command, tutorialWindow)
@@ -3319,6 +3455,10 @@ ShellRoot {
         tourSeen: root.tourSeen,
         welcomeSeen: root.welcomeSeen,
         welcomeStage: root.welcomeStage,
+        welcomeTimingWords: root.welcomeWordTimings.length,
+        welcomePlaybackMs: root.welcomePlaybackMs,
+        welcomeRevealEnd: root.welcomeRevealEnd,
+        welcomeReadingElapsed: root.welcomeReadingElapsed,
         completedLessons: root.completedLessons,
         stepResults: root.stepResults,
         practiceMode: root.practiceMode,
@@ -3466,6 +3606,12 @@ ShellRoot {
         var data = JSON.parse(text())
         if (typeof data.instruction !== "string" || !data.instruction.trim() ||
             data.audio !== "audio/host-welcome.mp3") throw new Error("Invalid welcome narration metadata")
+        if (data.recommendationAudio !== undefined && (data.recommendationAudio !== "audio/host-lessons.mp3" ||
+            typeof data.recommendation !== "string" || !data.recommendation.trim()))
+          throw new Error("Invalid welcome lesson-menu narration")
+        if (data.controls !== undefined && (!data.controls || typeof data.controls.instruction !== "string" ||
+            !data.controls.instruction.trim() || data.controls.audio !== "audio/host-controls.mp3"))
+          throw new Error("Invalid welcome controls narration metadata")
         if (data.instructions !== undefined && (!data.instructions || typeof data.instructions !== "object" ||
             Array.isArray(data.instructions) || Object.keys(data.instructions).some(function(id) {
               return typeof data.instructions[id] !== "string" || !data.instructions[id].trim()
@@ -3481,15 +3627,19 @@ ShellRoot {
   Process {
     id: welcomeSpeech
     property int generation: -1
+    property string stage: ""
+    stdout: SplitParser {
+      onRead: function(data) { root.receiveWelcomePlayback(data, welcomeSpeech.generation, welcomeSpeech.stage) }
+    }
     onExited: function(exitCode) {
-      root.welcomeSpeechExited(exitCode, generation)
+      root.welcomeSpeechExited(exitCode, generation, stage)
     }
+  }
 
-    Process {
-      id: lessonWrapupSpeech
-      property int generation: -1
-      onExited: function(exitCode) { root.lessonWrapupExited(exitCode, generation) }
-    }
+  Process {
+    id: lessonWrapupSpeech
+    property int generation: -1
+    onExited: function(exitCode) { root.lessonWrapupExited(exitCode, generation) }
   }
 
   Process {
@@ -3703,8 +3853,10 @@ ShellRoot {
         root.phase === "waiting" &&
         root.currentStep &&
         root.currentStep.id === root.actionStepId &&
-        root.actionCompletionType === "hyprland-workspace-change"
+        (root.actionCompletionType === "hyprland-workspace-change" ||
+          root.actionCompletionType === "hyprland-workspace-is")
       ) {
+        root.workspaceCheckAttempts = 0
         workspaceCompletionTimer.restart()
       } else if (
         exitCode === 0 &&
@@ -4598,7 +4750,7 @@ ShellRoot {
                 Text {
                   visible: root.settingsMode !== "first-run"
                   Layout.fillWidth: true
-                  text: "LESSON PREFERENCES"
+                  text: "AUDIO"
                   color: root.instruction
                   font.family: "monospace"
                   font.pixelSize: 12 * root.textScale
@@ -4613,65 +4765,38 @@ ShellRoot {
                   rowSpacing: 18
                   columnSpacing: 24
 
-                  UiButton {
-                    Layout.fillWidth: true
-                    label: root.speechEnabled ? "SPEECH ON" : "SPEECH OFF"
-                    onClicked: {
-                      root.speechEnabled = !root.speechEnabled;
-                      if (!root.speechEnabled)
-                        root.stopAudio();
-                      root.persistSettings();
-                    }
-                  }
-                  UiButton {
-                    Layout.fillWidth: true
-                    label: root.effectsEnabled ? "EFFECTS ON" : "EFFECTS OFF"
-                    onClicked: {
-                      root.effectsEnabled = !root.effectsEnabled;
-                      if (!root.effectsEnabled && sfxProcess.running)
-                        sfxProcess.running = false;
-                      root.persistSettings();
-                    }
-                  }
-                  UiButton {
-                    Layout.fillWidth: true
-                    label: root.reducedMotion ? "MOTION: REDUCED" : "MOTION: FULL"
-                    onClicked: {
-                      root.motionReduced = !root.motionReduced;
-                      root.persistSettings();
-                    }
-                  }
-                  UiButton {
-                    Layout.fillWidth: true
-                    label: root.autoAdvance ? "ADVANCE: AUTOMATIC" : "ADVANCE: MANUAL"
-                    onClicked: {
-                      root.autoAdvance = !root.autoAdvance;
-                      root.persistSettings();
-                    }
-                  }
                   PreferenceSlider {
+                    objectName: "narrationVolumePreference"
                     Layout.fillWidth: true
-                    label: "Speech volume"
-                    displayValue: root.speechVolume + "%"
+                    label: "Narration volume"
+                    displayValue: root.speechVolume === 0 ? "Off" : root.speechVolume + "%"
                     value: root.speechVolume
                     onAdjusted: function (value) {
                       root.speechVolume = value;
+                      root.speechEnabled = value > 0;
+                      if (!root.speechEnabled) {
+                        root.stopAudio();
+                        root.stopWelcomeSpeech();
+                      }
                       root.persistSettings();
                     }
                   }
                   PreferenceSlider {
+                    objectName: "effectsVolumePreference"
                     Layout.fillWidth: true
-                    label: "Effect volume"
-                    displayValue: root.effectsVolume + "%"
+                    label: "Effects volume"
+                    displayValue: root.effectsVolume === 0 ? "Off" : root.effectsVolume + "%"
                     value: root.effectsVolume
                     onAdjusted: function (value) {
                       root.effectsVolume = value;
+                      root.effectsEnabled = value > 0;
+                      if (!root.effectsEnabled && sfxProcess.running) sfxProcess.running = false;
                       root.persistSettings();
                     }
                   }
                   PreferenceSlider {
                     Layout.fillWidth: true
-                    label: "Speech speed"
+                    label: "Narration speed"
                     minimum: 0.75
                     maximum: 1.5
                     step: 0.05
@@ -4681,6 +4806,71 @@ ShellRoot {
                       root.speechRate = value;
                       root.persistSettings();
                     }
+                  }
+                }
+                RowLayout {
+                  objectName: "audioMutedNotice"
+                  visible: root.settingsMode !== "first-run" && !root.audioEnabled
+                  Layout.fillWidth: true
+                  Text {
+                    Layout.fillWidth: true
+                    text: "Audio is muted."
+                    color: root.foreground
+                    font.pixelSize: 14 * root.textScale
+                  }
+                  UiButton {
+                    label: "UNMUTE"
+                    compact: true
+                    onClicked: root.toggleAudio()
+                  }
+                }
+                Text {
+                  visible: root.settingsMode !== "first-run"
+                  Layout.fillWidth: true
+                  text: "Set a volume to zero to turn it off. Volume and speed changes apply to the next clip or Replay."
+                  wrapMode: Text.WordWrap
+                  color: root.muted
+                  font.pixelSize: 13 * root.textScale
+                }
+                Text {
+                  visible: root.settingsMode !== "first-run"
+                  Layout.fillWidth: true
+                  text: "READING & MOTION"
+                  color: root.instruction
+                  font.family: "monospace"
+                  font.pixelSize: 12 * root.textScale
+                  font.weight: Font.Bold
+                }
+                GridLayout {
+                  visible: root.settingsMode !== "first-run"
+                  Layout.fillWidth: true
+                  columns: characterColumn.width < 560 ? 1 : 2
+                  uniformCellWidths: true
+                  rowSpacing: 14
+                  columnSpacing: 24
+                  PreferenceSwitch {
+                    objectName: "typeTextSwitch"
+                    Layout.fillWidth: true
+                    text: "Type text"
+                    description: "Reveal welcome captions gradually; off shows the full text."
+                    checked: root.synchronizedWelcomeText
+                    onToggled: { root.synchronizedWelcomeText = checked; root.persistSettings() }
+                  }
+                  PreferenceSwitch {
+                    objectName: "reduceMotionSwitch"
+                    Layout.fillWidth: true
+                    text: "Reduce motion"
+                    description: "Reduce animation and show complete captions immediately."
+                    checked: root.motionReduced
+                    onToggled: { root.motionReduced = checked; root.persistSettings() }
+                  }
+                  PreferenceSwitch {
+                    objectName: "autoAdvanceSwitch"
+                    Layout.fillWidth: true
+                    text: "Advance automatically"
+                    description: "Move on after narration; off lets you choose when to continue."
+                    checked: root.autoAdvance
+                    onToggled: { root.autoAdvance = checked; root.persistSettings() }
                   }
                   PreferenceSlider {
                     Layout.fillWidth: true
@@ -4699,7 +4889,7 @@ ShellRoot {
                 Text {
                   visible: root.settingsMode !== "first-run"
                   Layout.fillWidth: true
-                  text: "Volume and speed changes apply to the next clip or Replay."
+                  text: "Type text currently applies to the welcome. Reduced motion always shows full text."
                   wrapMode: Text.WordWrap
                   color: root.muted
                   font.pixelSize: 12 * root.textScale
@@ -4712,17 +4902,19 @@ ShellRoot {
                   color: root.colorWithAlpha(root.foreground, 0.18)
                 }
 
-                Text {
+                UiButton {
                   visible: root.settingsMode !== "first-run"
-                  text: "PROGRESS"
-                  color: root.instruction
-                  font.family: "monospace"
-                  font.pixelSize: 12 * root.textScale
-                  font.weight: Font.Bold
+                  kind: "ghost"
+                  compact: true
+                  label: root.resetOptionsExpanded ? "HIDE RESET OPTIONS" : "SHOW RESET OPTIONS"
+                  onClicked: {
+                    root.resetOptionsExpanded = !root.resetOptionsExpanded
+                    if (!root.resetOptionsExpanded) root.resetConfirmPending = false
+                  }
                 }
 
                 GridLayout {
-                  visible: root.settingsMode !== "first-run"
+                  visible: root.settingsMode !== "first-run" && root.resetOptionsExpanded
                   Layout.fillWidth: true
                   columns: characterColumn.width < 640 ? 1 : 2
                   columnSpacing: 14
@@ -4781,12 +4973,6 @@ ShellRoot {
                 font.family: "sans-serif"
                 font.pixelSize: 12 * root.textScale
                 wrapMode: Text.WordWrap
-              }
-
-              UiButton {
-                kind: "ghost"
-                label: root.audioEnabled ? "MUTE ALL" : "UNMUTE"
-                onClicked: root.toggleAudio()
               }
 
               UiButton {
@@ -5195,9 +5381,10 @@ ShellRoot {
             GridLayout {
               id: lessonNavigation
               Layout.fillWidth: true
-              readonly property bool stacked: teachingContent.compactTour && teachingContent.width <
-                topicsButton.implicitWidth + backButton.implicitWidth + 8 + navRightGroup.implicitWidth +
-                stepCounter.implicitWidth + columnSpacing * 4 + 40
+              readonly property bool stacked: teachingContent.width <
+                (teachingContent.compactTour
+                  ? topicsButton.implicitWidth + backButton.implicitWidth + 8 + navRightGroup.implicitWidth + stepCounter.implicitWidth
+                  : sideWidth * 2 + lessonTitleGroup.implicitWidth) + columnSpacing * 4 + 40
               columns: stacked ? 1 : 5
               columnSpacing: 10
               rowSpacing: 8
@@ -5236,6 +5423,7 @@ ShellRoot {
               Item { visible: !lessonNavigation.stacked; Layout.fillWidth: true }
 
               ColumnLayout {
+                id: lessonTitleGroup
                 Layout.alignment: Qt.AlignHCenter
                 spacing: 5
 
@@ -5322,12 +5510,19 @@ ShellRoot {
                   }
 
                   UiButton {
-                    visible: teachingContent.compactTour
+                    visible: root.phase === "waiting" &&
+                      (teachingContent.compactTour || Boolean(root.currentStep && root.currentStep.detail))
                     compact: true
                     kind: "ghost"
                     label: teachingContent.detailsExpanded ? "LESS" : "DETAILS"
-                    description: "Show or hide extra guidance and narration replay"
-                    onClicked: root.tourDetailsExpanded = !root.tourDetailsExpanded
+                    description: "Show or hide extra guidance"
+                    onClicked: {
+                      root.tourDetailsExpanded = !root.tourDetailsExpanded
+                      if (root.tourDetailsExpanded && root.practiceMode && !root.currentStepIsTour) {
+                        root.practiceHintVisible = true
+                        root.stepAssisted = true
+                      }
+                    }
                   }
 
                   UiButton {
@@ -5374,22 +5569,8 @@ ShellRoot {
               }
             }
 
-            Text {
-              visible: Boolean(root.phase === "waiting" && !root.currentStepIsTour && root.currentStep && root.currentStep.detail && (!root.practiceMode || root.practiceHintVisible))
-              Layout.fillWidth: true
-              Layout.leftMargin: 8
-              Layout.rightMargin: 8
-              horizontalAlignment: Text.AlignHCenter
-              wrapMode: Text.WordWrap
-              textFormat: Text.PlainText
-              color: root.foreground
-              opacity: 0.72
-              font.family: "sans-serif"
-              font.pixelSize: 14 * root.textScale
-              text: root.currentStep ? root.characterText(root.currentStep.detail || "") : ""
-            }
-
             RowLayout {
+              id: instructionKeys
               visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.keys.length > 0 && (!root.practiceMode || root.practiceHintVisible))
               Layout.alignment: Qt.AlignHCenter
               Layout.topMargin: 4
@@ -5407,14 +5588,57 @@ ShellRoot {
               }
             }
 
+            UiButton {
+              id: stepActionButton
+              visible: Boolean(root.phase === "waiting" && root.currentStep && !root.currentStepIsTour && root.currentStep.keys.length === 0)
+              Layout.alignment: Qt.AlignHCenter
+              kind: "primary"
+              label: (root.currentStep ? root.currentStep.actionLabel || "Continue" : "").toUpperCase()
+              enabled: !root.exerciseRunning
+              onClicked: root.runStepAction("action")
+            }
+
             Text {
-              visible: root.practiceMode && root.phase === "waiting" && !root.currentStepIsTour
+              id: teachingNote
+              visible: Boolean(root.phase === "waiting" && !root.currentStepIsTour && root.currentStep && root.currentStep.note)
               Layout.fillWidth: true
-              text: "PRACTICE: recall the shortcut. H reveals a hint. Help is still available. Actions remain course-guided."
+              Layout.leftMargin: 8
+              Layout.rightMargin: 8
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.Wrap
+              textFormat: Text.PlainText
+              color: root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 17 * root.textScale
+              lineHeight: 1.2
+              text: root.currentStep ? root.captionText(root.characterText(root.currentStep.note || "")) : ""
+            }
+
+            Text {
+              id: teachingDetails
+              visible: Boolean(root.phase === "waiting" && !root.currentStepIsTour &&
+                teachingContent.detailsExpanded && root.currentStep && root.currentStep.detail)
+              Layout.fillWidth: true
+              Layout.leftMargin: 8
+              Layout.rightMargin: 8
+              horizontalAlignment: Text.AlignLeft
+              wrapMode: Text.Wrap
+              textFormat: Text.PlainText
+              color: root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 17 * root.textScale
+              lineHeight: 1.2
+              text: root.currentStep ? root.captionText(root.characterText(root.currentStep.detail || "")) : ""
+            }
+
+            Text {
+              visible: root.practiceMode && root.phase === "waiting" && !root.currentStepIsTour && !root.practiceHintVisible
+              Layout.fillWidth: true
+              text: "Practice mode: press H for a hint."
               color: root.foreground
               horizontalAlignment: Text.AlignHCenter
               wrapMode: Text.WordWrap
-              font.pixelSize: 12 * root.textScale
+              font.pixelSize: 16 * root.textScale
             }
 
             Text {
@@ -5425,7 +5649,7 @@ ShellRoot {
               horizontalAlignment: Text.AlignHCenter
               wrapMode: Text.WordWrap
               color: root.instruction
-              font.pixelSize: 14 * root.textScale
+              font.pixelSize: 17 * root.textScale
               Accessible.role: Accessible.StaticText
               Accessible.name: text
             }
@@ -5456,14 +5680,6 @@ ShellRoot {
               onClicked: { root.stopAudio(); root.advance() }
             }
 
-            UiButton {
-              visible: Boolean(root.phase === "waiting" && root.currentStep && !root.currentStepIsTour && root.currentStep.keys.length === 0)
-              Layout.alignment: Qt.AlignHCenter
-              kind: "primary"
-              label: (root.currentStep ? root.currentStep.actionLabel || "Continue" : "").toUpperCase()
-              enabled: !root.exerciseRunning
-              onClicked: root.runStepAction("action")
-            }
             Text {
               visible: root.exerciseRunning
               Layout.fillWidth: true
@@ -5474,6 +5690,21 @@ ShellRoot {
               font.pixelSize: 14 * root.textScale
             }
           }
+        }
+
+        Rectangle {
+          id: welcomeToolbarOutline
+          visible: root.phase === "welcome" &&
+            (root.welcomeStage === "controls-flight" || root.welcomeStage === "controls")
+          x: controls.x - 8
+          y: controls.y - 8
+          width: controls.width + 16
+          height: controls.height + 16
+          z: 99
+          color: "transparent"
+          border.color: root.instruction
+          border.width: 3
+          radius: 12
         }
 
         GridLayout {
@@ -5538,7 +5769,7 @@ ShellRoot {
           }
 
           UiButton {
-            visible: root.welcomeStage !== ""
+            visible: root.welcomeStage !== "" && root.phase !== "welcome"
             compact: true
             icon: "skip"
             label: "SKIP WELCOME"
@@ -5700,14 +5931,20 @@ ShellRoot {
 
         RowLayout {
           id: welcomeControls
-          visible: root.phase === "welcome" && root.welcomeStage === "welcome"
+          visible: root.phase === "welcome"
           anchors.horizontalCenter: parent.horizontalCenter
           anchors.bottom: parent.bottom
           anchors.bottomMargin: 24
           UiButton {
+            visible: root.welcomeStage === "welcome" || root.welcomeStage === "controls"
             kind: "primary"
-            label: "SHOW LESSONS"
+            label: root.welcomeStage === "welcome" ? "CONTINUE" : "SHOW LESSONS"
             onClicked: root.advanceWelcome(root.introGeneration, root.welcomeStage)
+          }
+          UiButton {
+            kind: "ghost"
+            label: "SKIP WELCOME"
+            onClicked: root.finishWelcome()
           }
         }
 
@@ -5952,6 +6189,7 @@ ShellRoot {
           readonly property bool recommendation: root.phase === "menu"
           readonly property bool ready: overlay.shouldShow && hexonCoach.visible &&
             ((root.phase === "welcome" && root.welcomeStage === "welcome" && root.characterState === "tour-talk") ||
+             (root.phase === "welcome" && root.welcomeStage === "controls" && root.characterState === "tour-point") ||
              (recommendation && root.welcomeStage === "recommendation" && root.characterState === "menu-point"))
             && !coachTravelX.running && !coachTravelY.running
             && !characterMouse.pressed && !fallAnimation.running
@@ -5960,7 +6198,10 @@ ShellRoot {
           opacity: ready ? 1 : 0
           onReadyChanged: {
             if (ready && overlay.shouldShow) root.welcomeCaptionShown()
-            else if (overlay.shouldShow) welcomeReadTimer.stop()
+            else if (overlay.shouldShow) {
+              welcomeReadTimer.stop()
+              root.welcomeReadingActive = false
+            }
           }
           Behavior on opacity {
             onTargetValueChanged: welcomeFade.duration = targetValue > 0 && !root.reducedMotion ? 240 : 0
@@ -5999,6 +6240,15 @@ ShellRoot {
               color: root.instruction
               font.pixelSize: (welcomeCaption.recommendation ? 17 : 21) * root.textScale
               lineHeight: 1.2
+              opacity: root.welcomeRevealEnd >= 0 ? 0 : 1
+            }
+            WordRevealText {
+              width: welcomeCaptionText.width
+              visible: root.welcomeRevealEnd >= 0
+              fullText: welcomeCaptionText.text
+              revealEnd: root.welcomeRevealEnd
+              font: welcomeCaptionText.font
+              color: welcomeCaptionText.color
             }
           }
         }
@@ -6202,6 +6452,8 @@ ShellRoot {
           readonly property bool isPointingUp: root.characterState === "tour-point" ||
             (root.characterState === "target-point" && completionPointsUp)
           readonly property bool targetsIntro: root.characterState === "intro"
+          readonly property bool targetsWelcomeControls: root.phase === "welcome" &&
+            (root.welcomeStage === "controls-flight" || root.welcomeStage === "controls")
           readonly property bool targetsWelcome: root.phase === "welcome" && !targetsIntro
           readonly property bool targetsMenu:
             root.characterState === "menu-fly" ||
@@ -6214,6 +6466,7 @@ ShellRoot {
             root.characterState === "tour-point" ||
             root.characterState === "menu-point"
           readonly property int pointDirection:
+            targetsWelcomeControls ? 1 :
             (targetsCompletion ? overlay.targetPointX : targetsTour ? overlay.tourPointX : overlay.width) < width ? -1 : 1
           // Renderer landmarks already include pose registration and facing.
           readonly property real upTipLocalX: 8 + coachArt.upTipX
@@ -6275,6 +6528,8 @@ ShellRoot {
           readonly property real bottomY: overlay.height - height - 28
           readonly property real contextX: targetsIntro
             ? introPlayer.characterX - 8
+            : targetsWelcomeControls ? Math.max(18, Math.min(overlay.width - width - 18,
+                controls.x + controls.width / 2 - upTipLocalX))
             : targetsWelcome ? (overlay.width - width) / 2
             : targetsMenu
             ? Math.max(18, Math.min(overlay.width - width - 18, menuTargetX - width + 45))
@@ -6287,6 +6542,7 @@ ShellRoot {
               : waitingX
           readonly property real contextY: targetsIntro
             ? introPlayer.characterY - (height - 192)
+            : targetsWelcomeControls ? Math.max(0, controls.y + controls.height + 16 - upTipLocalY)
             : targetsWelcome ? Math.max(40, (overlay.height - height) / 2 - 40)
             : targetsMenu
             ? Math.max(50, menuTargetY - (height * 0.55))
@@ -6342,7 +6598,7 @@ ShellRoot {
             interval: 32
             repeat: true
             running: overlay.shouldShow &&
-              (root.welcomeStage === "center-flight" || root.welcomeStage === "menu-flight")
+              (root.welcomeStage === "center-flight" || root.welcomeStage === "controls-flight" || root.welcomeStage === "menu-flight")
             onTriggered: {
               if (!introPlayer.handoffPinned && !coachTravelX.running && !coachTravelY.running &&
                   !characterMouse.pressed && !fallAnimation.running &&

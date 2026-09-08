@@ -17,5 +17,8 @@
     "check": "node --experimental-strip-types tools/validate-course.ts courses/omarchy-basics.json && node --experimental-strip-types tools/character-packs.ts check-bundled && npm run audio:check",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:ui": "QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=generic QT_QUICK_CONTROLS_STYLE=Basic QML_XHR_ALLOW_FILE_READ=1 /usr/lib/qt6/bin/qmltestrunner -input tests/qml"
+  },
+  "dependencies": {
+    "microsoft-cognitiveservices-speech-sdk": "1.51.0"
   }
 }

@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "audioHash": "5cc06bbfbf6c3cf2ef4f8cc0ed4b9010a09e95f6bf263a947762a9604c963958",
+  "text": "These are the Learn Omarchy controls: Settings, keyboard capture, mute narration, and Exit. Release the keys when you want to use other windows; capture them again to continue with me.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 470,
+      "endOffset": 9
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 13
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 70
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 81
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 85
+    },
+    {
+      "startMs": 6630,
+      "endOffset": 91
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 99
+    },
+    {
+      "startMs": 8430,
+      "endOffset": 103
+    },
+    {
+      "startMs": 8590,
+      "endOffset": 108
+    },
+    {
+      "startMs": 8990,
+      "endOffset": 113
+    },
+    {
+      "startMs": 9149,
+      "endOffset": 117
+    },
+    {
+      "startMs": 9270,
+      "endOffset": 122
+    },
+    {
+      "startMs": 9469,
+      "endOffset": 125
+    },
+    {
+      "startMs": 9590,
+      "endOffset": 129
+    },
+    {
+      "startMs": 9870,
+      "endOffset": 135
+    },
+    {
+      "startMs": 10110,
+      "endOffset": 144
+    },
+    {
+      "startMs": 11030,
+      "endOffset": 152
+    },
+    {
+      "startMs": 11430,
+      "endOffset": 157
+    },
+    {
+      "startMs": 11590,
+      "endOffset": 163
+    },
+    {
+      "startMs": 12110,
+      "endOffset": 166
+    },
+    {
+      "startMs": 12229,
+      "endOffset": 175
+    },
+    {
+      "startMs": 12709,
+      "endOffset": 180
+    },
+    {
+      "startMs": 12950,
+      "endOffset": 184
+    }
+  ]
+}

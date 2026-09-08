@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { tmpdir } from "node:os";
 import test from "node:test";
 import {
   ffmpegVersion, fileHash, fingerprint, generationIsFresh, normalizationFilter,
@@ -46,6 +45,52 @@ test("narration-part selection rejects invalid values before contacting a speech
     assert.doesNotMatch(result.stderr, /AZURE_SPEECH_KEY|Azure Speech returned/);
   }
 });
+test("word timing capture explicitly requires Azure rather than silently guessing Edge timings", () => {
+  const result = spawnSync(process.execPath, [
+    "--experimental-strip-types", "tools/generate-course-audio.ts",
+    "courses/omarchy-basics.json", "--backend", "edge", "--word-timings",
+  ], { encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /--word-timings requires --backend azure/);
+});
+
+test("welcome pilot scope includes all welcome clips but no activities, and regeneration removes stale timings", async () => {
+  const directory = resolve("tests", `.welcome-audio-${randomUUID()}`);
+  await mkdir(directory);
+  try {
+    const course = resolve(directory, "course.json");
+    await cp(resolve("courses/omarchy-basics.json"), course);
+    await cp(resolve("courses/welcome.json"), resolve(directory, "welcome.json"));
+    const edge = resolve(directory, "fake-edge.mjs");
+    await writeFile(edge, `#!${process.execPath}
+import { spawnSync } from "node:child_process";
+const output = process.argv[process.argv.indexOf("--write-media") + 1];
+const result = spawnSync("ffmpeg", ["-v", "error", "-f", "lavfi", "-i",
+  "sine=frequency=440:duration=1", "-ar", "24000", "-ac", "1", output]);
+process.exit(result.status ?? 1);
+`, { mode: 0o700 });
+    const args = [
+      "--experimental-strip-types", "tools/generate-course-audio.ts", course,
+      "--backend", "edge", "--character", "owl", "--welcome", "--steps", "tour-welcome", "--part", "completion",
+    ];
+    const env = { ...process.env, EDGE_TTS_BIN: edge, HOME: directory, XDG_DATA_HOME: directory };
+    const first = spawnSync(process.execPath, args, { encoding: "utf8", env });
+    assert.equal(first.status, 0, first.stderr);
+    assert.match(first.stdout, /Generated 3 narration file/);
+    const root = resolve(directory, "audio/owl");
+    const clips = ["host-controls.mp3", "host-lessons.mp3", "host-welcome.mp3"];
+    assert.deepEqual((await readdir(root)).sort(), clips);
+    const skipped = spawnSync(process.execPath, [...args, "--missing"], { encoding: "utf8", env });
+    assert.equal(skipped.status, 0, skipped.stderr);
+    assert.match(skipped.stdout, /Generated 0 narration file/);
+    for (const name of clips) await writeFile(resolve(root, `${name}.timing.json`), '{"stale":true}');
+    const again = spawnSync(process.execPath, args, { encoding: "utf8", env });
+    assert.equal(again.status, 0, again.stderr);
+    assert.deepEqual((await readdir(root)).sort(), clips);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
 test("Ohm-1 displays his designation but uses Ohm and Andrew in his welcome recording", async () => {
   const pack = JSON.parse(await readFile(new URL("../assets/characters/ohm-1/character.json", import.meta.url), "utf8"));
   const welcome = JSON.parse(await readFile(new URL("../courses/welcome.json", import.meta.url), "utf8"));
@@ -54,7 +99,7 @@ test("Ohm-1 displays his designation but uses Ohm and Andrew in his welcome reco
   assert.equal(pack.spokenName, "Ohm");
   assert.equal(pack.narration.audioSet, "ohm-1");
   const spoken = prepareSpeech(welcome.instructions[pack.id], pack.spokenName ?? pack.displayName, { Omarchy: "Omaachi" });
-  assert.match(spoken, /^Hi! I'm Ohm-1, but you can call me Ohm for short\. Welcome to Omaachi\./);
+  assert.match(spoken, /^Hi! I'm Ohm-1, but you can call me Ohm for short\. Welcome to Omaachi!/);
   assert.equal(prepareSpeech("I'm HEXON.", pack.spokenName, {}), "I'm Ohm.");
   assert.match(prepareSpeech(welcome.instruction, "Ollie", {}), /^Hi! I'm Ollie\. Welcome/);
   assert.doesNotMatch(spoken, /HEXON|Arco/);
@@ -68,7 +113,8 @@ test("Ohm-1 displays his designation but uses Ohm and Andrew in his welcome reco
   }
 });
 test("graphics-only packs never initiate voice generation", async () => {
-  const directory = await mkdtemp(resolve(tmpdir(), "learn-pack-audio-"));
+  const directory = resolve("tests", `.learn-pack-audio-${randomUUID()}`);
+  await mkdir(directory);
   try {
     const dataHome = resolve(directory, "data");
     const target = resolve(dataHome, "learn-omarchy/characters/spark");

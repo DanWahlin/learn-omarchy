@@ -44,7 +44,13 @@ export async function auditCourseAudio(coursePath: string) {
   const welcome = JSON.parse(await readFile(resolve(directory, "welcome.json"), "utf8"));
   if (typeof welcome.instruction !== "string" || !welcome.instruction.trim() || welcome.audio !== "audio/host-welcome.mp3")
     throw new Error("Invalid welcome narration metadata");
+  if (welcome.controls !== undefined && (!welcome.controls || typeof welcome.controls.instruction !== "string" ||
+      !welcome.controls.instruction.trim() || welcome.controls.audio !== "audio/host-controls.mp3"))
+    throw new Error("Invalid welcome controls narration metadata");
   const manifest = await readManifest(resolve(directory, "audio/production-manifest.json"));
+  if (welcome.recommendationAudio !== undefined && (welcome.recommendationAudio !== "audio/host-lessons.mp3" ||
+      typeof welcome.recommendation !== "string" || !welcome.recommendation.trim()))
+    throw new Error("Invalid welcome lesson-menu narration");
   const clips: AudioClip[] = [];
   const issues: { clip: AudioClip; reasons: string[] }[] = [];
   for (const pack of catalog.packs) {
@@ -53,6 +59,10 @@ export async function auditCourseAudio(coursePath: string) {
     if (typeof instruction !== "string" || !instruction.trim()) throw new Error("Invalid character welcome instruction");
     const records = [{ step: "host-welcome", part: "welcome" as const, text: instruction, audio: welcome.audio }];
     const items: { step: string; part: AudioClip["part"]; text: string; audio: string }[] = records;
+    if (welcome.controls) items.push({ step: "host-controls", part: "welcome",
+      text: welcome.controls.instruction, audio: welcome.controls.audio });
+    if (welcome.recommendationAudio) items.push({ step: "host-lessons", part: "welcome",
+      text: welcome.recommendation, audio: welcome.recommendationAudio });
     for (const [variant, wrapUp] of Object.entries(parsed.course.wrapUp ?? {}))
       items.push({ step: "lesson-wrapup-" + variant, part: "wrapup", text: wrapUp.text, audio: wrapUp.audio });
     for (const lesson of parsed.course.lessons) {

@@ -56,6 +56,7 @@ test("the package install includes shared pack code and pack-owned intro assets"
     for (const file of [
       "app/CharacterPackStore.qml", "app/IntroPlayer.qml", "app/CharacterSprite.qml",
       "app/SplashScreen.qml", "assets/splash/learn-omarchy.png",
+      "app/WordRevealText.qml", "app/CaptionTiming.js", "tools/play-timed-speech.mjs",
       "app/IntroTimeline.js", "app/IntroEffect.qml", "app/qmldir",
       "src/character-packs.ts", "src/intro-sequence.ts", "tools/character-packs.ts",
       "tools/validate-course-audio.ts", "tools/audio-coverage.ts", "tools/audio-production.ts",
@@ -63,12 +64,14 @@ test("the package install includes shared pack code and pack-owned intro assets"
       "docs/character-packs.md", "docs/character-intros.md", "experiments/hexon-lab/shell.qml",
       "experiments/hexon-lab/qmldir",
       "assets/characters/ohm-1/intro/sequence.json", "assets/characters/owl/intro/sequence.json",
+      "courses/audio/ohm-1/host-welcome.mp3.timing.json",
+      "courses/audio/owl/host-welcome.mp3.timing.json",
     ]) {
       assert.ok((await readFile(join(root, file))).length > 0, file);
     }
     assert.deepEqual((await readdir(join(root, "tools"))).sort(),
       ["audio-coverage.ts", "audio-production.ts", "capture-practice.mjs", "character-packs.ts",
-        "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
+        "play-timed-speech.mjs", "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
     const audioCheck = spawnSync(process.execPath, ["--experimental-strip-types",
       join(root, "tools/validate-course-audio.ts"), join(root, "courses/omarchy-basics.json")],
     { encoding: "utf8" });

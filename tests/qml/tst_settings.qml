@@ -18,6 +18,7 @@ Item {
   property string introNotice: ""
   property int characterPick: 1
   property bool speechEnabled: true
+  property bool synchronizedWelcomeText: true
   property bool effectsEnabled: true
   property bool audioEnabled: true
   property bool motionReduced: false
@@ -28,6 +29,8 @@ Item {
   property real speechRate: 1
   property bool resetJustDone: false
   property bool resetConfirmPending: false
+  property bool resetOptionsExpanded: false
+  onResetConfirmPendingChanged: if (resetConfirmPending) resetOptionsExpanded = true
   property int completedCount: 1
   property var course: ({ lessons: new Array(11) })
   property color foreground: "#c0caf5"
@@ -74,6 +77,7 @@ Item {
   function colorWithAlpha(color, alpha) { return Qt.rgba(color.r, color.g, color.b, alpha) }
   function persistSettings() { savedCount++ }
   function stopAudio() {}
+  function stopWelcomeSpeech() {}
   function finishWelcome() { welcomeStage = "" }
   function toggleAudio() { audioEnabled = !audioEnabled; persistSettings() }
   function closeSettings() { phase = "menu" }
@@ -133,12 +137,49 @@ Item {
       wait(100)
     }
 
+    function test_welcomeOnlyShowsTheFourExplainedToolbarIcons() {
+      root.phase = "welcome"
+      root.welcomeStage = "controls"
+      root.keyboardExclusive = true
+      root.audioEnabled = true
+      root.currentStep = null
+      wait(30)
+      var controls = root.descendants(root.fixture.controls, function(item) {
+        return "label" in item && "clicked" in item && item.visible
+      })
+      compare(controls.map(function(item) { return item.label }).join("|"), "SETTINGS|RELEASE KEYS|MUTE|EXIT")
+    }
+
+    function test_welcomeCaptionSyncCanBeDisabledWithoutChangingSpeech() {
+      root.synchronizedWelcomeText = true
+      var speech = root.speechEnabled
+      var control = findChild(root.fixture, "typeTextSwitch")
+      verify(control !== null)
+      compare(control.text, "Type text")
+      compare(control.checked, true)
+      var saves = root.savedCount
+      control.checked = false
+      control.toggled()
+      compare(root.synchronizedWelcomeText, false)
+      compare(root.speechEnabled, speech)
+      compare(root.savedCount, saves + 1)
+      control.checked = true
+      control.toggled()
+      compare(root.synchronizedWelcomeText, true)
+    }
+
     function init() {
       failOnWarning(/.*/)
       root.phase = "settings"
       root.settingsMode = "settings"
       root.textScale = 1
       root.resetConfirmPending = false
+      root.resetOptionsExpanded = false
+      root.audioEnabled = true
+      root.speechEnabled = true
+      root.effectsEnabled = true
+      root.speechVolume = 80
+      root.effectsVolume = 45
       root.currentStepIsTour = false
       root.keyboardExclusive = true
       root.audioEnabled = true
@@ -252,6 +293,12 @@ Item {
     }
 
     function test_resetRequiresExplicitConfirmationAndCanBeCancelled() {
+      verify(!root.button("RESET PROGRESS").visible)
+      mouseClick(root.button("SHOW RESET OPTIONS"))
+      wait(30)
+      verify(root.button("RESET PROGRESS").visible)
+      root.button("RESET PROGRESS").forceActiveFocus(Qt.TabFocusReason)
+      wait(30)
       mouseClick(root.button("RESET PROGRESS"))
       verify(root.resetConfirmPending)
       verify(root.button("CONFIRM RESET").visible)
@@ -262,6 +309,8 @@ Item {
       verify(prompts.length === 1 && prompts[0].visible)
       wait(6200)
       verify(root.resetConfirmPending, "confirmation must not silently expire");
+      root.button("CANCEL").forceActiveFocus(Qt.TabFocusReason)
+      wait(30)
       mouseClick(root.button("CANCEL"))
       verify(!root.resetConfirmPending)
       verify(root.button("RESET PROGRESS").visible)
@@ -310,7 +359,65 @@ Item {
           verify(slider.handle.height <= slider.height)
         }
       }
-      if (data.firstRun) compare(root.button("SPEECH ON").visible, false)
+      if (data.firstRun) compare(findChild(fixture, "narrationVolumePreference").visible, false)
+    }
+
+    function test_audioUsesVolumeSlidersAndOnlyShowsUnmuteWhenNeeded() {
+      compare(root.button("MUTE ALL"), null)
+      compare(root.button("SPEECH ON"), null)
+      compare(root.button("EFFECTS ON"), null)
+      var notice = findChild(fixture, "audioMutedNotice")
+      verify(!notice.visible)
+      root.audioEnabled = false
+      wait(20)
+      verify(notice.visible)
+      root.button("UNMUTE").clicked()
+      verify(root.audioEnabled)
+      var narration = findChild(fixture, "narrationVolumePreference")
+      narration.adjusted(0)
+      compare(root.speechVolume, 0)
+      compare(root.speechEnabled, false)
+      compare(narration.displayValue, "Off")
+      narration.adjusted(65)
+      compare(root.speechEnabled, true)
+      compare(narration.displayValue, "65%")
+      var effects = findChild(fixture, "effectsVolumePreference")
+      sfxProcess.running = true
+      effects.adjusted(0)
+      compare(root.effectsEnabled, false)
+      compare(sfxProcess.running, false)
+      compare(effects.displayValue, "Off")
+      effects.adjusted(75)
+      compare(root.effectsEnabled, true)
+      compare(root.effectsVolume, 75)
+    }
+
+    function test_readingPreferencesUseSwitchesAndSaveTheirValues() {
+      for (var entry of [["reduceMotionSwitch", "motionReduced"], ["autoAdvanceSwitch", "autoAdvance"]]) {
+        var control = findChild(fixture, entry[0])
+        verify(control !== null)
+        var value = !root[entry[1]]
+        var saved = root.savedCount
+        control.checked = value
+        control.toggled()
+        compare(root[entry[1]], value)
+        compare(root.savedCount, saved + 1)
+      }
+      var footerButtons = root.descendants(fixture.footer, function(item) {
+        return "label" in item && "clicked" in item && item.visible
+      })
+      compare(footerButtons.length, 1)
+      compare(footerButtons[0].label, "DONE")
+    }
+
+    function test_collapsingResetOptionsCancelsPendingConfirmation() {
+      root.button("SHOW RESET OPTIONS").clicked()
+      root.button("RESET PROGRESS").clicked()
+      verify(root.resetConfirmPending)
+      root.button("HIDE RESET OPTIONS").clicked()
+      verify(!root.resetOptionsExpanded)
+      verify(!root.resetConfirmPending)
+      verify(!root.button("RESET PROGRESS").visible)
     }
 
     function test_footerDoesNotScrollAndDoneWorks() {
@@ -331,6 +438,8 @@ Item {
       root.textScale = 1.3
       wait(150)
       var reset = root.button("RESET PROGRESS")
+      root.resetOptionsExpanded = true
+      wait(20)
       reset.forceActiveFocus(Qt.TabFocusReason)
       wait(100)
       var position = reset.mapToItem(fixture.scroll, 0, 0)

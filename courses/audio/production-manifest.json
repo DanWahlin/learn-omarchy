@@ -3982,13 +3982,13 @@
     "ohm-1/open-apps.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "12d3cd021e245c5c105b10e1aa1881c35f22c17682e7f86840f94eb10f00dfa4",
+        "fingerprint": "33810d17a927d4b9efe9122efa27e9cdf178d746b3fdbcdfbe915a56ce3c9295",
         "spec": {
-          "textHash": "f60891dda01e62bbce5e8322fe1838c196979b812f3c4d29e95f3edc5a6e0a84",
-          "preparedTextHash": "f60891dda01e62bbce5e8322fe1838c196979b812f3c4d29e95f3edc5a6e0a84",
+          "textHash": "c769afcf8569a367735b8f1b2e512a3919e4a8505de0fbc24522bf6ac545579b",
+          "preparedTextHash": "c769afcf8569a367735b8f1b2e512a3919e4a8505de0fbc24522bf6ac545579b",
           "character": {
-            "id": "omari",
-            "displayName": "OM-RI"
+            "id": "ohm-1",
+            "displayName": "Ohm-1"
           },
           "voice": "en-US-Andrew:DragonHDLatestNeural",
           "backend": "azure",
@@ -4017,9 +4017,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "137290cbf24e5a08b00a63a613a88927b099cf8260a1d632b940e195261a93cd",
-        "sourceHash": "2770e5e3b6fbe6cf32769457abd9e907c055753948c5168e374cad6ee504f714",
-        "outputHash": "e178e8655e02b72cc9db32d69cccc6d58739a08e40e697c03ef5715032c06612",
+        "fingerprint": "7bbb7a76eb0385d77f2621282087a170db69b536cdf47237523d9c2d32f01324",
+        "sourceHash": "49f3b88016f8c11158756e72657f4bf22b1c2c17132f66be83210644c1474ffb",
+        "outputHash": "300370e79456d8b378efcb656f4f739bb3b8aca8eefe97d554b8885ae95b6572",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -4036,21 +4036,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -23.48,
-          "truePeakDbtp": -4.97,
-          "loudnessRangeLu": 1.6,
-          "thresholdLufs": -33.78,
-          "targetOffsetLu": 0.55
+          "integratedLufs": -22.9,
+          "truePeakDbtp": -5.27,
+          "loudnessRangeLu": 1.8,
+          "thresholdLufs": -33.45,
+          "targetOffsetLu": 0.24
         },
         "output": {
-          "integratedLufs": -20.87,
-          "truePeakDbtp": -2.13,
-          "loudnessRangeLu": 2,
-          "thresholdLufs": -31.18,
-          "targetOffsetLu": 0.65
+          "integratedLufs": -20.46,
+          "truePeakDbtp": -2.81,
+          "loudnessRangeLu": 1.9,
+          "thresholdLufs": -31,
+          "targetOffsetLu": 0.24
         },
         "probe": {
-          "durationSeconds": 6.12,
+          "durationSeconds": 8.4,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -5620,10 +5620,10 @@
     "ohm-1/tour-welcome.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "81e4a0d4b9e558970592e905cee7ae73955533c828447ce5e34b9b318d514a3c",
+        "fingerprint": "4abf5964f59c36448340bfa38e5569d0a9b6106808ad8c5c36a813cac3044329",
         "spec": {
-          "textHash": "06d1c543097bd8ee3389f677ac23e98553fbda34316edecb07d228b130eec0c5",
-          "preparedTextHash": "06d1c543097bd8ee3389f677ac23e98553fbda34316edecb07d228b130eec0c5",
+          "textHash": "1a3f2de1c813420df0852b6f0ce25ba8c45baa806c7d9744cf92a056fbc7f2c3",
+          "preparedTextHash": "8544251db60f4d0222fae4732aef3753140fc91885fef16622a51a2aa24c99b3",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -5655,9 +5655,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "64d31d89cfc6dd13042e0a3bf9906993a2ba49f56e9466804469b6e19a983a90",
-        "sourceHash": "026eea82a61258315d1f41c65a8c826e36b52d335ae9328e3a5c280fcc6c85fb",
-        "outputHash": "cbde71808f822b7899fc091fdefea0681c03ac4aa3cc8f21f2e7e8923f783174",
+        "fingerprint": "c95680bddccae981ece1a0e52a6f7886baa66e4ca9705acb70085220f6e21ce7",
+        "sourceHash": "da84889a962395a5731ad2d8a90007a432cf31ea2982b740491f5f477eaaaf44",
+        "outputHash": "3b14cda712ca4ef8342f385f85a1e73090a42dd2cee8490b7a6eb65615a3a7e5",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -5674,21 +5674,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -22.64,
-          "truePeakDbtp": -4.56,
-          "loudnessRangeLu": 1.9,
-          "thresholdLufs": -33.05,
-          "targetOffsetLu": 0.28
+          "integratedLufs": -23.19,
+          "truePeakDbtp": -2.72,
+          "loudnessRangeLu": 3.3,
+          "thresholdLufs": -33.73,
+          "targetOffsetLu": -0.04
         },
         "output": {
-          "integratedLufs": -20.45,
-          "truePeakDbtp": -2.39,
-          "loudnessRangeLu": 1.9,
-          "thresholdLufs": -30.85,
-          "targetOffsetLu": 0.28
+          "integratedLufs": -20.56,
+          "truePeakDbtp": -1.94,
+          "loudnessRangeLu": 3,
+          "thresholdLufs": -31.14,
+          "targetOffsetLu": -0.1
         },
         "probe": {
-          "durationSeconds": 12.168,
+          "durationSeconds": 18.72,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -11938,10 +11938,10 @@
     "owl/open-apps.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "8fc599d310ace44eb50366ae2bea818cbfc7c773a24d75f6878d2b52e62108fd",
+        "fingerprint": "8eb40ba67dc07c49b703ab9c84e9c892b5eea8a745e47a3aa5a51d532ea5e398",
         "spec": {
-          "textHash": "f60891dda01e62bbce5e8322fe1838c196979b812f3c4d29e95f3edc5a6e0a84",
-          "preparedTextHash": "f60891dda01e62bbce5e8322fe1838c196979b812f3c4d29e95f3edc5a6e0a84",
+          "textHash": "c769afcf8569a367735b8f1b2e512a3919e4a8505de0fbc24522bf6ac545579b",
+          "preparedTextHash": "c769afcf8569a367735b8f1b2e512a3919e4a8505de0fbc24522bf6ac545579b",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -11973,9 +11973,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "d86d5b14230a4b9c8804fc8814ff24e25ddf425c82fd8737c4d188ffa5b81c57",
-        "sourceHash": "020ebf7fa0f56a5b14bd9f97edf324d0cfcf4ca9525ab4bfc73fbba2c2a24a96",
-        "outputHash": "28e827c1066f251d065b5278d920994a0f06563c654b1b6f66278fcfb7dc1ff5",
+        "fingerprint": "54f6401f399de8381fc7c6bdaa495e97ea3b6dc33d76ddb4d0bedff0f28926e7",
+        "sourceHash": "d40b7383010c5ec67dfd8eb9df117a35acc377e34806250dfc0e0e7db0c57e9e",
+        "outputHash": "6310d3ff86ca468b82ca0b37b1e5d96d6a116796a13ff448b7409f486e227252",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -11992,21 +11992,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -20.78,
-          "truePeakDbtp": -3.39,
-          "loudnessRangeLu": 1,
-          "thresholdLufs": -31.01,
-          "targetOffsetLu": 0.22
+          "integratedLufs": -20.09,
+          "truePeakDbtp": -3.14,
+          "loudnessRangeLu": 1.7,
+          "thresholdLufs": -30.59,
+          "targetOffsetLu": 0.02
         },
         "output": {
-          "integratedLufs": -20.45,
-          "truePeakDbtp": -3.07,
-          "loudnessRangeLu": 1,
-          "thresholdLufs": -30.68,
-          "targetOffsetLu": 0.22
+          "integratedLufs": -20.44,
+          "truePeakDbtp": -3.46,
+          "loudnessRangeLu": 1.7,
+          "thresholdLufs": -30.95,
+          "targetOffsetLu": 0.03
         },
         "probe": {
-          "durationSeconds": 7.008,
+          "durationSeconds": 10.104,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -13576,10 +13576,10 @@
     "owl/tour-welcome.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "edc886a355b2a92c9aa431519d63e0e081fb84290829895420750351a3c04e4e",
+        "fingerprint": "05ef41e144d27c7fac70de7c9a5c48ed0880b6e1e5ced4faf1ee0ac63131a312",
         "spec": {
-          "textHash": "06d1c543097bd8ee3389f677ac23e98553fbda34316edecb07d228b130eec0c5",
-          "preparedTextHash": "06d1c543097bd8ee3389f677ac23e98553fbda34316edecb07d228b130eec0c5",
+          "textHash": "1a3f2de1c813420df0852b6f0ce25ba8c45baa806c7d9744cf92a056fbc7f2c3",
+          "preparedTextHash": "8544251db60f4d0222fae4732aef3753140fc91885fef16622a51a2aa24c99b3",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -13611,9 +13611,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "f3f6dce671345eb8f84e03b2fc1bf88e0529ffc8276d0f2c2b7acb50bde05b9b",
-        "sourceHash": "16a9a0d9925534e2ed34b6132266f9acf2b31a5d4809decd7032858146d8abf8",
-        "outputHash": "ddf602ac561ba172f3ce84860d659a446353bd45dec982937bf245d47b14e7ec",
+        "fingerprint": "a1e972f30128304b1955d39e2a32d377999f9832f1184a115497465ed7669ddc",
+        "sourceHash": "d51c50aafe0e015e34e00111b7d3f8d712158ac7609bcc9fcfc2264269edd30e",
+        "outputHash": "5ed86b1529288c1a619416d7cbf5ad09becf50f850b9fc5e3261bbeb498fec04",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -13630,21 +13630,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -20.19,
-          "truePeakDbtp": -2.11,
-          "loudnessRangeLu": 2.4,
-          "thresholdLufs": -30.77,
-          "targetOffsetLu": -0.51
+          "integratedLufs": -19.92,
+          "truePeakDbtp": -3.42,
+          "loudnessRangeLu": 3.5,
+          "thresholdLufs": -30.39,
+          "targetOffsetLu": -0.43
         },
         "output": {
-          "integratedLufs": -20.45,
-          "truePeakDbtp": -2.36,
-          "loudnessRangeLu": 2.4,
-          "thresholdLufs": -31.03,
-          "targetOffsetLu": -0.51
+          "integratedLufs": -20.44,
+          "truePeakDbtp": -3.93,
+          "loudnessRangeLu": 3.5,
+          "thresholdLufs": -30.91,
+          "targetOffsetLu": -0.43
         },
         "probe": {
-          "durationSeconds": 14.904,
+          "durationSeconds": 23.352,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -19348,10 +19348,10 @@
     "ohm-1/host-welcome.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "36b4973f185a46d017158464b054193a89c07f71b1196f8e66313e3014165c7c",
+        "fingerprint": "3f8f35651fd939b0e662dba6678dbeec6b184e0efb5741f042817a46bc8c43e9",
         "spec": {
-          "textHash": "ef4787a4d5a4573172805df56e88716cb28e6569e6ad748a645d9d287796ad90",
-          "preparedTextHash": "a11e31897b767a3e21dd1b1f3237de9ae308bbbcb286e6297aad945426e3ff48",
+          "textHash": "a531bf65cabc94bbefae5e80de535e36a9fe78c5ca75c3533503b02c4eefda24",
+          "preparedTextHash": "30f773156e70d0ced01e53b9180d4c8be03c43b9edf7d994b2c0f602c8e9ac35",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -19364,8 +19364,9 @@
           "preparationVersion": 1,
           "synthesisOptions": {
             "locale": "en-US",
-            "format": "audio-24khz-96kbitrate-mono-mp3",
-            "ssmlVersion": "1.0"
+            "format": "riff-24khz-16bit-mono-pcm",
+            "input": "plain-text",
+            "wordTimings": "azure-sdk-1.51.0-v1"
           },
           "productionOptions": {
             "revision": 1,
@@ -19383,9 +19384,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "488532e8ecf757e1faf0729015a29f98eb419b329c65f373c5be2958c2597373",
-        "sourceHash": "e8bb44ec1b970fde07c5e829c4475425a34f88673286baf2f666700d36e22ee7",
-        "outputHash": "624a848c6619af2bae7b1865080c748a8a558a4cf31074592bafafc0b8bbeed6",
+        "fingerprint": "b75794de892ccd4eb249dc6659a02b55d48d19139b4ad9a848135cab986c361d",
+        "sourceHash": "e1026f3ef5db306372ec785f911bb5db110c422d6174f6d68d3e012774c0d8f7",
+        "outputHash": "0684dccc961b76ada06d89c373a03b48c995cd6da5b1a6f30237e5445faed39e",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -19402,21 +19403,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -23.63,
-          "truePeakDbtp": -4.45,
-          "loudnessRangeLu": 3.1,
-          "thresholdLufs": -34.19,
-          "targetOffsetLu": -0.2
+          "integratedLufs": -21.93,
+          "truePeakDbtp": -2.7,
+          "loudnessRangeLu": 5,
+          "thresholdLufs": -32.52,
+          "targetOffsetLu": 0.51
         },
         "output": {
-          "integratedLufs": -20.59,
+          "integratedLufs": -20.84,
           "truePeakDbtp": -1.96,
-          "loudnessRangeLu": 3.3,
-          "thresholdLufs": -31.17,
-          "targetOffsetLu": 0.02
+          "loudnessRangeLu": 4.4,
+          "thresholdLufs": -31.37,
+          "targetOffsetLu": 0.72
         },
         "probe": {
-          "durationSeconds": 22.416,
+          "durationSeconds": 14,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -19426,10 +19427,10 @@
     "owl/host-welcome.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "9ca28649f4bac40eaa3a25effdd74861beb12c2c7bd0414ee9cc81c42be0c682",
+        "fingerprint": "428443934341d97b7040d579db268291bffcf753c298b56a8d667f092ea0324e",
         "spec": {
-          "textHash": "c5450595369943dc22cb0404510979da8e39d57280db9eb649e1760e5138224e",
-          "preparedTextHash": "57a6d55640ef603353f83e30ce5db2524bd283b31c5cafad8192a8d54016e723",
+          "textHash": "26313980d8733cdadf8872bf32416daa776eb232090148c752195e87812bb63a",
+          "preparedTextHash": "051fc87b6cbd90b623471912abd6d00f5f6e218eff9b6667b593f961546cb4a2",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -19442,8 +19443,9 @@
           "preparationVersion": 1,
           "synthesisOptions": {
             "locale": "en-GB",
-            "format": "audio-24khz-96kbitrate-mono-mp3",
-            "ssmlVersion": "1.0"
+            "format": "riff-24khz-16bit-mono-pcm",
+            "input": "plain-text",
+            "wordTimings": "azure-sdk-1.51.0-v1"
           },
           "productionOptions": {
             "revision": 1,
@@ -19461,9 +19463,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "cc2518d70e324957c9d1d016f5f7d399dbea9e898d6b10dc7769765f79fd1b65",
-        "sourceHash": "dbc99ba604c8b6c4ed2c9458a3caae01f236ea9b830155fae546caf216a10990",
-        "outputHash": "3f2ceab715829d3c1a18956c918e385c99bf09f4d73b17851b3fff5d1111c589",
+        "fingerprint": "f7b1f6ecfad7d98351d0dcd1783d44c60daee3d30ccd775821bde81c89ddc5c9",
+        "sourceHash": "4f213ae1c78f1e40740169499187671774c9de1b4983c5842ca025e1dba297a7",
+        "outputHash": "ce681a3edf04fa841c8e942a7d2d71b1cc81106d55683195fd2c1c65d9c7fdea",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -19480,21 +19482,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -19.43,
-          "truePeakDbtp": -2.24,
-          "loudnessRangeLu": 3.2,
-          "thresholdLufs": -30.16,
-          "targetOffsetLu": -0.34
+          "integratedLufs": -19.17,
+          "truePeakDbtp": -3.11,
+          "loudnessRangeLu": 2.5,
+          "thresholdLufs": -29.92,
+          "targetOffsetLu": 0.29
         },
         "output": {
-          "integratedLufs": -20.44,
-          "truePeakDbtp": -3.27,
-          "loudnessRangeLu": 3.2,
-          "thresholdLufs": -31.18,
-          "targetOffsetLu": -0.34
+          "integratedLufs": -20.45,
+          "truePeakDbtp": -4.37,
+          "loudnessRangeLu": 2.5,
+          "thresholdLufs": -31.2,
+          "targetOffsetLu": 0.29
         },
         "probe": {
-          "durationSeconds": 24.6,
+          "durationSeconds": 15.4,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -24964,10 +24966,10 @@
     "ohm-1/tour-workspace-two.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "a6149e5de28901eb56139cfcf1bdb596a5707ea588e3f64ea0475f53fe442acd",
+        "fingerprint": "d0af6401a6ff0c6e33643b9aa477a474c14051b16bf480fd7409c3ec0da795dd",
         "spec": {
-          "textHash": "d46b851c969c4cae39c5f3e024533fdaf8754a09fcfb584c076deb545986dbec",
-          "preparedTextHash": "d46b851c969c4cae39c5f3e024533fdaf8754a09fcfb584c076deb545986dbec",
+          "textHash": "a50c57cd1db0082b8ea778f9638f71fe18adec2e546d48ed65764f1ed0cb14b0",
+          "preparedTextHash": "a50c57cd1db0082b8ea778f9638f71fe18adec2e546d48ed65764f1ed0cb14b0",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -24999,9 +25001,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "8587348929309b80a9ae64dc684625dccfc3baa2443dee57fdbc92da0ecc35c4",
-        "sourceHash": "c1256a00160a69f0376bc1552ed3cf0a289277a35f6ec904f5dfb621da324120",
-        "outputHash": "00431d2461fb4b89433f0999495fb6f57e5e23c44495fe29bfbcbb4c403d537b",
+        "fingerprint": "c9cb79d6a1a237266fff048b4f9db195559a3ff914f4c91db32c45b419b73a56",
+        "sourceHash": "12e8c203e3931dfe45439fc9f268c459e5f5c85c12d891fb772b048fa24b7689",
+        "outputHash": "ce2130088634606d059aec0a3bb7582a554a051b5825604a8726c5e139775083",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -25018,21 +25020,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -24.79,
-          "truePeakDbtp": -5.27,
-          "loudnessRangeLu": 2,
-          "thresholdLufs": -35.23,
-          "targetOffsetLu": 0.34
+          "integratedLufs": -23.19,
+          "truePeakDbtp": -6.03,
+          "loudnessRangeLu": 0.4,
+          "thresholdLufs": -33.58,
+          "targetOffsetLu": -0.31
         },
         "output": {
-          "integratedLufs": -20.81,
-          "truePeakDbtp": -1.93,
-          "loudnessRangeLu": 2,
-          "thresholdLufs": -31.25,
-          "targetOffsetLu": 0.34
+          "integratedLufs": -20.42,
+          "truePeakDbtp": -3.15,
+          "loudnessRangeLu": 0.4,
+          "thresholdLufs": -30.81,
+          "targetOffsetLu": -0.31
         },
         "probe": {
-          "durationSeconds": 8.208,
+          "durationSeconds": 4.2,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -25276,10 +25278,10 @@
     "owl/tour-workspace-two.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "22cdda7b25453aaaf5c477ef5f6f4c69b7b1ca4c481163e44676b9762464e4cf",
+        "fingerprint": "a93dbba4b8c1cb902bc81317fe670e27d82fe63e81a6593517bacc3ee5ed5553",
         "spec": {
-          "textHash": "d46b851c969c4cae39c5f3e024533fdaf8754a09fcfb584c076deb545986dbec",
-          "preparedTextHash": "d46b851c969c4cae39c5f3e024533fdaf8754a09fcfb584c076deb545986dbec",
+          "textHash": "a50c57cd1db0082b8ea778f9638f71fe18adec2e546d48ed65764f1ed0cb14b0",
+          "preparedTextHash": "a50c57cd1db0082b8ea778f9638f71fe18adec2e546d48ed65764f1ed0cb14b0",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -25311,9 +25313,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "5f12c41a1a9f31866e1693a49f19fa1e65a94587590d70820dffc7d1c943e6c7",
-        "sourceHash": "ebbea8911200192554437890cdc79d326a8c2999536cf5b23dcfc7d100001518",
-        "outputHash": "17488b5caae4ace11da2664c829c868d93ea7fc19e29fc90b4cebeac63fa481e",
+        "fingerprint": "b674c6439bd4c4cbfce076de148d01390628228b105b913364d0dfd5c7f2daa6",
+        "sourceHash": "10ba5108c104e3796cf23ef57cf61a2e8e6fca2fedc633882ee805c51633643a",
+        "outputHash": "c73a697b08ad17afb37d4235dcc8493e9d5dc071886bdb509ce9fa8132cea61d",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -25330,21 +25332,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -20.21,
-          "truePeakDbtp": -3.53,
-          "loudnessRangeLu": 1.4,
-          "thresholdLufs": -30.87,
-          "targetOffsetLu": 0.11
+          "integratedLufs": -19.86,
+          "truePeakDbtp": -2.27,
+          "loudnessRangeLu": 0.5,
+          "thresholdLufs": -30.41,
+          "targetOffsetLu": -0.97
         },
         "output": {
-          "integratedLufs": -20.44,
-          "truePeakDbtp": -3.78,
-          "loudnessRangeLu": 1.4,
-          "thresholdLufs": -31.09,
-          "targetOffsetLu": 0.11
+          "integratedLufs": -20.45,
+          "truePeakDbtp": -2.85,
+          "loudnessRangeLu": 0.5,
+          "thresholdLufs": -31,
+          "targetOffsetLu": -0.96
         },
         "probe": {
-          "durationSeconds": 10.248,
+          "durationSeconds": 5.664,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -28387,6 +28389,322 @@
         },
         "probe": {
           "durationSeconds": 6.264,
+          "sampleRate": 24000,
+          "channels": 1,
+          "codec": "mp3"
+        }
+      }
+    },
+    "ohm-1/host-controls.mp3": {
+      "provenance": {
+        "kind": "generated",
+        "fingerprint": "0f89137fbaed65376f3b2a9830551c46c300a8cd68da0e8421a489df9e76a20f",
+        "spec": {
+          "textHash": "48449c4d22499abafdb5a8f922dbd3cd5e2c5736615e57bbde1e1cb583620a32",
+          "preparedTextHash": "222c48f29a64bffe39deeb83ccb631b13fdb376531e9b393e6b636e29841df95",
+          "character": {
+            "id": "ohm-1",
+            "displayName": "Ohm-1"
+          },
+          "voice": "en-US-Andrew:DragonHDLatestNeural",
+          "backend": "azure",
+          "pronunciations": {
+            "Omarchy": "Omaachi"
+          },
+          "preparationVersion": 1,
+          "synthesisOptions": {
+            "locale": "en-US",
+            "format": "riff-24khz-16bit-mono-pcm",
+            "input": "plain-text",
+            "wordTimings": "azure-sdk-1.51.0-v1"
+          },
+          "productionOptions": {
+            "revision": 1,
+            "integratedLufs": -20,
+            "truePeakDbtp": -1,
+            "codecSafetyDb": 0.5,
+            "loudnessRangeLu": 11,
+            "shortSpeechSeconds": 3,
+            "sampleRate": 24000,
+            "channels": 1,
+            "codec": "libmp3lame",
+            "bitrate": "96k",
+            "trimSilence": false
+          }
+        }
+      },
+      "normalization": {
+        "fingerprint": "f456815f53ca7b42a5bae76b18d376ef6f99dfbfdb0dd51e21f87ee86f41e772",
+        "sourceHash": "a075a99d992c880eb15b3cae0abaea0fb501baf0bccfc0ff61abce143c0036eb",
+        "outputHash": "7474cfbc4009889fdb135d48fce1a48d02528809fab62c13b02fefb868634b28",
+        "options": {
+          "revision": 1,
+          "integratedLufs": -20,
+          "truePeakDbtp": -1,
+          "codecSafetyDb": 0.5,
+          "loudnessRangeLu": 11,
+          "shortSpeechSeconds": 3,
+          "sampleRate": 24000,
+          "channels": 1,
+          "codec": "libmp3lame",
+          "bitrate": "96k",
+          "trimSilence": false
+        },
+        "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
+        "method": "measured-two-pass",
+        "source": {
+          "integratedLufs": -21.6,
+          "truePeakDbtp": -3.97,
+          "loudnessRangeLu": 2,
+          "thresholdLufs": -32.14,
+          "targetOffsetLu": -0.1
+        },
+        "output": {
+          "integratedLufs": -20.44,
+          "truePeakDbtp": -2.83,
+          "loudnessRangeLu": 2,
+          "thresholdLufs": -30.98,
+          "targetOffsetLu": -0.11
+        },
+        "probe": {
+          "durationSeconds": 11,
+          "sampleRate": 24000,
+          "channels": 1,
+          "codec": "mp3"
+        }
+      }
+    },
+    "owl/host-controls.mp3": {
+      "provenance": {
+        "kind": "generated",
+        "fingerprint": "60fbfe1733324ef696dfd5436534f23dd25fe77265b6d3c89c44d8b7789eb0d0",
+        "spec": {
+          "textHash": "48449c4d22499abafdb5a8f922dbd3cd5e2c5736615e57bbde1e1cb583620a32",
+          "preparedTextHash": "222c48f29a64bffe39deeb83ccb631b13fdb376531e9b393e6b636e29841df95",
+          "character": {
+            "id": "owl",
+            "displayName": "Ollie"
+          },
+          "voice": "en-GB-Ada:DragonHDLatestNeural",
+          "backend": "azure",
+          "pronunciations": {
+            "Omarchy": "Omaachi"
+          },
+          "preparationVersion": 1,
+          "synthesisOptions": {
+            "locale": "en-GB",
+            "format": "riff-24khz-16bit-mono-pcm",
+            "input": "plain-text",
+            "wordTimings": "azure-sdk-1.51.0-v1"
+          },
+          "productionOptions": {
+            "revision": 1,
+            "integratedLufs": -20,
+            "truePeakDbtp": -1,
+            "codecSafetyDb": 0.5,
+            "loudnessRangeLu": 11,
+            "shortSpeechSeconds": 3,
+            "sampleRate": 24000,
+            "channels": 1,
+            "codec": "libmp3lame",
+            "bitrate": "96k",
+            "trimSilence": false
+          }
+        }
+      },
+      "normalization": {
+        "fingerprint": "f74c8226aa596a1a21f06d7bc0b31d5c6ad62096b377cecd9bdcfbd4fe34195c",
+        "sourceHash": "9083e874c86c371bf10f1e88a9bcad07034293674e75116ba94cfea6525a46e9",
+        "outputHash": "5cc06bbfbf6c3cf2ef4f8cc0ed4b9010a09e95f6bf263a947762a9604c963958",
+        "options": {
+          "revision": 1,
+          "integratedLufs": -20,
+          "truePeakDbtp": -1,
+          "codecSafetyDb": 0.5,
+          "loudnessRangeLu": 11,
+          "shortSpeechSeconds": 3,
+          "sampleRate": 24000,
+          "channels": 1,
+          "codec": "libmp3lame",
+          "bitrate": "96k",
+          "trimSilence": false
+        },
+        "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
+        "method": "measured-two-pass",
+        "source": {
+          "integratedLufs": -20.17,
+          "truePeakDbtp": -3.74,
+          "loudnessRangeLu": 3.9,
+          "thresholdLufs": -30.62,
+          "targetOffsetLu": 0.43
+        },
+        "output": {
+          "integratedLufs": -20.45,
+          "truePeakDbtp": -4.01,
+          "loudnessRangeLu": 3.9,
+          "thresholdLufs": -30.89,
+          "targetOffsetLu": 0.43
+        },
+        "probe": {
+          "durationSeconds": 13.35,
+          "sampleRate": 24000,
+          "channels": 1,
+          "codec": "mp3"
+        }
+      }
+    },
+    "ohm-1/host-lessons.mp3": {
+      "provenance": {
+        "kind": "generated",
+        "fingerprint": "bf1bfd6aee3178bd4eee0b1876cbaac1315d05cd8f191c8b238aa580f309087b",
+        "spec": {
+          "textHash": "856ae5904e8cbd726beea09e4ff3bd7e9caf1fed46a1d9ca330dc80993affed7",
+          "preparedTextHash": "856ae5904e8cbd726beea09e4ff3bd7e9caf1fed46a1d9ca330dc80993affed7",
+          "character": {
+            "id": "ohm-1",
+            "displayName": "Ohm-1"
+          },
+          "voice": "en-US-Andrew:DragonHDLatestNeural",
+          "backend": "azure",
+          "pronunciations": {
+            "Omarchy": "Omaachi"
+          },
+          "preparationVersion": 1,
+          "synthesisOptions": {
+            "locale": "en-US",
+            "format": "riff-24khz-16bit-mono-pcm",
+            "input": "plain-text",
+            "wordTimings": "azure-sdk-1.51.0-v1"
+          },
+          "productionOptions": {
+            "revision": 1,
+            "integratedLufs": -20,
+            "truePeakDbtp": -1,
+            "codecSafetyDb": 0.5,
+            "loudnessRangeLu": 11,
+            "shortSpeechSeconds": 3,
+            "sampleRate": 24000,
+            "channels": 1,
+            "codec": "libmp3lame",
+            "bitrate": "96k",
+            "trimSilence": false
+          }
+        }
+      },
+      "normalization": {
+        "fingerprint": "f9ce1559ca16b5be1bf486d32042f94b0f1507dbc4fc0337151db415e987eb27",
+        "sourceHash": "d61f10d13025107664fa3e53ad1e68f7e3e322dabe65bea6e1178e5a2b8e5c3a",
+        "outputHash": "196466e49ecad1e624c19c1b91cfbbd4af44415915eeaa7651c6f3015eae1c82",
+        "options": {
+          "revision": 1,
+          "integratedLufs": -20,
+          "truePeakDbtp": -1,
+          "codecSafetyDb": 0.5,
+          "loudnessRangeLu": 11,
+          "shortSpeechSeconds": 3,
+          "sampleRate": 24000,
+          "channels": 1,
+          "codec": "libmp3lame",
+          "bitrate": "96k",
+          "trimSilence": false
+        },
+        "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
+        "method": "measured-two-pass",
+        "source": {
+          "integratedLufs": -21.65,
+          "truePeakDbtp": -1.99,
+          "loudnessRangeLu": 1.4,
+          "thresholdLufs": -32.13,
+          "targetOffsetLu": 0.01
+        },
+        "output": {
+          "integratedLufs": -20.67,
+          "truePeakDbtp": -1.83,
+          "loudnessRangeLu": 1.3,
+          "thresholdLufs": -31.15,
+          "targetOffsetLu": -0.06
+        },
+        "probe": {
+          "durationSeconds": 3.35,
+          "sampleRate": 24000,
+          "channels": 1,
+          "codec": "mp3"
+        }
+      }
+    },
+    "owl/host-lessons.mp3": {
+      "provenance": {
+        "kind": "generated",
+        "fingerprint": "a6e7ef8b55d1bbd540bb19d6d127667e713e3bd826ae025dee5ab274e6a69169",
+        "spec": {
+          "textHash": "856ae5904e8cbd726beea09e4ff3bd7e9caf1fed46a1d9ca330dc80993affed7",
+          "preparedTextHash": "856ae5904e8cbd726beea09e4ff3bd7e9caf1fed46a1d9ca330dc80993affed7",
+          "character": {
+            "id": "owl",
+            "displayName": "Ollie"
+          },
+          "voice": "en-GB-Ada:DragonHDLatestNeural",
+          "backend": "azure",
+          "pronunciations": {
+            "Omarchy": "Omaachi"
+          },
+          "preparationVersion": 1,
+          "synthesisOptions": {
+            "locale": "en-GB",
+            "format": "riff-24khz-16bit-mono-pcm",
+            "input": "plain-text",
+            "wordTimings": "azure-sdk-1.51.0-v1"
+          },
+          "productionOptions": {
+            "revision": 1,
+            "integratedLufs": -20,
+            "truePeakDbtp": -1,
+            "codecSafetyDb": 0.5,
+            "loudnessRangeLu": 11,
+            "shortSpeechSeconds": 3,
+            "sampleRate": 24000,
+            "channels": 1,
+            "codec": "libmp3lame",
+            "bitrate": "96k",
+            "trimSilence": false
+          }
+        }
+      },
+      "normalization": {
+        "fingerprint": "bc817ac7ad43a7dc3b9e369044faf8d74fba36a9e32e600869d5a50dd8085da1",
+        "sourceHash": "663addd69ecbce220c4a524ec4905a724d38ca5c3cb6d89e458648b7956d4ac2",
+        "outputHash": "6185164dedc746d21c8b7644c2355bc6af338ea655ef4967f00d6688c36574be",
+        "options": {
+          "revision": 1,
+          "integratedLufs": -20,
+          "truePeakDbtp": -1,
+          "codecSafetyDb": 0.5,
+          "loudnessRangeLu": 11,
+          "shortSpeechSeconds": 3,
+          "sampleRate": 24000,
+          "channels": 1,
+          "codec": "libmp3lame",
+          "bitrate": "96k",
+          "trimSilence": false
+        },
+        "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
+        "method": "measured-two-pass",
+        "source": {
+          "integratedLufs": -20.18,
+          "truePeakDbtp": -7.29,
+          "loudnessRangeLu": 0.3,
+          "thresholdLufs": -30.51,
+          "targetOffsetLu": 0.1
+        },
+        "output": {
+          "integratedLufs": -20.44,
+          "truePeakDbtp": -7.56,
+          "loudnessRangeLu": 0.3,
+          "thresholdLufs": -30.77,
+          "targetOffsetLu": 0.11
+        },
+        "probe": {
+          "durationSeconds": 3.8,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"

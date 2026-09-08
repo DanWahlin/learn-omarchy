@@ -81,10 +81,18 @@ display or session bus. Without Quickshell, that integration test is skipped.
 
 On the very first run, choosing a coach automatically starts **Welcome to
 Omarchy**, lesson #1. Your coach enters, flies to the center, narrates the
-greeting, and then introduces the course menu while pointing at **Omarchy tour**,
+greeting, briefly explains the highlighted Settings, Keys, Mute, and Exit controls,
+and then introduces the course menu while pointing at **Omarchy tour**,
 now lesson #2. The tour is
 recommended, not started: choose any lesson with the mouse or keyboard.
 Captions fade in only after the coach arrives, with time to read each message.
+Welcome captions can reveal words in sync with narration when the recording has
+validated word timings. The caption keeps its full layout rather than reflowing
+as words appear. Missing or incompatible timing with narration playing shows
+the complete text immediately. Muted narration reveals words at reading speed;
+reduced motion shows all text immediately. Turn off **Type text** in Settings
+to disable the reveal. This pilot applies only to the welcome flow; lesson
+instructions, keycaps, and safety notes remain fully visible.
 Choose **Welcome to Omarchy** anytime to replay the entrance and greeting with
 your selected coach. There's no need to reset settings or lesson progress.
 The welcome reuses `courses/welcome.json` and its existing recordings; its
@@ -149,14 +157,17 @@ later workspace-switching activities use individual destination markers.
   retry or Skip and restores the previous capture setting. Help starts the
   exercise rather than completing it for you.
 - Use **Mute** to stop narration and effects immediately.
-- **Settings** lets you choose a coach, adjust speech/effect volume, speech
-  speed, text size, reduced motion, automatic advancement, or reset progress.
-  Speech and effects can be enabled separately; the top-level Mute overrides
-  both channels. Preferences persist. Levels and speed apply to the next clip or Replay.
+- **Settings** groups preferences into Coach, Audio, and Reading & motion.
+  Separate narration and effects sliders show **Off** at zero; toolbar Mute
+  temporarily silences both without changing their levels. When muted, the Audio
+  section shows an Unmute action. Reading controls use switches for Type text,
+  Reduce motion, and Advance automatically, plus a text-size slider.
+  Preferences persist. Levels and speed apply to the next clip or Replay.
   Opening Settings during a lesson pauses it instead of abandoning your place.
   Its header and Done button stay fixed while the settings body scrolls.
-  Tab navigation brings focused controls into view, and Mute All remains in
-  the footer. First-run setup shows only the coach choice.
+  Tab navigation brings focused controls into view. Done is the only footer
+  button, and Reset progress is tucked under Show reset options with a separate
+  confirmation. First-run setup shows only the coach choice.
 - **Pause** suspends narration and stops activity advancement; **Resume**
   continues it. A running desktop action finishes before pausing is allowed.
 - **Release Keys** releases the keyboard to your other
@@ -169,7 +180,10 @@ later workspace-switching activities use individual destination markers.
   from the coach's caption. **Details** reveals extra guidance and **Replay**;
   automatic progression waits while Details is open. Narration can finish,
   and closing Details restores reading time rather than immediately moving on.
-  **Next** moves on manually. Hands-on activities keep their instructions and keycaps.
+  **Next** moves on manually. Hands-on activities show the main instruction,
+  then keycaps or the action button, followed by an optional short note.
+  Longer explanations stay behind **Details** instead of appearing as a second
+  instruction paragraph. Opening Details in Practice counts as revealing a hint.
 - Use **Replay** to hear the instruction again.
 - Select **Back** to revisit an activity without automatically repeating its
   action, **Skip** to move past it, or **Topics** to return to the module picker.
@@ -361,6 +375,11 @@ ${XDG_STATE_HOME:-$HOME/.local/state}/learn-omarchy/progress.json
 ## Course metadata
 
 Courses use schema version 2:
+
+Activities can supply an optional `note`: one short paragraph, at most 140
+characters, displayed below the keys or action button. Use it for a useful
+definition, reassurance, or essential caution. Keep longer explanations in
+`detail`, which learners open with Details. Notes aren't separate narration.
 
 ```json
 {
@@ -655,7 +674,7 @@ shows every character side by side; pick with the arrow keys or the mouse and
 confirm with Enter. The choice is saved to
 `~/.local/state/learn-omarchy/settings.json`. The Settings button in the toolbar
 lets you switch coaches and
-reset progress (Reset Progress, then Confirm Reset, or press R twice).
+reset progress (Show reset options, Reset Progress, then Confirm Reset, or press R twice).
 The confirmation stays open until confirmed, cancelled, or Settings is closed.
 A confirmed reset clears every module
 checkmark and the coach choice, so closing Settings asks for a coach again

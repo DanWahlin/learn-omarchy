@@ -1,8 +1,13 @@
 {
-  "instruction": "Hi! I'm HEXON. Welcome to Omarchy. A few good shortcuts can change how you work: opening apps, moving between workspaces, and keeping everything within reach. You'll learn by doing, with guidance when you need it. Start with a quick tour, or choose something you want to get better at. Find what works for you. Your desktop. Your way.",
+  "instruction": "Hi! I'm HEXON. Welcome to Omarchy! Spend less time managing your desktop and operating system, and more time doing what matters. I'll help you get started. Your desktop - your way. Let's jump in!",
   "instructions": {
-    "ohm-1": "Hi! I'm Ohm-1, but you can call me Ohm for short. Welcome to Omarchy. A few good shortcuts can change how you work: opening apps, moving between workspaces, and keeping everything within reach. You'll learn by doing, with guidance when you need it. Start with a quick tour, or choose something you want to get better at. Find what works for you. Your desktop. Your way."
+    "ohm-1": "Hi! I'm Ohm-1, but you can call me Ohm for short. Welcome to Omarchy! Spend less time managing your desktop and operating system, and more time doing what matters. I'll help you get started. Your desktop - your way. Let's jump in!"
   },
-  "recommendation": "Here's what we'll cover. The Omarchy tour is a good starting point, but there's no required order. Pick what's useful to you.",
+  "recommendation": "Ready to get started? Choose from one of the following lessons.",
+  "recommendationAudio": "audio/host-lessons.mp3",
+  "controls": {
+    "instruction": "These are the Learn Omarchy controls: Settings, keyboard capture, mute narration, and Exit. Release the keys when you want to use other windows; capture them again to continue with me.",
+    "audio": "audio/host-controls.mp3"
+  },
   "audio": "audio/host-welcome.mp3"
 }

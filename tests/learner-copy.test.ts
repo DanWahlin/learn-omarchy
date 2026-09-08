@@ -10,11 +10,23 @@ const detail = (id: string) => steps.get(id)!.detail!;
 const completion = (id: string) => steps.get(id)!.completionMessage!;
 
 test("first-use orientation defines the keys and concepts a new learner needs", () => {
-  assert.match(instruction("tour-welcome"), /Super is the Windows key/);
+  assert.match(instruction("tour-welcome"), /You'll use the Super key for many of Omarchy's keyboard shortcuts/);
+  assert.match(instruction("tour-welcome"), /On a Mac keyboard, that's Command/);
+  assert.match(instruction("tour-welcome"), /On a Windows keyboard, it's the Windows-logo key/);
+  assert.doesNotMatch(instruction("tour-welcome"), /Alt|Option/);
   assert.match(instruction("launch-terminal"), /Return is the Enter key/);
   assert.match(detail("launch-terminal"), /terminal is a window where you can type commands/);
   assert.match(detail("windows-focus-next"), /Focus means/);
   assert.match(instruction("upkeep-install"), /Arch User Repository, or AUR/);
+});
+
+test("the opening tour visibly points at the desktop bar it describes", () => {
+  const step = steps.get("tour-welcome")!;
+  assert.equal(step.pose, "point", "talk-only poses suppress the tour outline");
+  assert.equal(step.highlight.shape, "rectangle");
+  assert.ok(step.highlight.width > 1000);
+  for (const id of ["omarchy.menu", "omarchy.workspaces", "omarchy.clock", "omarchy.audio", "omarchy.power"])
+    assert.ok(step.highlight.barWidgets!.includes(id));
 });
 
 test("rehearsals and preview tools describe what they actually do", () => {
@@ -88,7 +100,7 @@ test("scratchpad restoration first reveals and focuses the window that native sh
 });
 
 test("essential cautions and keyboard alternatives are in the spoken instruction", () => {
-  assert.match(instruction("tour-welcome"), /Alt is the Option key/);
+  assert.match(instruction("open-apps"), /Alt is the Option key/);
   assert.match(instruction("capture-native-workflow"), /No Print key/);
   assert.match(instruction("dictation-practice"), /don't need an F9 key/);
   assert.match(instruction("upkeep-install"), /don't install anything/);
@@ -101,4 +113,21 @@ test("essential cautions and keyboard alternatives are in the spoken instruction
   assert.doesNotMatch(completion("apps-search-practice"), /found a terminal through search/);
   for (const id of ["tour-workspaces", "tour-clock", "tour-status"])
     assert.doesNotMatch(detail(id), /choose Skip/);
+});
+
+test("secondary notes are concise and keep important cautions visible", () => {
+  for (const step of steps.values()) {
+    if (step.note) {
+      assert.ok(step.note.length <= 140, step.id);
+      assert.ok(step.note.split(/\s+/).length <= 18, step.id);
+      assert.doesNotMatch(step.note, /[\r\n]/);
+    }
+  }
+  assert.equal(steps.get("tour-workspace-two")!.note, "Your windows stay open when you switch workspaces.");
+  assert.match(steps.get("display-panel")!.note!, /apply immediately/);
+  assert.match(steps.get("clipboard-practice")!.note!, /replaces your clipboard/);
+  assert.match(steps.get("lock-practice")!.note!, /password/);
+  assert.match(steps.get("capture-practice")!.note!, /not private windows/);
+  assert.equal(steps.get("finale-to-two")!.note, undefined);
+  assert.equal(steps.get("finale-to-two")!.detail, undefined);
 });

@@ -36,6 +36,18 @@ test("every taught topic has a wrap-up and malformed narration metadata is rejec
   }
 });
 
+test("secondary notes are optional but must be short single-paragraph text", async () => {
+  const original = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
+  for (const note of ["", "x".repeat(141), "First line\nSecond line", 123]) {
+    const course = structuredClone(original);
+    course.lessons[1].steps[0].note = note;
+    assert.ok(parseCourseJson(JSON.stringify(course)).errors.some(error => error.includes(".note")));
+  }
+  const course = structuredClone(original);
+  course.lessons[1].steps[0].note = "Your windows stay open.";
+  assert.deepEqual(parseCourseJson(JSON.stringify(course)).errors, []);
+});
+
 test("bundled course is valid and covers the core curriculum", async () => {
   const json = await readFile(
     new URL("../courses/omarchy-basics.json", import.meta.url),

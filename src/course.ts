@@ -92,6 +92,7 @@ export interface CourseStep {
   directionFromStep?: string;
   optional?: boolean;
   instruction: string;
+  note?: string;
   detail?: string;
   kind?: "tour" | "practice";
   practice?: "app-search" | "clipboard" | "capture" | "screen-lock" | "compose" | "screen-recording" | "ocr" | "qr" | "dictation" | "web-app" | "transcode" | "sharing";
@@ -407,6 +408,11 @@ const validateStep = (
   addStringError(errors, value.instruction, `${path}.instruction`);
   if (value.optional !== undefined && typeof value.optional !== "boolean") errors.push(`${path}.optional must be a boolean`);
   if (value.detail !== undefined) addStringError(errors, value.detail, `${path}.detail`);
+  if (value.note !== undefined) {
+    addStringError(errors, value.note, `${path}.note`);
+    if (typeof value.note === "string" && (value.note.length > 140 || /[\r\n]/.test(value.note)))
+      errors.push(`${path}.note must be a single short paragraph (at most 140 characters)`);
+  }
   const usesTutorialWindow =
     (isRecord(value.completion) &&
       (value.completion.target === "tutorial-window" || value.completion.windowState !== undefined)) ||

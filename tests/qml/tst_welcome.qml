@@ -26,6 +26,8 @@ Item {
         + "property bool reducedMotion: false\nproperty real textScale: 1\n"
         + "property string characterState: 'tour-fly'\nproperty color panelColor: 'black'\n"
         + "property color instruction: 'white'\nproperty string welcomeText: 'Hi! Welcome to Omarchy.'\n"
+        + "property int welcomeRevealEnd: -1\n"
+        + "property bool welcomeReadingActive: false\n"
         + "property int readingStarts: 0\nproperty bool reading: false\n"
         + "function welcomeCaptionShown() { readingStarts++; reading = true }\n"
         + "function colorWithAlpha(color, alpha) { return color }\n"
@@ -61,6 +63,7 @@ Item {
       fixture.width = 1200
       fixture.height = 800
       fixture.textScale = 1
+      fixture.welcomeRevealEnd = -1
       wait(10)
       compare(fixture.caption.opacity, 0)
       fixture.reducedMotion = false
@@ -117,7 +120,58 @@ Item {
       compare(fixture.caption.y, 260 + 192 + 16)
     }
 
-    function test_longWelcomeIsWiderLeftAlignedAndSplitIntoParagraphs() {
+    function test_controlsCaptionWaitsForPointingAndBothTravelAxes() {
+      fixture.welcomeStage = "controls-flight"
+      fixture.characterState = "tour-fly"
+      compare(fixture.caption.opacity, 0)
+      fixture.movingX = true
+      fixture.welcomeStage = "controls"
+      fixture.characterState = "tour-point"
+      wait(20)
+      compare(fixture.caption.opacity, 0)
+      fixture.movingX = false
+      tryCompare(fixture.caption, "opacity", 1)
+      compare(fixture.readingStarts, 1)
+      fixture.phase = "settings"
+      tryCompare(fixture.caption, "opacity", 0)
+      verify(!fixture.reading)
+    }
+
+    function test_wordRevealKeepsTheCaptionSizeAndFullTextFallback() {
+      fixture.welcomeText = "Hi! Welcome to Omarchy. Spend less time managing your desktop and more time doing what matters."
+      fixture.welcomeStage = "welcome"
+      fixture.characterState = "tour-talk"
+      tryCompare(fixture.caption, "opacity", 1)
+      var height = fixture.caption.height
+      var width = fixture.caption.width
+      fixture.welcomeRevealEnd = 3
+      wait(20)
+      compare(fixture.captionTextItem.opacity, 0)
+      compare(fixture.caption.height, height)
+      compare(fixture.caption.width, width)
+      fixture.welcomeRevealEnd = -1
+      wait(20)
+      compare(fixture.captionTextItem.opacity, 1)
+      compare(fixture.caption.height, height)
+    }
+
+    function test_pendingTimingNeverFlashesTheFullCaptionOnArrival() {
+      fixture.welcomeRevealEnd = 0
+      fixture.welcomeStage = "welcome"
+      fixture.characterState = "tour-talk"
+      for (var i = 0; i < 8; i++) {
+        wait(30)
+        compare(fixture.captionTextItem.opacity, 0)
+      }
+      fixture.welcomeRevealEnd = 3
+      wait(20)
+      compare(fixture.captionTextItem.opacity, 0)
+      fixture.welcomeRevealEnd = -1
+      wait(20)
+      compare(fixture.captionTextItem.opacity, 1)
+    }
+
+    function test_welcomeIsLeftAlignedAndFitsAtLargerTextSizes() {
       var xhr = new XMLHttpRequest()
       xhr.open("GET", Qt.resolvedUrl("../../courses/welcome.json"), false)
       xhr.send()
@@ -127,7 +181,6 @@ Item {
       tryCompare(fixture.caption, "opacity", 1)
       compare(fixture.caption.width, 920)
       compare(fixture.captionTextItem.horizontalAlignment, Text.AlignLeft)
-      verify(fixture.captionTextItem.text.indexOf("\n\n") > 0)
       compare(fixture.captionTextItem.text.replace(/\s+/g, " "), fixture.welcomeText)
       fixture.width = 640
       fixture.height = 480

@@ -157,6 +157,30 @@ npm run audio:generate -- --backend azure --wrapups-only
 ```
 
 **Generation contacts the selected speech service; Azure may incur charges.**
+
+### Welcome word timing pilot
+
+The current Andrew and Ada Dragon HD voices both returned usable word boundaries
+for the welcome pilot. Generate the welcome audio and timings in the same SDK
+synthesis run:
+
+```bash
+npm run audio:generate -- --backend azure --welcome --steps tour-welcome --part completion --word-timings
+```
+
+This selects the greeting, toolbar overview, and lesson-menu invitation without
+regenerating activity clips. Each timing sidecar is named `<clip>.mp3.timing.json`
+and contains the final MP3's SHA-256, original source text, and word timestamps.
+The runtime rejects stale or mismatched metadata rather than estimating speech
+timing. Audio without usable boundaries still plays with its full text visible.
+Generating a clip without timing removes its old sidecar.
+
+The app follows mpv's actual media position, not elapsed wall-clock time, and
+keeps the caption's full layout while revealing words. Muted welcome captions
+reveal at the configured reading pace instead. Reduced motion or turning off
+**Type text** shows the full caption immediately. This feature needs no Azure
+connection or Speech SDK on the learner's machine; the timestamps are bundled
+with the recordings.
 Unlike local normalization, `--missing` means *missing or stale*, not just
 “a filename does not exist.” Inherited files with unknown provenance are stale,
 so the first generation with `--missing` will regenerate selected inherited

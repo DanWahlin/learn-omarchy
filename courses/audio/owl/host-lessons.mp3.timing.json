@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "audioHash": "6185164dedc746d21c8b7644c2355bc6af338ea655ef4967f00d6688c36574be",
+  "text": "Ready to get started? Choose from one of the following lessons.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 8
+    },
+    {
+      "startMs": 430,
+      "endOffset": 12
+    },
+    {
+      "startMs": 630,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 54
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 63
+    }
+  ]
+}

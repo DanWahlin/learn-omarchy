@@ -11,9 +11,11 @@ import {
   normalizeAudio, prepareSpeech, productionOptions, readManifest, sha256, stagePath, writeManifest,
 } from "./audio-production.ts";
 import type { GenerationSpec } from "./audio-production.ts";
+import { mapWordBoundaries, prepareSpeechWithOffsets, timingFileIsFresh, writeTiming } from "./speech-timing.ts";
+import type { WordBoundary } from "./speech-timing.ts";
 
 // Usage:
-//   generate-course-audio.ts <course.json> [--character ID] [--steps ID,ID] [--part instruction|completion|both] [--welcome] [--wrapups-only] [--missing] [--match TEXT] [--backend edge|azure] [--env-file PATH]
+//   generate-course-audio.ts <course.json> [--character ID] [--steps ID,ID] [--part instruction|completion|both] [--welcome] [--wrapups-only] [--missing] [--word-timings] [--match TEXT] [--backend edge|azure] [--env-file PATH]
 //
 // Narration is recorded once per coach: "audio/x.mp3" in the course is written
 // to audio/<character>/x.mp3, "HEXON" in the text becomes the coach's display
@@ -28,6 +30,9 @@ import type { GenerationSpec } from "./audio-production.ts";
 // file (default ~/.env): AZURE_SPEECH_KEY plus AZURE_SPEECH_REGION or
 // AZURE_SPEECH_ENDPOINT. The voice comes from LEARN_OMARCHY_TTS_VOICE, then
 // AZURE_SPEECH_MALE_VOICE_US. Credential values are never printed.
+// --word-timings opts into SDK PCM synthesis and captures boundaries from that
+// same request. Unsupported/invalid alignment leaves no timing sidecar.
+// --missing with --word-timings retries clips without valid, matching timings.
 
 const args = process.argv.slice(2);
 const readFlag = (name: string): string | undefined => {
@@ -36,6 +41,7 @@ const readFlag = (name: string): string | undefined => {
 };
 const coursePath = resolve(args.find((value) => !value.startsWith("--") && !isFlagValue(value)) ?? "courses/omarchy-basics.json");
 const onlyMissing = args.includes("--missing");
+const captureWordTimings = args.includes("--word-timings");
 const matchText = (readFlag("--match") ?? "").toLowerCase();
 const onlyCharacter = readFlag("--character");
 const includeWelcome = args.includes("--welcome");
@@ -54,6 +60,7 @@ const charactersDir = fileURLToPath(new URL("../assets/characters", import.meta.
 const backend = readFlag("--backend") ?? process.env.LEARN_OMARCHY_TTS_BACKEND ?? "edge";
 const envFile = readFlag("--env-file") ?? resolve(process.env.HOME ?? "", ".env");
 if (backend !== "edge" && backend !== "azure") throw new Error(`Unknown speech backend: ${backend}`);
+if (captureWordTimings && backend !== "azure") throw new Error("--word-timings requires --backend azure");
 
 function isFlagValue(value: string): boolean {
   const index = args.indexOf(value);
@@ -134,7 +141,7 @@ async function loadCharacters(): Promise<Character[]> {
 type Synthesizer = {
   voice: string;
   options: Record<string, string>;
-  synthesize: (text: string, output: string) => Promise<void>;
+  synthesize: (text: string, output: string) => Promise<void | WordBoundary[]>;
 };
 
 async function createEdgeSynthesizer(manifestVoice?: string): Promise<Synthesizer> {
@@ -171,6 +178,18 @@ async function createAzureSynthesizer(manifestVoice?: string): Promise<Synthesiz
     ? `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`
     : `${String(configuredEndpoint).replace(/\/+$/, "")}/cognitiveservices/v1`;
   const locale = voice.split("-").slice(0, 2).join("-") || "en-US";
+  if (captureWordTimings) {
+    const { synthesizeWithWordBoundaries } = await import("./azure-speech-timing.ts");
+    return {
+      voice,
+      options: {
+        locale, format: "riff-24khz-16bit-mono-pcm", input: "plain-text",
+        wordTimings: "azure-sdk-1.51.0-v1",
+      },
+      synthesize: (text, output) => synthesizeWithWordBoundaries(text, output,
+        { key, region, endpoint: configuredEndpoint }, voice),
+    };
+  }
   return {
     voice,
     options: { locale, format: "audio-24khz-96kbitrate-mono-mp3", ssmlVersion: "1.0" },
@@ -237,12 +256,28 @@ for (const character of await loadCharacters()) {
     };
     const currentHash = await fileHash(output);
     if (onlyMissing && generationIsFresh(manifest.files[key], spec, currentHash)
-      && normalizationIsFresh(manifest.files[key], currentHash, version)) return;
-    const staged = stagePath(output);
+      && normalizationIsFresh(manifest.files[key], currentHash, version)
+      && (!captureWordTimings || await timingFileIsFresh(output, currentHash, text))) return;
+    const staged = captureWordTimings ? stagePath(output).replace(/\.mp3$/, ".wav") : stagePath(output);
     try {
-      await synthesizer.synthesize(spoken, staged);
+      const boundaries = await synthesizer.synthesize(spoken, staged);
       manifest.files[key] = await normalizeAudio(staged, output,
         { kind: "generated", fingerprint: fingerprint(spec), spec }, version);
+      if (captureWordTimings) {
+        const timing = mapWordBoundaries(text, prepareSpeechWithOffsets(text, character.spokenName, pronunciations),
+          boundaries ?? [], manifest.files[key].normalization.probe.durationSeconds * 1000);
+        if (timing.words) {
+          await writeTiming(output, {
+            version: 1, audioHash: manifest.files[key].normalization.outputHash, text, words: timing.words,
+          });
+          console.log(`Word timings: ${relative} (${timing.words.length} words).`);
+        } else {
+          await writeTiming(output);
+          console.log(`No word timings: ${relative}: ${synthesizer.voice}: ${timing.reason}; displaying full text.`);
+        }
+      } else {
+        await writeTiming(output);
+      }
       await writeManifest(manifestPath, manifest);
     } finally {
       await rm(staged, { force: true });
@@ -266,6 +301,18 @@ for (const character of await loadCharacters()) {
     const instruction = welcome.instructions?.[character.id] ?? welcome.instruction;
     if (typeof instruction !== "string" || !instruction.trim()) throw new Error("Invalid character welcome instruction");
     await generate(instruction, welcome.audio);
+    if (welcome.recommendationAudio !== undefined) {
+      if (welcome.recommendationAudio !== "audio/host-lessons.mp3" ||
+          typeof welcome.recommendation !== "string" || !welcome.recommendation.trim())
+        throw new Error("Invalid welcome lesson-menu narration");
+      await generate(welcome.recommendation, welcome.recommendationAudio);
+    }
+    if (welcome.controls !== undefined) {
+      if (!welcome.controls || typeof welcome.controls.instruction !== "string" ||
+          !welcome.controls.instruction.trim() || welcome.controls.audio !== "audio/host-controls.mp3")
+        throw new Error("Invalid welcome controls narration metadata");
+      await generate(welcome.controls.instruction, welcome.controls.audio);
+    }
   }
   for (const lesson of result.course.lessons) {
     for (const step of lesson.steps) {

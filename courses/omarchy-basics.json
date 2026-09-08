@@ -34,8 +34,8 @@
         {
           "id": "tour-welcome",
           "kind": "tour",
-          "pose": "talk",
-          "instruction": "Let's start with the highlighted desktop bar. It gives you quick access to workspaces, the clock, and system controls. Super is the Windows key, or Command on a Mac. Alt is the Option key on a Mac.",
+          "pose": "point",
+          "instruction": "Let's start with the highlighted desktop bar. It gives you quick access to workspaces, the clock, and system controls. You'll use the Super key for many of Omarchy's keyboard shortcuts. On a Mac keyboard, that's Command. On a Windows keyboard, it's the Windows-logo key. When I say \"hold Super,\" that's the key to use.",
           "detail": "Follow the highlighted area if your bar is in a different position. Read along or listen, then press Enter to continue. Help can demonstrate shortcuts when you need it.",
           "keys": [],
           "audio": "audio/tour-welcome.mp3",
@@ -45,13 +45,25 @@
             "durationMs": 4000
           },
           "highlight": {
-            "shape": "circle",
-            "anchor": "center",
+            "shape": "rectangle",
+            "anchor": "top",
             "x": 0,
-            "y": -60,
-            "width": 12,
-            "height": 12,
-            "borderWidth": 2,
+            "y": 0,
+            "width": 1902,
+            "height": 30,
+            "barWidgets": [
+              "omarchy.menu",
+              "omarchy.workspaces",
+              "omarchy.clock",
+              "omarchy.tray",
+              "omarchy.bluetooth",
+              "omarchy.network",
+              "omarchy.audio",
+              "omarchy.monitor",
+              "omarchy.power",
+              "omarchy.weather"
+            ],
+            "borderWidth": 3,
             "radius": 6,
             "durationMs": 1000
           }
@@ -87,7 +99,8 @@
         },
         {
           "id": "tour-workspace-two",
-          "instruction": "Let's try it. Hold Super and tap 2 on the top row of your keyboard. Then release both keys. This switches to workspace two.",
+          "note": "Your windows stay open when you switch workspaces.",
+          "instruction": "Hold Super and tap 2 on the top row. Then release both keys.",
           "detail": "Switching workspaces doesn't close or move your windows. Workspace two may already have windows in it. If you're already there, we'll move on to switching to workspace one.",
           "keys": ["SUPER", "+", "2"],
           "audio": "audio/tour-workspace-two.mp3",
@@ -332,7 +345,7 @@
         },
         {
           "id": "open-apps",
-          "instruction": "Now for your apps. Hold Super and Alt, then tap Space, and the Apps menu opens.",
+          "instruction": "Now for your apps. Alt is the Option key on a Mac keyboard. Hold Super and Alt, then tap Space to open the Apps menu.",
           "detail": "The Apps menu lists launchable apps, not every installed package. Choose Release Keys to search it, then Capture Keys to return to the course.",
           "keys": [
             "SUPER",
@@ -380,6 +393,7 @@
         },
         {
           "id": "apps-search-practice",
+          "note": "The exercise opens separately and gives you control of the keyboard.",
           "kind": "practice",
           "practice": "app-search",
           "optional": false,
@@ -457,6 +471,7 @@
       "steps": [
         {
           "id": "launch-terminal",
+          "note": "A terminal is a window where you can type commands.",
           "instruction": "Press Super and Return to open a terminal. Return is the Enter key on most keyboards.",
           "detail": "A terminal is a window where you can type commands. You won't need to enter commands in this activity. Omarchy fits the new window alongside your existing work.",
           "keys": [
@@ -493,6 +508,7 @@
         },
         {
           "id": "close-terminal",
+          "note": "Only the terminal opened for this activity will close.",
           "windowFromStep": "launch-terminal",
           "instruction": "Now let's tidy up. Press Super and W to close that terminal.",
           "detail": "Outside the course, this closes the active window: the one receiving your input. Here, the guided action targets only the terminal opened for this activity.",
@@ -572,6 +588,7 @@
         },
         {
           "id": "launch-files",
+          "note": "A file manager helps you browse folders and documents.",
           "instruction": "Need your files? Hold Super and Shift, then press F to open the file manager.",
           "detail": "The file manager opens in a new window, ready for browsing, drag and drop, or a quick search.",
           "keys": [
@@ -611,6 +628,7 @@
         },
         {
           "id": "close-files",
+          "note": "Your other windows stay open.",
           "windowFromStep": "launch-files",
           "instruction": "Same move again. Press Super and W to close the file manager.",
           "detail": "The guided action closes the course's file-manager window, not another window you had open.",
@@ -662,6 +680,7 @@
       "steps": [
         {
           "id": "windows-open-first",
+          "note": "Tiling arranges your windows without overlap.",
           "instruction": "Let's see how tiling works. Press Super and Return to open a terminal.",
           "detail": "Tiling arranges windows without overlap. A single tiled window fills the available workspace; additional windows share that space.",
           "keys": [
@@ -734,6 +753,7 @@
         },
         {
           "id": "windows-focus-next",
+          "note": "Focus means which window receives your keyboard input.",
           "windowFromStep": "windows-open-first",
           "instruction": "Two windows, one keyboard. Press Alt and Tab to hop to the other terminal.",
           "detail": "Focus means which window receives keyboard input. Alt and Tab switches windows; the active border helps you spot the change. This guided step selects your other practice terminal.",
@@ -778,6 +798,7 @@
         },
         {
           "id": "windows-float",
+          "note": "Floating windows can sit above the tiled layout.",
           "windowFromStep": "windows-open-first",
           "instruction": "Sometimes you want a window to float free. Press Super and T to toggle floating.",
           "detail": "A floating window sits on top of the tiles and can be dragged around with Super and the mouse. Press Super and T again to tile it back.",
@@ -822,6 +843,7 @@
         },
         {
           "id": "windows-fullscreen",
+          "note": "Use the same shortcut again to leave fullscreen.",
           "windowFromStep": "windows-open-first",
           "instruction": "Need to focus on one thing? Press Super and F for fullscreen.",
           "detail": "Super+F toggles fullscreen. You'll press the same shortcut again in the next activity to get your desktop back.",
@@ -1008,6 +1030,7 @@
         },
         {
           "id": "windows-swap",
+          "note": "Only our two practice terminals will change positions.",
           "windowFromStep": "windows-open-second",
           "instruction": "Add Shift to swap window positions. Hold Super and Shift, then press the highlighted arrow.",
           "detail": "Outside the course this swaps with the neighboring window. Here we safely exchange only our two practice terminals.",
@@ -1225,6 +1248,7 @@
         },
         {
           "id": "workspaces-jump",
+          "note": "Your windows stay open when you switch workspaces.",
           "instruction": "Press Super and 2 to visit workspace two.",
           "detail": "Workspaces separate your tasks. A workspace may already contain windows; switching doesn't close them.",
           "keys": [
@@ -1305,6 +1329,7 @@
         },
         {
           "id": "workspaces-send",
+          "note": "The terminal moves to workspace two, and you follow it.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Hold Super and Shift, then press 2 to send this terminal to workspace two.",
           "detail": "Super, Shift, and a number moves the focused window to that workspace and follows it there.",
@@ -1429,6 +1454,7 @@
         },
         {
           "id": "workspaces-stash",
+          "note": "The scratchpad is a hidden workspace you can show over your desktop.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Let's give the scratchpad something useful. Press Super, Alt, and S to put our terminal there.",
           "detail": "The scratchpad is a temporary workspace you can reveal over your current one. Your other windows aren't moved.",
@@ -1520,6 +1546,7 @@
         },
         {
           "id": "workspaces-scratchpad-hide",
+          "note": "The terminal stays open while the scratchpad is hidden.",
           "instruction": "Press Super and S again to tuck the scratchpad away.",
           "detail": "Anything you leave in the scratchpad stays there until you call it back.",
           "keys": [
@@ -1560,6 +1587,7 @@
         },
         {
           "id": "workspaces-reveal-before-restore",
+          "note": "Select our practice terminal if other windows are in the scratchpad.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Reveal the scratchpad again with Super and S. We'll move the practice terminal only after it has focus.",
           "detail": "If the scratchpad contains other windows, select the terminal we opened. The next shortcut moves the focused window, not a window hidden in the scratchpad.",
@@ -1585,6 +1613,7 @@
         },
         {
           "id": "workspaces-restore",
+          "note": "The terminal must be visible and focused before you move it.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Press Super, Shift, and 2 to bring the practice terminal back to workspace two.",
           "detail": "The terminal must be visible and focused. Sending it to a numbered workspace takes it out of the scratchpad.",
@@ -1688,6 +1717,7 @@
       "steps": [
         {
           "id": "audio-panel",
+          "note": "Output is where sound plays; input is your microphone.",
           "instruction": "Hold Super and Control, then press A to open the Audio panel.",
           "detail": "Output is where sound plays; input is your microphone. Release Keys to explore the panel, Escape to close it, then Capture Keys to return. No volume changes are required.",
           "keys": [
@@ -1737,6 +1767,7 @@
         },
         {
           "id": "network-panel",
+          "note": "Check the connection without disconnecting or changing networks.",
           "instruction": "Hold Super and Control, then press W to open the Network panel.",
           "detail": "Read the connection status without disconnecting. Release Keys to use the panel, Escape to close it, and Capture Keys to return.",
           "keys": [
@@ -1835,6 +1866,7 @@
         },
         {
           "id": "calendar-panel",
+          "note": "Clicking the clock opens the same calendar.",
           "instruction": "What's the date? Hold Super, Control, and Alt, then press D to open the calendar.",
           "detail": "Clicking the clock is a useful alternative to this longer shortcut. Explore with Release Keys; Escape closes the panel.",
           "keys": [
@@ -1886,6 +1918,7 @@
         },
         {
           "id": "background-menu",
+          "note": "Choosing a background changes your desktop immediately.",
           "instruction": "Fancy a new look? Hold Super and Control, then press Space to open the Background switcher.",
           "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
           "keys": [
@@ -1932,6 +1965,7 @@
         },
         {
           "id": "theme-menu",
+          "note": "Choosing a theme applies it immediately; no change is required.",
           "instruction": "Hold Super, Shift, and Control, then press Space to open the Theme menu.",
           "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
           "keys": [
@@ -1980,6 +2014,7 @@
         },
         {
           "id": "toggle-menu",
+          "note": "Selecting an entry changes that setting.",
           "instruction": "One more. Hold Super and Control, then press O to open the Toggle menu.",
           "detail": "Night light, idle locking, the top bar, and other switches all live here.",
           "keys": [
@@ -2061,6 +2096,7 @@
         },
         {
           "id": "clipboard-history",
+          "note": "History may contain private information; select entries carefully.",
           "instruction": "Copied something earlier? Hold Super and Control, then press V to open your clipboard history.",
           "detail": "Clipboard history keeps recent copied items. Activating an entry normally pastes it into the previously focused field. Shift+Enter copies an entry without pasting. Be mindful of private information in your history.",
           "keys": [
@@ -2107,6 +2143,7 @@
         },
         {
           "id": "clipboard-practice",
+          "note": "This exercise replaces your clipboard with harmless sample text.",
           "kind": "practice",
           "practice": "clipboard",
           "optional": false,
@@ -2157,6 +2194,7 @@
         },
         {
           "id": "compose-practice",
+          "note": "Custom Compose settings may differ; skipping is fine.",
           "kind": "practice",
           "practice": "compose",
           "optional": false,
@@ -2265,6 +2303,7 @@
         },
         {
           "id": "capture-practice",
+          "note": "Capture only the sample card, not private windows or notifications.",
           "kind": "practice",
           "practice": "capture",
           "optional": false,
@@ -2318,6 +2357,7 @@
         },
         {
           "id": "recording-practice",
+          "note": "Review the selected region; no microphone or webcam is enabled.",
           "kind": "practice",
           "practice": "screen-recording",
           "optional": false,
@@ -2343,6 +2383,7 @@
         },
         {
           "id": "ocr-practice",
+          "note": "OCR turns images into text; check the result for mistakes.",
           "kind": "practice",
           "practice": "ocr",
           "optional": true,
@@ -2368,6 +2409,7 @@
         },
         {
           "id": "qr-practice",
+          "note": "Our sample contains harmless text; no website will open.",
           "kind": "practice",
           "practice": "qr",
           "optional": true,
@@ -2598,6 +2640,7 @@
         },
         {
           "id": "display-panel",
+          "note": "Display changes apply immediately; leave resolution and scale unchanged.",
           "instruction": "Hold Super and Control, then press D to open the Display panel.",
           "detail": "Display changes apply immediately. Read the panel without changing scale or resolution during this lesson. Release Keys to explore; Escape closes it.",
           "keys": [
@@ -2647,6 +2690,7 @@
         },
         {
           "id": "system-menu",
+          "note": "Close the menu without choosing logout, restart, or shutdown.",
           "instruction": "Hold Super and press Escape to open the System menu.",
           "detail": "Lock, suspend, log out, reboot, or shut down from one keyboard-driven list.",
           "keys": [
@@ -2690,6 +2734,7 @@
         },
         {
           "id": "lock-practice",
+          "note": "Locking is optional; save your work and know your password first.",
           "kind": "practice",
           "practice": "screen-lock",
           "optional": true,
@@ -2726,6 +2771,7 @@
       "steps": [
         {
           "id": "helpers-emoji",
+          "note": "The selected emoji is inserted into your previous text field.",
           "instruction": "Need an emoji? Hold Super and Control, then press E to open the emoji picker.",
           "detail": "Type a word to search, press Enter, and the emoji lands in whatever you were typing.",
           "keys": [
@@ -2772,6 +2818,7 @@
         },
         {
           "id": "helpers-reminder",
+          "note": "Scheduling a reminder is optional; Escape cancels.",
           "instruction": "Need a reminder? Hold Super and Control, then press R to set one.",
           "detail": "Enter the number of minutes first, then your reminder message. Press Escape to leave without scheduling anything.",
           "keys": [
@@ -2818,6 +2865,7 @@
         },
         {
           "id": "dictation-practice",
+          "note": "You control the microphone; skip if dictation isn't available.",
           "kind": "practice",
           "practice": "dictation",
           "optional": true,
@@ -2882,6 +2930,7 @@
       "steps": [
         {
           "id": "tools-monitor-open",
+          "note": "Inspect resource use without stopping any programs.",
           "instruction": "Wondering what's using your computer? Press Super, Control, and T to open the activity monitor.",
           "detail": "The activity monitor shows processor use, memory, storage, and running programs. Release Keys to explore, then Capture Keys to return. Don't stop any programs for this lesson.",
           "keys": [
@@ -2963,6 +3012,7 @@
         },
         {
           "id": "tools-calculator-open",
+          "note": "The lesson checks that the calculator opens, not your calculation.",
           "instruction": "For a quick calculation, press Super, Control, and Q. The calculator is built right in.",
           "detail": "Release Keys and try 5 + 5, then Capture Keys to return. This activity checks that the calculator opened, not the calculation. An existing calculator window won't be closed by the course.",
           "keys": [
@@ -3079,6 +3129,7 @@
       "steps": [
         {
           "id": "web-app-practice",
+          "note": "This local demo doesn't change your Apps menu.",
           "kind": "practice",
           "practice": "web-app",
           "optional": true,
@@ -3104,6 +3155,7 @@
         },
         {
           "id": "transcode-practice",
+          "note": "Transcoding converts media; your original file is kept.",
           "kind": "practice",
           "practice": "transcode",
           "optional": true,
@@ -3129,6 +3181,7 @@
         },
         {
           "id": "share-menu",
+          "note": "Opening the menu sends nothing; check the file and recipient before sharing.",
           "instruction": "Here's an optional tool for sharing. Press Super, Control, and S to open the Share menu.",
           "detail": "Opening the menu sends nothing. Before sharing, check the selected content and recipient. Never send secrets or personal files just to complete a lesson. Escape cancels.",
           "keys": [
@@ -3174,6 +3227,7 @@
         },
         {
           "id": "sharing-practice",
+          "note": "This rehearsal doesn't discover devices or send anything.",
           "kind": "practice",
           "practice": "sharing",
           "optional": true,
@@ -3274,7 +3328,6 @@
         {
           "id": "finale-terminal",
           "instruction": "Start with a terminal. Press Super and Return.",
-          "detail": "We'll use this terminal as the first window in the workflow.",
           "keys": [
             "SUPER",
             "+",
@@ -3310,7 +3363,6 @@
         {
           "id": "finale-browser",
           "instruction": "Now a browser. Hold Super and Shift, then press Return.",
-          "detail": "Watch the tiling put them side by side.",
           "keys": [
             "SUPER",
             "+",
@@ -3398,7 +3450,6 @@
         {
           "id": "finale-back-to-one",
           "instruction": "Press Super and 1 to return to the terminal's workspace.",
-          "detail": "A workspace number takes you directly to that desktop.",
           "keys": [
             "SUPER",
             "+",
@@ -3438,7 +3489,6 @@
           "id": "finale-close-terminal",
           "windowFromStep": "finale-terminal",
           "instruction": "Done with the terminal for now. Press Super and W.",
-          "detail": "Close the practice terminal when you're finished with it.",
           "keys": [
             "SUPER",
             "+",
@@ -3478,7 +3528,6 @@
         {
           "id": "finale-to-two",
           "instruction": "Press Super and 2 to head over to the browser.",
-          "detail": "You already know this one.",
           "keys": [
             "SUPER",
             "+",
@@ -3518,7 +3567,6 @@
           "id": "finale-close-browser",
           "windowFromStep": "finale-browser",
           "instruction": "And close it. Press Super and W.",
-          "detail": "That's a full session: open, arrange, sort, close.",
           "keys": [
             "SUPER",
             "+",
