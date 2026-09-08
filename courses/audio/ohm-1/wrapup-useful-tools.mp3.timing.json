@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "audioHash": "c425aa533eb0fb930e46a040e0163df09c8793b08438afbb7648c1336b7b5347",
+  "text": "That wraps up useful tools. You have places to check resource use, do a quick calculation, and investigate disk space before deleting anything.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 270,
+      "endOffset": 10
+    },
+    {
+      "startMs": 550,
+      "endOffset": 13
+    },
+    {
+      "startMs": 710,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 52
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 66
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 94
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 106
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 111
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 117
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 124
+    },
+    {
+      "startMs": 6870,
+      "endOffset": 133
+    },
+    {
+      "startMs": 7230,
+      "endOffset": 143
+    }
+  ]
+}

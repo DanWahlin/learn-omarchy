@@ -3,7 +3,10 @@ CharacterSprite 1.0 CharacterSprite.qml
 IntroEffect 1.0 IntroEffect.qml
 IntroPlayer 1.0 IntroPlayer.qml
 PracticeContent 1.0 PracticeContent.qml
+PracticeSession 1.0 PracticeSession.qml
 OmarchyTheme 1.0 OmarchyTheme.qml
 ThemePalette 1.0 ThemePalette.qml
 SplashScreen 1.0 SplashScreen.qml
 WordRevealText 1.0 WordRevealText.qml
+CaptionReveal 1.0 CaptionReveal.qml
+AppSearchSession 1.0 AppSearchSession.qml

@@ -28,6 +28,8 @@ Item {
         + "property color instruction: 'white'\nproperty string welcomeText: 'Hi! Welcome to Omarchy.'\n"
         + "property int welcomeRevealEnd: -1\n"
         + "property bool welcomeReadingActive: false\n"
+        + "property bool welcomeCaptionVisible: false\n"
+        + source.match(/^  onWelcomeCaptionVisibleChanged:.*$/m)[0] + "\n"
         + "property int readingStarts: 0\nproperty bool reading: false\n"
         + "function welcomeCaptionShown() { readingStarts++; reading = true }\n"
         + "function colorWithAlpha(color, alpha) { return color }\n"
@@ -36,6 +38,7 @@ Item {
         + "property alias caption: welcomeCaption\nproperty alias movingX: coachTravelX.running\n"
         + "property alias movingY: coachTravelY.running\nproperty alias dragging: characterMouse.pressed\n"
         + "property alias falling: fallAnimation.running\nproperty alias menuSlot: welcomeMenuSlot\n"
+        + "property alias activeScreen: overlay.shouldShow\n"
         + "Item { id: overlay; width: root.width; height: root.height; property bool shouldShow: true }\n"
         + "Item { id: hexonWindow; property Item contentItem: overlay }\n"
         + "Item { id: welcomeMenuSlot; x: 300; y: 120; width: 600; height: 160 }\n"
@@ -63,6 +66,7 @@ Item {
       fixture.width = 1200
       fixture.height = 800
       fixture.textScale = 1
+      fixture.activeScreen = true
       fixture.welcomeRevealEnd = -1
       wait(10)
       compare(fixture.caption.opacity, 0)
@@ -169,6 +173,23 @@ Item {
       fixture.welcomeRevealEnd = -1
       wait(20)
       compare(fixture.captionTextItem.opacity, 1)
+    }
+
+    function test_switchingDisplaysStopsHiddenReadingWithoutStartingOnInactiveScreens() {
+      fixture.welcomeStage = "welcome"
+      fixture.characterState = "tour-talk"
+      tryCompare(fixture.caption, "opacity", 1)
+      verify(fixture.welcomeCaptionVisible)
+      var starts = fixture.readingStarts
+      fixture.activeScreen = false
+      wait(20)
+      verify(!fixture.welcomeCaptionVisible)
+      verify(!fixture.reading)
+      compare(fixture.readingStarts, starts)
+      fixture.activeScreen = true
+      tryCompare(fixture.caption, "opacity", 1)
+      verify(fixture.welcomeCaptionVisible)
+      compare(fixture.readingStarts, starts + 1)
     }
 
     function test_welcomeIsLeftAlignedAndFitsAtLargerTextSizes() {

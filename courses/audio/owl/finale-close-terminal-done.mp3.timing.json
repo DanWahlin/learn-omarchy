@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "audioHash": "d5c1da2be0899c0ed9d2954535c8bc49ea232807b042f5ec23cf797db3f3ad8e",
+  "text": "Closed. One more to go.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 11
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 23
+    }
+  ]
+}

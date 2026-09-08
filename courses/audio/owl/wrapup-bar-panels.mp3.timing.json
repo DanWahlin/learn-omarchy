@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "audioHash": "9a1a09fcde9fb420635763db9066ee0dabc4f973c064f7dcc075bfb8e5a77e72",
+  "text": "You've explored the desktop controls. The bar gives you a quick place to check your system and reach the settings you need.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 350,
+      "endOffset": 15
+    },
+    {
+      "startMs": 870,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 83
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5870,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 100
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 104
+    },
+    {
+      "startMs": 6550,
+      "endOffset": 113
+    },
+    {
+      "startMs": 7030,
+      "endOffset": 117
+    },
+    {
+      "startMs": 7150,
+      "endOffset": 123
+    }
+  ]
+}

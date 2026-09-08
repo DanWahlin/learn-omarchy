@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "cbb62ed121f3977ae8b38fec22a08fad24d66b6f32a68b8440621567e61a7f37",
+  "text": "The practice terminal is visible and focused. Now you can move it out of the scratchpad.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 12
+    },
+    {
+      "startMs": 630,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4430,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 76
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 88
+    }
+  ]
+}

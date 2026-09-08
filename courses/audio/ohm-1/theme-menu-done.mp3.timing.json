@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "15d2228bd2d972d74861848a2d877cb681e1bfeec75c2914014e7333be96babb",
+  "text": "Themes coordinate the desktop's appearance. Selecting one applies a change; close the menu without choosing to keep your current theme.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 350,
+      "endOffset": 17
+    },
+    {
+      "startMs": 830,
+      "endOffset": 21
+    },
+    {
+      "startMs": 950,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1430,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 53
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 65
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 67
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 85
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 98
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 107
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 110
+    },
+    {
+      "startMs": 5870,
+      "endOffset": 115
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 120
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 128
+    },
+    {
+      "startMs": 6550,
+      "endOffset": 135
+    }
+  ]
+}

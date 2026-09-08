@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "audioHash": "1caee055240b36739d160941d8b86ad32d31e05e3ad77fbbf6a4e23835dce8b1",
+  "text": "You're on workspace two. Look for the active marker at workspace two's position in the bar. It may be an icon instead of a number. Your other windows are still on their own workspaces.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 9
+    },
+    {
+      "startMs": 430,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 64
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 82
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 91
+    },
+    {
+      "startMs": 6350,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 98
+    },
+    {
+      "startMs": 6830,
+      "endOffset": 101
+    },
+    {
+      "startMs": 6990,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7150,
+      "endOffset": 109
+    },
+    {
+      "startMs": 7710,
+      "endOffset": 117
+    },
+    {
+      "startMs": 8189,
+      "endOffset": 120
+    },
+    {
+      "startMs": 8270,
+      "endOffset": 122
+    },
+    {
+      "startMs": 8309,
+      "endOffset": 130
+    },
+    {
+      "startMs": 9309,
+      "endOffset": 135
+    },
+    {
+      "startMs": 9670,
+      "endOffset": 141
+    },
+    {
+      "startMs": 9950,
+      "endOffset": 149
+    },
+    {
+      "startMs": 10549,
+      "endOffset": 153
+    },
+    {
+      "startMs": 10750,
+      "endOffset": 159
+    },
+    {
+      "startMs": 11030,
+      "endOffset": 162
+    },
+    {
+      "startMs": 11110,
+      "endOffset": 168
+    },
+    {
+      "startMs": 11350,
+      "endOffset": 172
+    },
+    {
+      "startMs": 11549,
+      "endOffset": 184
+    }
+  ]
+}

@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "audioHash": "8ff22e9a014e5aa85ddf1b6b6393458e7bbf3663ebc6df7e7357d3c26a997350",
+  "text": "You're on workspace one. You can use the same shortcut whenever you want to switch workspaces. Let's continue along the bar.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 9
+    },
+    {
+      "startMs": 430,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 67
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 82
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 100
+    },
+    {
+      "startMs": 7030,
+      "endOffset": 109
+    },
+    {
+      "startMs": 7550,
+      "endOffset": 115
+    },
+    {
+      "startMs": 7790,
+      "endOffset": 119
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 124
+    }
+  ]
+}

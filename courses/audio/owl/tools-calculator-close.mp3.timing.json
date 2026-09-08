@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "audioHash": "3d74966c929e681e75a4296b0d470f4b3e19788d9104351ce6bd6f5687adb1ff",
+  "text": "Press Super and W to close our calculator.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 390,
+      "endOffset": 11
+    },
+    {
+      "startMs": 910,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 42
+    }
+  ]
+}

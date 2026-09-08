@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "audioHash": "0709a7a020d18f3573685d157febef0b8f10489b11e4883cd747950d6c6c8951",
+  "text": "And you're back. Now let's move the terminal instead of ourselves.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 10
+    },
+    {
+      "startMs": 470,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 66
+    }
+  ]
+}

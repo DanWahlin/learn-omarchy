@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "audioHash": "c6558329d2c44656ad03b84271119439c6341ec49711f70cd8887bfae1e5add3",
+  "text": "The Display panel is open. Text size and scale are here, with brightness and display switches where available. These controls apply immediately, so looking is enough for this lesson.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 11
+    },
+    {
+      "startMs": 470,
+      "endOffset": 17
+    },
+    {
+      "startMs": 750,
+      "endOffset": 20
+    },
+    {
+      "startMs": 870,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 76
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 84
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 93
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 99
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 110
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 116
+    },
+    {
+      "startMs": 6470,
+      "endOffset": 125
+    },
+    {
+      "startMs": 6830,
+      "endOffset": 131
+    },
+    {
+      "startMs": 7230,
+      "endOffset": 144
+    },
+    {
+      "startMs": 8189,
+      "endOffset": 147
+    },
+    {
+      "startMs": 8389,
+      "endOffset": 155
+    },
+    {
+      "startMs": 8750,
+      "endOffset": 158
+    },
+    {
+      "startMs": 8830,
+      "endOffset": 165
+    },
+    {
+      "startMs": 9149,
+      "endOffset": 169
+    },
+    {
+      "startMs": 9270,
+      "endOffset": 174
+    },
+    {
+      "startMs": 9469,
+      "endOffset": 182
+    }
+  ]
+}

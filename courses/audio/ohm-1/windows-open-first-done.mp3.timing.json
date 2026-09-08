@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "0b1f0134129beca1b398f13ac4d447d433369cec21bc14fd8a0d23b6ecd3e2fe",
+  "text": "The terminal has joined your layout. Next, open another to see how the available space is shared.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 550,
+      "endOffset": 16
+    },
+    {
+      "startMs": 750,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 66
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 80
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 86
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 89
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 97
+    }
+  ]
+}

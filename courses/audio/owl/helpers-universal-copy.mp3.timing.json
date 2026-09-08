@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "audioHash": "cd6ede1cabb29862c4f673fcb73dcfc480ae5e185c44b97fb22015163fb2992a",
+  "text": "Omarchy provides shared copy and paste shortcuts: Super and C to copy, and Super and V to paste. They work across supported apps, including the terminal, where the usual shortcuts can differ.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 710,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 49
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 55
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 59
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 61
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 64
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 70
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 74
+    },
+    {
+      "startMs": 6790,
+      "endOffset": 80
+    },
+    {
+      "startMs": 7150,
+      "endOffset": 84
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 86
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 89
+    },
+    {
+      "startMs": 7870,
+      "endOffset": 96
+    },
+    {
+      "startMs": 8950,
+      "endOffset": 101
+    },
+    {
+      "startMs": 9229,
+      "endOffset": 106
+    },
+    {
+      "startMs": 9510,
+      "endOffset": 113
+    },
+    {
+      "startMs": 9910,
+      "endOffset": 123
+    },
+    {
+      "startMs": 10430,
+      "endOffset": 129
+    },
+    {
+      "startMs": 10950,
+      "endOffset": 139
+    },
+    {
+      "startMs": 11549,
+      "endOffset": 143
+    },
+    {
+      "startMs": 11670,
+      "endOffset": 153
+    },
+    {
+      "startMs": 12389,
+      "endOffset": 159
+    },
+    {
+      "startMs": 12629,
+      "endOffset": 163
+    },
+    {
+      "startMs": 12790,
+      "endOffset": 169
+    },
+    {
+      "startMs": 13229,
+      "endOffset": 179
+    },
+    {
+      "startMs": 13910,
+      "endOffset": 183
+    },
+    {
+      "startMs": 14110,
+      "endOffset": 191
+    }
+  ]
+}

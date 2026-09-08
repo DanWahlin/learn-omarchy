@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "3f721805089d9e73eda44c063d602ce22fa1f4682e9909f3ffd6a72ed7bfc05d",
+  "text": "Need your files? Hold Super and Shift, then press F to open the file manager.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 9
+    },
+    {
+      "startMs": 390,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 77
+    }
+  ]
+}

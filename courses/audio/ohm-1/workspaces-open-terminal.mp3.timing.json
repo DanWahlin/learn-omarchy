@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "ff58db19738bcb2eadaf2e8523dd731d6712bcb3f0785c16b29ccca4a6cfd2b1",
+  "text": "We'll need a window to move around. Press Super and Return to open a terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 390,
+      "endOffset": 10
+    },
+    {
+      "startMs": 670,
+      "endOffset": 12
+    },
+    {
+      "startMs": 830,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 47
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 51
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 66
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 68
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 78
+    }
+  ]
+}

@@ -21,6 +21,14 @@ function revealOffset(sourceText, displayText, formattedText, words, positionMs)
   var sourceWords = sourceText.match(/\S+/g) || []
   var displayWords = displayText.match(/\S+/g) || []
   if (sourceWords.length !== displayWords.length) return -1
+  for (var k = 0; k < sourceWords.length; k++) {
+    if (sourceWords[k] === displayWords[k]) continue
+    if (sourceWords[k].indexOf("HEXON") < 0) return -1
+    var namePattern = sourceWords[k].split("HEXON").map(function(part) {
+      return part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    }).join("\\S+")
+    if (!(new RegExp("^" + namePattern + "$")).test(displayWords[k])) return -1
+  }
   var sourceTokens = /\S+/g
   var token
   var displayEnd = 0

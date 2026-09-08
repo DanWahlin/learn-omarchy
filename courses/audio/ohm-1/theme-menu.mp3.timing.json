@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "d10aaa1fe92b4048af32080c8bfda5665718936e123c5ff2751c736d31a582a8",
+  "text": "Hold Super, Shift, and Control, then press Space to open the Theme menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 270,
+      "endOffset": 11
+    },
+    {
+      "startMs": 830,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1430,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 66
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 72
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "9646278f2103fe864b13193694f25df1f1a16664386a85c076b7188dcb5eb064",
+  "text": "The other terminal now receives your keyboard input. You can switch between windows without moving them.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 9
+    },
+    {
+      "startMs": 470,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 36
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 67
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 83
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 91
+    },
+    {
+      "startMs": 5630,
+      "endOffset": 98
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 104
+    }
+  ]
+}

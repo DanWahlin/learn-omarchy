@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "audioHash": "0e15cc18bb10e4fad592b5bca59918c946394cdc3fcf340a7d1d3834e6cc88f9",
+  "text": "Good. Everything starts from here.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 710,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 34
+    }
+  ]
+}

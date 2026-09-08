@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "d8c62cd0f4cc27b0a80b6dac5bdb3a361f0f637965ff043d05ad1386d8d3d304",
+  "text": "Add Shift to swap window positions. Hold Super and Shift, then press the highlighted arrow.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 310,
+      "endOffset": 9
+    },
+    {
+      "startMs": 750,
+      "endOffset": 12
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 35
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 46
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 50
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 57
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 62
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 68
+    },
+    {
+      "startMs": 5710,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5830,
+      "endOffset": 84
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 91
+    }
+  ]
+}

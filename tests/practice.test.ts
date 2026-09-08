@@ -1,18 +1,22 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { once } from "node:events";
 import { resolve, join } from "node:path";
 import { createContext, runInContext } from "node:vm";
+import { pathToFileURL } from "node:url";
 import { validRegion, recorderArguments, sessionActions } from "../tools/capture-practice.mjs";
 
-const practiceSource = await readFile(new URL("../app/practice.qml", import.meta.url), "utf8");
+const practiceSource = await readFile(new URL("../app/PracticeSession.qml", import.meta.url), "utf8");
 function lockRuntime() {
   const context = createContext({
-    closing: false,
+    lifecycle: "running", outcome: "cancelled", closingQueued: false,
+    get running() { return this.lifecycle === "running"; },
+    get closing() { return this.lifecycle === "closing"; },
+    taskPending: false, capturePending: false, lockPending: false, lockStatusPending: false,
     lockObserved: false,
-    content: { busy: true, verified: false, error: "" },
+    content: { busy: true, verified: false, error: "", stopPlayback() {} },
     lockStatus: { running: false },
     lockCheckTimer: { running: true, stop() { this.running = false; } },
     lockObservationTimeout: { running: true, stop() { this.running = false; } },
@@ -53,21 +57,160 @@ test("closing practice waits for helper cleanup before destroying Quickshell pro
   const pending = () => ({ active: true, requested: true, get running() { return this.active; }, set running(value) { this.requested = value; } });
   state.captureProcess = pending();
   state.taskProcess = pending();
-  state.baselineProcess = { running: false };
-  state.clipboardSeen = false;
-  state.menuSeen = false;
-  let quits = 0;
-  state.Qt = { quit() { quits++; } };
-  state.closePractice();
+  state.lockProcess = { running: false };
+  state.capturePending = true;
+  state.taskPending = true;
+  const callbacks: (() => void)[] = [];
+  let cancelled = 0;
+  state.cancelled = () => { cancelled++; };
+  state.Qt = { callLater(callback: () => void) { callbacks.push(callback); } };
+  state.cancel();
   assert.equal(state.captureProcess.requested, false);
   assert.equal(state.taskProcess.requested, false);
-  assert.equal(quits, 0);
+  assert.equal(cancelled, 0);
   state.captureProcess.active = false;
   state.finishClosing();
-  assert.equal(quits, 0);
+  assert.equal(callbacks.length, 0, "runningChanged alone is not an exit acknowledgement");
+  state.capturePending = false;
   state.taskProcess.active = false;
   state.finishClosing();
-  assert.equal(quits, 1);
+  assert.equal(callbacks.length, 0);
+  state.taskPending = false;
+  state.finishClosing();
+  state.finishClosing();
+  assert.equal(callbacks.length, 1);
+  assert.equal(cancelled, 0);
+  callbacks[0]();
+  assert.equal(cancelled, 1);
+  assert.equal(state.lifecycle, "closed");
+  assert.doesNotMatch(practiceSource, /Qt\.quit|FloatingWindow|PanelWindow|execDetached|FileView|OmarchyTheme/);
+});
+
+test("real embedded sessions complete locally and wait for worker cleanup before Loader unload", async () => {
+  const directory = await mkdtemp(resolve("tests/.embedded-practice-"));
+  try {
+    await mkdir(join(directory, "bin"));
+    await writeFile(join(directory, "bin/learn-omarchy-practice"), `#!${process.execPath}
+import { writeFileSync } from "node:fs";
+process.on("SIGTERM", () => setTimeout(() => {
+  writeFileSync(process.env.LEARN_SESSION_CLEANUP, "cleaned");
+  process.exit(0);
+}, 150));
+console.log(JSON.stringify({action: "create", path: "/isolated/demo.desktop"}));
+setInterval(() => {}, 1000);
+`, { mode: 0o700 });
+    const fixture = join(directory, "shell.qml");
+    await writeFile(fixture, `import QtQuick
+import Quickshell
+import ${JSON.stringify(pathToFileURL(resolve("app")).href)} as App
+ShellRoot {
+  id: root
+  property bool composed: false
+  property bool rejected: false
+  function check(ok, message) {
+    if (!ok) { console.error("EMBEDDED_FAILURE: " + message); Qt.quit(); }
+  }
+  App.PracticeSession {
+    id: compose
+    mode: "compose"
+    autoStart: false
+    width: 760; height: 500
+    onCompleted: {
+      root.check(!running && !closing, "completion must follow cleanup");
+      root.composed = true;
+      worker.active = true;
+    }
+  }
+  App.PracticeSession {
+    id: invalid
+    mode: "unsupported"
+    autoStart: false
+    onFailed: function(message) { root.rejected = message.indexOf("Unsupported") !== -1; }
+  }
+  Loader {
+    id: worker
+    active: false
+    sourceComponent: App.PracticeSession {
+      mode: "web-app"
+      width: 760; height: 500
+      onCancelled: {
+        root.check(root.composed && root.rejected, "all lifecycles must run");
+        worker.active = false;
+        console.log("EMBEDDED_SESSION_CLEAN");
+        Qt.quit();
+      }
+    }
+  }
+  Timer {
+    interval: 20; running: worker.active; repeat: true
+    onTriggered: {
+      if (worker.item && JSON.parse(worker.item.status()).stage === 1 && worker.item.running) {
+        worker.item.cancel();
+        root.check(worker.item.closing, "cancel must be asynchronous");
+      }
+    }
+  }
+  Component.onCompleted: Qt.callLater(function() {
+    invalid.start();
+    compose.start();
+    compose.finish();
+    root.check(compose.running, "unverified cannot finish");
+    var content = compose.children.find(function(child) { return child.objectName === "practiceContent"; });
+    content.verified = true;
+    compose.finish();
+    root.check(compose.closing && !root.composed, "completion must unwind");
+  })
+}`);
+    const result = spawnSync("qs", ["--no-color", "--path", fixture], {
+      encoding: "utf8", timeout: 10000,
+      env: { ...process.env, LEARN_OMARCHY_ROOT: directory,
+        LEARN_SESSION_CLEANUP: join(directory, "cleanup"),
+        QT_QPA_PLATFORM: "offscreen", QT_QUICK_BACKEND: "software",
+        QT_QPA_PLATFORMTHEME: "generic", QT_QUICK_CONTROLS_STYLE: "Basic",
+        XDG_RUNTIME_DIR: directory, XDG_CONFIG_HOME: join(directory, "config"),
+        XDG_CACHE_HOME: join(directory, "cache"), HYPRLAND_INSTANCE_SIGNATURE: "learn-no-compositor",
+        WAYLAND_DISPLAY: "", DBUS_SESSION_BUS_ADDRESS: `unix:path=${directory}/no-bus` },
+    });
+    const output = result.stdout + result.stderr;
+    assert.equal(result.status, 0, output);
+    assert.match(output, /EMBEDDED_SESSION_CLEAN/);
+    assert.doesNotMatch(output, /EMBEDDED_FAILURE|Failed to load configuration|ReferenceError|TypeError/);
+    assert.equal(await readFile(join(directory, "cleanup"), "utf8"), "cleaned");
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("embedded cancellation handles a missing helper and cancellation during startup", async () => {
+  const directory = await mkdtemp(resolve("tests/.embedded-startup-"));
+  try {
+    for (const immediate of [true, false]) {
+      const fixture = join(directory, immediate ? "immediate.qml" : "missing.qml");
+      await writeFile(fixture, `import QtQuick
+import Quickshell
+import ${JSON.stringify(pathToFileURL(resolve("app")).href)} as App
+ShellRoot {
+  App.PracticeSession {
+    id: session
+    mode: "web-app"
+    autoStart: false
+    onCancelled: { console.log("STARTUP_CANCELLED"); Qt.quit(); }
+  }
+  Timer { interval: 200; running: ${!immediate}; onTriggered: session.cancel() }
+  Component.onCompleted: Qt.callLater(function() { session.start(); ${immediate ? "session.cancel();" : ""} })
+}`);
+      const result = spawnSync("qs", ["--no-color", "--path", fixture], {
+        encoding: "utf8", timeout: 3000,
+        env: { ...process.env, LEARN_OMARCHY_ROOT: directory,
+          QT_QPA_PLATFORM: "offscreen", QT_QUICK_BACKEND: "software",
+          QT_QPA_PLATFORMTHEME: "generic", QT_QUICK_CONTROLS_STYLE: "Basic",
+          XDG_RUNTIME_DIR: directory, XDG_CONFIG_HOME: join(directory, "config"),
+          XDG_CACHE_HOME: join(directory, "cache"), HYPRLAND_INSTANCE_SIGNATURE: "learn-no-compositor",
+          WAYLAND_DISPLAY: "", DBUS_SESSION_BUS_ADDRESS: `unix:path=${directory}/no-bus` },
+      });
+      const output = result.stdout + result.stderr;
+      assert.equal(result.status, 0, output);
+      assert.match(output, /STARTUP_CANCELLED/);
+    }
+  } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
 test("capture accepts only explicit nonempty regions", () => {

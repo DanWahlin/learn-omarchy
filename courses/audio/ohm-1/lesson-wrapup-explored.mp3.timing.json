@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "adc24ff3d94942f842cc6f778d0e110422263cfbde170e90d5e98d0cfce773d8",
+  "text": "That's the end of this topic. You can revisit anything you skipped or want to practice, or choose another topic.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 510,
+      "endOffset": 10
+    },
+    {
+      "startMs": 710,
+      "endOffset": 14
+    },
+    {
+      "startMs": 830,
+      "endOffset": 17
+    },
+    {
+      "startMs": 910,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 37
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 54
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 58
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 66
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 69
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 74
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 77
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 87
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 90
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 97
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 105
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 112
+    }
+  ]
+}

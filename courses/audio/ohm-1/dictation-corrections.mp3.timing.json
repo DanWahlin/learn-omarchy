@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "audioHash": "390b3c73f5948a8a3532d20453a5b2aae556d7ef1de9d73ff3bb6229737209bd",
+  "text": "Names and technical words can trip up speech recognition. Voxtype's configuration file has replacement settings for recurring mistakes. No edits for this lesson. If you change them later, back up the file first and keep replacements specific.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 470,
+      "endOffset": 9
+    },
+    {
+      "startMs": 590,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 34
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 37
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 67
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 86
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 102
+    },
+    {
+      "startMs": 5710,
+      "endOffset": 111
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 115
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 125
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 135
+    },
+    {
+      "startMs": 7510,
+      "endOffset": 138
+    },
+    {
+      "startMs": 7790,
+      "endOffset": 144
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 148
+    },
+    {
+      "startMs": 8109,
+      "endOffset": 153
+    },
+    {
+      "startMs": 8350,
+      "endOffset": 161
+    },
+    {
+      "startMs": 8990,
+      "endOffset": 164
+    },
+    {
+      "startMs": 9190,
+      "endOffset": 168
+    },
+    {
+      "startMs": 9309,
+      "endOffset": 175
+    },
+    {
+      "startMs": 9590,
+      "endOffset": 180
+    },
+    {
+      "startMs": 9750,
+      "endOffset": 187
+    },
+    {
+      "startMs": 10389,
+      "endOffset": 192
+    },
+    {
+      "startMs": 10709,
+      "endOffset": 195
+    },
+    {
+      "startMs": 10830,
+      "endOffset": 199
+    },
+    {
+      "startMs": 10950,
+      "endOffset": 204
+    },
+    {
+      "startMs": 11270,
+      "endOffset": 210
+    },
+    {
+      "startMs": 11950,
+      "endOffset": 214
+    },
+    {
+      "startMs": 12149,
+      "endOffset": 219
+    },
+    {
+      "startMs": 12350,
+      "endOffset": 232
+    },
+    {
+      "startMs": 12910,
+      "endOffset": 242
+    }
+  ]
+}

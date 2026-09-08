@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "5c5f70e88cea99e900190318e1910eff2fd59695fba40080caa222afdcc24a4e",
+  "text": "Two little sequences, two emojis. That's Compose: tap the keys in order, instead of holding a chord.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 310,
+      "endOffset": 10
+    },
+    {
+      "startMs": 550,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 33
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 49
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 53
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 57
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 62
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5910,
+      "endOffset": 72
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 80
+    },
+    {
+      "startMs": 6870,
+      "endOffset": 83
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 91
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 93
+    },
+    {
+      "startMs": 7390,
+      "endOffset": 100
+    }
+  ]
+}

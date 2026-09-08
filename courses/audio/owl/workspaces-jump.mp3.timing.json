@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "audioHash": "72191118bbdb50c6d5bf02d02fe8b1734b21c6a1081424544bbc28d153c86b8d",
+  "text": "Press Super and 2 to visit workspace two.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 11
+    },
+    {
+      "startMs": 950,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 41
+    }
+  ]
+}

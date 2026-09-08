@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "audioHash": "e2fd56288f905a7b34537f5b3aa7490faa1b75adca000c0bd2c09291286e1291",
+  "text": "A web app gives a website its own launcher. Create a local demo entry, preview it, then remove it. This practice doesn't add anything to your Apps menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 1
+    },
+    {
+      "startMs": 150,
+      "endOffset": 5
+    },
+    {
+      "startMs": 430,
+      "endOffset": 9
+    },
+    {
+      "startMs": 790,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 70
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5830,
+      "endOffset": 82
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6470,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6910,
+      "endOffset": 98
+    },
+    {
+      "startMs": 7790,
+      "endOffset": 103
+    },
+    {
+      "startMs": 8149,
+      "endOffset": 112
+    },
+    {
+      "startMs": 8790,
+      "endOffset": 120
+    },
+    {
+      "startMs": 9110,
+      "endOffset": 124
+    },
+    {
+      "startMs": 9389,
+      "endOffset": 133
+    },
+    {
+      "startMs": 9910,
+      "endOffset": 136
+    },
+    {
+      "startMs": 9990,
+      "endOffset": 141
+    },
+    {
+      "startMs": 10190,
+      "endOffset": 146
+    },
+    {
+      "startMs": 10549,
+      "endOffset": 152
+    }
+  ]
+}

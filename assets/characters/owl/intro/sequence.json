@@ -33,6 +33,7 @@
     }
   ],
   "steps": [
+    { "type": "sound", "cue": "birds-welcome.opus" },
     {
       "type": "parallel", "branches": [
         [

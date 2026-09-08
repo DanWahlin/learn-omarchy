@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "audioHash": "32b36ef73bac65d87197a6a341bb90bf887164fed4175cc80aa6d5e7ddfc1e69",
+  "text": "Battery and power profiles, all at a glance.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 430,
+      "endOffset": 11
+    },
+    {
+      "startMs": 630,
+      "endOffset": 17
+    },
+    {
+      "startMs": 950,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 44
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "audioHash": "94c3012efb7f6b4c2a7467bb162536a13da5f9c029ac3c13e7eb840e723e8184",
+  "text": "The Audio panel shows volume and sound devices. You don't need to change any settings for this activity.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 9
+    },
+    {
+      "startMs": 630,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 51
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 76
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 85
+    },
+    {
+      "startMs": 5910,
+      "endOffset": 89
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 104
+    }
+  ]
+}

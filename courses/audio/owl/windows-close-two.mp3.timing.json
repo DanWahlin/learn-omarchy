@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "054b8441219cc537955ee2d5fc5acd21add483221913ef6b24c8967476c9adf0",
+  "text": "And once more. Press Super and W to close the last terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 8
+    },
+    {
+      "startMs": 590,
+      "endOffset": 14
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 20
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 45
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 50
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 60
+    }
+  ]
+}

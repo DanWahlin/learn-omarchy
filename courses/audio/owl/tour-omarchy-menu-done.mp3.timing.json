@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "audioHash": "a950d028d81fef1797a4a6d7aba6906626254436b0684568e79c64dce4ff9582",
+  "text": "That's the Omarchy menu in the center of your screen. It brings together apps, settings, and system tools. Super and Space opens it whenever you need it.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 390,
+      "endOffset": 10
+    },
+    {
+      "startMs": 590,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 88
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 92
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 99
+    },
+    {
+      "startMs": 6750,
+      "endOffset": 106
+    },
+    {
+      "startMs": 7910,
+      "endOffset": 112
+    },
+    {
+      "startMs": 8469,
+      "endOffset": 116
+    },
+    {
+      "startMs": 8670,
+      "endOffset": 122
+    },
+    {
+      "startMs": 9389,
+      "endOffset": 128
+    },
+    {
+      "startMs": 9830,
+      "endOffset": 131
+    },
+    {
+      "startMs": 10030,
+      "endOffset": 140
+    },
+    {
+      "startMs": 10430,
+      "endOffset": 144
+    },
+    {
+      "startMs": 10590,
+      "endOffset": 149
+    },
+    {
+      "startMs": 10870,
+      "endOffset": 153
+    }
+  ]
+}

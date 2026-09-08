@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "4679a2426e8b00d2221e0a3245c9c07ec1f5f7df692df754f3e0677e5daa0f57",
+  "text": "Press Super and 1 to return to the terminal's workspace.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 11
+    },
+    {
+      "startMs": 750,
+      "endOffset": 15
+    },
+    {
+      "startMs": 950,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 56
+    }
+  ]
+}

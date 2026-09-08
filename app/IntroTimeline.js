@@ -1,7 +1,7 @@
 // Trusted, shared application code: imported by QML and the Node adapter.
 var LIMITS = { layers: 24, actions: 256, depth: 4, duration: 30000, strings: 240 };
 var EASINGS = ["linear", "inQuad", "outQuad", "inOutSine", "outCubic", "outBack"];
-var BUILTIN_SOUNDS = ["rocket-land.opus", "rocket-liftoff.opus"];
+var BUILTIN_SOUNDS = ["rocket-land.opus", "rocket-liftoff.opus", "birds-welcome.opus"];
 var THEME_COLORS = ["accent", "instruction", "foreground", "background", "muted", "urgent"];
 var PROPS = ["x", "y", "offsetX", "offsetY", "opacity", "scale", "rotation", "visible",
              "pose", "facing", "flying", "text", "frame", "progress"];

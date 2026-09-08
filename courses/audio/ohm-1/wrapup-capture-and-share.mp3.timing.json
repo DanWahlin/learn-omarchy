@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "audioHash": "ef0946b29e948b70c689da680418203e04c93d8f8fad35426828347da3da046c",
+  "text": "That wraps up capture. You've practiced making a screenshot and a short recording. Remember to check for private information before sharing.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 270,
+      "endOffset": 10
+    },
+    {
+      "startMs": 550,
+      "endOffset": 13
+    },
+    {
+      "startMs": 670,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 48
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 65
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 71
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 82
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 91
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 94
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 100
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 104
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 112
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 124
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 131
+    },
+    {
+      "startMs": 6310,
+      "endOffset": 140
+    }
+  ]
+}

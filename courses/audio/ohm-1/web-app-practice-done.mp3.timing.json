@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "4315fcfd6ceb6c5567141954e234b4de557a35779caf85181298dfeef154f842",
+  "text": "A web app is a launcher for a site, not a separate account or a replacement for the browser's security.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 1
+    },
+    {
+      "startMs": 150,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 9
+    },
+    {
+      "startMs": 630,
+      "endOffset": 12
+    },
+    {
+      "startMs": 710,
+      "endOffset": 14
+    },
+    {
+      "startMs": 790,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 35
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 75
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 79
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 83
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 93
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 103
+    }
+  ]
+}

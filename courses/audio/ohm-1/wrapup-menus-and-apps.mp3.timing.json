@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "1565f1151ff0735c179d507364bd032e24e8a07f748ebec86a9aba7014dbe2cc",
+  "text": "That wraps up menus and apps. You have a starting point for finding commands, opening apps, and looking up shortcuts.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 270,
+      "endOffset": 10
+    },
+    {
+      "startMs": 590,
+      "endOffset": 13
+    },
+    {
+      "startMs": 750,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 55
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 67
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 85
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 91
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 95
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 103
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 106
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 117
+    }
+  ]
+}

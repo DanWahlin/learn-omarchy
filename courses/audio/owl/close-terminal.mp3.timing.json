@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "9354a49acc7362f38685aa36e822fb48abfcc8897173b4c1544e128340b327c2",
+  "text": "Now let's tidy up. Press Super and W to close that terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 9
+    },
+    {
+      "startMs": 550,
+      "endOffset": 14
+    },
+    {
+      "startMs": 950,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 24
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 50
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 60
+    }
+  ]
+}

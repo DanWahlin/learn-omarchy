@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "607f15f9a5395c8447f4529367d704f9027855311e40e0c433d924eabfc08af0",
+  "text": "You're back on the previous workspace. Shift reverses the direction of this shortcut.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 11
+    },
+    {
+      "startMs": 590,
+      "endOffset": 14
+    },
+    {
+      "startMs": 670,
+      "endOffset": 18
+    },
+    {
+      "startMs": 790,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 67
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 85
+    }
+  ]
+}

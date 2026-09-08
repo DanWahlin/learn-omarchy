@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "3f658245f5ddff55a310fa9c061c9a1c0660a6d3d1e5270190181f3015af0379",
+  "text": "You've explored local dictation and its controls. Always check recognized words before sending a message.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 15
+    },
+    {
+      "startMs": 870,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 73
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5830,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6630,
+      "endOffset": 96
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 105
+    }
+  ]
+}

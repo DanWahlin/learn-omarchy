@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "audioHash": "c63091a5e64cad0374847018c28af7604231e91ccca0fbbcae42916ab79e31a4",
+  "text": "Start with a terminal. Press Super and Return.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 310,
+      "endOffset": 10
+    },
+    {
+      "startMs": 470,
+      "endOffset": 12
+    },
+    {
+      "startMs": 510,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 46
+    }
+  ]
+}

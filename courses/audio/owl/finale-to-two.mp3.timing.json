@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "a13cc9fb41582c3ad5e2a5e7174107593b05a2ba8689b13fa092e87c4af0f79b",
+  "text": "Press Super and 2 to head over to the browser.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 510,
+      "endOffset": 11
+    },
+    {
+      "startMs": 950,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 46
+    }
+  ]
+}

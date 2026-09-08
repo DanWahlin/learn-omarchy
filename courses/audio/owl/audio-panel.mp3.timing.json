@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "6fa936c59fcfda865e1cb0650622a896bb65178675643bc187c084a7a6a46e7a",
+  "text": "Hold Super and Control, then press A to open the Audio panel.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 350,
+      "endOffset": 10
+    },
+    {
+      "startMs": 750,
+      "endOffset": 14
+    },
+    {
+      "startMs": 870,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 61
+    }
+  ]
+}

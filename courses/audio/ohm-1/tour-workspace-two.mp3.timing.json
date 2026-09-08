@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "747ca83b44ea324d498b20d20a3b375f921061701210ba30935552defc2859d3",
+  "text": "Hold Super and tap 2 on the top row. Then release both keys.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 270,
+      "endOffset": 10
+    },
+    {
+      "startMs": 750,
+      "endOffset": 14
+    },
+    {
+      "startMs": 910,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1430,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 60
+    }
+  ]
+}

@@ -12,6 +12,59 @@ export const MAX_AUDIO_BYTES = 64 * 1024 * 1024;
 const IPC_TIMEOUT_MS = 1500;
 const IPC_RETRY_MS = 40;
 const STOP_TIMEOUT_MS = 750;
+const MAX_CONTROL_BYTES = 1024;
+
+export function readControls(input, onCommand, diagnostic) {
+  let pending = Buffer.alloc(0);
+  let discarding = false;
+  const receive = (chunk) => {
+    const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    let start = 0;
+    while (start < bytes.length) {
+      const newline = bytes.indexOf(10, start);
+      const end = newline < 0 ? bytes.length : newline;
+      if (!discarding) {
+        if (pending.length + end - start > MAX_CONTROL_BYTES) {
+          diagnostic("Invalid playback control: line exceeds 1024 bytes.");
+          pending = Buffer.alloc(0);
+          discarding = true;
+        } else {
+          pending = Buffer.concat([pending, bytes.subarray(start, end)]);
+        }
+      }
+      if (newline < 0) break;
+      if (!discarding) {
+        try {
+          const message = JSON.parse(pending.toString("utf8"));
+          if (!message || Object.keys(message).length !== 1 ||
+              !["pause", "resume"].includes(message.command)) {
+            throw new Error("Unknown command.");
+          }
+          onCommand(message.command);
+        } catch {
+          diagnostic("Invalid playback control: expected only {\"command\":\"pause\"} or {\"command\":\"resume\"}.");
+        }
+      }
+      pending = Buffer.alloc(0);
+      discarding = false;
+      start = newline + 1;
+    }
+  };
+  const end = () => {
+    if (pending.length) diagnostic("Invalid playback control: incomplete JSONL line.");
+    pending = Buffer.alloc(0);
+  };
+  const error = () => diagnostic("Unable to read playback controls.");
+  input.on("data", receive);
+  input.on("end", end);
+  input.on("error", error);
+  return () => {
+    input.off("data", receive);
+    input.off("end", end);
+    input.off("error", error);
+    input.pause();
+  };
+}
 
 export function parseArguments(args) {
   const values = {};
@@ -114,17 +167,22 @@ export function mpvArguments({ audio, volume, speed }, socketPath) {
   return [...args, "--", audio];
 }
 
-function observePosition(socketPath, emit, diagnostic) {
+function observePosition(socketPath, emit, diagnostic, initiallyPaused) {
   let socket;
   let retry;
   let deadline;
   let stopped = false;
   let connected = false;
+  let paused = initiallyPaused;
+  let positionKnown = false;
+  let remaining = IPC_TIMEOUT_MS;
+  let deadlineStarted;
   let buffer = "";
   const stop = () => {
     stopped = true;
     clearTimeout(retry);
     clearTimeout(deadline);
+    positionKnown = true;
     socket?.destroy();
   };
   const fallback = (reason) => {
@@ -164,6 +222,7 @@ function observePosition(socketPath, emit, diagnostic) {
             typeof message.data === "number" && Number.isFinite(message.data) &&
             message.data >= 0 && Number.isFinite(message.data * 1000)) {
           clearTimeout(deadline);
+          positionKnown = true;
           emit({ type: "position", positionMs: message.data * 1000 });
         }
       }
@@ -174,30 +233,63 @@ function observePosition(socketPath, emit, diagnostic) {
     socket.on("close", () => {
       if (stopped) return;
       if (connected) fallback("ipc-disconnected");
-      else retry = setTimeout(attempt, IPC_RETRY_MS);
+      else if (!paused) retry = setTimeout(attempt, IPC_RETRY_MS);
     });
   };
-  deadline = setTimeout(() => fallback("ipc-unavailable"), IPC_TIMEOUT_MS);
-  attempt();
-  return stop;
+  const startDeadline = () => {
+    deadlineStarted = performance.now();
+    deadline = setTimeout(() => fallback("ipc-unavailable"), remaining);
+  };
+  const setPaused = (value) => {
+    if (stopped || value === paused) return;
+    paused = value;
+    if (paused) {
+      clearTimeout(retry);
+      if (!positionKnown) {
+        clearTimeout(deadline);
+        remaining = Math.max(0, remaining - (performance.now() - deadlineStarted));
+      }
+    } else {
+      if (!positionKnown) startDeadline();
+      if (!connected && (!socket || socket.destroyed)) attempt();
+    }
+  };
+  if (!paused) {
+    startDeadline();
+    attempt();
+  }
+  return { stop, setPaused };
 }
 
 export async function playTimedSpeech(options, {
   emit = (event) => process.stdout.write(`${JSON.stringify(event)}\n`),
   diagnostic = (message) => process.stderr.write(`${message}\n`),
+  input = process.stdin,
 } = {}) {
   let child;
   let directory;
   let socketPath;
-  let stopObserver;
+  let observer;
   let stopTimer;
   let interrupted;
   let playbackError = false;
+  let paused = false;
+  const control = (command) => {
+    if (interrupted) return;
+    const value = command === "pause";
+    if (value === paused) return;
+    paused = value;
+    observer?.setPaused(paused);
+    if (child && child.exitCode === null && child.signalCode === null) {
+      child.kill(paused ? "SIGSTOP" : "SIGCONT");
+    }
+  };
   const interrupt = (signal) => {
     if (interrupted) return;
     interrupted = signal;
-    stopObserver?.();
+    observer?.stop();
     if (child && child.exitCode === null && child.signalCode === null) {
+      if (paused) child.kill("SIGCONT");
       child.kill(signal);
       stopTimer = setTimeout(() => child.kill("SIGKILL"), STOP_TIMEOUT_MS);
     }
@@ -212,6 +304,7 @@ export async function playTimedSpeech(options, {
   process.on("SIGTERM", terminate);
   process.on("SIGINT", cancel);
   process.stdout.on("error", stdoutError);
+  const stopControls = readControls(input, control, diagnostic);
   try {
     const metadata = await loadTiming(options.audio);
     if (interrupted) return interrupted === "SIGINT" ? 130 : 143;
@@ -238,13 +331,16 @@ export async function playTimedSpeech(options, {
     if (interrupted) return interrupted === "SIGINT" ? 130 : 143;
     const result = await new Promise((resolve) => {
       child = spawn("mpv", mpvArguments(options, socketPath), { stdio: ["ignore", "ignore", "pipe"] });
+      child.once("spawn", () => {
+        if (paused && !interrupted) child.kill("SIGSTOP");
+      });
       child.stderr.on("data", (chunk) => diagnostic(chunk.toString("utf8").trimEnd()));
       child.on("error", (error) => {
         diagnostic(`Unable to start mpv: ${error.message}`);
         playbackError = true;
       });
       child.on("close", (code, signal) => {
-        stopObserver?.();
+        observer?.stop();
         clearTimeout(stopTimer);
         if (interrupted) resolve(interrupted === "SIGINT" ? 130 : 143);
         else if (playbackError) resolve(1);
@@ -256,11 +352,12 @@ export async function playTimedSpeech(options, {
           resolve(signal === "SIGINT" ? 130 : signal === "SIGTERM" ? 143 : 1);
         }
       });
-      if (socketPath) stopObserver = observePosition(socketPath, emit, diagnostic);
+      if (socketPath) observer = observePosition(socketPath, emit, diagnostic, paused);
     });
     return result;
   } finally {
-    stopObserver?.();
+    stopControls();
+    observer?.stop();
     clearTimeout(stopTimer);
     if (socketPath) await unlink(socketPath).catch((error) => {
       if (error.code !== "ENOENT") diagnostic(`Unable to remove playback socket: ${error.message}`);

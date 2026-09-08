@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "f2e47801b92fb468539c5d7a2bfe814e1dcdd52243c4cc4721d709f14915bc49",
+  "text": "Sometimes you want a window to float free. Press Super and T to toggle floating.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 9
+    },
+    {
+      "startMs": 550,
+      "endOffset": 13
+    },
+    {
+      "startMs": 670,
+      "endOffset": 18
+    },
+    {
+      "startMs": 830,
+      "endOffset": 20
+    },
+    {
+      "startMs": 870,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 36
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 48
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 80
+    }
+  ]
+}

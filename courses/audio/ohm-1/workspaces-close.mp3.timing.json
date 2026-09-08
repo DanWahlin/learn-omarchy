@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "7783a4ba78ac0b8040e9449e0c9ac2e9d057485a188e0d547fd707897d581a7d",
+  "text": "Let's leave the desktop tidy. Press Super and W to close our practice terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 270,
+      "endOffset": 11
+    },
+    {
+      "startMs": 470,
+      "endOffset": 15
+    },
+    {
+      "startMs": 590,
+      "endOffset": 23
+    },
+    {
+      "startMs": 950,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 35
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 69
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 79
+    }
+  ]
+}

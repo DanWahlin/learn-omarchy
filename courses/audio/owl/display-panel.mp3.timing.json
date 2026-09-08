@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "audioHash": "78129320563b2c71e4ef5d8b6dfb1fbe5b99792d98ecac944535157223becc93",
+  "text": "Hold Super and Control, then press D to open the Display panel. Just look for now: changes apply immediately, so leave the controls unchanged.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 390,
+      "endOffset": 10
+    },
+    {
+      "startMs": 830,
+      "endOffset": 14
+    },
+    {
+      "startMs": 950,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 63
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 68
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 73
+    },
+    {
+      "startMs": 5630,
+      "endOffset": 77
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 82
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 90
+    },
+    {
+      "startMs": 6910,
+      "endOffset": 96
+    },
+    {
+      "startMs": 7270,
+      "endOffset": 109
+    },
+    {
+      "startMs": 8189,
+      "endOffset": 112
+    },
+    {
+      "startMs": 8430,
+      "endOffset": 118
+    },
+    {
+      "startMs": 8709,
+      "endOffset": 122
+    },
+    {
+      "startMs": 8830,
+      "endOffset": 131
+    },
+    {
+      "startMs": 9469,
+      "endOffset": 142
+    }
+  ]
+}

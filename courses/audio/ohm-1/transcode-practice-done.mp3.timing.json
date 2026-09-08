@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "1b4e986e76e5a1e7173a3b5185f49dc62f676d2bc54639ca3d5029f79ad2b033",
+  "text": "You've created a separate output and kept the original. Check quality and size before you share it.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 14
+    },
+    {
+      "startMs": 670,
+      "endOffset": 16
+    },
+    {
+      "startMs": 750,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 85
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 89
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 95
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 99
+    }
+  ]
+}

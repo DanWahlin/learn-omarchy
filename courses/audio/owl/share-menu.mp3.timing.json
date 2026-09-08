@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "81ca2634146ebc2c42fce745a82d45a223a162d5be2c018a58db1b89af93da75",
+  "text": "Here's an optional tool for sharing. Press Super, Control, and S to open the Share menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 350,
+      "endOffset": 9
+    },
+    {
+      "startMs": 470,
+      "endOffset": 18
+    },
+    {
+      "startMs": 910,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 64
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 67
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 76
+    },
+    {
+      "startMs": 5870,
+      "endOffset": 82
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 88
+    }
+  ]
+}

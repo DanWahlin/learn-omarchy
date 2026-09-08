@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "c695b7e00608b4e7f04aa2dc24c050bd99d62d90720dbacbbb6ce0f54dce762e",
+  "text": "One more. Hold Super and Control, then press O to open the Toggle menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 9
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 14
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 20
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 24
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 33
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 38
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 44
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 46
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 49
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 54
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 58
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5710,
+      "endOffset": 71
+    }
+  ]
+}

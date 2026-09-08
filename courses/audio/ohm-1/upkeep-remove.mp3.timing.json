@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "audioHash": "1d91ead2e00c394b3d6ec39b66e93ba88e288be2b08022b2d143e20c011285c5",
+  "text": "The Remove menu uninstalls software you no longer need. Before confirming, check the package name and any other software it would remove. There's nothing to uninstall in this lesson.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 10
+    },
+    {
+      "startMs": 550,
+      "endOffset": 15
+    },
+    {
+      "startMs": 790,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 74
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 80
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 84
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 92
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 97
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 101
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 105
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 111
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 120
+    },
+    {
+      "startMs": 6910,
+      "endOffset": 123
+    },
+    {
+      "startMs": 6990,
+      "endOffset": 129
+    },
+    {
+      "startMs": 7190,
+      "endOffset": 137
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 145
+    },
+    {
+      "startMs": 8270,
+      "endOffset": 153
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 156
+    },
+    {
+      "startMs": 8709,
+      "endOffset": 166
+    },
+    {
+      "startMs": 9190,
+      "endOffset": 169
+    },
+    {
+      "startMs": 9270,
+      "endOffset": 174
+    },
+    {
+      "startMs": 9469,
+      "endOffset": 182
+    }
+  ]
+}

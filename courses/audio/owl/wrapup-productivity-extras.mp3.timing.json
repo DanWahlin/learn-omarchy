@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "4bd6cf5c68af46b27e8e1d3bbf9b2714545a802d617fa24e146a6af510f15038",
+  "text": "That wraps up productivity extras. You've explored emojis, reminders, and dictation. Choose the tools that help with your own work.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 310,
+      "endOffset": 10
+    },
+    {
+      "startMs": 630,
+      "endOffset": 13
+    },
+    {
+      "startMs": 750,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 69
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 73
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 84
+    },
+    {
+      "startMs": 6750,
+      "endOffset": 91
+    },
+    {
+      "startMs": 7190,
+      "endOffset": 95
+    },
+    {
+      "startMs": 7350,
+      "endOffset": 101
+    },
+    {
+      "startMs": 7750,
+      "endOffset": 106
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 111
+    },
+    {
+      "startMs": 8189,
+      "endOffset": 116
+    },
+    {
+      "startMs": 8389,
+      "endOffset": 121
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 125
+    },
+    {
+      "startMs": 8790,
+      "endOffset": 131
+    }
+  ]
+}

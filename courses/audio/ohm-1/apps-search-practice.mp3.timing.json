@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "audioHash": "db880d844002386907e043d0fed03886f143015cd59db47e893db837562ef721",
+  "text": "Choose Start search. Open the Apps menu with Super, Alt, and Space. Search for Terminal or Ghostty, then press Enter. Close the new terminal with Super and W to finish.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 510,
+      "endOffset": 12
+    },
+    {
+      "startMs": 910,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 67
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 74
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 78
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 87
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 90
+    },
+    {
+      "startMs": 7230,
+      "endOffset": 99
+    },
+    {
+      "startMs": 8029,
+      "endOffset": 104
+    },
+    {
+      "startMs": 8270,
+      "endOffset": 110
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 117
+    },
+    {
+      "startMs": 9670,
+      "endOffset": 123
+    },
+    {
+      "startMs": 10069,
+      "endOffset": 127
+    },
+    {
+      "startMs": 10190,
+      "endOffset": 131
+    },
+    {
+      "startMs": 10389,
+      "endOffset": 140
+    },
+    {
+      "startMs": 10870,
+      "endOffset": 145
+    },
+    {
+      "startMs": 11030,
+      "endOffset": 151
+    },
+    {
+      "startMs": 11549,
+      "endOffset": 155
+    },
+    {
+      "startMs": 11830,
+      "endOffset": 157
+    },
+    {
+      "startMs": 12069,
+      "endOffset": 160
+    },
+    {
+      "startMs": 12149,
+      "endOffset": 168
+    }
+  ]
+}

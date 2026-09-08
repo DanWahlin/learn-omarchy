@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "454ea7ed08487957c2cb823736436d432c19558e01472c36f63ebf3e2abbec19",
+  "text": "For a quick calculation, press Super, Control, and Q. The calculator is built right in.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 5
+    },
+    {
+      "startMs": 310,
+      "endOffset": 11
+    },
+    {
+      "startMs": 590,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 53
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 57
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 68
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 71
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 77
+    },
+    {
+      "startMs": 6470,
+      "endOffset": 83
+    },
+    {
+      "startMs": 6830,
+      "endOffset": 87
+    }
+  ]
+}

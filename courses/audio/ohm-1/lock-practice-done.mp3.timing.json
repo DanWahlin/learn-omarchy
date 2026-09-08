@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "6350c96a426c151bec333bc0d55edcea506203a66cc7ecdc41c497ea806807a2",
+  "text": "You've locked the computer and returned after unlocking it. Use that shortcut when you step away.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 13
+    },
+    {
+      "startMs": 550,
+      "endOffset": 17
+    },
+    {
+      "startMs": 670,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 39
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 45
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 55
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 59
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 68
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 77
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 82
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 86
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 91
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 97
+    }
+  ]
+}

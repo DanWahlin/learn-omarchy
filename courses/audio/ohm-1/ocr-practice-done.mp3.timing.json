@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "c735d5af78326ae2a3671718eecdc87da87f92a9af0a249c106d70f042488ae8",
+  "text": "You turned pixels into editable text. Give extracted text a quick proofread before you use it.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 10
+    },
+    {
+      "startMs": 470,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 82
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 94
+    }
+  ]
+}

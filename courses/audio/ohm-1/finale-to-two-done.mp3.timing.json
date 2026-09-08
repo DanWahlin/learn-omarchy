@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "audioHash": "95d3bf89f72afc6b2e159f297404ad0378d17004213263b93bb58b8a6937996b",
+  "text": "There it is.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 310,
+      "endOffset": 8
+    },
+    {
+      "startMs": 390,
+      "endOffset": 12
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "audioHash": "f72f9230064756e27c904f0fcfbb9ff8d93f0701923ec7bb30ebc0d78308f1c0",
+  "text": "Let's clean up. Press Super and W to close this window.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 270,
+      "endOffset": 11
+    },
+    {
+      "startMs": 470,
+      "endOffset": 15
+    },
+    {
+      "startMs": 550,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 47
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 55
+    }
+  ]
+}

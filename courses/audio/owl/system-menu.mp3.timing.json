@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "5359e48e0782fa77596462414d64d31056b0a6789ced7d78f7329063ca72c00c",
+  "text": "Hold Super and press Escape to open the System menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 310,
+      "endOffset": 10
+    },
+    {
+      "startMs": 950,
+      "endOffset": 14
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 52
+    }
+  ]
+}

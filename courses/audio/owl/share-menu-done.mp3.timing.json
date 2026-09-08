@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "fc71e1594784502ea942afd7c77cf7a0386133507c20b9d2cd6ba51fa54e0886",
+  "text": "The Share menu is open. Sending anything is optional and always your decision.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 9
+    },
+    {
+      "startMs": 510,
+      "endOffset": 14
+    },
+    {
+      "startMs": 950,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 23
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 78
+    }
+  ]
+}

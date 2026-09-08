@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "2685cdb8ff7b81caf2c15b05ef8e054b68bce71aa52b9aabf638a35ee5f355bd",
+  "text": "There's your calendar, the same view you get by clicking the clock.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 790,
+      "endOffset": 12
+    },
+    {
+      "startMs": 1430,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 47
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 67
+    }
+  ]
+}

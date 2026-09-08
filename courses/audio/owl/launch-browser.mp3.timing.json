@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "8c6c3631681d2d2a85f7d4653d3563bb732a94b81e59778d27147846bbc22f64",
+  "text": "Let's get online. Hold Super and Shift, then press Return to open your browser.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 9
+    },
+    {
+      "startMs": 590,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 22
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 32
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 44
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 50
+    },
+    {
+      "startMs": 4430,
+      "endOffset": 57
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 60
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 70
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 79
+    }
+  ]
+}

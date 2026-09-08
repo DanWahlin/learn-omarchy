@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "1e816f3336dbe826c754ff86c88c00881b688caa64b02b1b4f11a8f3ae690c41",
+  "text": "There they all are. Search, Enter, done. No more hunting through menus.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 310,
+      "endOffset": 10
+    },
+    {
+      "startMs": 510,
+      "endOffset": 14
+    },
+    {
+      "startMs": 750,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 48
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 64
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 71
+    }
+  ]
+}

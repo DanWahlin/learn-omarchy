@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "audioHash": "130880727ff51a91f38a2c866804751293b90b1498f78151a5fdda6ceb6ce541",
+  "text": "If local dictation is installed, try speaking into a text field. Super, Control, and X starts and stops dictation, so you don't need an F9 key. You control the microphone.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 2
+    },
+    {
+      "startMs": 230,
+      "endOffset": 8
+    },
+    {
+      "startMs": 630,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 64
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 71
+    },
+    {
+      "startMs": 5470,
+      "endOffset": 80
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 84
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 86
+    },
+    {
+      "startMs": 7110,
+      "endOffset": 93
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 97
+    },
+    {
+      "startMs": 7830,
+      "endOffset": 103
+    },
+    {
+      "startMs": 8229,
+      "endOffset": 114
+    },
+    {
+      "startMs": 9149,
+      "endOffset": 117
+    },
+    {
+      "startMs": 9389,
+      "endOffset": 121
+    },
+    {
+      "startMs": 9549,
+      "endOffset": 127
+    },
+    {
+      "startMs": 9790,
+      "endOffset": 132
+    },
+    {
+      "startMs": 10110,
+      "endOffset": 135
+    },
+    {
+      "startMs": 10309,
+      "endOffset": 138
+    },
+    {
+      "startMs": 10950,
+      "endOffset": 143
+    },
+    {
+      "startMs": 11830,
+      "endOffset": 147
+    },
+    {
+      "startMs": 12270,
+      "endOffset": 155
+    },
+    {
+      "startMs": 12790,
+      "endOffset": 159
+    },
+    {
+      "startMs": 12910,
+      "endOffset": 171
+    }
+  ]
+}

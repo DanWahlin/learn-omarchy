@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "1622e0af8cd82713b28adb1dd75708d7b493847dcda96e467bf235c55df83c25",
+  "text": "Your second terminal has focus. Directional shortcuts save you from cycling through every window.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 11
+    },
+    {
+      "startMs": 550,
+      "endOffset": 20
+    },
+    {
+      "startMs": 950,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 67
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 83
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 89
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 97
+    }
+  ]
+}

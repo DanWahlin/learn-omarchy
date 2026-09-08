@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "audioHash": "7fc794ddcd792b4939055ab6a603ffab88981d37329f63a52b5c417c6794768d",
+  "text": "The file manager is closed. You can keep the browser open or close it when you're finished with it.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 8
+    },
+    {
+      "startMs": 390,
+      "endOffset": 16
+    },
+    {
+      "startMs": 750,
+      "endOffset": 19
+    },
+    {
+      "startMs": 870,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 52
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 66
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 69
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 74
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 90
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 95
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 99
+    }
+  ]
+}

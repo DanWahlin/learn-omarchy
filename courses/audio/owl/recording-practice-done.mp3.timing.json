@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "audioHash": "c4d6a7e949c2d7e92ac2ab06b0989c52a95b4de908f73551a02414d6ab7e6f8e",
+  "text": "You started, stopped, and replayed a real recording. Knowing how to stop is just as important as knowing how to start.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 990,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 52
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 60
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 64
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 67
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 72
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 75
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 80
+    },
+    {
+      "startMs": 6630,
+      "endOffset": 83
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 93
+    },
+    {
+      "startMs": 7510,
+      "endOffset": 96
+    },
+    {
+      "startMs": 7710,
+      "endOffset": 104
+    },
+    {
+      "startMs": 8069,
+      "endOffset": 108
+    },
+    {
+      "startMs": 8229,
+      "endOffset": 111
+    },
+    {
+      "startMs": 8350,
+      "endOffset": 118
+    }
+  ]
+}

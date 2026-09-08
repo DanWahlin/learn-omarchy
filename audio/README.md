@@ -153,34 +153,47 @@ Welcome uses its existing menu handoff instead.
 Generate only these wrap-up recordings, without replacing activity narration:
 
 ```bash
-npm run audio:generate -- --backend azure --wrapups-only
+npm run audio:generate -- --backend azure --wrapups-only --word-timings
 ```
 
 **Generation contacts the selected speech service; Azure may incur charges.**
 
-### Welcome word timing pilot
+### Synchronized word timings
 
 The current Andrew and Ada Dragon HD voices both returned usable word boundaries
-for the welcome pilot. Generate the welcome audio and timings in the same SDK
-synthesis run:
+in the welcome pilot. The same capture now covers lesson instructions, completion
+messages, and wrap-ups. Generate audio and timestamps in the same SDK synthesis
+run; don't derive alignment from a separate regeneration of the text.
 
 ```bash
-npm run audio:generate -- --backend azure --welcome --steps tour-welcome --part completion --word-timings
+npm run audio:generate -- --backend azure --welcome --word-timings --missing
+npm run audio:generate -- --backend azure --wrapups-only --word-timings --missing
 ```
 
-This selects the greeting, toolbar overview, and lesson-menu invitation without
-regenerating activity clips. Each timing sidecar is named `<clip>.mp3.timing.json`
+Run those commands sequentially because they update the same production
+manifest. `--missing` preserves current recordings with matching word timings.
+To update just the welcome, add `--steps tour-welcome --part completion` to the
+first command. Each timing sidecar is named `<clip>.mp3.timing.json`
 and contains the final MP3's SHA-256, original source text, and word timestamps.
 The runtime rejects stale or mismatched metadata rather than estimating speech
 timing. Audio without usable boundaries still plays with its full text visible.
 Generating a clip without timing removes its old sidecar.
 
 The app follows mpv's actual media position, not elapsed wall-clock time, and
-keeps the caption's full layout while revealing words. Muted welcome captions
+keeps the caption's full layout while revealing words. Muted captions
 reveal at the configured reading pace instead. Reduced motion or turning off
 **Type text** shows the full caption immediately. This feature needs no Azure
 connection or Speech SDK on the learner's machine; the timestamps are bundled
 with the recordings.
+
+`npm run audio:check` validates any present timing sidecar against its audio,
+source text, and recording duration, and reports clips that fall back to full
+text. For a release that requires timings on every narrated clip:
+
+```bash
+npm run audio:check -- --require-word-timings
+```
+
 Unlike local normalization, `--missing` means *missing or stale*, not just
 “a filename does not exist.” Inherited files with unknown provenance are stale,
 so the first generation with `--missing` will regenerate selected inherited

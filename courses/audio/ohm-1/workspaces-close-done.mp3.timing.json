@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "8fdebaa1d2acde185b86e3cc20f12830149577ffe778c38968c2e3cef624e997",
+  "text": "The practice terminal is closed. You've moved between workspaces, moved a window, and used the scratchpad.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 510,
+      "endOffset": 21
+    },
+    {
+      "startMs": 870,
+      "endOffset": 24
+    },
+    {
+      "startMs": 990,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 39
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 53
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 65
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 71
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 85
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 94
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 106
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "84fa165e4d5096627bb58c96a0ed6ff5a480a0f6a1fd7fc32af29999c5e384b3",
+  "text": "Need an emoji? Hold Super and Control, then press E to open the emoji picker.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 350,
+      "endOffset": 7
+    },
+    {
+      "startMs": 470,
+      "endOffset": 14
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 38
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 51
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 63
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 69
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 77
+    }
+  ]
+}

@@ -36,6 +36,21 @@ test("every taught topic has a wrap-up and malformed narration metadata is rejec
   }
 });
 
+test("owned-window presentation and scratchpad visibility metadata reject unsafe combinations", async () => {
+  const original = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
+  for (const mutate of [
+    (step: any) => { step.windowSize = { width: -1, height: 600 }; },
+    (step: any) => { step.windowSize = { width: 1200, height: 640 }; step.completion = { type: "action-success" }; },
+    (step: any) => { step.completion = { type: "hyprland-event", events: ["activespecial"], target: "tutorial-window", windowState: { specialVisible: true } }; },
+    (step: any) => { step.completion = { type: "hyprland-event", events: ["activespecial"], target: "tutorial-window", windowState: { specialWorkspace: "scratchpad", specialVisible: "yes" } }; },
+  ]) {
+    const course = structuredClone(original);
+    const step = course.lessons.flatMap((lesson: any) => lesson.steps).find((step: any) => step.id === "launch-terminal");
+    mutate(step);
+    assert.ok(validateCourse(course).length > 0);
+  }
+});
+
 test("secondary notes are optional but must be short single-paragraph text", async () => {
   const original = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
   for (const note of ["", "x".repeat(141), "First line\nSecond line", 123]) {

@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "audioHash": "ba413bd922a2bf9604060dcbfec9ce90a4042acd16885a504dae21ce9ab8fef2",
+  "text": "That wraps up setup and system controls. You know where to look when you need them, without changing settings just for practice.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 310,
+      "endOffset": 10
+    },
+    {
+      "startMs": 630,
+      "endOffset": 13
+    },
+    {
+      "startMs": 830,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 83
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 91
+    },
+    {
+      "startMs": 5630,
+      "endOffset": 100
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 109
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 114
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 118
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 128
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "34ac320392bd911c837277366e52de7c1f16da72c5514963ed8e1414c78f2a7e",
+  "text": "Hold Super and Control, then press W to open the Network panel.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 390,
+      "endOffset": 10
+    },
+    {
+      "startMs": 870,
+      "endOffset": 14
+    },
+    {
+      "startMs": 990,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 36
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 63
+    }
+  ]
+}

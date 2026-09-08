@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "d8a9c06ea40354b0ff1f26bf95bb8051fe907fe5f7e54125e4b0dd20581b7b97",
+  "text": "Need a reminder? Hold Super and Control, then press R to set one.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 310,
+      "endOffset": 6
+    },
+    {
+      "startMs": 350,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 21
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 53
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 65
+    }
+  ]
+}

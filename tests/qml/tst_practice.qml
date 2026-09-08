@@ -30,6 +30,7 @@ Item {
       practice.mode = "clipboard"
       practice.resetExercise()
       practice.textScale = 1
+      practice.showFooter = true
       practice.screenshot = ""
       practice.busy = false
       practice.error = ""
@@ -49,6 +50,75 @@ Item {
       verify(!practice.verified)
       practice.observeCopy(false, practice.secondSample)
       verify(!practice.copiedSecond)
+    }
+    function test_disabledFinishIsVisiblyInactive() {
+      var finish = findChild(practice, "finishExercise")
+      verify(!finish.enabled)
+      compare(finish.background.color, practice.backgroundColor)
+      verify(finish.contentItem.color !== practice.backgroundColor, "Disabled text stays readable")
+      practice.verified = true
+      verify(finish.enabled)
+      compare(finish.background.color, practice.accent)
+      practice.busy = true
+      verify(!finish.enabled)
+      compare(finish.background.color, practice.backgroundColor)
+    }
+    function test_compactWorkbenchKeepsFooterAndFocusedFieldsVisible() {
+      root.width = 640
+      root.height = 320
+      practice.mode = "compose"
+      practice.textScale = 1.3
+      practice.focusPractice()
+      var smile = findChild(practice, "composeSmile")
+      tryCompare(smile, "activeFocus", true)
+      keyClick(Qt.Key_Tab)
+      var heart = findChild(practice, "composeHeart")
+      tryCompare(heart, "activeFocus", true)
+      wait(30)
+      var scroll = findChild(practice, "practiceScroll")
+      var point = heart.mapToItem(scroll, 0, 0)
+      verify(point.y >= 0 && point.y + heart.height <= scroll.height,
+        "Focused field y=" + point.y + ", height=" + heart.height + ", viewport=" + scroll.height)
+      var finish = findChild(practice, "finishExercise")
+      var footer = finish.mapToItem(practice, 0, 0)
+      verify(footer.y + finish.height <= practice.height)
+      practice.showFooter = false
+      verify(!finish.visible)
+      practice.mode = "capture"
+      practice.focusPractice()
+      tryCompare(findChild(practice, "selectRegion"), "activeFocus", true)
+    }
+    function test_tabFromScrollReturnsToTheNextEnabledExerciseControl() {
+      practice.mode = "screen-recording"
+      practice.stage = 2
+      practice.recording = true
+      var scroll = findChild(practice, "practiceScroll")
+      scroll.forceActiveFocus()
+      keyClick(Qt.Key_Tab)
+      tryCompare(findChild(practice, "stopRecording"), "activeFocus", true)
+    }
+    function test_nativeSampleStaysFixedWhileControlsScroll() {
+      root.width = 640
+      root.height = 320
+      practice.textScale = 1.3
+      for (var mode of ["screen-recording", "ocr"]) {
+        practice.mode = mode
+        wait(30)
+        var sample = findChild(practice, "nativePracticeSample")
+        var before = sample.mapToItem(practice, 0, 0)
+        var scroll = findChild(practice, "practiceScroll")
+        scroll.contentItem.contentY = Math.max(0, scroll.contentItem.contentHeight - scroll.height)
+        if (mode === "screen-recording") {
+          practice.region = "100,100 300x80"
+          practice.stage = 1
+          findChild(practice, "startRecording").forceActiveFocus()
+        }
+        wait(30)
+        var after = sample.mapToItem(practice, 0, 0)
+        compare(after.x, before.x)
+        compare(after.y, before.y, "Reviewing or starting must not move the selected sample")
+        verify(sample.visible && sample.height > 0 && scroll.height > 0)
+      }
     }
     function test_copyOrderAndOlderPasteAreRequired() {
       practice.observeCopy(true, "partial selection")
@@ -168,7 +238,7 @@ Item {
     }
     function test_allModesStartIncomplete(data) {
       root.width = data.width
-      root.height = 480
+      root.height = 320
       practice.textScale = data.scale
       practice.mode = data.mode
       wait(30)

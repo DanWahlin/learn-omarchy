@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "audioHash": "1d60d319c46f86aac9507b289195cc837548a2bb7978aa1812eee79be258d3ab",
+  "text": "The reminder prompt is open. Scheduling is optional. To leave beforehand, Escape clears typed text; press it again to close, or once if empty.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 630,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 61
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 73
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 80
+    },
+    {
+      "startMs": 5830,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6310,
+      "endOffset": 93
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 99
+    },
+    {
+      "startMs": 7550,
+      "endOffset": 105
+    },
+    {
+      "startMs": 7910,
+      "endOffset": 108
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 114
+    },
+    {
+      "startMs": 8350,
+      "endOffset": 117
+    },
+    {
+      "startMs": 8469,
+      "endOffset": 124
+    },
+    {
+      "startMs": 9190,
+      "endOffset": 127
+    },
+    {
+      "startMs": 9350,
+      "endOffset": 132
+    },
+    {
+      "startMs": 9830,
+      "endOffset": 135
+    },
+    {
+      "startMs": 9950,
+      "endOffset": 142
+    }
+  ]
+}

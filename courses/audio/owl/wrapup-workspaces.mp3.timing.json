@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "8fc273bd696bbe56ac7cccbc64529f05d786756bd66e0e73a9c7feaec9343955",
+  "text": "That wraps up workspaces. You can keep different tasks on separate desktops and switch between them without closing your windows.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 350,
+      "endOffset": 10
+    },
+    {
+      "startMs": 670,
+      "endOffset": 13
+    },
+    {
+      "startMs": 870,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 66
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 75
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 99
+    },
+    {
+      "startMs": 6830,
+      "endOffset": 107
+    },
+    {
+      "startMs": 7270,
+      "endOffset": 115
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 120
+    },
+    {
+      "startMs": 7830,
+      "endOffset": 129
+    }
+  ]
+}

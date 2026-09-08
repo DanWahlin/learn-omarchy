@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "ccfb3df98eb2fc3a916b16141fc4abcb000661cf3dd303af24b876cacf9348ee",
+  "text": "There's your second practice terminal. Omarchy fits it around any windows you already had open.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 590,
+      "endOffset": 12
+    },
+    {
+      "startMs": 790,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 65
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 85
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 89
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 95
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "audioHash": "6aa4c44682b4216993c504c44dde662bd748cfbb28b5c97318eba45febe1b992",
+  "text": "Reveal the scratchpad again with Super and S. We'll move the practice terminal only after it has focus.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 470,
+      "endOffset": 10
+    },
+    {
+      "startMs": 590,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 83
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 89
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 92
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 96
+    },
+    {
+      "startMs": 6790,
+      "endOffset": 103
+    }
+  ]
+}

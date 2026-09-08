@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "audioHash": "d35d31b0c4f3a73fa35d0f9fde9cbfdb35212f9feab4d8927d15d5236c29444b",
+  "text": "Hold Super and Control, then press H to open the Hardware menu. Opening it is safe, but selecting an action can change device behavior immediately. Just look for this lesson; don't select an action.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 550,
+      "endOffset": 10
+    },
+    {
+      "startMs": 950,
+      "endOffset": 14
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 23
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 36
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 63
+    },
+    {
+      "startMs": 5590,
+      "endOffset": 71
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 74
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 77
+    },
+    {
+      "startMs": 6350,
+      "endOffset": 83
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 87
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 97
+    },
+    {
+      "startMs": 7830,
+      "endOffset": 100
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 107
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 111
+    },
+    {
+      "startMs": 8950,
+      "endOffset": 118
+    },
+    {
+      "startMs": 9350,
+      "endOffset": 125
+    },
+    {
+      "startMs": 9790,
+      "endOffset": 134
+    },
+    {
+      "startMs": 10350,
+      "endOffset": 147
+    },
+    {
+      "startMs": 11709,
+      "endOffset": 152
+    },
+    {
+      "startMs": 12110,
+      "endOffset": 157
+    },
+    {
+      "startMs": 12350,
+      "endOffset": 161
+    },
+    {
+      "startMs": 12469,
+      "endOffset": 166
+    },
+    {
+      "startMs": 12709,
+      "endOffset": 174
+    },
+    {
+      "startMs": 13469,
+      "endOffset": 180
+    },
+    {
+      "startMs": 13870,
+      "endOffset": 187
+    },
+    {
+      "startMs": 14270,
+      "endOffset": 190
+    },
+    {
+      "startMs": 14389,
+      "endOffset": 198
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "97aa447381318cd74bdcd56d088e7131d859f5541f4bad18688535567fb07e02",
+  "text": "The first practice terminal is closed. The remaining windows can use the space it released.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 9
+    },
+    {
+      "startMs": 390,
+      "endOffset": 18
+    },
+    {
+      "startMs": 750,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 38
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 52
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 64
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 68
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 72
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 78
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 81
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 91
+    }
+  ]
+}

@@ -9,9 +9,10 @@ Rectangle {
   id: root
   color: backgroundColor
   implicitWidth: 760
-  implicitHeight: 620
+  implicitHeight: 320
   property string mode: "clipboard"
   property real textScale: 1
+  property bool showFooter: true
   property color backgroundColor: ThemeColors.defaults.background
   property color foreground: ThemeColors.defaults.foreground
   property color accent: ThemeColors.defaults.accent
@@ -78,6 +79,25 @@ Rectangle {
   signal lockRequested()
   signal finished()
   signal cancelled()
+
+  function stopPlayback() {
+    player.stop()
+  }
+
+  function focusPractice() {
+    if (mode === "compose") smile.forceActiveFocus()
+    else if (mode === "clipboard") first.forceActiveFocus()
+    else if (exerciseInput.visible && exerciseInput.enabled) exerciseInput.forceActiveFocus()
+    else {
+      for (var child of bodyColumn.children) {
+        if (child.visible && child.enabled && "clicked" in child) {
+          child.forceActiveFocus()
+          return
+        }
+      }
+      if (showFooter) cancelButton.forceActiveFocus()
+    }
+  }
 
   function resetExercise() {
     if (!player) return
@@ -224,6 +244,18 @@ Rectangle {
     flickable.contentY = Math.max(0, Math.min(Math.max(0, flickable.contentHeight - flickable.height), nextY))
   }
 
+  function scheduleReveal(control) {
+    revealTimer.control = control
+    revealTimer.restart()
+  }
+
+  Timer {
+    id: revealTimer
+    property var control: null
+    interval: 16
+    onTriggered: if (control && control.activeFocus) root.revealControl(control)
+  }
+
   function captureCardGeometry() {
     var position = captureCard.mapToItem(root, 0, 0)
     return { x: position.x, y: position.y, width: captureCard.width, height: captureCard.height }
@@ -231,6 +263,7 @@ Rectangle {
 
   Shortcut {
     sequence: "Escape"
+    enabled: root.enabled && root.visible
     onActivated: root.cancelled()
   }
 
@@ -238,7 +271,7 @@ Rectangle {
     id: control
     PracticePalette { target: control }
     property bool primary: false
-    onActiveFocusChanged: if (activeFocus) Qt.callLater(function() { root.revealControl(control) })
+    onActiveFocusChanged: if (activeFocus) root.scheduleReveal(control)
     font.pixelSize: 15 * root.textScale
     leftPadding: 16
     rightPadding: 16
@@ -248,15 +281,15 @@ Rectangle {
     contentItem: Text {
       text: control.text
       font: control.font
-      color: control.primary ? controlPalette.highlightedText
-        : control.enabled ? controlPalette.buttonText : controlPalette.disabled.buttonText
+      color: !control.enabled ? controlPalette.disabled.buttonText
+        : control.primary ? controlPalette.highlightedText : controlPalette.buttonText
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       wrapMode: Text.WordWrap
     }
     background: Rectangle {
       radius: 8
-      color: control.primary ? root.accent : control.enabled ? controlPalette.button : root.backgroundColor
+      color: !control.enabled ? root.backgroundColor : control.primary ? root.accent : controlPalette.button
       border.width: control.activeFocus || control.hovered ? 2 : 1
       border.color: control.activeFocus ? root.foreground : control.enabled ? root.accent : controlPalette.secondaryText
     }
@@ -265,7 +298,7 @@ Rectangle {
   component NoteArea: Controls.TextArea {
     id: control
     PracticePalette { target: control }
-    onActiveFocusChanged: if (activeFocus) Qt.callLater(function() { root.revealControl(control) })
+    onActiveFocusChanged: if (activeFocus) root.scheduleReveal(control)
     font.pixelSize: 16 * root.textScale
     padding: 12
     color: enabled ? controlPalette.text : controlPalette.disabled.text
@@ -308,22 +341,58 @@ Rectangle {
 
   ColumnLayout {
     anchors.centerIn: parent
-    width: Math.max(0, Math.min(parent.width - 48, 900 * root.textScale))
-    height: Math.max(0, Math.min(parent.height - 48, 760 * root.textScale))
-    spacing: 14
+    width: Math.max(0, Math.min(parent.width - 32, 900 * root.textScale))
+    height: Math.max(0, parent.height - 24)
+    spacing: 10
     Text {
       Layout.fillWidth: true
       text: root.extendedMode ? root.exercises[root.mode][0] : root.mode === "clipboard" ? "Copy, retrieve, paste"
         : root.mode === "capture" ? "Capture a practice card"
         : root.mode === "screen-lock" ? "Lock safely, then return"
-        : "Find and launch your terminal"
+        : "Unsupported practice activity"
       color: root.foreground
-      font.pixelSize: 25 * root.textScale
+      font.pixelSize: 22 * root.textScale
       font.bold: true
       wrapMode: Text.WordWrap
     }
+    Rectangle {
+      id: nativePracticeSample
+      objectName: "nativePracticeSample"
+      visible: ["screen-recording", "ocr"].indexOf(root.mode) !== -1
+      Layout.fillWidth: true
+      implicitHeight: Math.min(130, root.height / 4)
+      color: "white"
+      Text {
+        anchors.centerIn: parent
+        text: "OMARCHY SAFE SAMPLE"
+        color: "black"
+        font.pixelSize: 22
+      }
+      Rectangle {
+        visible: root.mode === "screen-recording"
+        y: parent.height - height - 6
+        width: 20
+        height: 20
+        color: root.accent
+        SequentialAnimation on x {
+          running: root.mode === "screen-recording"
+          loops: Animation.Infinite
+          NumberAnimation { from: 0; to: 240; duration: 1200 }
+          NumberAnimation { from: 240; to: 0; duration: 1200 }
+        }
+      }
+    }
     Controls.ScrollView {
       id: scrollArea
+      objectName: "practiceScroll"
+      clip: true
+      Keys.onPressed: function(event) {
+        if (event.key === Qt.Key_Tab && event.modifiers === Qt.NoModifier &&
+            scrollArea.Window.window && scrollArea.Window.window.activeFocusItem === scrollArea) {
+          root.focusPractice()
+          event.accepted = true
+        }
+      }
       PracticePalette { target: scrollArea }
       Controls.ScrollBar.vertical: Controls.ScrollBar {
         id: verticalScrollBar
@@ -350,7 +419,7 @@ Rectangle {
         ? "Select only the practice card below. Inspect the saved image, copy its file path, and add a label to the preview. The label appears here only; it doesn't change the saved image. Nothing is uploaded. Escape cancels the selection."
         : root.mode === "screen-lock"
         ? "Super+Ctrl+L locks your computer; it doesn't suspend it. Save your work and make sure you know your password. Lock now is optional and requires your explicit click. After unlocking, return here."
-        : "Press Super+Alt+Space, search for your terminal (for example Terminal or Ghostty), and press Return. Then close that newly opened terminal with Super+W. Existing windows don't count and aren't closed by this exercise."
+        : "Return to your coach and choose another activity."
       color: root.muted
       wrapMode: Text.WordWrap
       font.pixelSize: 16 * root.textScale
@@ -377,31 +446,6 @@ Rectangle {
           KeyNavigation.tab: cancelButton
           KeyNavigation.backtab: smile
           onTextChanged: root.checkCompose()
-        }
-        Rectangle {
-          visible: ["screen-recording", "ocr"].indexOf(root.mode) !== -1
-          Layout.fillWidth: true
-          implicitHeight: 130
-          color: "white"
-          Text {
-            anchors.centerIn: parent
-            text: "OMARCHY SAFE SAMPLE"
-            color: "black"
-            font.pixelSize: 22
-          }
-          Rectangle {
-            visible: root.mode === "screen-recording"
-            y: 100
-            width: 20
-            height: 20
-            color: root.accent
-            SequentialAnimation on x {
-              running: root.mode === "screen-recording"
-              loops: Animation.Infinite
-              NumberAnimation { from: 0; to: 240; duration: 1200 }
-              NumberAnimation { from: 240; to: 0; duration: 1200 }
-            }
-          }
         }
         PracticeButton {
           objectName: "prepareSample"
@@ -525,7 +569,7 @@ Rectangle {
           Layout.fillWidth: true
           model: ["Choose output resolution", "240p", "180p"]
           Accessible.name: "Output resolution"
-          onActiveFocusChanged: if (activeFocus) Qt.callLater(function() { root.revealControl(resolution) })
+          onActiveFocusChanged: if (activeFocus) root.scheduleReveal(resolution)
         }
         PracticeButton {
           objectName: "convertSample"
@@ -608,7 +652,7 @@ Rectangle {
           Layout.fillWidth: true
           model: ["Choose intended demo recipient", "My test phone (demo)", "Unknown nearby device (demo)"]
           Accessible.name: "Intended recipient"
-          onActiveFocusChanged: if (activeFocus) Qt.callLater(function() { root.revealControl(recipient) })
+          onActiveFocusChanged: if (activeFocus) root.scheduleReveal(recipient)
           onCurrentIndexChanged: if (root.mode === "sharing") root.verified = false
         }
         PracticeButton {
@@ -828,8 +872,9 @@ Rectangle {
       }
     }
     GridLayout {
+      visible: root.showFooter
       Layout.fillWidth: true
-      columns: width < 600 * root.textScale ? 1 : 2
+      columns: width < 440 * root.textScale ? 1 : 2
       columnSpacing: 12
       rowSpacing: 10
       PracticeButton {

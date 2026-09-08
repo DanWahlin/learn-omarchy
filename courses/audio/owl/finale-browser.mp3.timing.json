@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "d5b5e2b2b70d769e431fef14894069be4cf2551d9a5a005a6f692315d70bd6fd",
+  "text": "Now a browser. Hold Super and Shift, then press Return.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 350,
+      "endOffset": 5
+    },
+    {
+      "startMs": 470,
+      "endOffset": 14
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 19
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 36
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 47
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 55
+    }
+  ]
+}

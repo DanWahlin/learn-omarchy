@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "audioHash": "4b536be7f506d0d8ec496dbade0d3bb2dcdc6bc20d1cbbdf7e556f5069e93bed",
+  "text": "Super and an arrow focuses a neighboring window. Use the highlighted arrow to focus your other practice terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 670,
+      "endOffset": 9
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 12
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 48
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 52
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 68
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 74
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 77
+    },
+    {
+      "startMs": 5950,
+      "endOffset": 83
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 88
+    },
+    {
+      "startMs": 6630,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 103
+    },
+    {
+      "startMs": 7430,
+      "endOffset": 113
+    }
+  ]
+}

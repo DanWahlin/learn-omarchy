@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "ad131df1c4104eab78a7e85c78c31f91be06f4c63363acc4d9d1266e9338f684",
+  "text": "Both practice windows are open. Next, give the browser its own workspace.",
+  "words": [
+    {
+      "startMs": 110,
+      "endOffset": 4
+    },
+    {
+      "startMs": 430,
+      "endOffset": 13
+    },
+    {
+      "startMs": 950,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 37
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 42
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4870,
+      "endOffset": 73
+    }
+  ]
+}

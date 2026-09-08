@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "52df1b16ca9a09331a5448348822776ee3388e3fc47ac0859c028e15cc8e093f",
+  "text": "Press Super and S again to tuck the scratchpad away.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 310,
+      "endOffset": 11
+    },
+    {
+      "startMs": 710,
+      "endOffset": 15
+    },
+    {
+      "startMs": 950,
+      "endOffset": 17
+    },
+    {
+      "startMs": 990,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 52
+    }
+  ]
+}

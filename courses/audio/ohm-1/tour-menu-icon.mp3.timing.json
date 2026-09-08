@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "audioHash": "267b07008891ae5cf85ac30ee1bdeec2e8896668c4372d8e3c82c80463f4db01",
+  "text": "You can also click this icon in the desktop bar to open the same menu, with apps, settings, and other resources. Use whichever way is more convenient.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 7
+    },
+    {
+      "startMs": 310,
+      "endOffset": 12
+    },
+    {
+      "startMs": 550,
+      "endOffset": 18
+    },
+    {
+      "startMs": 790,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1430,
+      "endOffset": 35
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 43
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 47
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 55
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 59
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 64
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 70
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 75
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4430,
+      "endOffset": 91
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 95
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 101
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 112
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 116
+    },
+    {
+      "startMs": 6990,
+      "endOffset": 126
+    },
+    {
+      "startMs": 7390,
+      "endOffset": 130
+    },
+    {
+      "startMs": 7750,
+      "endOffset": 133
+    },
+    {
+      "startMs": 7910,
+      "endOffset": 138
+    },
+    {
+      "startMs": 8069,
+      "endOffset": 150
+    }
+  ]
+}

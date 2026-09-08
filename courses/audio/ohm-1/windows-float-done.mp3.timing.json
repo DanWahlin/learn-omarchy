@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "282db1d6629bee2bdd49149a534253dac5ce0a2fbbfc6b17f8ed8034ad76db74",
+  "text": "It's floating now. Handy for a calculator or a chat window you want to keep in view.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 13
+    },
+    {
+      "startMs": 590,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 67
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 70
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 84
+    }
+  ]
+}

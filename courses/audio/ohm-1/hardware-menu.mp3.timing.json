@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "audioHash": "7618d87375ba500e7b14ce425c4e1287e63be2500e93f72388c46591bcd0afb3",
+  "text": "Hold Super and Control, then press H to open the Hardware menu. Opening it is safe, but selecting an action can change device behavior immediately. Just look for this lesson; don't select an action.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 310,
+      "endOffset": 10
+    },
+    {
+      "startMs": 750,
+      "endOffset": 14
+    },
+    {
+      "startMs": 950,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 71
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 74
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 77
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 83
+    },
+    {
+      "startMs": 5870,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 97
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 100
+    },
+    {
+      "startMs": 6670,
+      "endOffset": 107
+    },
+    {
+      "startMs": 7150,
+      "endOffset": 111
+    },
+    {
+      "startMs": 7350,
+      "endOffset": 118
+    },
+    {
+      "startMs": 7710,
+      "endOffset": 125
+    },
+    {
+      "startMs": 8109,
+      "endOffset": 134
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 147
+    },
+    {
+      "startMs": 9590,
+      "endOffset": 152
+    },
+    {
+      "startMs": 9870,
+      "endOffset": 157
+    },
+    {
+      "startMs": 10030,
+      "endOffset": 161
+    },
+    {
+      "startMs": 10149,
+      "endOffset": 166
+    },
+    {
+      "startMs": 10350,
+      "endOffset": 174
+    },
+    {
+      "startMs": 11149,
+      "endOffset": 180
+    },
+    {
+      "startMs": 11590,
+      "endOffset": 187
+    },
+    {
+      "startMs": 11950,
+      "endOffset": 190
+    },
+    {
+      "startMs": 12069,
+      "endOffset": 198
+    }
+  ]
+}

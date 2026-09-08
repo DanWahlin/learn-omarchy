@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "audioHash": "272d44bf67e5021d8c3d3fec949dd86d8be614ef046bb0092e544f137afb504e",
+  "text": "The System menu is open. Close it without selecting an action to keep working; actions such as logout or shutdown can interrupt your session.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 10
+    },
+    {
+      "startMs": 590,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 24
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 33
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 61
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 64
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5710,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 91
+    },
+    {
+      "startMs": 6550,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6670,
+      "endOffset": 101
+    },
+    {
+      "startMs": 7270,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7390,
+      "endOffset": 113
+    },
+    {
+      "startMs": 8229,
+      "endOffset": 117
+    },
+    {
+      "startMs": 8629,
+      "endOffset": 127
+    },
+    {
+      "startMs": 9229,
+      "endOffset": 132
+    },
+    {
+      "startMs": 9389,
+      "endOffset": 141
+    }
+  ]
+}

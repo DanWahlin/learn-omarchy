@@ -1,0 +1,111 @@
+{
+  "version": 1,
+  "audioHash": "a3e1f063dc5aa1a2d76160ddea58b5f055c569ea0613682e42c366e092389fe3",
+  "text": "To take a screenshot, press Print. No Print key? Search Screenshot in the Omarchy menu instead. Drag over the area you want to capture. Escape cancels.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 2
+    },
+    {
+      "startMs": 150,
+      "endOffset": 7
+    },
+    {
+      "startMs": 350,
+      "endOffset": 9
+    },
+    {
+      "startMs": 390,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1430,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 55
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 66
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5470,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 95
+    },
+    {
+      "startMs": 6790,
+      "endOffset": 100
+    },
+    {
+      "startMs": 7230,
+      "endOffset": 105
+    },
+    {
+      "startMs": 7430,
+      "endOffset": 109
+    },
+    {
+      "startMs": 7630,
+      "endOffset": 114
+    },
+    {
+      "startMs": 7910,
+      "endOffset": 118
+    },
+    {
+      "startMs": 8029,
+      "endOffset": 123
+    },
+    {
+      "startMs": 8189,
+      "endOffset": 126
+    },
+    {
+      "startMs": 8270,
+      "endOffset": 135
+    },
+    {
+      "startMs": 9309,
+      "endOffset": 142
+    },
+    {
+      "startMs": 9709,
+      "endOffset": 151
+    }
+  ]
+}

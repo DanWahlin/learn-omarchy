@@ -37,6 +37,10 @@ Item {
   property string recoveryMessage: ""
   property string recoveryStepId: ""
   property bool exerciseRunning: false
+  property bool practiceSessionActive: false
+  readonly property bool embeddedPracticeRunning: exerciseRunning && practiceSessionActive
+  property Item practiceHost: null
+  readonly property bool inlineAppSearch: currentStep.practice === "app-search"
   property color foreground: "#c0caf5"
   property color background: "#1a1b26"
   property color accent: "#7aa2f7"
@@ -49,6 +53,12 @@ Item {
   property Palette controlPalette: Palette { highlightedText: "black" }
   property string lastAction: ""
   property bool audioStopped: false
+  property bool lessonCaptionVisible: false
+  property int revealEnd: -1
+  function lessonRevealEnd(message) { return currentStepIsTour && phase === "waiting" ? -1 : revealEnd }
+  function lessonCaptionMatches(message) {
+    return message === (phase === "highlight" ? currentStep.completionMessage : currentStep.instruction)
+  }
 
   function colorWithAlpha(color, alpha) { return Qt.rgba(color.r, color.g, color.b, alpha) }
   function characterText(text) { return text }
@@ -62,6 +72,7 @@ Item {
   function skipCurrentStep() { lastAction = "skip" }
   function recoverTutorialWindow() { lastAction = "recover" }
   function runStepAction(action) { lastAction = action }
+  function cancelAction() { exerciseRunning = false; practiceSessionActive = false }
   function handleKeyPressed(event) {}
   function updateActiveKeys(event, pressed) {}
   function openedToolKeyboardHint() { return fixture ? fixture.openedToolKeyboardHint() : "" }
@@ -69,7 +80,15 @@ Item {
   QtObject { id: audioProcess; property bool running: false }
   Timer { id: tourAdvanceTimer; onTriggered: fixture.advanceTour() }
 
-  Item { id: overlay; anchors.fill: parent }
+  Item {
+    id: overlay
+    anchors.fill: parent
+    property bool shouldShow: true
+    property bool isFocusedScreen: true
+    property var measuredBarTarget: null
+    property var measuredWindowTarget: null
+  }
+  QtObject { id: tourCaption; property bool ready: true }
 
   function buttons(item) {
     var result = "label" in item && "clicked" in item && item.visible ? [item] : []
@@ -97,7 +116,8 @@ Item {
           return source.match(new RegExp("  function " + name + "\\([^\\n]*\\) \\{[\\s\\S]*?\\n  \\}"))[0]
         }).join("\n")
       root.fixture = Qt.createQmlObject(
-        "import QtQuick\nimport QtQuick.Layouts\nItem { anchors.fill: parent\n"
+        "import QtQuick\nimport QtQuick.Layouts\nimport \"../../app\"\n"
+        + "import \"../../app/TeachingLayout.js\" as TeachingLayout\nItem { anchors.fill: parent\n"
         + "property alias panel: teachingContent\nproperty alias navigation: lessonNavigation\n"
         + "property alias instructionText: teachingInstruction\n"
         + "property alias note: teachingNote\nproperty alias details: teachingDetails\n"
@@ -109,10 +129,15 @@ Item {
     function init() {
       failOnWarning(/.*/)
       root.phase = "waiting"
+      root.revealEnd = -1
       root.currentStepIsTour = true
       root.currentStep = {instruction: "Look at the desktop bar.", detail: "Additional explanation.", keys: [],
         completionMessage: "The menu is open.", completion: {type: "hyprland-layer-open"}}
       root.practiceMode = false
+      root.exerciseRunning = false
+      root.practiceSessionActive = false
+      overlay.measuredBarTarget = null
+      overlay.measuredWindowTarget = null
       root.practiceHintVisible = false
       root.stepAssisted = false
       root.width = 1200
@@ -127,6 +152,37 @@ Item {
       root.tourDetailsExpanded = false
       tourAdvanceTimer.stop()
       wait(30)
+    }
+
+    function test_tallPanelKeepsItsWarningAndCoachingCardOutsideTheNativeMenu() {
+      root.currentStepIsTour = false
+      root.currentStep = { instruction: "Open the guide.", keys: ["SUPER", "+", "K"],
+        note: "Read only: selecting an entry executes its shortcut.",
+        completionMessage: "Read the guide without executing a shortcut.",
+        completion: { type: "hyprland-layer-open" }, highlight: { target: "panel" } }
+      overlay.measuredBarTarget = { x: 500, y: 50, width: 200, height: 700, panel: true }
+      root.phase = "highlight"
+      wait(30)
+      verify(fixture.note.visible)
+      verify(fixture.panel.x + fixture.panel.width <= 484 ||
+        fixture.panel.x >= 716, "The card must leave a gap beside the menu")
+      verify(fixture.panel.y >= 12 && fixture.panel.y + fixture.panel.height <= root.height - 12)
+    }
+
+    function test_embeddedPracticeKeepsNormalNavigationAndItsSafetyNote() {
+      root.currentStepIsTour = false
+      root.currentStep = { instruction: "Start the exercise.", keys: [], practice: "clipboard",
+        actionLabel: "Start exercise", note: "Use only the harmless sample." }
+      root.practiceSessionActive = true
+      root.exerciseRunning = true
+      wait(30)
+      verify(fixture.panel.visible)
+      verify(fixture.navigation.visible)
+      verify(fixture.note.visible)
+      verify(root.practiceHost.visible && root.practiceHost.height > 0)
+      verify(!fixture.actionButton.visible)
+      verify(!fixture.instructionText.visible)
+      verify(root.buttons(fixture).some(function(button) { return button.label === "SKIP →" }))
     }
 
     function test_tourHasOneQuietNavigationRowWithoutDuplicateProse() {
@@ -238,6 +294,36 @@ Item {
       verify(root.buttons(fixture).some(function(button) { return button.label === "CONTINUE" }))
     }
 
+    function test_wordRevealKeepsActionLayoutAndSafetyGuidanceVisible() {
+      root.currentStepIsTour = false
+      root.currentStep = {instruction: "Hold Super and tap two.", keys: ["SUPER", "+", "2"],
+        note: "Your windows stay open.", completionMessage: "You are on workspace two.",
+        completion: {type: "manual"}}
+      wait(30)
+      var height = fixture.instructionText.height
+      root.revealEnd = 4
+      wait(20)
+      compare(fixture.instructionText.color.a, 0)
+      compare(fixture.instructionText.height, height)
+      verify(fixture.keycaps.visible)
+      verify(fixture.note.visible)
+      verify(fixture.note.color.a > 0)
+      compare(fixture.note.opacity, 1)
+      var reveal = fixture.instructionText.children[0]
+      verify(reveal.visible)
+      compare(reveal.fullText, root.currentStep.instruction)
+      compare(reveal.revealEnd, 4)
+      root.phase = "highlight"
+      root.revealEnd = 3
+      wait(20)
+      compare(reveal.fullText, root.currentStep.completionMessage)
+      compare(reveal.revealEnd, 3)
+      root.revealEnd = -1
+      wait(20)
+      verify(!reveal.visible)
+      verify(fixture.instructionText.color.a > 0)
+    }
+
     function test_actionShowsInstructionThenKeysThenOneReadableNote() {
       root.currentStepIsTour = false
       root.currentStep = {instruction: "Hold Super and tap 2.", keys: ["SUPER", "+", "2"],
@@ -296,7 +382,25 @@ Item {
           verify(position.x >= 0)
           verify(position.x + button.width <= root.width)
         }
+
       }
+    }
+
+    function test_inlineSearchKeepsItsGuidanceAndSkipWithoutAnExerciseDialog() {
+      root.currentStepIsTour = false
+      root.currentStep = {instruction: "Open Apps, search for Terminal, then close the new terminal.",
+        keys: [], practice: "app-search", actionLabel: "Start search", note: "Your existing windows stay open."}
+      root.exerciseRunning = true
+      root.keyboardExclusive = false
+      wait(30)
+      verify(fixture.panel.visible)
+      verify(fixture.instructionText.visible)
+      compare(fixture.instructionText.message, root.currentStep.instruction)
+      verify(fixture.note.visible)
+      compare(fixture.actionButton.label, "SEARCH IN PROGRESS")
+      verify(!fixture.actionButton.enabled)
+      verify(root.buttons(fixture).some(function(button) { return button.label === "SKIP →" }))
+      root.exerciseRunning = false
     }
 
     function test_narrowAndLargeTextLayoutsKeepNavigationOnScreen() {

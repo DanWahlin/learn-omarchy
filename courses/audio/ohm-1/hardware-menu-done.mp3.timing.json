@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "2b31dd7dd453ed6ce3f9fcc522fb28611ef0ac245220710d9776ec02bd2a41cc",
+  "text": "You're in Trigger, Hardware. Install and Update sit alongside Trigger at the root of the Omarchy menu, not inside Hardware.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 9
+    },
+    {
+      "startMs": 390,
+      "endOffset": 18
+    },
+    {
+      "startMs": 870,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 76
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 84
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 88
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 96
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 102
+    },
+    {
+      "startMs": 5950,
+      "endOffset": 106
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 113
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 123
+    }
+  ]
+}

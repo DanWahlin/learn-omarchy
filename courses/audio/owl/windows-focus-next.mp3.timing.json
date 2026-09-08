@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "db1982cbb04c697ae89d647b98b1df68938b4550679eb7ede7b4cd4e344d51b6",
+  "text": "Two windows, one keyboard. Press Alt and Tab to hop to the other terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 310,
+      "endOffset": 12
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 32
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 36
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 44
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 47
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 51
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 64
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 74
+    }
+  ]
+}

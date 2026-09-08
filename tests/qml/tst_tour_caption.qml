@@ -28,6 +28,7 @@ Item {
         + "property real lessonContentOpacity: 1\nproperty color panelColor: 'black'\n"
         + "property color instruction: 'white'\nproperty var currentStep: ({instruction: 'Welcome'})\n"
         + "function characterText(text) { return text }\nfunction colorWithAlpha(color, alpha) { return color }\n"
+        + "property int revealEnd: -1\nfunction lessonRevealEnd(message) { return revealEnd }\n"
         + source.match(/^  function captionText\([^\n]*\) \{[\s\S]*?^  \}/m)[0] + "\n"
         + "property alias captionTextItem: tourCaptionText\n"
         + "property var lineWidths: []\n"

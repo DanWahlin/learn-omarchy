@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "8e920bd55d3e85c2a4cda61c733728d83d1706307354581a47d318bf91af2e4c",
+  "text": "Fullscreen is off. You can return to the bar and your other windows.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 10
+    },
+    {
+      "startMs": 750,
+      "endOffset": 13
+    },
+    {
+      "startMs": 950,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 22
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 68
+    }
+  ]
+}

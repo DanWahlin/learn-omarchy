@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "08f3a6bb5f6e76a3865198e00502f991654d54462ceb13a955b713493afaeb9a",
+  "text": "Let's give the browser its own desktop. Hold Super and Shift, then press 2.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 10
+    },
+    {
+      "startMs": 510,
+      "endOffset": 14
+    },
+    {
+      "startMs": 630,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 50
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 61
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 66
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5710,
+      "endOffset": 75
+    }
+  ]
+}

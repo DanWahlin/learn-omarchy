@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "6a883bd989d61dcdd67e2d421440feba8bf3a91a09e185959cd2d8f057fdeec8",
+  "text": "Build one useful habit: Super, Control, and L locks your screen. Practice only when you're ready.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 9
+    },
+    {
+      "startMs": 670,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 51
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 64
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 73
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 78
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 83
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 90
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 97
+    }
+  ]
+}

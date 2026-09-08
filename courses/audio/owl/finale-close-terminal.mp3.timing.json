@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "982c2cebc311329434ea9820f6541fa0ab01c96ad3ecb7f9e3527c4b97c88df2",
+  "text": "Done with the terminal for now. Press Super and W.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 270,
+      "endOffset": 9
+    },
+    {
+      "startMs": 430,
+      "endOffset": 13
+    },
+    {
+      "startMs": 550,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 50
+    }
+  ]
+}

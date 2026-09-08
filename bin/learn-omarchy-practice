@@ -15,4 +15,7 @@ case "${1:-}" in
   *) echo "Usage: learn-omarchy-practice app-search|clipboard|capture|screen-lock|compose|screen-recording|ocr|qr|dictation|web-app|transcode|sharing" >&2; exit 2 ;;
 esac
 export LEARN_OMARCHY_ROOT="$app_root"
+if [[ "$LEARN_OMARCHY_PRACTICE_MODE" == "app-search" ]]; then
+  exec qs --path "$app_root/app/app-search.qml"
+fi
 exec qs --path "$app_root/app/practice.qml"

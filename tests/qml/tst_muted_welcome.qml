@@ -1,45 +1,37 @@
 import QtQuick
 import QtTest
+import "../../app" as App
 
 Item {
-  id: harness
-  property var fixture
+  App.CaptionReveal {
+    id: fixture
+    sourceText: "Welcome to the desktop. These words reveal at reading speed."
+    narrationEnabled: false
+  }
   TestCase {
-    name: "MutedWelcomeReadingClock"
+    name: "MutedCaptionReadingClock"
     when: windowShown
-    function initTestCase() {
-      var xhr = new XMLHttpRequest()
-      xhr.open("GET", Qt.resolvedUrl("../../app/shell.qml"), false)
-      xhr.send()
-      var source = xhr.responseText
-      var start = source.indexOf("  Timer {\n    id: welcomeReadingClock")
-      var end = source.indexOf("\n  function resetWelcomeReading()", start)
-      verify(start >= 0 && end > start)
-      fixture = Qt.createQmlObject("import QtQuick\nItem { id: root\n"
-        + "property bool welcomeReadingActive: false\nproperty bool narrationEnabled: false\n"
-        + "property bool synchronizedWelcomeText: true\nproperty bool reducedMotion: false\n"
-        + "property real welcomeReadingElapsed: 0\n" + source.slice(start, end) + "\n}", harness)
-    }
     function test_clockOnlyAdvancesForVisibleMutedAnimatedReading() {
-      fixture.welcomeReadingActive = true
-      tryVerify(function() { return fixture.welcomeReadingElapsed >= 100 })
-      for (var field of ["narrationEnabled", "reducedMotion"]) {
+      failOnWarning(/.*/)
+      fixture.active = true
+      tryVerify(function() { return fixture.readingElapsed >= 100 })
+      for (var field of ["narrationEnabled", "reducedMotion", "paused"]) {
         fixture[field] = true
-        var stopped = fixture.welcomeReadingElapsed
+        var stopped = fixture.readingElapsed
         wait(120)
-        compare(fixture.welcomeReadingElapsed, stopped)
+        compare(fixture.readingElapsed, stopped)
         fixture[field] = false
-        tryVerify(function() { return fixture.welcomeReadingElapsed > stopped })
+        tryVerify(function() { return fixture.readingElapsed > stopped })
       }
-      fixture.synchronizedWelcomeText = false
-      var fullText = fixture.welcomeReadingElapsed
+      fixture.typeText = false
+      var fullText = fixture.readingElapsed
       wait(120)
-      compare(fixture.welcomeReadingElapsed, fullText)
-      fixture.synchronizedWelcomeText = true
-      fixture.welcomeReadingActive = false
-      var hidden = fixture.welcomeReadingElapsed
+      compare(fixture.readingElapsed, fullText)
+      fixture.typeText = true
+      fixture.active = false
+      var hidden = fixture.readingElapsed
       wait(120)
-      compare(fixture.welcomeReadingElapsed, hidden)
+      compare(fixture.readingElapsed, hidden)
     }
   }
 }

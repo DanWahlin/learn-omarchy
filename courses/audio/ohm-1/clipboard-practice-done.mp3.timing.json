@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "c2e3ba5ecd259af020c6f6f0e18528126c97b90986af711b5a1a5565a35ad73f",
+  "text": "You retrieved an older clipboard entry and pasted it. That's useful when a newer copy replaces something you still need.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 13
+    },
+    {
+      "startMs": 670,
+      "endOffset": 16
+    },
+    {
+      "startMs": 790,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 38
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 53
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 67
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 72
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 74
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 80
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 85
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 94
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 104
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 108
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 114
+    },
+    {
+      "startMs": 5630,
+      "endOffset": 120
+    }
+  ]
+}

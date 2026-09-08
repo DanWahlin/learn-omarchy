@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "7d9ac6b1d15b0e846773db1a85044631d678fc79f4eaa18e16319a1bd7e5e740",
+  "text": "The calculator is open. You can try a calculation before returning to the lesson.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 14
+    },
+    {
+      "startMs": 670,
+      "endOffset": 17
+    },
+    {
+      "startMs": 790,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 66
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 69
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 73
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 81
+    }
+  ]
+}

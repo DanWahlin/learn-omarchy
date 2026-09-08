@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "da1647af226a80b933c2fa663b0478f0a39aa65010df9ef4d3b7e35ecbec2d25",
+  "text": "Same move again. Press Super and W to close the file manager.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 470,
+      "endOffset": 9
+    },
+    {
+      "startMs": 670,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 61
+    }
+  ]
+}

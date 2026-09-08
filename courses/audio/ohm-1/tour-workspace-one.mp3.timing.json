@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "audioHash": "2a094a4cef6530bdbf05ffb2178f09198e62f9e57a53aaf14432321ea922868c",
+  "text": "Now hold Super and tap 1 on the top row. Then release both keys. You're heading to workspace one.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 8
+    },
+    {
+      "startMs": 510,
+      "endOffset": 14
+    },
+    {
+      "startMs": 910,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 64
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 79
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 82
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 92
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 97
+    }
+  ]
+}

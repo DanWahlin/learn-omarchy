@@ -5,7 +5,7 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
-import "CaptionTiming.js" as CaptionTiming
+import "TeachingLayout.js" as TeachingLayout
 
 ShellRoot {
   id: root
@@ -149,7 +149,7 @@ ShellRoot {
       welcomeSeen = welcomeSettingPresent ? parsed.welcomeSeen : tourSeen
       audioEnabled = parsed.audioEnabled !== false
       speechEnabled = parsed.speechEnabled !== false
-      synchronizedWelcomeText = parsed.synchronizedWelcomeText !== false
+      synchronizedWelcomeText = typeof parsed.typeText === "boolean" ? parsed.typeText : parsed.synchronizedWelcomeText !== false
       effectsEnabled = parsed.effectsEnabled !== false
       speechVolume = speechEnabled ? boundedNumber(parsed.speechVolume, 80, 0, 100) : 0
       effectsVolume = effectsEnabled ? boundedNumber(parsed.effectsVolume, 45, 0, 100) : 0
@@ -181,6 +181,7 @@ ShellRoot {
       audioEnabled: audioEnabled,
       speechEnabled: speechEnabled,
       synchronizedWelcomeText: synchronizedWelcomeText,
+      typeText: synchronizedWelcomeText,
       effectsEnabled: effectsEnabled,
       speechVolume: speechVolume,
       effectsVolume: effectsVolume,
@@ -381,6 +382,7 @@ ShellRoot {
   property string recoveryStepId: ""
   property string recoveryReturnStepId: ""
   property var activeKeys: ({})
+  property var pressedPhysicalKeys: ({})
   property bool comboTriggered: false
   property bool actionRunning: false
   property bool actionStopping: false
@@ -394,6 +396,13 @@ ShellRoot {
   property bool shortcutInhibitionActive: false
   property bool restoreKeyboardAfterAction: false
   property bool exerciseRunning: false
+  readonly property bool inlineAppSearch: currentStepIsPractice && currentStep.practice === "app-search"
+  property bool practiceSessionActive: false
+  property int practiceSessionGeneration: -1
+  property string practiceSessionMode: ""
+  property Item practiceHost: null
+  property bool exitAfterPractice: false
+  readonly property bool embeddedPracticeRunning: exerciseRunning && practiceSessionActive
   property bool exerciseRestoreCapture: false
   property var swapBefore: null
   property string directionalKey: ""
@@ -433,11 +442,14 @@ ShellRoot {
   property string actionCompletionType: ""
   property int actionCompletionDelay: 250
   property bool audioEnabled: true
+  onAudioEnabledChanged: if (!audioEnabled) introAmbienceProcess.running = false
   property bool speechEnabled: true
   readonly property bool narrationEnabled: audioEnabled && speechEnabled && speechVolume > 0
   property bool effectsEnabled: true
+  onEffectsEnabledChanged: if (!effectsEnabled) introAmbienceProcess.running = false
   property int speechVolume: 80
   property int effectsVolume: 45
+  onEffectsVolumeChanged: if (effectsVolume <= 0) introAmbienceProcess.running = false
   property real speechRate: 1
   property real textScale: 1
   property bool autoAdvance: true
@@ -447,6 +459,7 @@ ShellRoot {
   property bool completionNarrationDone: false
   property bool audioStopRequested: false
   property string audioProcessPath: ""
+  property bool lessonCaptionVisible: false
   property var audioPlaybackEvents: []
   property string pendingAudioPath: ""
   property bool pendingAudioPreserveCharacterState: false
@@ -479,7 +492,11 @@ ShellRoot {
   property var tutorialWindowsByStep: ({})
   property var tutorialWindowSnapshots: ({})
   property string windowLaunchToken: ""
+  property bool windowLaunchAcknowledged: true
+  property bool windowOwnershipVerified: false
   property bool windowOwnershipStopping: false
+  property bool windowPresentationReady: false
+  property var windowPresentationSize: null
   property string pendingTutorialWindowAddress: ""
   property real shortcutArmedUntil: 0
   property real characterX: 0
@@ -509,7 +526,10 @@ ShellRoot {
     accentColor: root.accent
     mutedColor: root.muted
   }
-  onReducedMotionChanged: characterTravelDuration = reducedMotion ? 0 : 900
+  onReducedMotionChanged: {
+    characterTravelDuration = reducedMotion ? 0 : 900
+    if (reducedMotion) introAmbienceProcess.running = false
+  }
 
   onSelectedLessonIndexChanged: {
     // The picker is a single column now; no lateral hop between cards.
@@ -536,7 +556,8 @@ ShellRoot {
     Array.isArray(currentStep.completion.events) &&
     currentStep.completion.events.indexOf("closewindow") !== -1)
   readonly property bool currentStepHasNoVisibleTarget: currentStepClosesWindow || currentStepIsPractice ||
-    Boolean(currentStep && currentStep.completion.windowState && currentStep.completion.windowState.specialWorkspace)
+    Boolean(currentStep && currentStep.completion.windowState && currentStep.completion.windowState.specialWorkspace &&
+      currentStep.completion.windowState.specialVisible !== true)
   readonly property bool currentTourTalks: currentStepIsTour && currentStep.pose === "talk"
   readonly property string tourRestingState: currentTourTalks ? "tour-talk" : "tour-point"
   readonly property string tourRestingMessage: currentTourTalks ? "HELLO!" : "LOOK HERE"
@@ -623,6 +644,61 @@ ShellRoot {
   property bool lessonWrapupStopping: false
   property int lessonWrapupGeneration: 0
 
+  CaptionReveal {
+    id: lessonReveal
+    sourceKey: (root.currentLesson ? root.currentLesson.id : "") + "/" +
+      (root.currentStep ? root.currentStep.id : "") + "/" + root.lessonCaptionStage
+    sourceText: root.currentStep ? String(root.lessonCaptionStage === "completion"
+      ? root.currentStep.completionMessage || "" : root.currentStep.instruction || "") : ""
+    displayText: root.characterText(sourceText)
+    formattedText: root.captionText(displayText)
+    typeText: root.synchronizedWelcomeText
+    reducedMotion: root.reducedMotion
+    narrationEnabled: root.narrationEnabled
+    audioAvailable: root.lessonCaptionStage === "completion" ? root.completionAudioPath() !== "" : root.currentAudioPath() !== ""
+    active: root.lessonCaptionVisible && (root.phase === "waiting" || root.phase === "highlight") && !root.lessonTransitionRunning
+    paused: root.phase === "paused" || root.phase === "settings" || root.audioPaused
+    wordsPerMinute: root.readingWordsPerMinute
+  }
+  readonly property string lessonCaptionStage: phase === "highlight" ||
+    ((phase === "paused" || phase === "settings") && pausedPhase === "highlight") ? "completion" : "instruction"
+
+  function lessonCaptionMatches(message) {
+    return message === lessonReveal.displayText
+  }
+
+  function lessonRevealEnd(message) {
+    // Practice recall prompts and expanded tour details have no matching recording.
+    if (practiceMode && lessonCaptionStage === "instruction" && narrationEnabled && !lessonReveal.playing) return -1
+    return lessonCaptionMatches(message) ? lessonReveal.revealEnd : -1
+  }
+
+  function receiveLessonPlayback(raw, generation, stepId, stage) {
+    if (!audioProcess.running || audioStopRequested || !currentStep ||
+        currentStep.id !== stepId || stage !== lessonCaptionStage) return
+    lessonReveal.receive(raw, generation)
+  }
+
+  CaptionReveal {
+    id: wrapupReveal
+    sourceKey: root.currentLesson ? root.currentLesson.id : ""
+    sourceText: root.currentLessonWrapup() ? root.currentLessonWrapup().text : ""
+    displayText: root.characterText(sourceText)
+    formattedText: root.captionText(displayText)
+    typeText: root.synchronizedWelcomeText
+    reducedMotion: root.reducedMotion
+    narrationEnabled: root.narrationEnabled
+    audioAvailable: root.currentLessonWrapup() !== null &&
+      characterStore.audioPath(root.currentLessonWrapup().audio, sourceText, root.courseDir) !== ""
+    active: root.lessonWrapupReady && root.phase === "lesson-complete"
+    wordsPerMinute: root.readingWordsPerMinute
+  }
+
+  function timedSpeechCommand(path) {
+    return ["node", appRoot + "/tools/play-timed-speech.mjs", "--volume", String(speechVolume),
+      "--speed", String(speechRate), "--audio", path]
+  }
+
   function currentLessonWrapup() {
     if (!course || !currentLesson || !currentLesson.wrapUp) return null
     var result = lessonResultSummary(currentLesson)
@@ -640,12 +716,13 @@ ShellRoot {
     if (path === "") return
     lessonWrapupPlayed = true
     lessonWrapupSpeech.generation = lessonWrapupGeneration
-    lessonWrapupSpeech.command = ["mpv", "--no-video", "--really-quiet",
-      "--volume=" + speechVolume, "--speed=" + speechRate, "--", path]
+    lessonWrapupSpeech.captionGeneration = wrapupReveal.beginPlayback()
+    lessonWrapupSpeech.command = timedSpeechCommand(path)
     lessonWrapupSpeech.running = true
   }
 
   function stopLessonWrapup() {
+    wrapupReveal.cancel()
     lessonWrapupGeneration++
     if (lessonWrapupSpeech.running) {
       lessonWrapupStopping = true
@@ -660,6 +737,7 @@ ShellRoot {
       return
     }
     if (generation !== lessonWrapupGeneration || phase !== "lesson-complete") return
+    wrapupReveal.finish(lessonWrapupSpeech.captionGeneration, exitCode)
     if (exitCode !== 0) console.warn("learn-omarchy: lesson wrap-up audio unavailable; the message remains visible")
   }
 
@@ -688,8 +766,7 @@ ShellRoot {
     characterHelpPointTimer.stop()
     clearActiveKeys()
     if (audioProcess.running && !audioStopRequested) {
-      // Linux SIGSTOP/SIGCONT preserve mpv's playback position across a pause.
-      if (Number(audioProcess.processId) > 0) audioProcess.signal(19)
+      audioProcess.write(JSON.stringify({ command: "pause" }) + "\n")
       audioPaused = true
     }
     if (sfxProcess.running) sfxProcess.running = false
@@ -709,9 +786,9 @@ ShellRoot {
       return
     }
     var resumedAudio = false
-    if (audioPaused && audioProcess.running &&
+    if (narrationEnabled && audioPaused && audioProcess.running &&
         (audioProcessPath === currentAudioPath() || audioProcessPath === completionAudioPath())) {
-      if (Number(audioProcess.processId) > 0) audioProcess.signal(18)
+      audioProcess.write(JSON.stringify({ command: "resume" }) + "\n")
       audioPaused = false
       resumedAudio = true
     } else if (audioPaused) {
@@ -1075,6 +1152,7 @@ ShellRoot {
       runCleanup()
       markCurrentLessonComplete()
       lessonWrapupPlayed = false
+      wrapupReveal.reset()
       phase = "lesson-complete"
       if (reducedMotion) {
         setCharacterState("celebrate", lessonFullyExplored(currentLesson) ? "MODULE COMPLETE!" : "MODULE EXPLORED")
@@ -1349,28 +1427,29 @@ ShellRoot {
   property bool welcomeNarrationFinished: false
   property bool welcomeSpeechStopping: false
   property bool synchronizedWelcomeText: true
-  property var welcomeWordTimings: []
-  property string welcomeTimingText: ""
-  property real welcomePlaybackMs: -1
-  property bool welcomeTimingFailed: false
+  property alias welcomeWordTimings: welcomeReveal.words
+  property alias welcomeTimingText: welcomeReveal.timingText
+  property alias welcomePlaybackMs: welcomeReveal.positionMs
+  property alias welcomeTimingFailed: welcomeReveal.failed
   property bool welcomeReadingActive: false
-  property real welcomeReadingElapsed: 0
-  property int welcomeReadingStartOffset: 0
-  readonly property int welcomeRevealEnd: !synchronizedWelcomeText || reducedMotion ? -1
-    : !narrationEnabled ? CaptionTiming.readingOffset(captionText(welcomeText),
-        welcomeReadingElapsed, readingWordsPerMinute, welcomeReadingStartOffset)
-    : welcomeNarrationFinished || welcomeTimingFailed || !welcomeAudioPath() ? -1
-    : welcomePlaybackMs < 0 ? 0
-    : CaptionTiming.revealOffset(welcomeTimingText, welcomeText, captionText(welcomeText),
-        welcomeWordTimings, welcomePlaybackMs)
+  property bool welcomeCaptionVisible: false
+  onWelcomeCaptionVisibleChanged: if (!welcomeCaptionVisible) welcomeReadTimer.stop()
+  property alias welcomeReadingElapsed: welcomeReveal.readingElapsed
+  property alias welcomeReadingStartOffset: welcomeReveal.readingStartOffset
+  readonly property int welcomeRevealEnd: welcomeReveal.revealEnd
 
-  Timer {
-    id: welcomeTimingDeadline
-    interval: 3000
-    onTriggered: {
-      root.welcomeTimingFailed = true
-      console.warn("learn-omarchy: welcome timing didn't arrive; showing full text")
-    }
+  CaptionReveal {
+    id: welcomeReveal
+    sourceKey: root.introGeneration + "/" + root.welcomeStage
+    sourceText: root.welcomeInstruction()
+    displayText: root.welcomeText
+    formattedText: root.captionText(displayText)
+    typeText: root.synchronizedWelcomeText
+    reducedMotion: root.reducedMotion
+    narrationEnabled: root.narrationEnabled
+    audioAvailable: root.welcomeAudioPath() !== ""
+    active: root.welcomeReadingActive && root.welcomeCaptionVisible
+    wordsPerMinute: root.readingWordsPerMinute
   }
 
   function welcomeAudioPath() {
@@ -1380,52 +1459,16 @@ ShellRoot {
     return characterStore.audioPath(audio, welcomeInstruction(), appRoot + "/courses")
   }
 
-  Timer {
-    id: welcomeReadingClock
-    interval: 50
-    repeat: true
-    running: root.welcomeReadingActive && !root.narrationEnabled && root.synchronizedWelcomeText && !root.reducedMotion
-    onTriggered: root.welcomeReadingElapsed += interval
-  }
-
   function resetWelcomeReading() {
     welcomeReadingActive = false
     welcomeReadingElapsed = 0
     welcomeReadingStartOffset = 0
   }
 
-  function resetWelcomeTiming() {
-    welcomeTimingDeadline.stop()
-    welcomeWordTimings = []
-    welcomeTimingText = ""
-    welcomePlaybackMs = -1
-    welcomeTimingFailed = false
-  }
-
   function receiveWelcomePlayback(raw, generation, stage) {
     if (generation !== introGeneration || stage !== welcomeStage || welcomeSpeechStopping ||
-        !welcomeSpeech.running || welcomeTimingFailed) return
-    try {
-      var message = JSON.parse(raw)
-      if (message.type === "fallback") {
-        resetWelcomeTiming()
-        welcomeTimingFailed = true
-      } else if (message.type === "timing") {
-        if (message.text !== welcomeInstruction() || !Array.isArray(message.words) || !message.words.length)
-          throw new Error("word timing doesn't match this welcome text")
-        welcomeTimingText = message.text
-        welcomeWordTimings = message.words
-      } else if (message.type === "position") {
-        if (typeof message.positionMs !== "number" || !isFinite(message.positionMs) || message.positionMs < 0)
-          throw new Error("invalid welcome playback position")
-        welcomePlaybackMs = message.positionMs
-        welcomeTimingDeadline.stop()
-      }
-    } catch (error) {
-      resetWelcomeTiming()
-      welcomeTimingFailed = true
-      console.warn("learn-omarchy: synchronized welcome unavailable; showing full text:", error)
-    }
+        !welcomeSpeech.running) return
+    welcomeReveal.receive(raw, welcomeSpeech.captionGeneration)
   }
 
   function welcomeInstruction() {
@@ -1490,6 +1533,7 @@ ShellRoot {
     introDeparting = false
     introCancellationRequested(Boolean(keepPosition))
     if (sfxProcess.running) sfxProcess.running = false
+    if (!keepPosition && introAmbienceProcess.running) introAmbienceProcess.running = false
   }
 
   function skipIntroScene() {
@@ -1539,17 +1583,12 @@ ShellRoot {
       if (path !== "") {
         if (welcomeSpeechStopping) return
         if (!welcomeNarrationStarted) {
-          resetWelcomeTiming()
+          welcomeSpeech.captionGeneration = welcomeReveal.beginPlayback()
           welcomeNarrationStarted = true
           welcomeSpeech.generation = introGeneration
           welcomeSpeech.stage = welcomeStage
-          welcomeSpeech.command = synchronizedWelcomeText && !reducedMotion
-            ? ["node", appRoot + "/tools/play-timed-speech.mjs", "--volume", String(speechVolume),
-                "--speed", String(speechRate), "--audio", path]
-            : ["mpv", "--no-video", "--really-quiet", "--volume=" + speechVolume,
-                "--speed=" + speechRate, "--", path]
+          welcomeSpeech.command = timedSpeechCommand(path)
           welcomeSpeech.running = true
-          if (synchronizedWelcomeText && !reducedMotion) welcomeTimingDeadline.restart()
         }
         return
       }
@@ -1561,7 +1600,7 @@ ShellRoot {
   }
 
   function stopWelcomeSpeech() {
-    resetWelcomeTiming()
+    welcomeReveal.cancel()
     if (!welcomeSpeech.running) return
     welcomeSpeechStopping = true
     welcomeSpeech.running = false
@@ -1575,7 +1614,7 @@ ShellRoot {
       return
     }
     if (generation !== introGeneration || welcomeStage !== (stage || "welcome")) return
-    resetWelcomeTiming()
+    welcomeReveal.finish(welcomeSpeech.captionGeneration, exitCode)
     welcomeNarrationFinished = true
     if (exitCode !== 0) {
       console.warn("learn-omarchy: welcome narration failed; using reading time")
@@ -1741,7 +1780,18 @@ ShellRoot {
     setModifier("CTRL", Boolean(event.modifiers & Qt.ControlModifier))
     setModifier("SHIFT", Boolean(event.modifiers & Qt.ShiftModifier))
 
-    var direct = keyName(event.key)
+    var scan = Number(event.nativeScanCode) || 0
+    var physical = Object.assign({}, pressedPhysicalKeys)
+    var direct = scan > 0 && physical[scan] ? physical[scan] : keyName(event.key)
+    // Wayland exposes XKB scan codes: the number row is 10-19. Shift
+    // changes Qt's logical key (for example 2 becomes @), not the keycap.
+    if (!direct && (event.modifiers & Qt.ShiftModifier) && scan >= 10 && scan <= 19)
+      direct = String((scan - 9) % 10)
+    if (scan > 0) {
+      if (pressed) physical[scan] = direct || "__KEY_" + event.key
+      else delete physical[scan]
+    }
+    pressedPhysicalKeys = physical
     if (pressed && direct) next[direct] = true
     else if (!pressed && direct) delete next[direct]
     else {
@@ -1803,6 +1853,7 @@ ShellRoot {
 
   function clearActiveKeys() {
     activeKeys = {}
+    pressedPhysicalKeys = {}
     comboTriggered = false
   }
 
@@ -1824,7 +1875,18 @@ ShellRoot {
 
   function resetWindowTarget() {
     windowGeometryGeneration++
+    windowLaunchToken = ""
+    windowLaunchAcknowledged = true
+    tutorialLaunchProcess.running = false
     stopWindowOwnership()
+    windowOwnershipVerified = false
+    if (usesWindowActivation()) {
+      actionRunning = false
+      actionStepId = ""
+    }
+    windowPresentationProcess.running = false
+    windowPresentationReady = false
+    windowPresentationSize = null
     windowGeometryAttempts = 0
     windowGeometryPending = false
     windowGeometryRetryTimer.stop()
@@ -1943,7 +2005,7 @@ ShellRoot {
 
   function queryOutcome() {
     if (outcomeAddress === "" || phase !== "waiting") return
-    if (outcomeProcess.running) {
+    if (outcomeProcess.running || scratchpadVisibilityProcess.running) {
       outcomeRetryTimer.restart()
       return
     }
@@ -1989,6 +2051,17 @@ ShellRoot {
         peer.at[0] === swapBefore.firstAt[0] && peer.at[1] === swapBefore.firstAt[1])
     }
     if (pairSwapped && matchesWindowState(client, outcomeExpected)) {
+      if (outcomeExpected.specialVisible !== undefined) {
+        if (!Number.isInteger(client.monitor)) {
+          retryOutcome()
+          return
+        }
+        scratchpadVisibilityProcess.requestGeneration = generation
+        scratchpadVisibilityProcess.monitorId = client.monitor
+        scratchpadVisibilityProcess.verifiedWindow = client
+        scratchpadVisibilityProcess.running = true
+        return
+      }
       outcomeAddress = ""
       if (outcomeExpected.specialWorkspace) {
         targetWindowGeometry = null
@@ -2008,6 +2081,10 @@ ShellRoot {
       else windowGeometryRetryTimer.restart()
       return
     }
+    retryOutcome()
+  }
+
+  function retryOutcome() {
     if (++outcomeAttempts < windowGeometryMaxAttempts) {
       outcomeRetryTimer.restart()
     } else {
@@ -2015,6 +2092,53 @@ ShellRoot {
       clearActiveKeys()
       showRecovery("The expected window change hasn't happened. Try again, or return to the tutorial window's launch activity.", currentStep.windowFromStep)
     }
+  }
+
+  function parseScratchpadVisibility(raw, generation, monitorId, exitCode, windowData) {
+    if (generation !== outcomeGeneration || phase !== "waiting" || outcomeAddress === "") return
+    if (currentTutorialWindow() !== outcomeAddress) {
+      outcomeAddress = ""
+      clearActiveKeys()
+      showRecovery("The scratchpad's tutorial window is no longer available. Reopen it to continue.", currentStep.windowFromStep)
+      return
+    }
+    var monitors
+    try {
+      if (exitCode !== 0) throw new Error("monitor query failed")
+      monitors = JSON.parse(raw)
+      if (!Array.isArray(monitors)) throw new Error("invalid monitor response")
+    } catch (error) {
+      outcomeAddress = ""
+      clearActiveKeys()
+      showRecovery("Couldn't verify scratchpad visibility. Try again.", currentStep.windowFromStep)
+      console.warn("learn-omarchy: scratchpad visibility unavailable:", error)
+      return
+    }
+    var monitor = monitors.find(function(item) { return item && Number(item.id) === monitorId })
+    if (!monitor || !monitor.specialWorkspace || typeof monitor.specialWorkspace.name !== "string") {
+      retryOutcome()
+      return
+    }
+    var visible = monitor.specialWorkspace.name === "special:" + outcomeExpected.specialWorkspace
+    if (visible !== outcomeExpected.specialVisible) {
+      retryOutcome()
+      return
+    }
+    if (visible) {
+      if (!clientGeometryReady(windowData) || normalizedWindowAddress(windowData.address) !== outcomeAddress) {
+        retryOutcome()
+        return
+      }
+      targetWindowAddress = outcomeAddress
+      outcomeAddress = ""
+      completeWindowDetection(windowData, monitor)
+      return
+    }
+    outcomeAddress = ""
+    targetWindowGeometry = null
+    targetMonitorGeometry = null
+    restoreActionKeyboard()
+    confirmDetectedShortcut()
   }
 
   function captureStepStartWindow() {
@@ -2128,8 +2252,68 @@ ShellRoot {
       showRecovery("That window couldn't be linked to this tutorial launch, so it won't be controlled. Launch a fresh application window, or skip this activity.")
       return
     }
+    if (!windowLaunchAcknowledged) {
+      windowOwnershipVerified = true
+      return
+    }
+    windowOwnershipVerified = false
     rememberTutorialWindow(pendingTutorialWindowAddress, currentStep.id)
+    if (currentStep.windowSize) {
+      if (!windowPresentationReady) {
+        prepareTutorialWindow()
+        return
+      }
+      if (!targetWindowGeometry || !windowPresentationSize ||
+          !targetWindowGeometry.floating ||
+          targetWindowGeometry.size[0] < windowPresentationSize.width - 4 ||
+          targetWindowGeometry.size[1] < windowPresentationSize.height - 4) {
+        retryWindowGeometry("The activity window still needs enough room to show its contents.")
+        return
+      }
+    }
     completeWindowDetection(targetWindowGeometry, targetMonitorGeometry)
+  }
+
+  function prepareTutorialWindow() {
+    if (windowPresentationProcess.running) return
+    if (!targetMonitorGeometry || tutorialWindows.indexOf(pendingTutorialWindowAddress) === -1) {
+      retryWindowGeometry("The owned window's display isn't available.")
+      return
+    }
+    var monitor = targetMonitorGeometry
+    var size = logicalMonitorSize(monitor)
+    var width = Math.floor(Math.min(currentStep.windowSize.width, size.width - 80))
+    var height = Math.floor(Math.min(currentStep.windowSize.height, size.height * 0.55))
+    var x = Math.round(Number(monitor.x) + (size.width - width) / 2)
+    var y = Math.round(Number(monitor.y) + 70)
+    if (![width, height, x, y].every(Number.isFinite) || width < 960 || height < 360) {
+      resetWindowTarget()
+      actionRunning = false
+      clearActiveKeys()
+      showRecovery("This display doesn't have enough room to show the activity monitor clearly. Use a larger display, or Skip.")
+      return
+    }
+    windowPresentationSize = { width: width, height: height }
+    var selector = "window=" + JSON.stringify("address:" + pendingTutorialWindowAddress)
+    windowPresentationProcess.requestGeneration = windowGeometryGeneration
+    windowPresentationProcess.command = ["hyprctl", "eval",
+      "hl.dispatch(hl.dsp.window.float({" + selector + ", action=\"on\"})); " +
+      "hl.dispatch(hl.dsp.window.resize({" + selector + ", x=" + width + ", y=" + height + ", relative=false})); " +
+      "hl.dispatch(hl.dsp.window.move({" + selector + ", x=" + x + ", y=" + y + ", relative=false}))"]
+    windowPresentationProcess.running = true
+  }
+
+  function finishWindowPresentation(exitCode, generation) {
+    if (generation !== windowGeometryGeneration || phase !== "waiting" || !windowGeometryPending) return
+    if (exitCode !== 0) {
+      resetWindowTarget()
+      actionRunning = false
+      clearActiveKeys()
+      showRecovery("Couldn't give the activity monitor enough room. Try launching it again, or Skip.")
+      return
+    }
+    windowPresentationReady = true
+    queryWindowGeometry()
   }
 
   function stopWindowOwnership() {
@@ -2536,6 +2720,7 @@ ShellRoot {
   function startCurrentStep() {
     cancelAction()
     stopAudio()
+    lessonReveal.reset()
     clearActiveKeys()
     resetWindowTarget()
     recoveryMessage = ""
@@ -2580,6 +2765,8 @@ ShellRoot {
   function cancelAction() {
     windowLaunchToken = ""
     stopWindowOwnership()
+    tutorialLaunchProcess.running = false
+    windowOwnershipVerified = false
     directionPreviewTimer.stop()
     directionPreviewProcess.running = false
     if (exerciseRunning) {
@@ -2588,6 +2775,7 @@ ShellRoot {
       exerciseRestoreCapture = false
       practiceProcess.running = false
     }
+    if (practiceSessionActive && practiceLoader.item) practiceLoader.item.cancel()
     restoreActionKeyboard()
     swapBefore = null
     swapPreflightProcess.running = false
@@ -2829,7 +3017,7 @@ ShellRoot {
   function startAudioPath(path, preserveCharacterState) {
     if (!narrationEnabled || introActive || (introDeparting && characterState !== tourRestingState) ||
         path === "" || (phase !== "waiting" && phase !== "highlight")) return
-    if (path !== currentAudioPath() && path !== completionAudioPath()) return
+    if (path !== (phase === "highlight" ? completionAudioPath() : currentAudioPath())) return
     if (currentStepIsTour && phase === "waiting") tourAdvanceTimer.stop()
     if (path === completionAudioPath() && path !== currentAudioPath()) {
       if (phase !== "highlight") return
@@ -2839,15 +3027,10 @@ ShellRoot {
     pendingAudioPath = ""
     pendingAudioPreserveCharacterState = false
     audioProcessPath = path
-    audioProcess.command = [
-      "mpv",
-      "--no-video",
-      "--really-quiet",
-      "--volume=" + speechVolume,
-      "--speed=" + speechRate,
-      "--",
-      path
-    ]
+    audioProcess.captionGeneration = lessonReveal.beginPlayback()
+    audioProcess.stepId = currentStep.id
+    audioProcess.captionStage = lessonCaptionStage
+    audioProcess.command = timedSpeechCommand(path)
     if (!preserveCharacterState) setCharacterState("talk", "LISTENING...")
     audioProcess.running = true
   }
@@ -2869,10 +3052,10 @@ ShellRoot {
 
   function stopAudio() {
     stopLessonWrapup()
+    lessonReveal.cancel()
     pendingAudioPath = ""
     pendingAudioPreserveCharacterState = false
     if (audioProcess.running) {
-      if (audioPaused && Number(audioProcess.processId) > 0) audioProcess.signal(18)
       audioStopRequested = true
       audioProcess.running = false
     }
@@ -2918,7 +3101,7 @@ ShellRoot {
   }
 
   function replayCurrentAudio() {
-    if (!currentStep || currentAudioPath() === "" || introActive) return
+    if (phase !== "waiting" || !currentStep || currentAudioPath() === "" || introActive) return
     audioEnabled = true
     speechEnabled = true
     persistSettings()
@@ -2944,6 +3127,10 @@ ShellRoot {
       return
     }
     if (phase !== "waiting" || lessonTransitionRunning || actionRunning || !currentStep || !currentStep.help || !Array.isArray(currentStep.help.command)) return
+    if (usesWindowActivation() && tutorialLaunchProcess.running) {
+      showRecovery("The previous launch is still finishing. Try again in a moment.")
+      return
+    }
     if (source === "help" || source === "help-ready") stepAssisted = true
     recoveryMessage = ""
     recoveryStepId = ""
@@ -2988,8 +3175,22 @@ ShellRoot {
       // A launcher may remain attached to its application (notably Files).
       // Advancing must cancel detection, not terminate the learner's window.
       windowLaunchToken = Date.now().toString(36) + "-" + Math.random().toString(36).slice(2) + "-" + Math.random().toString(36).slice(2)
-      Quickshell.execDetached(["env", "LEARN_OMARCHY_WINDOW_TOKEN=" + windowLaunchToken].concat(command))
-      windowActivationHintTimer.restart()
+      var directLaunch = (command.length === 1 && command[0] === "omacalc") ||
+        (command.length === 3 && command[0] === "omarchy" && command[1] === "launch" && command[2] === "nautilus")
+      windowLaunchAcknowledged = directLaunch
+      windowOwnershipVerified = false
+      if (directLaunch) {
+        Quickshell.execDetached(["env", "LEARN_OMARCHY_WINDOW_TOKEN=" + windowLaunchToken].concat(command))
+        windowActivationHintTimer.restart()
+      } else {
+        windowActivationHintTimer.stop()
+        tutorialLaunchProcess.requestGeneration = actionGeneration
+        tutorialLaunchProcess.requestToken = windowLaunchToken
+        tutorialLaunchProcess.command = ["node", appRoot + "/tools/tutorial-launch.mjs",
+          "--token", windowLaunchToken, "--detach",
+          "--profile-root", Quickshell.env("XDG_RUNTIME_DIR") || stateHome, "--"].concat(command)
+        tutorialLaunchProcess.running = true
+      }
       return
     }
     if (currentStep.completion.windowState && currentStep.completion.windowState.focused === true && keyboardExclusive) {
@@ -3010,10 +3211,38 @@ ShellRoot {
     setKeyboardExclusive(true)
   }
 
+  function finishTutorialLaunch(exitCode, generation, token, output, errors) {
+    if (generation !== actionGeneration || token !== windowLaunchToken || phase !== "waiting") return
+    var packet
+    var message = "The tutorial application couldn't be launched."
+    try {
+      packet = JSON.parse(String(exitCode === 0 ? output : errors))
+      if (packet && typeof packet.error === "string") message = packet.error
+    } catch (error) {
+      message = "The tutorial launcher returned an invalid response (exit " + exitCode + ")."
+      console.warn("learn-omarchy: invalid launch response:", error)
+    }
+    if (exitCode !== 0 || !packet || packet.ok !== true || packet.state !== "spawned" ||
+        !Number.isSafeInteger(packet.pid) || packet.pid <= 0) {
+      resetWindowTarget()
+      clearActiveKeys()
+      showRecovery(message)
+      return
+    }
+    windowLaunchAcknowledged = true
+    windowActivationHintTimer.restart()
+    if (windowOwnershipVerified)
+      finishWindowOwnership(0, windowGeometryGeneration, token)
+  }
+
   function startPracticeExercise() {
     if (phase !== "waiting" || lessonTransitionRunning || actionRunning || !currentStepIsPractice) return
-    if (practiceProcess.running) {
+    if (practiceProcess.running || practiceSessionActive) {
       showRecovery("The previous exercise is still closing. Try again in a moment.")
+      return
+    }
+    if (!inlineAppSearch && !practiceHost) {
+      showRecovery("The exercise area isn't available on this display. Try again in a moment.")
       return
     }
     stopAudio()
@@ -3026,9 +3255,42 @@ ShellRoot {
     exerciseRunning = true
     exerciseRestoreCapture = keyboardExclusive
     setKeyboardExclusive(false)
-    practiceProcess.requestGeneration = actionGeneration
-    practiceProcess.command = [appRoot + "/bin/learn-omarchy-practice", currentStep.practice]
-    practiceProcess.running = true
+    if (inlineAppSearch) {
+      practiceProcess.requestGeneration = actionGeneration
+      practiceProcess.command = [appRoot + "/bin/learn-omarchy-practice", currentStep.practice]
+      practiceProcess.running = true
+    } else {
+      practiceSessionGeneration = actionGeneration
+      practiceSessionMode = currentStep.practice
+      practiceSessionActive = true
+    }
+  }
+
+  function finishEmbeddedPractice(generation, mode, completed, message) {
+    if (generation !== practiceSessionGeneration || !practiceSessionActive) return
+    Qt.callLater(function() {
+      if (generation !== root.practiceSessionGeneration || !root.practiceSessionActive) return
+      root.practiceSessionActive = false
+      if (root.exitAfterPractice) {
+        Qt.quit()
+        return
+      }
+      if (generation !== root.actionGeneration || !root.exerciseRunning) return
+      root.finishPracticeExercise(message ? 1 : 0, generation,
+        completed ? "LEARN_PRACTICE_RESULT:" + JSON.stringify({ mode: mode, completed: true }) : "")
+      if (message) {
+        console.warn("learn-omarchy exercise:", message)
+        root.showRecovery(message)
+      }
+    })
+  }
+
+  function requestExit() {
+    runCleanup()
+    stopAudio()
+    exitAfterPractice = practiceSessionActive
+    cancelAction()
+    if (!exitAfterPractice) Qt.quit()
   }
 
   function finishPracticeExercise(exitCode, generation, raw) {
@@ -3458,6 +3720,15 @@ ShellRoot {
         welcomeTimingWords: root.welcomeWordTimings.length,
         welcomePlaybackMs: root.welcomePlaybackMs,
         welcomeRevealEnd: root.welcomeRevealEnd,
+        lessonCaptionStage: root.lessonCaptionStage,
+        lessonTimingWords: lessonReveal.words.length,
+        lessonPlaybackMs: lessonReveal.positionMs,
+        lessonRevealEnd: lessonReveal.revealEnd,
+        lessonReadingElapsed: lessonReveal.readingElapsed,
+        lessonCaptionVisible: root.lessonCaptionVisible,
+        wrapupTimingWords: wrapupReveal.words.length,
+        wrapupPlaybackMs: wrapupReveal.positionMs,
+        wrapupRevealEnd: wrapupReveal.revealEnd,
         welcomeReadingElapsed: root.welcomeReadingElapsed,
         completedLessons: root.completedLessons,
         stepResults: root.stepResults,
@@ -3479,6 +3750,8 @@ ShellRoot {
         actionStepId: root.actionStepId,
         pendingStepAction: root.pendingStepAction,
         exerciseRunning: root.exerciseRunning,
+        practiceSessionActive: root.practiceSessionActive,
+        embeddedExercise: practiceLoader.item ? JSON.parse(practiceLoader.item.status()) : null,
         targetWindowAddress: root.targetWindowAddress,
         targetWindowGeometry: root.targetWindowGeometry,
         targetMonitorGeometry: root.targetMonitorGeometry,
@@ -3586,8 +3859,17 @@ ShellRoot {
     id: sfxProcess
   }
 
+  Process {
+    id: introAmbienceProcess
+  }
+
+  function canPlayEffects() {
+    return audioEnabled && effectsEnabled && effectsVolume > 0 && !reducedMotion &&
+      phase !== "paused" && phase !== "settings"
+  }
+
   function playSound(name) {
-    if (!audioEnabled || !effectsEnabled || effectsVolume <= 0 || reducedMotion || phase === "paused" || phase === "settings") return
+    if (!canPlayEffects()) return
     if (sfxProcess.running) sfxProcess.running = false
     sfxProcess.command = ["mpv", "--no-video", "--really-quiet", "--volume=" + effectsVolume, "--", appRoot + "/assets/sounds/" + name]
     sfxProcess.running = true
@@ -3595,6 +3877,14 @@ ShellRoot {
 
   function playIntroSound(id, generation) {
     if (!introActive || generation !== introGeneration || phase !== "welcome") return
+    if (id === "birds-welcome.opus") {
+      if (!canPlayEffects()) return
+      introAmbienceProcess.running = false
+      introAmbienceProcess.command = ["mpv", "--no-video", "--really-quiet",
+        "--volume=" + (effectsVolume * 0.60).toFixed(2), "--", appRoot + "/assets/sounds/" + id]
+      introAmbienceProcess.running = true
+      return
+    }
     if (["rocket-land.opus", "rocket-liftoff.opus"].indexOf(id) < 0) return
     playSound(id)
   }
@@ -3627,6 +3917,7 @@ ShellRoot {
   Process {
     id: welcomeSpeech
     property int generation: -1
+    property int captionGeneration: -1
     property string stage: ""
     stdout: SplitParser {
       onRead: function(data) { root.receiveWelcomePlayback(data, welcomeSpeech.generation, welcomeSpeech.stage) }
@@ -3639,21 +3930,38 @@ ShellRoot {
   Process {
     id: lessonWrapupSpeech
     property int generation: -1
+    property int captionGeneration: -1
+    stdout: SplitParser {
+      onRead: function(data) {
+        if (!root.lessonWrapupStopping && lessonWrapupSpeech.running &&
+            lessonWrapupSpeech.generation === root.lessonWrapupGeneration && root.phase === "lesson-complete")
+          wrapupReveal.receive(data, lessonWrapupSpeech.captionGeneration)
+      }
+    }
     onExited: function(exitCode) { root.lessonWrapupExited(exitCode, generation) }
   }
 
   Process {
     id: audioProcess
+    property int captionGeneration: -1
+    property string stepId: ""
+    property string captionStage: ""
+    stdinEnabled: true
+    stdout: SplitParser {
+      onRead: function(data) { root.receiveLessonPlayback(data, audioProcess.captionGeneration, audioProcess.stepId, audioProcess.captionStage) }
+    }
     onStarted: {
       root.recordAudioPlayback("started", root.audioProcessPath, null)
-      if (root.audioPaused) audioProcess.signal(19)
+      if (root.audioPaused) audioProcess.write(JSON.stringify({ command: "pause" }) + "\n")
     }
     onExited: function(exitCode) {
       var stopped = root.audioStopRequested
       var finishedPath = root.audioProcessPath
+      if (!stopped) lessonReveal.finish(audioProcess.captionGeneration, exitCode)
       root.recordAudioPlayback(stopped ? "interrupted" : "finished", finishedPath, exitCode)
       var queuedPath = root.pendingAudioPath
       var preserveQueuedCharacterState = root.pendingAudioPreserveCharacterState
+      var queuedGeneration = root.actionGeneration
       root.audioStopRequested = false
       root.audioPaused = false
       root.audioProcessPath = ""
@@ -3663,7 +3971,8 @@ ShellRoot {
         if (queuedPath !== "" && root.narrationEnabled &&
             (queuedPath === root.currentAudioPath() || queuedPath === root.completionAudioPath())) {
           Qt.callLater(function() {
-            root.startAudioPath(queuedPath, preserveQueuedCharacterState)
+            if (root.actionGeneration === queuedGeneration && !audioProcess.running && !root.audioStopRequested)
+              root.startAudioPath(queuedPath, preserveQueuedCharacterState)
           })
         } else if (
           root.phase === "waiting" &&
@@ -3764,6 +4073,46 @@ ShellRoot {
         return
       }
       root.parseDirectionPreview(directionOutput.text, requestGeneration)
+    }
+  }
+
+  Loader {
+    id: practiceLoader
+    parent: root.practiceHost
+    width: parent ? parent.width : 0
+    height: parent ? parent.height : 0
+    visible: root.embeddedPracticeRunning && root.phase === "waiting"
+    active: root.practiceSessionActive
+    sourceComponent: Component {
+      PracticeSession {
+        readonly property int requestGeneration: root.practiceSessionGeneration
+        mode: root.practiceSessionMode
+        autoStart: false
+        textScale: root.textScale
+        backgroundColor: root.background
+        foreground: root.foreground
+        accent: root.accent
+        muted: root.muted
+        errorColor: root.urgent
+        onCompleted: root.finishEmbeddedPractice(requestGeneration, mode, true, "")
+        onCancelled: root.finishEmbeddedPractice(requestGeneration, mode, false, "")
+        onFailed: function(message) { root.finishEmbeddedPractice(requestGeneration, mode, false, message) }
+      }
+    }
+    onLoaded: {
+      if (!root.exerciseRunning || root.practiceSessionGeneration !== root.actionGeneration) {
+        item.cancel()
+        return
+      }
+      item.start()
+      Qt.callLater(function() {
+        if (practiceLoader.item && root.embeddedPracticeRunning) practiceLoader.item.focusPractice()
+      })
+    }
+    onStatusChanged: {
+      if (status === Loader.Error && root.practiceSessionActive)
+        root.finishEmbeddedPractice(root.practiceSessionGeneration, root.practiceSessionMode, false,
+          "Couldn't load the exercise area. Try again, or Skip.")
     }
   }
 
@@ -3928,6 +4277,18 @@ ShellRoot {
     }
   }
 
+  Process {
+    id: scratchpadVisibilityProcess
+    property int requestGeneration: -1
+    property int monitorId: -1
+    property var verifiedWindow: null
+    command: ["hyprctl", "monitors", "-j"]
+    stdout: StdioCollector { id: scratchpadVisibilityOutput }
+    onExited: function(code) {
+      root.parseScratchpadVisibility(scratchpadVisibilityOutput.text, requestGeneration, monitorId, code, verifiedWindow)
+    }
+  }
+
   Timer {
     id: outcomeRetryTimer
     interval: 150
@@ -3951,6 +4312,26 @@ ShellRoot {
     property string requestToken: ""
     onExited: function(exitCode) {
       root.finishWindowOwnership(exitCode, requestGeneration, requestToken)
+    }
+  }
+
+  Process {
+    id: tutorialLaunchProcess
+    property int requestGeneration: -1
+    property string requestToken: ""
+    stdout: StdioCollector { id: tutorialLaunchOutput }
+    stderr: StdioCollector { id: tutorialLaunchErrors }
+    onExited: function(exitCode) {
+      root.finishTutorialLaunch(exitCode, requestGeneration, requestToken,
+        tutorialLaunchOutput.text, tutorialLaunchErrors.text)
+    }
+  }
+
+  Process {
+    id: windowPresentationProcess
+    property int requestGeneration: -1
+    onExited: function(exitCode) {
+      root.finishWindowPresentation(exitCode, requestGeneration)
     }
   }
 
@@ -4269,7 +4650,7 @@ ShellRoot {
             return monitor && Number(monitor.id) === root.targetScreenId
           return monitor && monitor === Hyprland.focusedMonitor
         }
-        readonly property bool shouldShow: !root.splashActive && root.phase !== "loading" && !root.exerciseRunning && isFocusedScreen
+        readonly property bool shouldShow: !root.splashActive && root.phase !== "loading" && isFocusedScreen
         readonly property var highlight: root.currentStep ? root.currentStep.highlight : null
         readonly property var hyprlandMonitor: Hyprland.monitorFor(screenScope.modelData)
         readonly property bool windowOnThisMonitor:
@@ -4370,7 +4751,7 @@ ShellRoot {
         WlrLayershell.namespace: "learn-omarchy"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: root.keyboardExclusive && !root.keyboardCaptureResetting
-          ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
+          ? WlrKeyboardFocus.Exclusive : root.embeddedPracticeRunning ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
         // Layer focus alone doesn't prevent the compositor from handling
         // Super shortcuts before the course can safely target its own windows.
         ShortcutInhibitor {
@@ -4381,7 +4762,8 @@ ShellRoot {
         }
         IdleInhibitor {
           window: overlay
-          enabled: overlay.shouldShow && (root.phase === "waiting" || root.phase === "highlight")
+          enabled: overlay.shouldShow && (root.phase === "waiting" || root.phase === "highlight") &&
+            !(root.embeddedPracticeRunning && root.practiceSessionMode === "screen-lock")
         }
         mask: Region {
           Region { item: topicPanel }
@@ -4438,7 +4820,8 @@ ShellRoot {
           Connections {
             target: root
             function onRequestKeyboardFocus() {
-              if (overlay.shouldShow) Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+              if (overlay.shouldShow && !root.embeddedPracticeRunning)
+                Qt.callLater(function() { if (!root.embeddedPracticeRunning) keyCatcher.forceActiveFocus() })
             }
           }
 
@@ -4451,7 +4834,7 @@ ShellRoot {
             }
           }
 
-          Component.onCompleted: Qt.callLater(function() { keyCatcher.forceActiveFocus() })
+          Component.onCompleted: Qt.callLater(function() { if (!root.embeddedPracticeRunning) keyCatcher.forceActiveFocus() })
         }
 
         function updateMenuSelectionTarget(item, index) {
@@ -4852,7 +5235,7 @@ ShellRoot {
                     objectName: "typeTextSwitch"
                     Layout.fillWidth: true
                     text: "Type text"
-                    description: "Reveal welcome captions gradually; off shows the full text."
+                    description: "Reveal narrated captions gradually; off shows the full text."
                     checked: root.synchronizedWelcomeText
                     onToggled: { root.synchronizedWelcomeText = checked; root.persistSettings() }
                   }
@@ -4889,7 +5272,7 @@ ShellRoot {
                 Text {
                   visible: root.settingsMode !== "first-run"
                   Layout.fillWidth: true
-                  text: "Type text currently applies to the welcome. Reduced motion always shows full text."
+                  text: "Captions follow the voice, or reveal at reading speed when muted. Reduced motion always shows full text."
                   wrapMode: Text.WordWrap
                   color: root.muted
                   font.pixelSize: 12 * root.textScale
@@ -5316,7 +5699,7 @@ ShellRoot {
           // Stays up for as long as keys are released. It used to hide while
           // the overlay held focus, but with on-demand focus the pointer
           // entering the overlay grants focus, so the pill vanished on hover.
-          visible: !root.keyboardExclusive && root.phase !== "loading"
+          visible: !root.keyboardExclusive && !root.exerciseRunning && root.phase !== "loading"
           anchors {
             top: parent.top
             horizontalCenter: parent.horizontalCenter
@@ -5354,14 +5737,16 @@ ShellRoot {
           id: teachingContent
           readonly property bool compactTour: root.phase === "waiting" && root.currentStepIsTour
           readonly property bool detailsExpanded: root.tourDetailsExpanded
+          readonly property var avoidTarget: root.phase === "highlight" && root.currentStep &&
+            root.currentStep.highlight && root.currentStep.highlight.target === "panel"
+            ? (overlay.measuredBarTarget && overlay.measuredBarTarget.panel ? overlay.measuredBarTarget : overlay.measuredWindowTarget)
+            : null
+          readonly property var placement: TeachingLayout.position(overlay.width, overlay.height, width, height, avoidTarget)
           visible: root.phase === "waiting" || root.phase === "highlight"
           opacity: root.lessonContentOpacity
-          anchors {
-            horizontalCenter: parent.horizontalCenter
-            bottom: parent.bottom
-            bottomMargin: 30
-          }
-          width: Math.min(compactTour ? 680 * root.textScale : 900, overlay.width - 48)
+          x: placement.x
+          y: placement.y
+          width: TeachingLayout.panelWidth(overlay.width, overlay.height, compactTour ? 680 * root.textScale : 900, avoidTarget)
           height: consoleColumn.implicitHeight + (compactTour ? 24 : 38)
           radius: 16
           stripe: compactTour ? "transparent" : root.phase === "waiting" ? root.instruction : root.accent
@@ -5545,14 +5930,16 @@ ShellRoot {
 
             Text {
               id: teachingInstruction
-              visible: !teachingContent.compactTour || teachingContent.detailsExpanded
+              readonly property int revealEnd: root.lessonRevealEnd(message)
+              readonly property color inkColor: root.phase === "waiting" ? root.instruction : root.foreground
+              visible: !root.embeddedPracticeRunning && (!teachingContent.compactTour || teachingContent.detailsExpanded)
               Layout.fillWidth: true
               Layout.leftMargin: 8
               Layout.rightMargin: 8
               horizontalAlignment: Text.AlignHCenter
               wrapMode: Text.Wrap
               textFormat: Text.PlainText
-              color: root.phase === "waiting" ? root.instruction : root.foreground
+              color: revealEnd >= 0 ? "transparent" : inkColor
               font.family: "sans-serif"
               font.pixelSize: 21 * root.textScale
               font.weight: Font.Bold
@@ -5566,6 +5953,24 @@ ShellRoot {
                 if (root.currentStepIsTour && root.currentStep && root.currentStep.detail)
                   return root.characterText(root.currentStep.detail)
                 return root.currentStep ? root.characterText(root.currentStep.instruction) : ""
+              }
+              WordRevealText {
+                anchors.fill: parent
+                visible: teachingInstruction.revealEnd >= 0
+                fullText: teachingInstruction.text
+                revealEnd: teachingInstruction.revealEnd
+                font: teachingInstruction.font
+                color: teachingInstruction.inkColor
+                horizontalAlignment: teachingInstruction.horizontalAlignment
+                lineHeight: teachingInstruction.lineHeight
+              }
+              Binding {
+                target: root
+                property: "lessonCaptionVisible"
+                when: overlay.shouldShow
+                value: root.currentStepIsTour && root.phase === "waiting" ? tourCaption.ready :
+                  teachingContent.visible && teachingInstruction.visible && teachingContent.opacity > 0 &&
+                  root.lessonCaptionMatches(teachingInstruction.message)
               }
             }
 
@@ -5590,17 +5995,21 @@ ShellRoot {
 
             UiButton {
               id: stepActionButton
-              visible: Boolean(root.phase === "waiting" && root.currentStep && !root.currentStepIsTour && root.currentStep.keys.length === 0)
+              visible: Boolean(root.phase === "waiting" && root.currentStep && !root.currentStepIsTour &&
+                root.currentStep.keys.length === 0 && !root.embeddedPracticeRunning)
               Layout.alignment: Qt.AlignHCenter
               kind: "primary"
-              label: (root.currentStep ? root.currentStep.actionLabel || "Continue" : "").toUpperCase()
-              enabled: !root.exerciseRunning
+              label: root.exerciseRunning && root.inlineAppSearch ? "SEARCH IN PROGRESS" :
+                (root.currentStep ? root.currentStep.actionLabel || "Continue" : "").toUpperCase()
+              enabled: !root.exerciseRunning && !root.practiceSessionActive
               onClicked: root.runStepAction("action")
             }
 
             Text {
               id: teachingNote
-              visible: Boolean(root.phase === "waiting" && !root.currentStepIsTour && root.currentStep && root.currentStep.note)
+              visible: Boolean(!root.currentStepIsTour && root.currentStep && root.currentStep.note &&
+                (root.phase === "waiting" || (root.phase === "highlight" && root.currentStep.highlight &&
+                  root.currentStep.highlight.target === "panel")))
               Layout.fillWidth: true
               Layout.leftMargin: 8
               Layout.rightMargin: 8
@@ -5680,10 +6089,30 @@ ShellRoot {
               onClicked: { root.stopAudio(); root.advance() }
             }
 
-            Text {
-              visible: root.exerciseRunning
+            Item {
+              id: embeddedPracticeHost
+              visible: root.embeddedPracticeRunning
               Layout.fillWidth: true
-              text: "Keys now go to the exercise window. Complete its task or close it to return to your coach."
+              Layout.preferredHeight: Math.min(360 * root.textScale, overlay.height * 0.4)
+              Component.onCompleted: if (overlay.isFocusedScreen) root.practiceHost = embeddedPracticeHost
+              Component.onDestruction: {
+                if (root.practiceHost === embeddedPracticeHost) {
+                  root.practiceHost = null
+                  if (root.practiceSessionActive) root.cancelAction()
+                }
+              }
+              Connections {
+                target: overlay
+                function onIsFocusedScreenChanged() {
+                  if (overlay.isFocusedScreen) root.practiceHost = embeddedPracticeHost
+                }
+              }
+            }
+
+            Text {
+              visible: root.exerciseRunning && root.inlineAppSearch
+              Layout.fillWidth: true
+              text: "Keys go to your desktop. Close the new terminal to finish, or choose Skip."
               wrapMode: Text.WordWrap
               horizontalAlignment: Text.AlignHCenter
               color: root.foreground
@@ -5781,11 +6210,7 @@ ShellRoot {
             kind: "danger"
             icon: "close"
             label: "EXIT"
-            onClicked: {
-              root.runCleanup()
-              root.stopAudio()
-              Qt.quit()
-            }
+            onClicked: root.requestExit()
           }
         }
 
@@ -5879,15 +6304,26 @@ ShellRoot {
               font.weight: Font.Bold
             }
             Text {
+              id: wrapupCaptionText
               Layout.fillWidth: true
               visible: root.currentLessonWrapup() !== null
               text: root.currentLessonWrapup() ? root.captionText(root.characterText(root.currentLessonWrapup().text)) : ""
               textFormat: Text.PlainText
               horizontalAlignment: Text.AlignHCenter
               wrapMode: Text.Wrap
-              color: root.foreground
+              color: wrapupReveal.revealEnd >= 0 ? "transparent" : root.foreground
               font.pixelSize: 18 * root.textScale
               lineHeight: 1.2
+              WordRevealText {
+                anchors.fill: parent
+                visible: wrapupReveal.revealEnd >= 0
+                fullText: wrapupCaptionText.text
+                revealEnd: wrapupReveal.revealEnd
+                font: wrapupCaptionText.font
+                color: root.foreground
+                horizontalAlignment: wrapupCaptionText.horizontalAlignment
+                lineHeight: wrapupCaptionText.lineHeight
+              }
             }
             Text {
               Layout.fillWidth: true
@@ -6203,6 +6639,12 @@ ShellRoot {
               root.welcomeReadingActive = false
             }
           }
+          Binding {
+            target: root
+            property: "welcomeCaptionVisible"
+            when: overlay.shouldShow
+            value: welcomeCaption.ready
+          }
           Behavior on opacity {
             onTargetValueChanged: welcomeFade.duration = targetValue > 0 && !root.reducedMotion ? 240 : 0
             NumberAnimation { id: welcomeFade; duration: 0; easing.type: Easing.InOutSine }
@@ -6307,6 +6749,15 @@ ShellRoot {
               font.family: "sans-serif"
               font.pixelSize: 21 * root.textScale
               lineHeight: 1.2
+              opacity: root.lessonRevealEnd(root.currentStep ? root.characterText(root.currentStep.instruction) : "") >= 0 ? 0 : 1
+            }
+            WordRevealText {
+              width: tourCaptionText.width
+              fullText: tourCaptionText.text
+              revealEnd: root.lessonRevealEnd(root.currentStep ? root.characterText(root.currentStep.instruction) : "")
+              visible: revealEnd >= 0
+              font: tourCaptionText.font
+              color: tourCaptionText.color
             }
           }
         }

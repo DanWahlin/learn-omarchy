@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "audioHash": "263f0f1fb161d05bca8b98fec65dabbc895221ea39d0ceec83dae1fc2d78c643",
+  "text": "Clipboard history is open. After releasing the keys, select an entry and use Shift and Enter to copy it without pasting. Regular Enter pastes into the previous field.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 9
+    },
+    {
+      "startMs": 590,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 42
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4870,
+      "endOffset": 68
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 76
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 82
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 92
+    },
+    {
+      "startMs": 7190,
+      "endOffset": 95
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 100
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 103
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 111
+    },
+    {
+      "startMs": 8430,
+      "endOffset": 120
+    },
+    {
+      "startMs": 9629,
+      "endOffset": 128
+    },
+    {
+      "startMs": 10229,
+      "endOffset": 134
+    },
+    {
+      "startMs": 10590,
+      "endOffset": 141
+    },
+    {
+      "startMs": 11110,
+      "endOffset": 146
+    },
+    {
+      "startMs": 11389,
+      "endOffset": 150
+    },
+    {
+      "startMs": 11549,
+      "endOffset": 159
+    },
+    {
+      "startMs": 12030,
+      "endOffset": 166
+    }
+  ]
+}

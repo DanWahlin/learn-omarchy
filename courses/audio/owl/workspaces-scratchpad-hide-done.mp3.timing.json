@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "audioHash": "0f91d10fdbccaedb5449228013e1cd3f583404bb37fa3b1ef1af343f850eb699",
+  "text": "The scratchpad is hidden, but its terminal is still open. We'll reveal it again before moving the terminal to a numbered workspace.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 14
+    },
+    {
+      "startMs": 830,
+      "endOffset": 17
+    },
+    {
+      "startMs": 990,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 51
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 93
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 97
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 106
+    },
+    {
+      "startMs": 6750,
+      "endOffset": 109
+    },
+    {
+      "startMs": 6910,
+      "endOffset": 111
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 120
+    },
+    {
+      "startMs": 7430,
+      "endOffset": 131
+    }
+  ]
+}

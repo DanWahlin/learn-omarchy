@@ -81,6 +81,14 @@ test("OLLIE grows around bottom pivot, reveals on declared perch, and takes off 
   assert.equal(final.canopy.opacity, 0);
 });
 
+test("Ollie's bird ambience starts with the tree without extending the visual timeline", () => {
+  const timeline = compileIntroSequence(readSequence("assets/characters/owl")) as {
+    duration: number; sounds: { at: number; cue: string }[];
+  };
+  assert.equal(timeline.duration, 3700);
+  assert.deepEqual(JSON.parse(JSON.stringify(timeline.sounds)), [{ at: 0, cue: "birds-welcome.opus", order: 0 }]);
+});
+
 test("invalid input cannot add commands, expressions, target paths, or remote/traversal images", () => {
   const invalid: unknown[] = [
     null, {}, { ...base(), version: 2 }, { ...base(), script: "exit()" },

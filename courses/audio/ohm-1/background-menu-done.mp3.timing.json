@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "876a5a0841a6a6ddd485c80425652f8eaf2341a2edd6c09aa997cfe8882e8102",
+  "text": "Pick a background you like, or press Escape to keep the one you have.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 6
+    },
+    {
+      "startMs": 270,
+      "endOffset": 17
+    },
+    {
+      "startMs": 710,
+      "endOffset": 21
+    },
+    {
+      "startMs": 830,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 36
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 51
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 55
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 59
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 69
+    }
+  ]
+}

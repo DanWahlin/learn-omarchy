@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "862f771d1b0a43a5eae126cf0ebdc96038175f4fa43bbffaede9f28365851b34",
+  "text": "What's the date? Hold Super, Control, and Alt, then press D to open the calendar.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 630,
+      "endOffset": 10
+    },
+    {
+      "startMs": 870,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 67
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 81
+    }
+  ]
+}

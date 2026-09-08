@@ -1,0 +1,27 @@
+{
+  "title": "Ambient Bird Sounds",
+  "creator": "isaiah658",
+  "sourceUrl": "https://opengameart.org/content/ambient-bird-sounds",
+  "downloadUrl": "https://opengameart.org/sites/default/files/birds-isaiah658_0.ogg",
+  "license": "CC0-1.0",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "retrieved": "2026-09-08",
+  "sourceSha256": "359e4e3f9da9d75aac64cede511c7e3ef8b461f9d9f8c230f8f80e44c4b3e35f",
+  "output": "birds-welcome.opus",
+  "outputSha256": "ff124f0c55ed95ba8a7921144031c8ddb52dab438cc2324d92af3cd5fe04f7ba",
+  "processing": {
+    "startSeconds": 0,
+    "durationSeconds": 10,
+    "fadeInSeconds": 0.4,
+    "fadeOutStartSeconds": 7,
+    "fadeOutSeconds": 3,
+    "codec": "libopus",
+    "bitrate": "96k",
+    "sampleRate": 48000
+  },
+  "playback": {
+    "effectsVolumeMultiplier": 0.60,
+    "start": "Ollie's tree intro begins",
+    "continuesThroughWelcomeHandoff": true
+  }
+}

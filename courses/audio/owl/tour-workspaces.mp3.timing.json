@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "audioHash": "d707cb16ee1c1c622ad2c106857fa84839a32b199fa8b0807de9c89bce600be3",
+  "text": "These are your workspaces: separate desktops for different tasks. The active workspace has a marker in the bar, which may replace its number with an icon. Switching workspaces keeps your windows open.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 430,
+      "endOffset": 9
+    },
+    {
+      "startMs": 590,
+      "endOffset": 14
+    },
+    {
+      "startMs": 790,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 69
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 76
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 90
+    },
+    {
+      "startMs": 6750,
+      "endOffset": 92
+    },
+    {
+      "startMs": 6870,
+      "endOffset": 99
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 102
+    },
+    {
+      "startMs": 7430,
+      "endOffset": 106
+    },
+    {
+      "startMs": 7550,
+      "endOffset": 111
+    },
+    {
+      "startMs": 8109,
+      "endOffset": 117
+    },
+    {
+      "startMs": 8389,
+      "endOffset": 121
+    },
+    {
+      "startMs": 8590,
+      "endOffset": 129
+    },
+    {
+      "startMs": 9069,
+      "endOffset": 133
+    },
+    {
+      "startMs": 9270,
+      "endOffset": 140
+    },
+    {
+      "startMs": 9750,
+      "endOffset": 145
+    },
+    {
+      "startMs": 9950,
+      "endOffset": 148
+    },
+    {
+      "startMs": 10069,
+      "endOffset": 154
+    },
+    {
+      "startMs": 11350,
+      "endOffset": 164
+    },
+    {
+      "startMs": 11910,
+      "endOffset": 175
+    },
+    {
+      "startMs": 12790,
+      "endOffset": 181
+    },
+    {
+      "startMs": 13030,
+      "endOffset": 186
+    },
+    {
+      "startMs": 13190,
+      "endOffset": 194
+    },
+    {
+      "startMs": 13709,
+      "endOffset": 200
+    }
+  ]
+}

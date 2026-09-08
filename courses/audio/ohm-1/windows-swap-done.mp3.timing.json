@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "3887f33fce5625d7f593aa4b6fb47fabae3c8bee7c39f41a7dcb6c1a688b1980",
+  "text": "Your practice terminals traded places. Adding Shift changes directional focus into a window swap.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 13
+    },
+    {
+      "startMs": 630,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4870,
+      "endOffset": 82
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 84
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 91
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 97
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "audioHash": "9153ce98fc11b260a21a8f543939d7d468badf75f00b38a10a244a2e06ac8f0a",
+  "text": "Setup, Defaults is where you choose which apps Omarchy opens. For now, just note the location; keep your current settings. Installing an app and making it the default are separate decisions.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 790,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 61
+    },
+    {
+      "startMs": 4870,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 70
+    },
+    {
+      "startMs": 5710,
+      "endOffset": 75
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 80
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 84
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 94
+    },
+    {
+      "startMs": 7270,
+      "endOffset": 99
+    },
+    {
+      "startMs": 7550,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7710,
+      "endOffset": 112
+    },
+    {
+      "startMs": 8069,
+      "endOffset": 122
+    },
+    {
+      "startMs": 9270,
+      "endOffset": 133
+    },
+    {
+      "startMs": 9990,
+      "endOffset": 136
+    },
+    {
+      "startMs": 10350,
+      "endOffset": 140
+    },
+    {
+      "startMs": 10510,
+      "endOffset": 144
+    },
+    {
+      "startMs": 10670,
+      "endOffset": 151
+    },
+    {
+      "startMs": 11030,
+      "endOffset": 154
+    },
+    {
+      "startMs": 11110,
+      "endOffset": 158
+    },
+    {
+      "startMs": 11229,
+      "endOffset": 166
+    },
+    {
+      "startMs": 11910,
+      "endOffset": 170
+    },
+    {
+      "startMs": 12110,
+      "endOffset": 179
+    },
+    {
+      "startMs": 12549,
+      "endOffset": 190
+    }
+  ]
+}

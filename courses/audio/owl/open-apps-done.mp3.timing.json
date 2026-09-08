@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "cacce4f7df7262a831ab00f9cfc605a252d3c7fcde4f0aa76100e90c19345aad",
+  "text": "The Apps menu is open. The next exercise lets you search for and launch an app yourself.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 310,
+      "endOffset": 8
+    },
+    {
+      "startMs": 630,
+      "endOffset": 13
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 22
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 45
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 49
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 64
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 71
+    },
+    {
+      "startMs": 5630,
+      "endOffset": 74
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 78
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 88
+    }
+  ]
+}

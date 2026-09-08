@@ -88,8 +88,8 @@ export function mapWordBoundaries(
     }
     const startMs = event.audioOffset / 10000;
     if (!Number.isSafeInteger(event.audioOffset) || startMs < 0 ||
-        startMs <= previousStartMs || startMs >= durationMs) {
-      return { reason: "invalid or nonmonotonic word boundary audio offsets" };
+        startMs < previousStartMs || startMs >= durationMs) {
+      return { reason: `invalid or nonmonotonic word boundary audio offsets (word ${words.length + 1}: ${startMs}ms, previous ${previousStartMs}ms, duration ${durationMs}ms)` };
     }
     let originalEnd = prepared.originalEnds[end];
     const originalStart = prepared.originalEnds[event.textOffset];
@@ -124,7 +124,7 @@ export function timingIsFresh(value: unknown, audioHash: string | undefined, tex
   let start = -1;
   let end = 0;
   for (const word of timing.words) {
-    if (!word || !Number.isFinite(word.startMs) || word.startMs < 0 || word.startMs <= start ||
+    if (!word || !Number.isFinite(word.startMs) || word.startMs < 0 || word.startMs < start ||
         !Number.isSafeInteger(word.endOffset) || word.endOffset <= end || word.endOffset > text.length ||
         splitsSurrogatePair(text, word.endOffset)) return false;
     start = word.startMs;

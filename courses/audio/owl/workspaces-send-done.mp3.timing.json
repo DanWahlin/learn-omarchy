@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "audioHash": "d69ea1a05985ddd722d46df47f01f580db6ccdc74d24e8a40292dfbd89f1a085",
+  "text": "The terminal is now on workspace two, and you've followed it there. Moving a window lets you keep related work together.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 12
+    },
+    {
+      "startMs": 750,
+      "endOffset": 15
+    },
+    {
+      "startMs": 950,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 67
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 74
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 76
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 83
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 88
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 92
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 97
+    },
+    {
+      "startMs": 6470,
+      "endOffset": 105
+    },
+    {
+      "startMs": 6990,
+      "endOffset": 110
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 120
+    }
+  ]
+}

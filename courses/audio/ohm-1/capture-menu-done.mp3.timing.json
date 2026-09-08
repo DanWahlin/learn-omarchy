@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "audioHash": "6e3ce21daf2b20183069f51079fdf203fd2c657a7715c4f38348e73bdd2458c9",
+  "text": "Screenshots, recordings, and more, all from one menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 12
+    },
+    {
+      "startMs": 870,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 47
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 53
+    }
+  ]
+}

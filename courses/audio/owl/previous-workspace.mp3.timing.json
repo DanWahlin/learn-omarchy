@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "99624bfbb3bc7683c6d0787a3555ac757810ac4116c1ea86d95fdea788d459c2",
+  "text": "Now head back. Hold Super and Shift, then press Tab to return to the previous workspace.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 310,
+      "endOffset": 8
+    },
+    {
+      "startMs": 550,
+      "endOffset": 14
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 19
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 36
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 51
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 61
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 64
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 68
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 77
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 88
+    }
+  ]
+}

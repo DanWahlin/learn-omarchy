@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "8a46d9d528e960c6145c417b92b2080b7cf5a3e430cb5fdf269f390c9c91b676",
+  "text": "Press Super and T to put that floating terminal back into the tiled layout.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 11
+    },
+    {
+      "startMs": 750,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 47
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 52
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 67
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 75
+    }
+  ]
+}

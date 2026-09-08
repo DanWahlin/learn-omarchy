@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "audioHash": "a5dead5b06a6eadb8ba269c468adccd5a2838670b79117d34ee96928ff7c79e2",
+  "text": "And close it. Press Super and W.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 9
+    },
+    {
+      "startMs": 630,
+      "endOffset": 13
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 19
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 32
+    }
+  ]
+}

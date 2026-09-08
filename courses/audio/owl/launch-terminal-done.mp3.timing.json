@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "0d4cc26fe9e1fd11bb3315beee13203a844a852bef522e88397a1565b9ca34fd",
+  "text": "That's your terminal, one shortcut away from anywhere in Omarchy.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 390,
+      "endOffset": 11
+    },
+    {
+      "startMs": 550,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 65
+    }
+  ]
+}

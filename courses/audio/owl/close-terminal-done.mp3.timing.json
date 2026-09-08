@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "4d719f2dab43505f53fabcff2d6669c86e82d2f276c067ae8fab2649757c16a3",
+  "text": "The practice terminal is closed. Super and Return opens one; Super and W closes the active window.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 630,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 38
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 42
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 49
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 55
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 60
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 66
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 70
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 72
+    },
+    {
+      "startMs": 6550,
+      "endOffset": 79
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 83
+    },
+    {
+      "startMs": 7190,
+      "endOffset": 90
+    },
+    {
+      "startMs": 7630,
+      "endOffset": 98
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "audioHash": "d388fce8f116adae2db059ca25c8c0e7ea7831b062d5c52593f92b8bb1b52581",
+  "text": "There's your terminal, available without leaving this workspace.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 350,
+      "endOffset": 12
+    },
+    {
+      "startMs": 550,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 40
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 48
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 53
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 64
+    }
+  ]
+}

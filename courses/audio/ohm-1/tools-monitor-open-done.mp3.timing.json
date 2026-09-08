@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "06c7438696c0b87765e7b0b1c3552cdd2b79f47b9adb376c49fdb6dca6ade9fc",
+  "text": "The activity monitor is open. Use it to understand resource use before deciding whether anything needs attention.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 590,
+      "endOffset": 20
+    },
+    {
+      "startMs": 950,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 79
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 87
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 96
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 102
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 113
+    }
+  ]
+}

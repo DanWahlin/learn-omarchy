@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import type { CharacterManifest } from "../src/character-packs.ts";
-import { clipIssues, type AudioClip } from "../tools/audio-coverage.ts";
+import { clipIssues, timingIssues, type AudioClip } from "../tools/audio-coverage.ts";
 import { sha256, prepareSpeech, productionOptions, type ProductionEntry } from "../tools/audio-production.ts";
 
 const pack: CharacterManifest = JSON.parse(await readFile(new URL("../assets/characters/ohm-1/character.json", import.meta.url), "utf8"));
@@ -39,4 +39,14 @@ test("coverage checks actual speech, voice and bytes without invalidating histor
   entry.provenance.spec.voice = "wrong-voice";
   assert.ok(clipIssues(clip, pack, entry, entry.normalization.outputHash).includes("outdated voice"));
   assert.ok(clipIssues(clip, pack, entry, "different-bytes").includes("recording hash mismatch"));
+});
+
+test("optional timing falls back when absent but rejects stale, mismatched, or out-of-range data", () => {
+  assert.deepEqual(timingIssues(clip, { reason: "missing-timing" }), []);
+  assert.deepEqual(timingIssues(clip, { reason: "invalid-timing" }), ["invalid or stale word timing metadata"]);
+  const timing = { text: clip.text, words: [{ startMs: 100, endOffset: clip.text.length }] };
+  assert.deepEqual(timingIssues(clip, { timing }, 3), []);
+  assert.deepEqual(timingIssues(clip, { timing: { ...timing, text: "Old wording." } }, 3),
+    ["word timing text doesn't match narration"]);
+  assert.deepEqual(timingIssues(clip, { timing }, 0.1), ["word timing extends beyond the recording"]);
 });

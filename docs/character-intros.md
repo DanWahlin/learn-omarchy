@@ -114,7 +114,9 @@ Only these action shapes are accepted:
 { "type": "sound", "cue": "rocket-land.opus" }
 ```
 
-Sound is a zero-duration request for an explicitly allowlisted application-owned effect. Version 1 accepts only `rocket-land.opus` and `rocket-liftoff.opus`. These names are opaque built-in asset keys, not paths supplied to a shell. They do not imply any scene behavior: the pack must place each cue in its own steps. The host maps them to the existing `assets/sounds` files. No binaries are duplicated; these built-ins are not returned by `introAssetPaths()`.
+Sound is a zero-duration request for an explicitly allowlisted application-owned effect. Version 1 accepts `rocket-land.opus`, `rocket-liftoff.opus`, and `birds-welcome.opus`. These names are opaque built-in asset keys, not paths supplied to a shell. They do not imply any scene behavior: the pack must place each cue in its own steps. The host maps them to the existing `assets/sounds` files. No binaries are duplicated; these built-ins are not returned by `introAssetPaths()`.
+
+`birds-welcome.opus` is quiet welcome ambience: ten seconds, with a 0.4-second fade-in and a three-second fade-out starting at seven seconds. It plays independently of narration at 60% of the Effects volume setting and continues through the natural scene-to-welcome handoff. Cancelling the welcome, switching coaches, muting, disabling effects, or enabling reduced motion stops it. Its CC0 source, creator, hashes, and processing details are recorded in `assets/sounds/birds-welcome.provenance.json`.
 
 ```json
 { "type": "wait", "duration": 200 }
@@ -167,7 +169,7 @@ The same single player clock drives all effects. They have no private timers, in
 * Cancelling an active run emits `cancelled()` once, never `finished()`. Changing sequence or asset root cancels safely, including during loading. Image callbacks carry generation tokens; stale callbacks cannot move a new character or complete a later run.
 * `soundRequested(string path)` emits each declared built-in key once when its timeline position is reached. The host must allowlist the key again, resolve the existing application asset, and stop active intro sound on cancellation/reset. No sound cues run during reduced-motion/static fallback. Generation guards also handle a sound listener cancelling or replacing the sequence synchronously.
 
-Sequences cannot advance lessons, select tour coordinates, or trigger narration. Global sound playback stays with the host. HEXON explicitly requests the existing landing effect at 0 ms and liftoff effect at 4,400 ms, preserving the original ship sound timing.
+Sequences cannot advance lessons, select tour coordinates, or trigger narration. Global sound playback stays with the host. HEXON explicitly requests the existing landing effect at 0 ms and liftoff effect at 4,400 ms, preserving the original ship sound timing. Ollie requests the bird ambience at 0 ms, when the tree animation starts; the sound doesn't extend the visual sequence.
 
 ## Verification and visual acceptance
 

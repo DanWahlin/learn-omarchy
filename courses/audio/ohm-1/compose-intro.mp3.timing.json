@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "audioHash": "e4b462871498018ccd739d7f148694efb6d0f05348a6ef790ff65a024413e6b8",
+  "text": "Omarchy uses Caps Lock as the Compose key by default, instead of toggling capital letters. Tap and release Caps Lock, then m, then s for a smile. These are separate presses, not a shortcut you hold together.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 550,
+      "endOffset": 12
+    },
+    {
+      "startMs": 870,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 64
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 94
+    },
+    {
+      "startMs": 5910,
+      "endOffset": 98
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 106
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 111
+    },
+    {
+      "startMs": 6830,
+      "endOffset": 117
+    },
+    {
+      "startMs": 7430,
+      "endOffset": 122
+    },
+    {
+      "startMs": 7830,
+      "endOffset": 125
+    },
+    {
+      "startMs": 8389,
+      "endOffset": 130
+    },
+    {
+      "startMs": 8629,
+      "endOffset": 132
+    },
+    {
+      "startMs": 8830,
+      "endOffset": 136
+    },
+    {
+      "startMs": 9030,
+      "endOffset": 138
+    },
+    {
+      "startMs": 9069,
+      "endOffset": 145
+    },
+    {
+      "startMs": 9870,
+      "endOffset": 151
+    },
+    {
+      "startMs": 10110,
+      "endOffset": 155
+    },
+    {
+      "startMs": 10229,
+      "endOffset": 164
+    },
+    {
+      "startMs": 10629,
+      "endOffset": 173
+    },
+    {
+      "startMs": 11309,
+      "endOffset": 177
+    },
+    {
+      "startMs": 11549,
+      "endOffset": 179
+    },
+    {
+      "startMs": 11590,
+      "endOffset": 188
+    },
+    {
+      "startMs": 12069,
+      "endOffset": 192
+    },
+    {
+      "startMs": 12190,
+      "endOffset": 197
+    },
+    {
+      "startMs": 12350,
+      "endOffset": 207
+    }
+  ]
+}

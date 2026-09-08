@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "00231b0879396e6e775b042383dcb896c2453d124f61bf01fc4838ea549a17e2",
+  "text": "You're on workspace two. Anything you already had here stays in place.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 9
+    },
+    {
+      "startMs": 390,
+      "endOffset": 19
+    },
+    {
+      "startMs": 870,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 54
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 70
+    }
+  ]
+}

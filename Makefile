@@ -24,6 +24,7 @@ install:
 	install -m 644 tools/character-packs.ts tools/validate-course.ts tools/capture-practice.mjs tools/verify-window-owner.mjs "$(APP_DIR)/tools/"
 	install -m 644 tools/validate-course-audio.ts tools/audio-coverage.ts tools/audio-production.ts "$(APP_DIR)/tools/"
 	install -m 644 tools/play-timed-speech.mjs "$(APP_DIR)/tools/"
+	install -m 644 tools/tutorial-launch.mjs "$(APP_DIR)/tools/"
 	install -m 644 docs/character-packs.md docs/character-intros.md "$(APP_DIR)/docs/"
 	cp -R assets/sounds "$(APP_DIR)/assets/"
 	install -d "$(APP_DIR)/assets/splash"

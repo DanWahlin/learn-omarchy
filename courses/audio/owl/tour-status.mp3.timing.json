@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "audioHash": "5e65052b98da856ea2b26a3e18a962b5367040b785588486b14cbab1b060d7af",
+  "text": "These indicators show system status, including network, Bluetooth, sound, and power. Select an indicator to open its controls. What you see depends on your hardware and bar settings.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 390,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 55
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 66
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 73
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 77
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 84
+    },
+    {
+      "startMs": 7350,
+      "endOffset": 91
+    },
+    {
+      "startMs": 7870,
+      "endOffset": 94
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 104
+    },
+    {
+      "startMs": 8709,
+      "endOffset": 107
+    },
+    {
+      "startMs": 8830,
+      "endOffset": 112
+    },
+    {
+      "startMs": 9190,
+      "endOffset": 116
+    },
+    {
+      "startMs": 9350,
+      "endOffset": 126
+    },
+    {
+      "startMs": 10750,
+      "endOffset": 131
+    },
+    {
+      "startMs": 11069,
+      "endOffset": 135
+    },
+    {
+      "startMs": 11229,
+      "endOffset": 139
+    },
+    {
+      "startMs": 11790,
+      "endOffset": 147
+    },
+    {
+      "startMs": 12229,
+      "endOffset": 150
+    },
+    {
+      "startMs": 12350,
+      "endOffset": 155
+    },
+    {
+      "startMs": 12549,
+      "endOffset": 164
+    },
+    {
+      "startMs": 13229,
+      "endOffset": 168
+    },
+    {
+      "startMs": 13430,
+      "endOffset": 172
+    },
+    {
+      "startMs": 13709,
+      "endOffset": 182
+    }
+  ]
+}

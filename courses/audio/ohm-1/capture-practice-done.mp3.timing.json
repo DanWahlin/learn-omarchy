@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "audioHash": "7fc789eeea4299778d4d0f7baf2137cfaabfc572025d53659720dd52e659fc33",
+  "text": "You've captured and reviewed an image, copied its path, and labeled the preview. The saved image itself is unchanged.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 15
+    },
+    {
+      "startMs": 710,
+      "endOffset": 19
+    },
+    {
+      "startMs": 830,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 38
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 55
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 67
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 71
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 80
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 84
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 90
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 96
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 103
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 106
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 117
+    }
+  ]
+}

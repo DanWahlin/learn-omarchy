@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "e94bc7255e967fc40795cd8762015ab5f983debcf6c4e05f2a2984444f2b21ea",
+  "text": "Both practice terminals are closed. You've covered opening, arranging, switching between, and closing windows.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 270,
+      "endOffset": 13
+    },
+    {
+      "startMs": 590,
+      "endOffset": 23
+    },
+    {
+      "startMs": 990,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 80
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 89
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 93
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 101
+    },
+    {
+      "startMs": 5470,
+      "endOffset": 110
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "92e931793dcdd8e1f990520a97d153062e14e43b389ffe4078a64e19e9392c34",
+  "text": "Copied something earlier? Hold Super and Control, then press V to open your clipboard history.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 470,
+      "endOffset": 16
+    },
+    {
+      "startMs": 870,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 49
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 62
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 70
+    },
+    {
+      "startMs": 5710,
+      "endOffset": 75
+    },
+    {
+      "startMs": 5910,
+      "endOffset": 85
+    },
+    {
+      "startMs": 6470,
+      "endOffset": 94
+    }
+  ]
+}

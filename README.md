@@ -86,13 +86,14 @@ and then introduces the course menu while pointing at **Omarchy tour**,
 now lesson #2. The tour is
 recommended, not started: choose any lesson with the mouse or keyboard.
 Captions fade in only after the coach arrives, with time to read each message.
-Welcome captions can reveal words in sync with narration when the recording has
+Narrated captions can reveal words in sync with speech when the recording has
 validated word timings. The caption keeps its full layout rather than reflowing
 as words appear. Missing or incompatible timing with narration playing shows
 the complete text immediately. Muted narration reveals words at reading speed;
 reduced motion shows all text immediately. Turn off **Type text** in Settings
-to disable the reveal. This pilot applies only to the welcome flow; lesson
-instructions, keycaps, and safety notes remain fully visible.
+to disable the reveal. This applies to welcome messages, lesson instructions,
+completion messages, and lesson wrap-ups. Keycaps, action buttons, safety notes,
+and expanded Details remain fully visible.
 Choose **Welcome to Omarchy** anytime to replay the entrance and greeting with
 your selected coach. There's no need to reset settings or lesson progress.
 The welcome reuses `courses/welcome.json` and its existing recordings; its
@@ -136,10 +137,13 @@ later workspace-switching activities use individual destination markers.
   ownership. If a launch happens outside the course's
   keyboard capture, or an app reuses an existing window, the course won't close
   it automatically. Repeat the module with keyboard capture enabled and use
-  Help to launch a fresh process, or skip the activity. Apps that route launches
-  through an already-running instance may not inherit the token; even a new
-  window from that instance stays unowned and offers recovery, not automatic
-  close/move permission. A missing-window message offers a return
+  Help to launch a fresh process, or skip the activity. Guided terminal launches
+  use independent Ghostty or Foot instances. Chrome and Chromium use temporary,
+  isolated profiles that are removed when their tutorial instance exits; your
+  existing browser profile stays untouched. Unsupported terminal/browser
+  configurations fail explicitly rather than reusing an unowned instance.
+  Files and the calculator retain their normal launch paths and the same token
+  verification. A missing-window message offers a return
   to the launch activity, then brings you back to the interrupted task. Move,
   focus, floating, and fullscreen activities inspect the resulting client state
   before reporting success. Modules
@@ -219,7 +223,16 @@ so an arrow doesn't claim the other terminal is on the right when it's on the le
 
 Hands-on exercises deliberately use narrow completion conditions:
 
-- App search observes an Omarchy menu opening, a new terminal opening, and that
+- Exercises keep the coach, lesson navigation, and toolbar in place. A bounded,
+  scrollable work area appears inside the normal bottom card for samples and
+  input. Native menus and region pickers still work normally. Leaving or exiting
+  waits for the exercise helper to finish cleaning up before unloading it.
+  Recording and OCR samples stay fixed while their controls scroll, so choosing
+  the next action doesn't move the content out of the selected region.
+- **Start search** keeps the coach and instructions in the normal bottom panel
+  while the learner uses the real Apps menu. No separate exercise dialog opens;
+  closing the new terminal finishes automatically and restores keyboard capture.
+  App search observes an Omarchy menu opening, a new terminal opening, and that
   exact terminal closing. It doesn't inspect the search text or close existing
   windows.
 - Clipboard practice requires native copy events for two harmless notes, opening
@@ -460,6 +473,11 @@ The following completion detectors are supported:
   compositor-reported process's `/proc/PID/environ` for the per-launch
   `LEARN_OMARCHY_WINDOW_TOKEN`. An existing app instance that doesn't inherit
   this token is never granted permission for window-changing actions.
+  An optional step-level `windowSize: { "width": 1200, "height": 640 }`
+  gives a newly owned activity window a readable floating size near the top
+  of its display. Ownership is checked before resizing, and the resulting
+  geometry is checked before the activity completes. This is used for the
+  activity monitor so a crowded tiled workspace can't hide its statistics.
 - `hyprland-event` waits for one of the named `events`, optionally filtered by
   `dataPattern`. For window actions, set `target: "tutorial-window"` and put
   `windowFromStep` on the activity to reference an earlier launch in the same
@@ -475,13 +493,17 @@ The following completion detectors are supported:
   `app-search`, `clipboard`, `capture`, `screen-lock`, `compose`,
   `screen-recording`, `ocr`, `qr`, `dictation`, `web-app`, `transcode`, or
   `sharing`, `keys` to `[]`, and
-  supply an `actionLabel`. The private runner must exit successfully with one
-  verified result for that mode. Practice steps can't supply arbitrary Help,
+  supply an `actionLabel`. The embedded session must report a verified result
+  for that mode; the nonvisual app-search runner instead exits successfully with
+  one verified result. Practice steps can't supply arbitrary Help,
   cleanup, or window-target commands.
 
 Lessons and individual activities accept `"optional": true`. For an owned
 window, `windowState.specialWorkspace: "scratchpad"` verifies placement even
-while hidden. A swap uses `swapWithStep` to reference a second earlier launch,
+while hidden. Add `specialVisible: true` or `false` to verify that the named
+scratchpad is actually shown or hidden on that window's monitor. An empty
+scratchpad or an unrelated special-workspace event never satisfies this check.
+A swap uses `swapWithStep` to reference a second earlier launch,
 `windowState.swapped: true`, and `{peerWindow}` in its command. Both windows'
 positions must exchange; an unrelated focus event doesn't count. Directional
 focus uses `directionFromStep` for its starting window and `windowFromStep`

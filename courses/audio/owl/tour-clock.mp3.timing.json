@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "audioHash": "51184d67d72d4c93447c4fdaae0a3e66e87e5d1afcb91b99a44fc55965bdf96e",
+  "text": "Here's the date and time, with weather alongside it if enabled. The clock opens a calendar. Hovering over this area can also reveal quick tools, including reminders and screen recording.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 350,
+      "endOffset": 10
+    },
+    {
+      "startMs": 510,
+      "endOffset": 15
+    },
+    {
+      "startMs": 830,
+      "endOffset": 19
+    },
+    {
+      "startMs": 950,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 48
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 67
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 73
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 91
+    },
+    {
+      "startMs": 7030,
+      "endOffset": 100
+    },
+    {
+      "startMs": 7470,
+      "endOffset": 105
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 110
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 115
+    },
+    {
+      "startMs": 8309,
+      "endOffset": 119
+    },
+    {
+      "startMs": 8510,
+      "endOffset": 124
+    },
+    {
+      "startMs": 8790,
+      "endOffset": 131
+    },
+    {
+      "startMs": 9270,
+      "endOffset": 137
+    },
+    {
+      "startMs": 9590,
+      "endOffset": 144
+    },
+    {
+      "startMs": 10229,
+      "endOffset": 154
+    },
+    {
+      "startMs": 10830,
+      "endOffset": 164
+    },
+    {
+      "startMs": 11590,
+      "endOffset": 168
+    },
+    {
+      "startMs": 11830,
+      "endOffset": 175
+    },
+    {
+      "startMs": 12190,
+      "endOffset": 186
+    }
+  ]
+}

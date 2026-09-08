@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "7d05a331fa0f5728330787d9c1f1ecec034441c09fa24f8d72b91c324138edb4",
+  "text": "The terminal is in the scratchpad. Next, reveal it over your current workspace.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 750,
+      "endOffset": 15
+    },
+    {
+      "startMs": 950,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 55
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 79
+    }
+  ]
+}

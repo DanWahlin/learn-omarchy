@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "376c2c2a9cced7f0023661b012b0c9ffc24b531dbe1a674971220f4139db1b8a",
+  "text": "Your browser is ready. Super, Shift, and Return is the shortcut to remember.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 12
+    },
+    {
+      "startMs": 710,
+      "endOffset": 15
+    },
+    {
+      "startMs": 950,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 50
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 66
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 76
+    }
+  ]
+}

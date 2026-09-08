@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "d2ad9d708803c47271157a91cf1bb28beb7ef117b6d127b42769642dbbd7bab6",
+  "text": "The Toggle menu is open. Selecting an entry changes that setting; closing the menu alone doesn't undo changes you've made.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 10
+    },
+    {
+      "startMs": 430,
+      "endOffset": 15
+    },
+    {
+      "startMs": 710,
+      "endOffset": 18
+    },
+    {
+      "startMs": 830,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 82
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 88
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 96
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 101
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 109
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 116
+    },
+    {
+      "startMs": 6670,
+      "endOffset": 122
+    }
+  ]
+}

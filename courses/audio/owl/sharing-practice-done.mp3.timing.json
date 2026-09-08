@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "audioHash": "cb336ae8fc7572d3f4cf52812c6b0704173322372fdf820842fb7066fbd2e514",
+  "text": "You reviewed the safe sharing workflow. Delivery to another device is a separate action that this course doesn't assume.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 12
+    },
+    {
+      "startMs": 790,
+      "endOffset": 16
+    },
+    {
+      "startMs": 950,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 66
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 69
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 71
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 80
+    },
+    {
+      "startMs": 5830,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 92
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 97
+    },
+    {
+      "startMs": 6830,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7270,
+      "endOffset": 112
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 120
+    }
+  ]
+}

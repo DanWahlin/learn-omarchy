@@ -33,6 +33,7 @@ export interface WindowState {
   workspace?: number;
   focused?: boolean;
   specialWorkspace?: "scratchpad";
+  specialVisible?: boolean;
   swapped?: true;
 }
 
@@ -87,6 +88,7 @@ export interface CommandAction {
 
 export interface CourseStep {
   id: string;
+  windowSize?: { width: number; height: number };
   windowFromStep?: string;
   swapWithStep?: string;
   directionFromStep?: string;
@@ -299,6 +301,9 @@ const validateWindowState = (errors: string[], value: unknown, path: string): vo
     } else if (key === "specialWorkspace") {
       if (state !== "scratchpad") errors.push(`${path}.specialWorkspace must be "scratchpad"`);
       if (value.workspace !== undefined) errors.push(`${path} cannot combine workspace and specialWorkspace`);
+    } else if (key === "specialVisible") {
+      if (typeof state !== "boolean") errors.push(`${path}.specialVisible must be a boolean`);
+      if (value.specialWorkspace !== "scratchpad") errors.push(`${path}.specialVisible requires specialWorkspace`);
     } else if (key === "swapped") {
       if (state !== true) errors.push(`${path}.swapped must be true`);
     } else if (["floating", "fullscreen", "focused"].includes(key)) {
@@ -406,6 +411,16 @@ const validateStep = (
     seenIds.add(value.id);
   }
   addStringError(errors, value.instruction, `${path}.instruction`);
+  if (value.windowSize !== undefined) {
+    if (!isRecord(value.windowSize) ||
+        !Number.isInteger(value.windowSize.width) || Number(value.windowSize.width) < 400 ||
+        !Number.isInteger(value.windowSize.height) || Number(value.windowSize.height) < 250 ||
+        Number(value.windowSize.width) > 4096 || Number(value.windowSize.height) > 4096) {
+      errors.push(`${path}.windowSize must contain integer width (400-4096) and height (250-4096)`);
+    }
+    if (!isRecord(value.completion) || value.completion.type !== "hyprland-window-activated")
+      errors.push(`${path}.windowSize requires a newly launched tutorial window`);
+  }
   if (value.optional !== undefined && typeof value.optional !== "boolean") errors.push(`${path}.optional must be a boolean`);
   if (value.detail !== undefined) addStringError(errors, value.detail, `${path}.detail`);
   if (value.note !== undefined) {

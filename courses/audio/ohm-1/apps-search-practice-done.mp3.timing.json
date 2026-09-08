@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "audioHash": "eb76e1aac7c1221ce80920f0eaf4bf682228688983d06b1c1c45005a87032f4f",
+  "text": "You opened the menu, launched a new terminal, and closed that window. Searching the Apps menu is a useful way to find an app when you don't know its shortcut.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 10
+    },
+    {
+      "startMs": 710,
+      "endOffset": 14
+    },
+    {
+      "startMs": 830,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 35
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 56
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 61
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 69
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 79
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 83
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 88
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 93
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 96
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 98
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 105
+    },
+    {
+      "startMs": 5510,
+      "endOffset": 109
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 112
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 117
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 120
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 124
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 129
+    },
+    {
+      "startMs": 6550,
+      "endOffset": 133
+    },
+    {
+      "startMs": 6670,
+      "endOffset": 139
+    },
+    {
+      "startMs": 6870,
+      "endOffset": 144
+    },
+    {
+      "startMs": 7030,
+      "endOffset": 148
+    },
+    {
+      "startMs": 7150,
+      "endOffset": 158
+    }
+  ]
+}

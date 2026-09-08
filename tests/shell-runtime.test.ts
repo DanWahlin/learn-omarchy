@@ -5,6 +5,7 @@ import { createContext, runInContext } from "node:vm";
 import type { Course } from "../src/course.ts";
 
 const shell = await readFile(new URL("../app/shell.qml", import.meta.url), "utf8");
+const revealSource = await readFile(new URL("../app/CaptionReveal.qml", import.meta.url), "utf8");
 const captionTiming = createContext({});
 runInContext(await readFile(new URL("../app/CaptionTiming.js", import.meta.url), "utf8"), captionTiming);
 const welcomeSource = await readFile(new URL("../courses/welcome.json", import.meta.url), "utf8");
@@ -21,6 +22,29 @@ function timer() {
     restart() { this.running = true; },
     stop() { this.running = false; },
   };
+}
+
+function captionRuntime(state: any, source: () => string, display: () => string, available: () => boolean) {
+  const deadline = timer();
+  const context = createContext({
+    CaptionTiming: captionTiming, timingDeadline: deadline, deadline, console: state.console,
+    words: [], timingText: "", positionMs: -1, failed: false, finished: false, playing: false,
+    generation: 0, readingElapsed: 0, readingStartOffset: 0, lastVoicedEnd: 0,
+  });
+  context.root = context;
+  Object.defineProperties(context, {
+    sourceText: { get: source }, displayText: { get: display },
+    formattedText: { get: () => state.captionText(display()) },
+    typeText: { get: () => state.synchronizedWelcomeText },
+    reducedMotion: { get: () => state.reducedMotion },
+    narrationEnabled: { get: () => state.narrationEnabled },
+    audioAvailable: { get: available }, wordsPerMinute: { get: () => state.readingWordsPerMinute },
+    paused: { get: () => state.phase === "paused" || state.phase === "settings" },
+    revealEnd: { get: () => runInContext(revealSource.match(/readonly property int revealEnd: ([\s\S]*?)\n\n/)![1], context) },
+  });
+  for (const method of revealSource.matchAll(/^  function \w+\([^\n]*\) \{[\s\S]*?^  \}/gm))
+    runInContext(method[0], context);
+  return context;
 }
 
 // Execute the runtime's JavaScript, with compositor, process and timer effects
@@ -130,6 +154,12 @@ function runtime(stepId: string, reducedMotion = true) {
     shortcutInhibitionActive: false,
     restoreKeyboardAfterAction: false,
     exerciseRunning: false,
+    practiceSessionActive: false,
+    practiceSessionGeneration: -1,
+    practiceSessionMode: "",
+    practiceHost: {},
+    practiceLoader: { item: { cancel() {} } },
+    exitAfterPractice: false,
     exerciseRestoreCapture: false,
     swapBefore: null,
     directionalKey: "",
@@ -166,13 +196,23 @@ function runtime(stepId: string, reducedMotion = true) {
     tutorialWindowSnapshots: {},
     pendingTutorialWindowAddress: "",
     windowLaunchToken: "",
+    pressedPhysicalKeys: {},
+    windowLaunchAcknowledged: true,
+    windowOwnershipVerified: false,
+    tutorialLaunchProcess: { running: false, requestGeneration: -1, requestToken: "", command: [] },
     windowOwnershipStopping: false,
     windowOwnershipProcess: { running: false, requestGeneration: -1, requestToken: "", command: [] },
     pausedCompletionPending: false,
     characterCue: 0,
-    audioProcess: { running: false, processId: 123, signal() {} },
+    audioProcess: { running: false, processId: 123, write() {} },
     sfxProcess: { running: false },
+    introAmbienceProcess: { running: false, command: [] },
     outcomeProcess: { running: false },
+    windowPresentationProcess: { running: false, command: [], requestGeneration: -1 },
+    windowPresentationReady: false,
+    windowPresentationSize: null,
+    windowGeometryMaxAttempts: 6,
+    scratchpadVisibilityProcess: { running: false, requestGeneration: -1, monitorId: -1 },
     layerGeometryProcess: { running: false },
     helpProcess: { running: false, command: [] },
     practiceProcess: { running: false, command: [], requestGeneration: -1 },
@@ -182,14 +222,15 @@ function runtime(stepId: string, reducedMotion = true) {
     monitorGeometryProcess: { running: false },
     stepStartWindowProcess: { running: false },
     lessonTransitionAnimation: timer(),
-    Quickshell: { execDetached() {}, screens: [{ name: "eDP-1", x: 0, y: 0, width: 1920, height: 1200 }] },
+    Quickshell: { execDetached() {}, env: () => "/runtime", screens: [{ name: "eDP-1", x: 0, y: 0, width: 1920, height: 1200 }] },
     Hyprland: { focusedMonitor: null },
     console: { info() {}, warn() {}, error() {} },
     Qt: { callLater() {}, rgba: (r: number, g: number, b: number, a: number) => ({ r, g, b, a }) },
   });
   Object.defineProperties(context, {
-    welcomeRevealEnd: { get: () => runInContext(
-      shell.match(/readonly property int welcomeRevealEnd: ([\s\S]*?)\n\n/)![1], context) },
+    welcomeRevealEnd: { get: () => context.welcomeReveal.revealEnd },
+    lessonCaptionStage: { get: () => context.phase === "highlight" ||
+      (["paused", "settings"].includes(context.phase) && context.pausedPhase === "highlight") ? "completion" : "instruction" },
     currentLesson: { get: () => context.course.lessons[context.lessonIndex] },
     currentStep: { get: () => context.currentLesson?.steps[context.stepIndex] },
     currentStepIsTour: { get: () => context.currentStep?.kind === "tour" },
@@ -199,7 +240,10 @@ function runtime(stepId: string, reducedMotion = true) {
       context.currentStepNeedsDirection && context.directionalKey && ["LEFT", "RIGHT", "UP", "DOWN"].includes(key) ? context.directionalKey : key) },
     currentStepClosesWindow: { get: () => context.currentStep?.completion?.events?.includes("closewindow") ?? false },
     currentStepHasNoVisibleTarget: { get: () => context.currentStepClosesWindow || context.currentStepIsPractice ||
-      Boolean(context.currentStep?.completion?.windowState?.specialWorkspace) },
+      Boolean(context.currentStep?.completion?.windowState?.specialWorkspace &&
+        context.currentStep.completion.windowState.specialVisible !== true) },
+    inlineAppSearch: { get: () => context.currentStepIsPractice && context.currentStep.practice === "app-search" },
+    embeddedPracticeRunning: { get: () => context.exerciseRunning && context.practiceSessionActive },
     narrationEnabled: { get: () => context.audioEnabled && context.speechEnabled && context.speechVolume > 0 },
     characterName: { get: () => context.characterStore.selectedPack?.id || "" },
     characterIndex: { get: () => context.characterStore.packs },
@@ -207,6 +251,21 @@ function runtime(stepId: string, reducedMotion = true) {
     characterDisplayName: { get: () => context.characterStore.selectedPack?.manifest.displayName || "Coach" },
     welcomeText: { get: () => runInContext(
       shell.match(/readonly property string welcomeText: ([\s\S]*?)\n  property bool introActive/)![1], context) },
+  });
+  context.welcomeReveal = captionRuntime(context, () => context.welcomeInstruction(),
+    () => context.welcomeText, () => context.welcomeAudioPath() !== "");
+  context.lessonReveal = captionRuntime(context, () => context.lessonCaptionStage === "completion"
+    ? context.currentStep?.completionMessage || "" : context.currentStep?.instruction || "",
+    () => context.characterText(context.lessonReveal.sourceText),
+    () => (context.lessonCaptionStage === "completion" ? context.completionAudioPath() : context.currentAudioPath()) !== "");
+  context.wrapupReveal = captionRuntime(context, () => context.currentLessonWrapup()?.text || "",
+    () => context.characterText(context.wrapupReveal.sourceText), () => context.currentLessonWrapup() !== null);
+  for (const [outer, inner] of Object.entries({
+    welcomeWordTimings: "words", welcomeTimingText: "timingText", welcomePlaybackMs: "positionMs",
+    welcomeTimingFailed: "failed", welcomeReadingElapsed: "readingElapsed", welcomeReadingStartOffset: "readingStartOffset",
+    welcomeTimingDeadline: "deadline",
+  })) Object.defineProperty(context, outer, {
+    get: () => context.welcomeReveal[inner], set: (value) => context.welcomeReveal[inner] = value,
   });
   context.characterStore = {
     appRoot: "/app",
@@ -271,7 +330,135 @@ function client(address: string) {
   return { address, pid: 1234, at: [10, 20], size: [500, 300], mapped: true, hidden: false };
 }
 
+function timingPacket(text: string) {
+  return JSON.stringify({ type: "timing", text, words: Array.from(text.matchAll(/\S+/g),
+    (match, index) => ({ startMs: 100 + index * 200, endOffset: match.index! + match[0].length })) });
+}
+
+test("instructions, action results, and wrap-ups use the timed bridge with exact caption sources", () => {
+  for (const step of ["tour-welcome", "launch-terminal"]) {
+    const state = runtime(step, false);
+    state.audioEnabled = true;
+    state.playCurrentAudio(true);
+    assert.match(state.audioProcess.command[1], /play-timed-speech\.mjs$/);
+    assert.equal(state.audioProcess.captionStage, "instruction");
+    const token = state.audioProcess.captionGeneration;
+    state.receiveLessonPlayback(timingPacket(state.currentStep.instruction), token, step, "instruction");
+    state.receiveLessonPlayback('{"type":"position","positionMs":100}', token, step, "instruction");
+    assert.ok(state.lessonRevealEnd(state.characterText(state.currentStep.instruction)) > 0);
+    assert.equal(state.lessonRevealEnd("An unrelated help prompt."), -1);
+    state.audioProcess.running = false;
+    state.audioExited(0);
+    assert.equal(state.lessonReveal.revealEnd, -1, "finished instructions stay complete");
+    if (state.completionAudioPath() === "") continue;
+    state.phase = "highlight";
+    state.playCompletionNarration();
+    assert.equal(state.audioProcess.captionStage, "completion");
+    assert.equal(state.lessonRevealEnd(state.characterText(state.currentStep.instruction)), -1);
+    const completionToken = state.audioProcess.captionGeneration;
+    state.receiveLessonPlayback(timingPacket(state.currentStep.instruction), token, step, "instruction");
+    assert.equal(state.lessonReveal.failed, false);
+    assert.equal(state.lessonReveal.revealEnd, 0, "late instruction metadata cannot reveal completion text");
+    state.receiveLessonPlayback(timingPacket(state.currentStep.completionMessage), completionToken, step, "completion");
+    state.receiveLessonPlayback('{"type":"position","positionMs":100}', completionToken, step, "completion");
+    assert.ok(state.lessonRevealEnd(state.characterText(state.currentStep.completionMessage)) > 0);
+    const command = [...state.audioProcess.command];
+    state.replayCurrentAudio();
+    assert.deepEqual(Array.from(state.audioProcess.command), command, "instruction replay cannot replace result speech");
+  }
+  const state = runtime("launch-terminal", false);
+  state.audioEnabled = true;
+  state.phase = "lesson-complete";
+  state.characterState = "celebrate";
+  state.lessonWrapupReady = true;
+  state.playLessonWrapup();
+  assert.match(state.lessonWrapupSpeech.command[1], /play-timed-speech\.mjs$/);
+  const token = state.lessonWrapupSpeech.captionGeneration;
+  state.wrapupReveal.receive(timingPacket(state.currentLessonWrapup().text), token);
+  state.wrapupReveal.receive('{"type":"position","positionMs":100}', token);
+  assert.ok(state.wrapupReveal.revealEnd > 0);
+  state.lessonWrapupSpeech.running = false;
+  state.lessonWrapupExited(0, state.lessonWrapupGeneration);
+  assert.equal(state.wrapupReveal.revealEnd, -1);
+});
+
+test("cancelled, mismatched, and stale lesson packets safely leave the active caption alone", () => {
+  const state = runtime("launch-terminal", false);
+  state.audioEnabled = true;
+  state.playCurrentAudio(true);
+  const token = state.audioProcess.captionGeneration;
+  const step = state.currentStep.id;
+  state.receiveLessonPlayback(timingPacket("Unrelated narration."), token, "old-step", "instruction");
+  state.receiveLessonPlayback(timingPacket("Unrelated narration."), token - 1, step, "instruction");
+  assert.equal(state.lessonReveal.failed, false);
+  state.receiveLessonPlayback(timingPacket("Unrelated narration."), token, step, "instruction");
+  assert.equal(state.lessonReveal.failed, true);
+  assert.equal(state.lessonReveal.revealEnd, -1);
+  state.receiveLessonPlayback(timingPacket(state.currentStep.instruction), token, step, "instruction");
+  state.receiveLessonPlayback('{"type":"position","positionMs":100}', token, step, "instruction");
+  assert.equal(state.lessonReveal.revealEnd, -1);
+  state.stopAudio();
+  state.receiveLessonPlayback(timingPacket(state.currentStep.instruction), token, step, "instruction");
+  assert.equal(state.lessonReveal.playing, false);
+});
+
+test("replay invalidates old timing and deferred replay cannot survive a step change", () => {
+  const state = runtime("launch-terminal", false);
+  state.audioEnabled = true;
+  state.playCurrentAudio(true);
+  const oldToken = state.audioProcess.captionGeneration;
+  const callbacks: (() => void)[] = [];
+  state.Qt.callLater = (callback: () => void) => callbacks.push(callback);
+  state.replayCurrentAudio();
+  state.audioProcess.running = false;
+  state.audioExited(0);
+  assert.equal(callbacks.length, 1);
+  callbacks.shift()!();
+  assert.ok(state.audioProcess.captionGeneration > oldToken);
+  state.receiveLessonPlayback(timingPacket(state.currentStep.instruction), oldToken, state.currentStep.id, "instruction");
+  assert.equal(state.lessonReveal.words.length, 0);
+  state.replayCurrentAudio();
+  state.audioProcess.running = false;
+  state.audioExited(0);
+  state.actionGeneration++;
+  callbacks.shift()!();
+  assert.equal(state.audioProcess.running, false);
+});
+
+test("practice recall and unplayed hints stay complete instead of waiting for nonexistent playback", () => {
+  const state = runtime("launch-terminal", false);
+  state.audioEnabled = true;
+  state.practiceMode = true;
+  assert.equal(state.lessonRevealEnd("Open the terminal."), -1);
+  assert.equal(state.lessonRevealEnd(state.characterText(state.currentStep.instruction)), -1);
+  state.playCurrentAudio(true);
+  assert.equal(state.lessonRevealEnd(state.characterText(state.currentStep.instruction)), 0);
+  assert.equal(state.lessonRevealEnd("Open the terminal."), -1);
+});
+
+test("global Type text migrates the welcome preference without losing an explicit choice", () => {
+  for (const saved of [
+    { synchronizedWelcomeText: false }, { typeText: false },
+    { synchronizedWelcomeText: false, typeText: true }, {},
+  ]) {
+    const state = runtime("launch-terminal");
+    let written: any;
+    state.settingsFile.setText = (raw: string) => { written = JSON.parse(raw); };
+    state.loadSettings(JSON.stringify(saved));
+    const expected = "typeText" in saved ? saved.typeText : saved.synchronizedWelcomeText !== false;
+    assert.equal(state.synchronizedWelcomeText, expected);
+    state.persistSettings();
+    assert.equal(written.typeText, expected);
+    assert.equal(written.synchronizedWelcomeText, expected);
+  }
+});
+
 function confirmWindowOwnership(state: ReturnType<typeof runtime>, exitCode = 0) {
+  if (state.tutorialLaunchProcess.running) {
+    state.tutorialLaunchProcess.running = false;
+    state.finishTutorialLaunch(0, state.tutorialLaunchProcess.requestGeneration,
+      state.tutorialLaunchProcess.requestToken, '{"ok":true,"state":"spawned","pid":1234}', "");
+  }
   const process = state.windowOwnershipProcess;
   assert.equal(process.running, true);
   process.running = false;
@@ -435,11 +622,14 @@ test("hands-on exercises release keys and require a verified result", () => {
   state.runStepAction("action");
   assert.equal(state.keyboardExclusive, false);
   assert.equal(state.exerciseRunning, true);
-  assert.deepEqual(Array.from(state.practiceProcess.command), ["/app/bin/learn-omarchy-practice", "clipboard"]);
-  state.finishPracticeExercise(0, state.actionGeneration,
-    'LEARN_PRACTICE_RESULT:{"mode":"clipboard","completed":true}\n');
+  assert.equal(state.practiceProcess.running, false);
+  assert.equal(state.practiceSessionActive, true);
+  assert.equal(state.practiceSessionMode, "clipboard");
+  state.Qt.callLater = (callback: () => void) => callback();
+  state.finishEmbeddedPractice(state.actionGeneration, "clipboard", true, "");
   assert.equal(state.keyboardExclusive, true);
   assert.equal(state.exerciseRunning, false);
+  assert.equal(state.practiceSessionActive, false);
   assert.equal(state.stepResults["launch-terminal"], "practiced");
 });
 
@@ -461,15 +651,55 @@ test("exercise cancellation, errors and mismatched results never count as comple
   }
 });
 
-test("leaving an exercise cancels its process and rejects a stale success", () => {
+test("leaving an embedded exercise waits for cleanup before unloading and rejects stale success", () => {
   const state = exerciseRuntime();
+  let cancelled = false;
+  state.practiceLoader.item.cancel = () => { cancelled = true; };
   state.runStepAction("action");
   const generation = state.actionGeneration;
   state.cancelAction();
   assert.equal(state.practiceProcess.running, false);
+  assert.equal(cancelled, true);
+  assert.equal(state.practiceSessionActive, true);
   assert.equal(state.keyboardExclusive, true);
-  state.finishPracticeExercise(0, generation, 'LEARN_PRACTICE_RESULT:{"mode":"clipboard","completed":true}');
+  state.Qt.callLater = (callback: () => void) => callback();
+  state.finishEmbeddedPractice(generation, "clipboard", true, "");
+  assert.equal(state.practiceSessionActive, false);
   assert.equal(state.stepResults["launch-terminal"], undefined);
+});
+
+test("new exercises wait for prior cleanup and require an available embedded host", () => {
+  const state = exerciseRuntime();
+  state.practiceSessionActive = true;
+  state.startPracticeExercise();
+  assert.match(state.recoveryMessage, /still closing/);
+  assert.equal(state.exerciseRunning, false);
+  state.practiceSessionActive = false;
+  state.practiceHost = null;
+  state.startPracticeExercise();
+  assert.match(state.recoveryMessage, /isn't available/);
+  assert.equal(state.exerciseRunning, false);
+});
+
+test("app search remains a nonvisual observer with the normal coaching interface", () => {
+  const state = runtime("apps-search-practice");
+  state.startPracticeExercise();
+  assert.equal(state.practiceSessionActive, false);
+  assert.equal(state.practiceProcess.running, true);
+  assert.deepEqual(Array.from(state.practiceProcess.command), ["/app/bin/learn-omarchy-practice", "app-search"]);
+});
+
+test("Exit waits for embedded helper cleanup before quitting", () => {
+  const state = exerciseRuntime();
+  let quit = false;
+  state.Qt.quit = () => { quit = true; };
+  state.startPracticeExercise();
+  state.requestExit();
+  assert.equal(quit, false);
+  assert.equal(state.practiceSessionActive, true);
+  state.Qt.callLater = (callback: () => void) => callback();
+  state.finishEmbeddedPractice(state.practiceSessionGeneration, "clipboard", false, "");
+  assert.equal(quit, true);
 });
 
 test("optional steps don't block required lesson completion", () => {
@@ -762,6 +992,110 @@ test("scratchpad reveal rejects unarmed, unowned, wrong-window, and stale outcom
   assert.equal(state.outcomeAddress, "0xabc");
 });
 
+test("scratchpad visibility requires the owned window on the exact monitor and expected named state", () => {
+  for (const visible of [true, false]) {
+    const state = runtime("workspaces-reveal-before-restore");
+    state.windowGeometryMaxAttempts = 5;
+    state.currentStep.completion.windowState = { specialWorkspace: "scratchpad", specialVisible: visible };
+    state.rememberTutorialWindow("abc", "workspaces-open-terminal");
+    state.shortcutArmedUntil = Date.now() + 8000;
+    state.handleHyprlandEvent({ name: "activespecialv2", data: "-99,special:scratchpad,eDP-1" });
+    state.parseOutcome(JSON.stringify([{ ...client("0xabc"), monitor: 0,
+      workspace: { id: -99, name: "special:scratchpad" } }]), state.outcomeGeneration);
+    assert.equal(state.layerCompletionFeedbackTimer.running, false);
+    assert.equal(state.scratchpadVisibilityProcess.running, true);
+    const generation = state.outcomeGeneration;
+    const packet = (name: string, id = 0) => JSON.stringify([{ id, specialWorkspace: { name } }]);
+    state.parseScratchpadVisibility(packet(visible ? "" : "special:scratchpad"), generation, 0, 0);
+    assert.equal(state.layerCompletionFeedbackTimer.running, false, "inverted visibility isn't success");
+    state.parseScratchpadVisibility(packet(visible ? "special:scratchpad" : "", 1), generation, 0, 0);
+    assert.equal(state.layerCompletionFeedbackTimer.running, false, "another monitor isn't success");
+    state.parseScratchpadVisibility(packet(visible ? "special:scratchpad" : ""), generation - 1, 0, 0);
+    assert.equal(state.layerCompletionFeedbackTimer.running, false, "stale responses aren't success");
+    state.parseScratchpadVisibility(packet(visible ? "special:scratchpad" : ""), generation, 0, 0,
+      state.scratchpadVisibilityProcess.verifiedWindow);
+    assert.equal(state.layerCompletionFeedbackTimer.running, true);
+    if (visible) assert.equal(state.targetWindowGeometry.address, "0xabc", "pointing uses the verified terminal");
+    else assert.equal(state.targetWindowGeometry, null, "hidden scratchpads don't show a misleading target");
+  }
+});
+
+test("native-panel safety notes remain visible while the learner inspects the open tool", () => {
+  const expression = shell.match(/id: teachingNote\n\s+visible: ([\s\S]*?)\n\s+Layout/)![1];
+  for (const id of ["hardware-menu", "open-keybindings", "display-panel"]) {
+    const state = runtime(id);
+    for (const phase of ["waiting", "highlight"]) {
+      state.phase = phase;
+      assert.equal(runInContext(expression, state), true, `${id}: ${phase}`);
+    }
+    state.phase = "paused";
+    assert.equal(runInContext(expression, state), false);
+  }
+});
+
+test("closing the scratchpad window during visibility detection releases the pending outcome", () => {
+  const state = runtime("workspaces-reveal-before-restore");
+  state.outcomeAddress = "0xabc";
+  state.outcomeExpected = { specialWorkspace: "scratchpad", specialVisible: true };
+  state.parseScratchpadVisibility(JSON.stringify([{ id: 0, specialWorkspace: { name: "special:scratchpad" } }]),
+    state.outcomeGeneration, 0, 0);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false);
+  assert.equal(state.outcomeAddress, "");
+  assert.match(state.recoveryMessage, /no longer available/);
+  assert.equal(state.recoveryStepId, "workspaces-open-terminal");
+});
+
+test("readable activity-window sizing cannot run before ownership is established", () => {
+  const state = runtime("launch-terminal");
+  state.currentStep.windowSize = { width: 1200, height: 640 };
+  state.targetMonitorGeometry = { id: 0, x: 0, y: 0, width: 3072, height: 1920, scale: 1.6 };
+  state.pendingTutorialWindowAddress = "0xabc";
+  state.prepareTutorialWindow();
+  assert.equal(state.windowPresentationProcess.running, false);
+  state.rememberTutorialWindow("0xabc", state.currentStep.id);
+  state.prepareTutorialWindow();
+  assert.equal(state.windowPresentationProcess.running, true);
+  const command = state.windowPresentationProcess.command.join(" ");
+  assert.match(command, /window\.float/);
+  assert.match(command, /window\.resize/);
+  assert.match(command, /x=1200, y=640/);
+  assert.equal(command.match(/window="address:0xabc"/g)?.length, 3, "every mutation targets only the owned window");
+  assert.equal(state.layerCompletionFeedbackTimer.running, false, "dispatch alone never credits success");
+});
+
+test("activity monitor completion waits for observed readable geometry after the resize command", () => {
+  const state = runtime("launch-terminal");
+  state.currentStep.windowSize = { width: 1200, height: 640 };
+  const monitor = { id: 0, x: 0, y: 0, width: 3072, height: 1920, scale: 1.6 };
+  const narrow = { ...client("0xabc"), monitor: 0, floating: false, size: [240, 600] };
+  state.runStepAction("help");
+  state.handleHyprlandEvent({ name: "openwindow", data: "abc,1,terminal,Terminal" });
+  state.finishWindowDetection(narrow, monitor);
+  confirmWindowOwnership(state);
+  assert.equal(state.windowPresentationProcess.running, true);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false);
+  state.windowPresentationProcess.running = false;
+  state.finishWindowPresentation(0, state.windowGeometryGeneration);
+  state.finishWindowDetection(narrow, monitor);
+  confirmWindowOwnership(state);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false, "successful dispatch doesn't prove the size changed");
+  state.finishWindowDetection({ ...narrow, floating: true, size: [1200, 640] }, monitor);
+  confirmWindowOwnership(state);
+  assert.equal(state.layerCompletionFeedbackTimer.running, true);
+  assert.equal(state.windowGeometryPending, false);
+});
+
+test("activity sizing responses are rejected after cancellation and failures never credit success", () => {
+  const state = runtime("launch-terminal");
+  state.windowGeometryPending = true;
+  state.finishWindowPresentation(0, state.windowGeometryGeneration - 1);
+  assert.equal(state.windowPresentationReady, false);
+  state.finishWindowPresentation(1, state.windowGeometryGeneration);
+  assert.equal(state.windowPresentationReady, false);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false);
+  assert.match(state.recoveryMessage, /Couldn't give the activity monitor enough room/);
+});
+
 function swapRuntime() {
   const state = runtime("windows-swap");
   state.rememberTutorialWindow("aaa", state.currentStep.windowFromStep);
@@ -962,11 +1296,10 @@ test("geometry completion cannot resurrect a closed tutorial window", () => {
 
 test("an unrelated new editor never becomes a terminal close target", () => {
   const state = runtime("launch-terminal");
-  const launches: string[][] = [];
-  state.Quickshell.execDetached = (command: string[]) => launches.push(command);
   state.runStepAction("help");
-  assert.equal(launches[0][0], "env");
-  assert.equal(launches[0][1], `LEARN_OMARCHY_WINDOW_TOKEN=${state.windowLaunchToken}`);
+  const launch = state.tutorialLaunchProcess.command;
+  assert.deepEqual(Array.from(launch.slice(0, 4)), ["node", "/app/tools/tutorial-launch.mjs", "--token", state.windowLaunchToken]);
+  assert.deepEqual(Array.from(launch.slice(-4)), ["--", "omarchy", "launch", "terminal"]);
   state.handleHyprlandEvent({ name: "openwindow", data: "abc,1,org.example.Editor,Editor" });
   state.finishWindowDetection({ ...client("0xabc"), class: "org.example.Editor" }, null);
   confirmWindowOwnership(state, 1);
@@ -977,6 +1310,60 @@ test("an unrelated new editor never becomes a terminal close target", () => {
   state.startCurrentStep();
   state.runStepAction("help");
   assert.equal(state.helpProcess.running, false);
+});
+
+test("shifted workspace number keys match their physical keycaps and release without sticking", () => {
+  const state = runtime("workspaces-send");
+  Object.assign(state.Qt, { Key_0: 48, Key_9: 57, Key_A: 65, Key_Z: 90,
+    ShiftModifier: 1, MetaModifier: 2, AltModifier: 4, ControlModifier: 8 });
+  state.armShortcutDetection = () => {};
+  state.reactToKey = () => {};
+  state.checkExpectedCombo = () => {};
+  state.updateActiveKeys({ key: 64, nativeScanCode: 11, modifiers: 3, isAutoRepeat: false }, true);
+  assert.equal(state.activeKeys["2"], true);
+  assert.equal(state.activeKeys["SHIFT"], true);
+  assert.equal(state.activeKeys["SUPER"], true);
+  state.updateActiveKeys({ key: 64, nativeScanCode: 11, modifiers: 0 }, false);
+  assert.equal(state.activeKeys["2"], undefined, "release uses the recorded physical identity after Shift changes");
+  assert.equal(Object.keys(state.pressedPhysicalKeys).length, 0);
+  state.updateActiveKeys({ key: 64, nativeScanCode: 24, modifiers: 3, isAutoRepeat: false }, true);
+  assert.equal(state.activeKeys["2"], undefined, "a symbol on another physical key isn't the number row");
+  state.clearActiveKeys();
+  assert.equal(Object.keys(state.pressedPhysicalKeys).length, 0);
+});
+
+test("launcher acknowledgement alone never grants ownership and failures leave retry available", () => {
+  const state = runtime("launch-terminal");
+  state.runStepAction("shortcut");
+  const launch = state.tutorialLaunchProcess;
+  state.finishTutorialLaunch(2, launch.requestGeneration, launch.requestToken, "",
+    '{"ok":false,"error":"Unsupported independent terminal configuration."}');
+  assert.equal(state.tutorialWindows.length, 0);
+  assert.equal(state.actionRunning, false);
+  assert.match(state.recoveryMessage, /Unsupported independent terminal/);
+  launch.running = false;
+  state.runStepAction("shortcut");
+  state.finishTutorialLaunch(0, launch.requestGeneration, launch.requestToken,
+    '{"ok":true,"state":"spawned","pid":1234}', "");
+  assert.equal(state.tutorialWindows.length, 0);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false);
+});
+
+test("ownership waits for launcher acknowledgement so advancing cannot kill its attached startup worker", () => {
+  const state = runtime("launch-terminal");
+  state.runStepAction("shortcut");
+  state.handleHyprlandEvent({ name: "openwindow", data: "abc,1,terminal,Terminal" });
+  state.finishWindowDetection(client("0xabc"), null);
+  state.windowOwnershipProcess.running = false;
+  state.finishWindowOwnership(0, state.windowGeometryGeneration, state.windowLaunchToken);
+  assert.equal(state.windowOwnershipVerified, true);
+  assert.equal(state.tutorialWindows.length, 0);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false);
+  state.tutorialLaunchProcess.running = false;
+  state.finishTutorialLaunch(0, state.actionGeneration, state.windowLaunchToken,
+    '{"ok":true,"state":"spawned","pid":1234}', "");
+  assert.equal(state.tutorialWindowsByStep["launch-terminal"], "0xabc");
+  assert.equal(state.layerCompletionFeedbackTimer.running, true);
 });
 
 test("cancelled and closed launch candidates reject delayed ownership results", () => {
@@ -1515,20 +1902,20 @@ test("window recovery returns to the dependent step after the learner relaunches
 
 test("pause suspends narration and settings preserves the lesson position", () => {
   const state = runtime("open-root-menu");
-  const signals: number[] = [];
+  const signals: object[] = [];
   state.audioEnabled = true;
   state.audioProcess.running = true;
   state.audioProcessPath = state.currentAudioPath();
-  state.audioProcess.signal = (signal: number) => signals.push(signal);
+  state.audioProcess.write = (message: string) => signals.push(JSON.parse(message));
   state.openSettings("settings");
   assert.equal(state.phase, "settings");
   assert.equal(state.settingsReturnToLesson, true);
   assert.equal(state.audioProcess.running, true);
-  assert.deepEqual(signals, [19]);
+  assert.deepEqual(signals, [{ command: "pause" }]);
   state.closeSettings();
   assert.equal(state.phase, "waiting");
   assert.equal(state.currentStep.id, "open-root-menu");
-  assert.deepEqual(signals, [19, 18]);
+  assert.deepEqual(signals, [{ command: "pause" }, { command: "resume" }]);
 });
 
 test("mute stops both sound channels immediately and persists the preference", () => {
@@ -2496,8 +2883,7 @@ test("timing timeout safely reveals full text and does not interrupt audio", () 
   state.welcomeStage = "welcome";
   state.audioEnabled = true;
   state.welcomeCaptionShown();
-  const deadline = shell.match(/id: welcomeTimingDeadline[\s\S]*?onTriggered: \{([\s\S]*?)\n    \}/)![1];
-  runInContext(deadline, state);
+  state.welcomeReveal.fallback("timing deadline");
   assert.equal(state.welcomeRevealEnd, -1);
   assert.equal(state.welcomeSpeech.running, true);
 });
@@ -2954,6 +3340,58 @@ test("intro sounds accept only allowlisted cues from the active generation and r
   assert.equal(state.sfxProcess.command.at(-1), "/app/assets/sounds/rocket-liftoff.opus");
   state.cancelIntro();
   assert.equal(state.sfxProcess.running, false);
+});
+
+test("welcome birds play quietly through the scene handoff but stop on cancellation", () => {
+  const state = runtime("tour-welcome", false);
+  state.phase = "welcome";
+  state.welcomeStage = "scene";
+  state.introActive = true;
+  state.audioEnabled = true;
+  state.effectsVolume = 75;
+  state.playIntroSound("birds-welcome.opus", state.introGeneration);
+  assert.equal(state.introAmbienceProcess.running, true);
+  assert.equal(state.sfxProcess.running, false);
+  assert.deepEqual(Array.from(state.introAmbienceProcess.command), [
+    "mpv", "--no-video", "--really-quiet", "--volume=45.00", "--", "/app/assets/sounds/birds-welcome.opus",
+  ]);
+  state.finishIntro(state.introGeneration);
+  assert.equal(state.welcomeStage, "center-flight");
+  assert.equal(state.introAmbienceProcess.running, true, "the 3.7-second tree scene must not cut off the ten-second ambience");
+  state.stopAudio();
+  assert.equal(state.introAmbienceProcess.running, true, "narration lifecycle stays independent");
+  state.finishWelcome();
+  assert.equal(state.introAmbienceProcess.running, false);
+});
+
+test("welcome ambience rejects stale cues and respects effects, mute, and motion preferences", () => {
+  const state = runtime("tour-welcome", false);
+  state.phase = "welcome";
+  state.introActive = true;
+  state.audioEnabled = true;
+  state.playIntroSound("birds-welcome.opus", state.introGeneration - 1);
+  assert.equal(state.introAmbienceProcess.running, false);
+  for (const [setting, value] of [
+    ["audioEnabled", false], ["effectsEnabled", false], ["effectsVolume", 0], ["reducedMotion", true],
+  ] as const) {
+    const previous = state[setting];
+    state[setting] = value;
+    state.playIntroSound("birds-welcome.opus", state.introGeneration);
+    assert.equal(state.introAmbienceProcess.running, false, setting);
+    state[setting] = previous;
+  }
+  for (const [setting, value, handler] of [
+    ["audioEnabled", false, "onAudioEnabledChanged"],
+    ["effectsEnabled", false, "onEffectsEnabledChanged"],
+    ["effectsVolume", 0, "onEffectsVolumeChanged"],
+  ] as const) {
+    const previous = state[setting];
+    state.introAmbienceProcess.running = true;
+    state[setting] = value;
+    runInContext(shell.match(new RegExp("^  " + handler + ": (.*)$", "m"))![1], state);
+    assert.equal(state.introAmbienceProcess.running, false, handler);
+    state[setting] = previous;
+  }
 });
 
 test("cleanup resolves owned targets and refuses a missing target", () => {

@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "audioHash": "a72ea1245c25bbf49cda8095a33dc58630ec4af7da0aba7aaaeb20b7914713da",
+  "text": "LocalSend shares files with nearby devices. In this rehearsal, review a sample file and choose an intended demo recipient. Nothing will be sent.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 9
+    },
+    {
+      "startMs": 870,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 51
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4870,
+      "endOffset": 69
+    },
+    {
+      "startMs": 5270,
+      "endOffset": 71
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5830,
+      "endOffset": 83
+    },
+    {
+      "startMs": 6350,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6550,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6870,
+      "endOffset": 97
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 106
+    },
+    {
+      "startMs": 7510,
+      "endOffset": 111
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 122
+    },
+    {
+      "startMs": 8990,
+      "endOffset": 130
+    },
+    {
+      "startMs": 9469,
+      "endOffset": 135
+    },
+    {
+      "startMs": 9629,
+      "endOffset": 138
+    },
+    {
+      "startMs": 9790,
+      "endOffset": 144
+    }
+  ]
+}

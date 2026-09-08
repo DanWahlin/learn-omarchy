@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "audioHash": "271dd93cb988d2460b63c6351b03cf26ba929be722ecba7fc0b4abfc6844d58c",
+  "text": "The menu is open. Choose Release Keys before typing or browsing here. Escape clears typed text; press it again to close. With no text, one press closes. Then choose Capture Keys to return to the course.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 8
+    },
+    {
+      "startMs": 510,
+      "endOffset": 11
+    },
+    {
+      "startMs": 710,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 24
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 37
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 51
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 63
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 69
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 76
+    },
+    {
+      "startMs": 6790,
+      "endOffset": 83
+    },
+    {
+      "startMs": 7230,
+      "endOffset": 89
+    },
+    {
+      "startMs": 7630,
+      "endOffset": 95
+    },
+    {
+      "startMs": 8469,
+      "endOffset": 101
+    },
+    {
+      "startMs": 8830,
+      "endOffset": 104
+    },
+    {
+      "startMs": 8910,
+      "endOffset": 110
+    },
+    {
+      "startMs": 9229,
+      "endOffset": 113
+    },
+    {
+      "startMs": 9350,
+      "endOffset": 120
+    },
+    {
+      "startMs": 10430,
+      "endOffset": 125
+    },
+    {
+      "startMs": 10709,
+      "endOffset": 128
+    },
+    {
+      "startMs": 10950,
+      "endOffset": 134
+    },
+    {
+      "startMs": 11629,
+      "endOffset": 138
+    },
+    {
+      "startMs": 11990,
+      "endOffset": 144
+    },
+    {
+      "startMs": 12309,
+      "endOffset": 152
+    },
+    {
+      "startMs": 13430,
+      "endOffset": 157
+    },
+    {
+      "startMs": 13870,
+      "endOffset": 164
+    },
+    {
+      "startMs": 14229,
+      "endOffset": 172
+    },
+    {
+      "startMs": 14709,
+      "endOffset": 177
+    },
+    {
+      "startMs": 15229,
+      "endOffset": 180
+    },
+    {
+      "startMs": 15389,
+      "endOffset": 187
+    },
+    {
+      "startMs": 15790,
+      "endOffset": 190
+    },
+    {
+      "startMs": 15950,
+      "endOffset": 194
+    },
+    {
+      "startMs": 16070,
+      "endOffset": 202
+    }
+  ]
+}

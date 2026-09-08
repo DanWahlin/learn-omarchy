@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "ce865ea37539e39ca4a691e16340895ccce9727f33fba739a71dfbc620e3f634",
+  "text": "Need to focus on one thing? Press Super and F for fullscreen.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 7
+    },
+    {
+      "startMs": 310,
+      "endOffset": 13
+    },
+    {
+      "startMs": 670,
+      "endOffset": 16
+    },
+    {
+      "startMs": 830,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 61
+    }
+  ]
+}

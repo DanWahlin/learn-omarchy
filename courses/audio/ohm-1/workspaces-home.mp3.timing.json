@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "036d7d88fa90962232957d6cee6583af56dc95bf99709376734bd787b8d730af",
+  "text": "First, let's start from workspace one. Press Super and 1.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 630,
+      "endOffset": 12
+    },
+    {
+      "startMs": 870,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 57
+    }
+  ]
+}

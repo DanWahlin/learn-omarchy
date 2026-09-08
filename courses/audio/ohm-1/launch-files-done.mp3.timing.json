@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "dcbf074958c18ffe1d17eade197f1fd5ee9d454e1355edfba5d31628d6d58d2c",
+  "text": "The file manager is open. Use it to browse folders, find documents, and manage files.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 8
+    },
+    {
+      "startMs": 390,
+      "endOffset": 16
+    },
+    {
+      "startMs": 750,
+      "endOffset": 19
+    },
+    {
+      "startMs": 870,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 35
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 51
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 67
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 85
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "audioHash": "fdb939de40588b52b7de8bc0f16873933051d50db3bdd15c5d9419015b358a8b",
+  "text": "A web app gives a website its own launcher. Create a local demo entry, preview it, then remove it. This practice doesn't add anything to your Apps menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 1
+    },
+    {
+      "startMs": 110,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 9
+    },
+    {
+      "startMs": 550,
+      "endOffset": 15
+    },
+    {
+      "startMs": 750,
+      "endOffset": 17
+    },
+    {
+      "startMs": 830,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 82
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 87
+    },
+    {
+      "startMs": 5470,
+      "endOffset": 94
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 98
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 103
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 112
+    },
+    {
+      "startMs": 7150,
+      "endOffset": 120
+    },
+    {
+      "startMs": 7470,
+      "endOffset": 124
+    },
+    {
+      "startMs": 7790,
+      "endOffset": 133
+    },
+    {
+      "startMs": 8309,
+      "endOffset": 136
+    },
+    {
+      "startMs": 8389,
+      "endOffset": 141
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 146
+    },
+    {
+      "startMs": 8830,
+      "endOffset": 152
+    }
+  ]
+}

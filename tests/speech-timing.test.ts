@@ -38,6 +38,18 @@ test("SDK word events map UTF-16 indices and 100ns ticks, including punctuation 
   ] });
 });
 
+test("genuine equal-time word events reveal together without inventing later timestamps", () => {
+  const text = "with it.";
+  const prepared = prepareSpeechWithOffsets(text, "Ohm", {});
+  const events = boundaries(text, ["with", "it"]);
+  const sameTime = events.map(event => ({ text: event.text, textOffset: event.textOffset,
+    wordLength: event.wordLength, audioOffset: 39890000 }));
+  const result = mapWordBoundaries(text, prepared, sameTime, 4550);
+  assert.deepEqual(result, { words: [{ startMs: 3989, endOffset: 4 }, { startMs: 3989, endOffset: 8 }] });
+  assert.ok(timingIsFresh({ version: 1, audioHash: "a".repeat(64), text, words: result.words },
+    "a".repeat(64), text));
+});
+
 test("pinned SDK finds plain-text event offsets with UTF-16 indexOf, including repeated and XML-sensitive words", () => {
   const require = createRequire(import.meta.url);
   const { SynthesisTurn } = require("microsoft-cognitiveservices-speech-sdk/distrib/lib/src/common.speech/SynthesisTurn.js");
@@ -128,7 +140,7 @@ test("missing, partial, malformed, reordered, invented, and out-of-duration even
     mutate({ wordLength: 0 }), mutate({ wordLength: 3 }), mutate({ text: "HELLO" }),
     mutate({ audioOffset: -1 }), mutate({ audioOffset: NaN }), mutate({ audioOffset: Infinity }),
     mutate({ audioOffset: 0.5 }), mutate({ audioOffset: 100000000 }),
-    [valid[0], { ...valid[1], audioOffset: valid[0].audioOffset }, valid[2]],
+    [valid[0], { ...valid[1], audioOffset: valid[0].audioOffset - 10000 }, valid[2]],
   ]) {
     const result = mapWordBoundaries(text, prepared, events, 2000);
     assert.ok(result.reason, JSON.stringify(events));
@@ -187,7 +199,7 @@ test("freshness binds original wording and final MP3 hash, and rejects corrupt t
       { ...timing, words: [{ startMs: -1, endOffset: 9 }] },
       { ...timing, words: [{ startMs: 1, endOffset: 100 }] },
       { ...timing, words: [{ startMs: 1, endOffset: 9.1 }] },
-      { ...timing, words: [{ startMs: 1, endOffset: 2 }, { startMs: 1, endOffset: 9 }] },
+      { ...timing, words: [{ startMs: 2, endOffset: 2 }, { startMs: 1, endOffset: 9 }] },
     ]) assert.equal(timingIsFresh(invalid, hash, timing.text), false);
     await writeFile(`${output}.timing.json`, "{broken");
     assert.equal(await timingFileIsFresh(output, hash, timing.text), false);

@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "audioHash": "c3a00c3af1bd41329d8c9055b43616c64f361a08edc1e303282e572b86e387ce",
+  "text": "And there's the terminal, right where you left it.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 470,
+      "endOffset": 11
+    },
+    {
+      "startMs": 750,
+      "endOffset": 15
+    },
+    {
+      "startMs": 910,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 50
+    }
+  ]
+}

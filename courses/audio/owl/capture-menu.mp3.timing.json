@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "cafd31d67c449d14620942c4b2641e8370f9e7483da2094e22f5dccb0f2c3ebc",
+  "text": "Grab what's on screen. Hold Super and Control, then press C to open the Capture menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 470,
+      "endOffset": 11
+    },
+    {
+      "startMs": 830,
+      "endOffset": 14
+    },
+    {
+      "startMs": 990,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 37
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 51
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 62
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 67
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 71
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5950,
+      "endOffset": 85
+    }
+  ]
+}

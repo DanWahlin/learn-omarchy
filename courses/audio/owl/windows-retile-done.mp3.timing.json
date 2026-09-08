@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "242dcf14d2d11a8e8282db962224fb6428e07837395b0e27f36a089da6fef0ce",
+  "text": "Your terminal is tiled again. Omarchy manages its size and position alongside the other windows.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 13
+    },
+    {
+      "startMs": 790,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 37
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 49
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 67
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 77
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 81
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 96
+    }
+  ]
+}

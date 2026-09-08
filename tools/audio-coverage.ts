@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { discoverCharacterPacks, type CharacterManifest } from "../src/character-packs.ts";
 import { parseCourseJson } from "../src/course.ts";
 import { fileHash, fingerprint, prepareSpeech, productionOptions, readManifest, sha256, type ProductionEntry } from "./audio-production.ts";
+import { loadTiming } from "./play-timed-speech.mjs";
 
 export type AudioClip = {
   character: string;
@@ -34,6 +35,18 @@ export function clipIssues(clip: AudioClip, pack: CharacterManifest, entry: Prod
   return issues;
 }
 
+export function timingIssues(clip: AudioClip, timing: {
+  timing?: { text: string; words: { startMs: number; endOffset: number }[] };
+  reason?: string;
+}, durationSeconds?: number): string[] {
+  if (timing.reason === "missing-timing") return [];
+  if (!timing.timing) return ["invalid or stale word timing metadata"];
+  if (timing.timing.text !== clip.text) return ["word timing text doesn't match narration"];
+  if (typeof durationSeconds === "number" && timing.timing.words.some(word => word.startMs >= durationSeconds * 1000))
+    return ["word timing extends beyond the recording"];
+  return [];
+}
+
 export async function auditCourseAudio(coursePath: string) {
   const parsed = parseCourseJson(await readFile(coursePath, "utf8"));
   if (!parsed.course || parsed.errors.length) throw new Error(parsed.errors.join("\n"));
@@ -53,6 +66,8 @@ export async function auditCourseAudio(coursePath: string) {
     throw new Error("Invalid welcome lesson-menu narration");
   const clips: AudioClip[] = [];
   const issues: { clip: AudioClip; reasons: string[] }[] = [];
+  const missingTimings: AudioClip[] = [];
+  let timedClips = 0;
   for (const pack of catalog.packs) {
     if (pack.manifest.narration.mode !== "own") continue;
     const instruction = welcome.instructions?.[pack.id] ?? welcome.instruction;
@@ -81,8 +96,13 @@ export async function auditCourseAudio(coursePath: string) {
       const clip: AudioClip = { character: pack.id, step: item.step, part: item.part, text: item.text, key, path };
       clips.push(clip);
       const reasons = clipIssues(clip, pack.manifest, manifest.files[key], await fileHash(path));
+      const timing = await loadTiming(path);
+      const alignmentIssues = timingIssues(clip, timing, manifest.files[key]?.normalization.probe.durationSeconds);
+      reasons.push(...alignmentIssues);
+      if (timing.reason === "missing-timing") missingTimings.push(clip);
+      else if (!alignmentIssues.length) timedClips++;
       if (reasons.length) issues.push({ clip, reasons });
     }
   }
-  return { clips, issues };
+  return { clips, issues, timedClips, missingTimings };
 }

@@ -1,0 +1,127 @@
+{
+  "version": 1,
+  "audioHash": "1aeef56dcd7cdf7c575a1640685c9e37fc2a3a7cf0a0437014e7008b8eedbf57",
+  "text": "Let's make clipboard history useful. Copy two sample notes. Find the older one in history, use Shift and Enter to copy it without pasting, then paste it into the exercise.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 270,
+      "endOffset": 10
+    },
+    {
+      "startMs": 470,
+      "endOffset": 20
+    },
+    {
+      "startMs": 950,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 64
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 74
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 90
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 100
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 104
+    },
+    {
+      "startMs": 6910,
+      "endOffset": 110
+    },
+    {
+      "startMs": 7350,
+      "endOffset": 113
+    },
+    {
+      "startMs": 7470,
+      "endOffset": 118
+    },
+    {
+      "startMs": 7870,
+      "endOffset": 121
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 129
+    },
+    {
+      "startMs": 8309,
+      "endOffset": 138
+    },
+    {
+      "startMs": 9110,
+      "endOffset": 143
+    },
+    {
+      "startMs": 9350,
+      "endOffset": 149
+    },
+    {
+      "startMs": 9670,
+      "endOffset": 152
+    },
+    {
+      "startMs": 9750,
+      "endOffset": 157
+    },
+    {
+      "startMs": 9910,
+      "endOffset": 161
+    },
+    {
+      "startMs": 10069,
+      "endOffset": 171
+    }
+  ]
+}

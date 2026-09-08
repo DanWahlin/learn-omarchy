@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "a922cb4840efe7fcac463061cf78ffcec8813695b449bb6e368b8faaf6e1d53d",
+  "text": "Nicely done. You've practiced opening everyday apps and closing the windows you no longer need.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 510,
+      "endOffset": 12
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 37
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 67
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 79
+    },
+    {
+      "startMs": 4870,
+      "endOffset": 82
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 89
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 95
+    }
+  ]
+}

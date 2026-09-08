@@ -1,0 +1,119 @@
+{
+  "version": 1,
+  "audioHash": "c5577419105903d4bc0c7311c07311bb873d25b673d66ed43ca7af7938a77371",
+  "text": "Clipboard history is open. After releasing the keys, select an entry and use Shift and Enter to copy it without pasting. Regular Enter pastes into the previous field.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 9
+    },
+    {
+      "startMs": 470,
+      "endOffset": 17
+    },
+    {
+      "startMs": 790,
+      "endOffset": 20
+    },
+    {
+      "startMs": 910,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 68
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 76
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 82
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 86
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 92
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 95
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 100
+    },
+    {
+      "startMs": 5590,
+      "endOffset": 103
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 111
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 120
+    },
+    {
+      "startMs": 6870,
+      "endOffset": 128
+    },
+    {
+      "startMs": 7390,
+      "endOffset": 134
+    },
+    {
+      "startMs": 7710,
+      "endOffset": 141
+    },
+    {
+      "startMs": 8029,
+      "endOffset": 146
+    },
+    {
+      "startMs": 8229,
+      "endOffset": 150
+    },
+    {
+      "startMs": 8350,
+      "endOffset": 159
+    },
+    {
+      "startMs": 8790,
+      "endOffset": 166
+    }
+  ]
+}

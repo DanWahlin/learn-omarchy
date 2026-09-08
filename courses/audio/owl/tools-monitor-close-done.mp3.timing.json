@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "audioHash": "2a13b24341b7e7349734ec505bf61092f489ce0f37a5b4d137ed26f68e25199c",
+  "text": "Closed. Your other work stays where you left it.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 12
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 23
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 48
+    }
+  ]
+}

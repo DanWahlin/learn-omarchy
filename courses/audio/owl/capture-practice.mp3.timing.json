@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "audioHash": "149672e37f744ac8250122af555dd82fa6f438be70ebca6ffb0adfef2fe3d505",
+  "text": "Capture the practice card, inspect the saved image, copy its file path, and add a label to the preview.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 7
+    },
+    {
+      "startMs": 470,
+      "endOffset": 11
+    },
+    {
+      "startMs": 590,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4430,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 75
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5590,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 90
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 103
+    }
+  ]
+}

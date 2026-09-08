@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "78c214971c8c8acc60e77a8626a8f38cb8b4694b76d01d0e081ef97ed8a1d75a",
+  "text": "You're on workspace one. We'll use it as the starting point for this lesson.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 310,
+      "endOffset": 9
+    },
+    {
+      "startMs": 430,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 76
+    }
+  ]
+}

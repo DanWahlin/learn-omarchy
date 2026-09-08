@@ -71,7 +71,7 @@
         {
           "id": "tour-workspaces",
           "kind": "tour",
-          "instruction": "These numbers are your workspaces: separate desktops for different tasks. The highlighted number shows the workspace you're using. Switching workspaces keeps your windows open.",
+          "instruction": "These are your workspaces: separate desktops for different tasks. The active workspace has a marker in the bar, which may replace its number with an icon. Switching workspaces keeps your windows open.",
           "detail": "Follow the highlighted area. Choose Next or press Enter when you're ready to continue.",
           "keys": [],
           "audio": "audio/tour-workspaces.mp3",
@@ -126,7 +126,7 @@
             "target": "workspace",
             "workspaceId": 2
           },
-          "completionMessage": "You're on workspace two. Notice how its number is now highlighted in the bar. Your other windows are still on their own workspaces.",
+          "completionMessage": "You're on workspace two. Look for the active marker at workspace two's position in the bar. It may be an icon instead of a number. Your other windows are still on their own workspaces.",
           "completionAudio": "audio/tour-workspace-two-done.mp3"
         },
         {
@@ -340,13 +340,13 @@
               "omarchy.menu"
             ]
           },
-          "completionMessage": "The menu is open. Choose Release Keys before typing or browsing here. Escape closes the menu; Capture Keys returns control to the course.",
+          "completionMessage": "The menu is open. Choose Release Keys before typing or browsing here. Escape clears typed text; press it again to close. With no text, one press closes. Then choose Capture Keys to return to the course.",
           "completionAudio": "audio/open-root-menu-done.mp3"
         },
         {
           "id": "open-apps",
           "instruction": "Now for your apps. Alt is the Option key on a Mac keyboard. Hold Super and Alt, then tap Space to open the Apps menu.",
-          "detail": "The Apps menu lists launchable apps, not every installed package. Choose Release Keys to search it, then Capture Keys to return to the course.",
+          "detail": "The Apps menu lists launchable apps, not every installed package. Choose Release Keys to search it. Escape clears typed text; press it again to close, or once if empty. Then choose Capture Keys to return to the course.",
           "keys": [
             "SUPER",
             "+",
@@ -393,14 +393,14 @@
         },
         {
           "id": "apps-search-practice",
-          "note": "The exercise opens separately and gives you control of the keyboard.",
+          "note": "I'll stay here while you use the Apps menu; your existing windows are left alone.",
           "kind": "practice",
           "practice": "app-search",
           "optional": false,
-          "instruction": "Now use the Apps menu for a real task. Search for your terminal, launch it, then close that new window.",
-          "detail": "Start exercise releases the keys to a normal desktop window. Follow its instructions, then choose Finish exercise to return here.",
+          "instruction": "Choose Start search. Open the Apps menu with Super, Alt, and Space. Search for Terminal or Ghostty, then press Enter. Close the new terminal with Super and W to finish.",
+          "detail": "Start search gives your keyboard to the desktop while the coach stays here. Search for the terminal installed on your system. Closing the new terminal finishes automatically; no separate exercise window opens.",
           "keys": [],
-          "actionLabel": "Start exercise",
+          "actionLabel": "Start search",
           "audio": "audio/apps-search-practice.mp3",
           "completion": {
             "type": "practice-result"
@@ -419,8 +419,9 @@
         },
         {
           "id": "open-keybindings",
-          "instruction": "Need to look up a shortcut? Press Super and K to open the shortcut guide.",
-          "detail": "This searchable list is your cheat sheet. Choose Release Keys to type a filter. Close the guide with Escape, then choose Capture Keys to continue.",
+          "instruction": "Need to look up a shortcut? Press Super and K to open the shortcut guide. Search and read only for this lesson: pressing Enter or clicking a result runs that shortcut, which could close windows or lock your screen.",
+          "detail": "Choose Release Keys to type a filter. Read the matching key combinations without activating a result, then close the guide and choose Capture Keys to continue.",
+          "note": "Read only: Enter or clicking a result runs the shortcut, not a help page.",
           "keys": [
             "SUPER",
             "+",
@@ -456,7 +457,7 @@
             "durationMs": 2200,
             "target": "panel"
           },
-          "completionMessage": "The shortcut guide is open. Use it whenever you want to look up or revisit a key combination.",
+          "completionMessage": "The shortcut guide is open. To leave without running a shortcut, Escape clears typed text; press it again to close, or once if empty.",
           "completionAudio": "audio/open-keybindings-done.mp3"
         }
       ]
@@ -1506,6 +1507,7 @@
         },
         {
           "id": "workspaces-scratchpad",
+          "windowFromStep": "workspaces-open-terminal",
           "instruction": "Press Super and S to reveal the scratchpad with your terminal in it.",
           "detail": "The scratchpad is a hidden workspace you can show over your current one. Super and S shows or hides it.",
           "keys": [
@@ -1527,7 +1529,13 @@
             "events": [
               "activespecialv2",
               "activespecial"
-            ]
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "specialWorkspace": "scratchpad",
+              "specialVisible": true,
+              "focused": true
+            }
           },
           "highlight": {
             "shape": "rectangle",
@@ -1539,13 +1547,14 @@
             "borderWidth": 10,
             "radius": 12,
             "durationMs": 1800,
-            "target": "workspace"
+            "target": "window"
           },
           "completionMessage": "There's your terminal, available without leaving this workspace.",
           "completionAudio": "audio/workspaces-scratchpad-done.mp3"
         },
         {
           "id": "workspaces-scratchpad-hide",
+          "windowFromStep": "workspaces-open-terminal",
           "note": "The terminal stays open while the scratchpad is hidden.",
           "instruction": "Press Super and S again to tuck the scratchpad away.",
           "detail": "Anything you leave in the scratchpad stays there until you call it back.",
@@ -1568,7 +1577,12 @@
             "events": [
               "activespecialv2",
               "activespecial"
-            ]
+            ],
+            "target": "tutorial-window",
+            "windowState": {
+              "specialWorkspace": "scratchpad",
+              "specialVisible": false
+            }
           },
           "highlight": {
             "shape": "rectangle",
@@ -2098,7 +2112,7 @@
           "id": "clipboard-history",
           "note": "History may contain private information; select entries carefully.",
           "instruction": "Copied something earlier? Hold Super and Control, then press V to open your clipboard history.",
-          "detail": "Clipboard history keeps recent copied items. Activating an entry normally pastes it into the previously focused field. Shift+Enter copies an entry without pasting. Be mindful of private information in your history.",
+          "detail": "Clipboard history keeps recent copied items. Activating an entry normally pastes it into the previously focused field. Shift+Enter copies an entry without pasting. To cancel, Escape clears typed text; press it again to close, or once if empty. Be mindful of private information in your history.",
           "keys": [
             "SUPER",
             "+",
@@ -2171,7 +2185,7 @@
           "id": "compose-intro",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Caps Lock has a second job in Omarchy: it's the Compose key. Tap and release Caps Lock, then m, then s for a smile. These are separate presses, not a shortcut you hold together.",
+          "instruction": "Omarchy uses Caps Lock as the Compose key by default, instead of toggling capital letters. Tap and release Caps Lock, then m, then s for a smile. These are separate presses, not a shortcut you hold together.",
           "detail": "Compose uses separate key presses, not keys held together. Use lowercase letters without Shift. We'll practice a smile and a heart next. Custom keyboard settings may use a different Compose key.",
           "keys": [],
           "audio": "audio/compose-intro.mp3",
@@ -2331,8 +2345,9 @@
           "id": "recording-intro",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Alt and Print opens recording choices, or stops a recording that's already running. Without a Print key, use the Capture menu. Watch the recording indicator, and make sure you know how to stop before starting.",
-          "detail": "Native recordings go to your configured Videos directory. No audio, desktop audio, microphone, and webcam are different choices. Never include someone else's voice, private windows, or notifications without permission. Our practice recording is silent and limited to a region you choose.",
+          "instruction": "Alt and Print opens recording choices, or stops a recording that's already running. Without a Print key, use the Capture menu. Microphone includes desktop audio; webcam includes both. Keep private content and other people's voices out. Watch the recording indicator, and know how to stop before starting.",
+          "detail": "The choices are \"With no audio\", \"With desktop audio\", \"With desktop + microphone audio\", and, when a webcam is available, \"With desktop + microphone audio + webcam\". Native recordings go to your configured Videos directory. Never include someone else's voice, private windows, or notifications without permission. Our practice recording is silent and limited to a region you choose.",
+          "note": "Webcam includes desktop and microphone audio; our practice recording is silent.",
           "keys": [],
           "audio": "audio/recording-intro.mp3",
           "completion": {
@@ -2448,7 +2463,7 @@
           "kind": "tour",
           "pose": "talk",
           "instruction": "Search Install in the Omarchy menu. Just note the location; don't install anything for this lesson. A package is installable software. Prefer official packages. Community packages from the Arch User Repository, or AUR, need closer review.",
-          "detail": "This is an introduction, not an installation task. Use Release Keys if you'd like to locate Install, then Escape and Capture Keys to return. Installing software can request your password and change the system. No installation is required for completion.",
+          "detail": "This is an introduction, not an installation task. Use Release Keys if you'd like to locate Install. Escape clears typed text; press it again to close, or once if empty. Then choose Capture Keys to return. Installing software can request your password and change the system. No installation is required for completion.",
           "keys": [],
           "audio": "audio/upkeep-install.mp3",
           "completion": {
@@ -2504,7 +2519,7 @@
           "kind": "tour",
           "pose": "talk",
           "instruction": "Setup, Defaults is where you choose which apps Omarchy opens. For now, just note the location; keep your current settings. Installing an app and making it the default are separate decisions.",
-          "detail": "Open Super+Space, then search Defaults. Selecting a default changes future launches immediately. This lesson only introduces the location; keep your current defaults unless you intentionally want to change them.",
+          "detail": "Open Super+Space, then search Defaults. Selecting a default changes future launches immediately. This lesson only introduces the location; keep your current defaults. Escape clears typed text; press it again to close, or once if empty.",
           "keys": [],
           "audio": "audio/upkeep-defaults.mp3",
           "completion": {
@@ -2595,8 +2610,9 @@
       "steps": [
         {
           "id": "hardware-menu",
-          "instruction": "Let's look under the hood. Hold Super and Control, then press H to open the Hardware menu.",
-          "detail": "Audio, Bluetooth, display, keyboard, and other device settings gather here.",
+          "instruction": "Hold Super and Control, then press H to open the Hardware menu. Opening it is safe, but selecting an action can change device behavior immediately. Just look for this lesson; don't select an action.",
+          "detail": "This is Trigger > Hardware. Depending on your hardware, it offers Laptop Display, Mirror Display, Hybrid GPU, Touchpad, Touchpad Haptics, and Touchscreen controls. Audio, Bluetooth, and Display have separate panels. Keyboard configuration is under Setup > Input or Setup > Keybindings.",
+          "note": "Look only: selecting a hardware action can change device behavior immediately.",
           "keys": [
             "SUPER",
             "+",
@@ -2635,14 +2651,14 @@
             "durationMs": 2100,
             "target": "panel"
           },
-          "completionMessage": "Hardware setup lives here. Install and Update are one level up, in the Omarchy menu under Super plus Space.",
+          "completionMessage": "You're in Trigger, Hardware. Install and Update sit alongside Trigger at the root of the Omarchy menu, not inside Hardware.",
           "completionAudio": "audio/hardware-menu-done.mp3"
         },
         {
           "id": "display-panel",
-          "note": "Display changes apply immediately; leave resolution and scale unchanged.",
-          "instruction": "Hold Super and Control, then press D to open the Display panel.",
-          "detail": "Display changes apply immediately. Read the panel without changing scale or resolution during this lesson. Release Keys to explore; Escape closes it.",
+          "note": "Display changes apply immediately; leave the controls unchanged.",
+          "instruction": "Hold Super and Control, then press D to open the Display panel. Just look for now: changes apply immediately, so leave the controls unchanged.",
+          "detail": "The panel offers text size and scale, brightness where supported, and display enable/disable controls when multiple displays are available. Release Keys to explore; Escape closes it. Resolution is configured separately under Setup > Monitors.",
           "keys": [
             "SUPER",
             "+",
@@ -2685,7 +2701,7 @@
               "omarchy.monitor"
             ]
           },
-          "completionMessage": "The Display panel is open. Resolution and scaling changes apply immediately, so leave them unchanged unless you intend to adjust your display.",
+          "completionMessage": "The Display panel is open. Text size and scale are here, with brightness and display switches where available. These controls apply immediately, so looking is enough for this lesson.",
           "completionAudio": "audio/display-panel-done.mp3"
         },
         {
@@ -2818,9 +2834,9 @@
         },
         {
           "id": "helpers-reminder",
-          "note": "Scheduling a reminder is optional; Escape cancels.",
+          "note": "Reminder optional. Escape clears typed text; press again to close, or once if empty.",
           "instruction": "Need a reminder? Hold Super and Control, then press R to set one.",
-          "detail": "Enter the number of minutes first, then your reminder message. Press Escape to leave without scheduling anything.",
+          "detail": "Enter the number of minutes first, then your reminder message. Before scheduling, Escape clears typed text; press it again to close, or once if empty.",
           "keys": [
             "SUPER",
             "+",
@@ -2860,7 +2876,7 @@
             "durationMs": 2200,
             "target": "panel"
           },
-          "completionMessage": "The reminder prompt is open. You can set a timed reminder or close it without scheduling one.",
+          "completionMessage": "The reminder prompt is open. Scheduling is optional. To leave beforehand, Escape clears typed text; press it again to close, or once if empty.",
           "completionAudio": "audio/helpers-reminder-done.mp3"
         },
         {
@@ -2893,8 +2909,9 @@
           "id": "dictation-corrections",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Names and technical words can trip up speech recognition. Voxtype's replacement settings let you correct recurring mistakes. Keep replacements specific so an ordinary word doesn't unexpectedly turn into something else.",
-          "detail": "Find dictation setup in the Omarchy menu. Review the installed tool's configuration before editing, save a backup, and test with a harmless phrase. This introduction doesn't edit replacement rules or claim they affect every kind of typing.",
+          "instruction": "Names and technical words can trip up speech recognition. Voxtype's configuration file has replacement settings for recurring mistakes. No edits for this lesson. If you change them later, back up the file first and keep replacements specific.",
+          "detail": "For installed Voxtype, review ~/.config/voxtype/config.toml and its commented [text] replacements example. Install > AI > Dictation installs the tool; it isn't a configuration menu. Once installed, Remove > Dictation removes it. Back up the file before future edits and test with a harmless phrase. These rules affect dictation, not ordinary typing.",
+          "note": "Voxtype replacements: ~/.config/voxtype/config.toml. No edits today; back up before future changes.",
           "keys": [],
           "audio": "audio/dictation-corrections.mp3",
           "completion": {
@@ -2930,6 +2947,7 @@
       "steps": [
         {
           "id": "tools-monitor-open",
+          "windowSize": { "width": 1200, "height": 640 },
           "note": "Inspect resource use without stopping any programs.",
           "instruction": "Wondering what's using your computer? Press Super, Control, and T to open the activity monitor.",
           "detail": "The activity monitor shows processor use, memory, storage, and running programs. Release Keys to explore, then Capture Keys to return. Don't stop any programs for this lesson.",
@@ -3183,7 +3201,7 @@
           "id": "share-menu",
           "note": "Opening the menu sends nothing; check the file and recipient before sharing.",
           "instruction": "Here's an optional tool for sharing. Press Super, Control, and S to open the Share menu.",
-          "detail": "Opening the menu sends nothing. Before sharing, check the selected content and recipient. Never send secrets or personal files just to complete a lesson. Escape cancels.",
+          "detail": "Opening the menu sends nothing. Before sharing, check the selected content and recipient. Never send secrets or personal files just to complete a lesson. Escape clears typed text; press it again to close, or once if empty.",
           "keys": [
             "SUPER",
             "+",

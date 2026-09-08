@@ -1,0 +1,195 @@
+{
+  "version": 1,
+  "audioHash": "e718008c92b8552a54676cc2a65c9a5923dc548fba6333e4802ca862971cc7ab",
+  "text": "Alt and Print opens recording choices, or stops a recording that's already running. Without a Print key, use the Capture menu. Microphone includes desktop audio; webcam includes both. Keep private content and other people's voices out. Watch the recording indicator, and know how to stop before starting.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 310,
+      "endOffset": 7
+    },
+    {
+      "startMs": 430,
+      "endOffset": 13
+    },
+    {
+      "startMs": 750,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 47
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 66
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 74
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 83
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 91
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 93
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 99
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 104
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 108
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 112
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 120
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 126
+    },
+    {
+      "startMs": 7470,
+      "endOffset": 137
+    },
+    {
+      "startMs": 8029,
+      "endOffset": 146
+    },
+    {
+      "startMs": 8389,
+      "endOffset": 154
+    },
+    {
+      "startMs": 8870,
+      "endOffset": 161
+    },
+    {
+      "startMs": 9629,
+      "endOffset": 168
+    },
+    {
+      "startMs": 10110,
+      "endOffset": 177
+    },
+    {
+      "startMs": 10469,
+      "endOffset": 183
+    },
+    {
+      "startMs": 11309,
+      "endOffset": 188
+    },
+    {
+      "startMs": 11590,
+      "endOffset": 196
+    },
+    {
+      "startMs": 11950,
+      "endOffset": 204
+    },
+    {
+      "startMs": 12469,
+      "endOffset": 208
+    },
+    {
+      "startMs": 12629,
+      "endOffset": 214
+    },
+    {
+      "startMs": 12830,
+      "endOffset": 223
+    },
+    {
+      "startMs": 13190,
+      "endOffset": 230
+    },
+    {
+      "startMs": 13549,
+      "endOffset": 235
+    },
+    {
+      "startMs": 14260,
+      "endOffset": 241
+    },
+    {
+      "startMs": 14540,
+      "endOffset": 245
+    },
+    {
+      "startMs": 14660,
+      "endOffset": 255
+    },
+    {
+      "startMs": 15100,
+      "endOffset": 266
+    },
+    {
+      "startMs": 15620,
+      "endOffset": 270
+    },
+    {
+      "startMs": 15780,
+      "endOffset": 275
+    },
+    {
+      "startMs": 15979,
+      "endOffset": 279
+    },
+    {
+      "startMs": 16100,
+      "endOffset": 282
+    },
+    {
+      "startMs": 16220,
+      "endOffset": 287
+    },
+    {
+      "startMs": 16700,
+      "endOffset": 294
+    },
+    {
+      "startMs": 17020,
+      "endOffset": 304
+    }
+  ]
+}

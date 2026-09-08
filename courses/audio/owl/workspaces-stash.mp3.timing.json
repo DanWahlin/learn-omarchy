@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "995725dce87de038b5d673e70b67764341873569f75aef32723aaead4fe8167e",
+  "text": "Let's give the scratchpad something useful. Press Super, Alt, and S to put our terminal there.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 10
+    },
+    {
+      "startMs": 550,
+      "endOffset": 14
+    },
+    {
+      "startMs": 670,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 35
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 61
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 67
+    },
+    {
+      "startMs": 5590,
+      "endOffset": 70
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 74
+    },
+    {
+      "startMs": 5950,
+      "endOffset": 78
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6670,
+      "endOffset": 94
+    }
+  ]
+}

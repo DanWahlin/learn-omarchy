@@ -55,8 +55,11 @@ test("the package install includes shared pack code and pack-owned intro assets"
     const root = join(directory, "usr/share/learn-omarchy");
     for (const file of [
       "app/CharacterPackStore.qml", "app/IntroPlayer.qml", "app/CharacterSprite.qml",
+      "app/AppSearchSession.qml", "app/app-search.qml",
+      "app/PracticeSession.qml", "app/TeachingLayout.js", "tools/tutorial-launch.mjs",
       "app/SplashScreen.qml", "assets/splash/learn-omarchy.png",
-      "app/WordRevealText.qml", "app/CaptionTiming.js", "tools/play-timed-speech.mjs",
+      "assets/sounds/birds-welcome.opus", "assets/sounds/birds-welcome.provenance.json",
+      "app/WordRevealText.qml", "app/CaptionReveal.qml", "app/CaptionTiming.js", "tools/play-timed-speech.mjs",
       "app/IntroTimeline.js", "app/IntroEffect.qml", "app/qmldir",
       "src/character-packs.ts", "src/intro-sequence.ts", "tools/character-packs.ts",
       "tools/validate-course-audio.ts", "tools/audio-coverage.ts", "tools/audio-production.ts",
@@ -71,7 +74,7 @@ test("the package install includes shared pack code and pack-owned intro assets"
     }
     assert.deepEqual((await readdir(join(root, "tools"))).sort(),
       ["audio-coverage.ts", "audio-production.ts", "capture-practice.mjs", "character-packs.ts",
-        "play-timed-speech.mjs", "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
+        "play-timed-speech.mjs", "tutorial-launch.mjs", "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
     const audioCheck = spawnSync(process.execPath, ["--experimental-strip-types",
       join(root, "tools/validate-course-audio.ts"), join(root, "courses/omarchy-basics.json")],
     { encoding: "utf8" });

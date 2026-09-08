@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "652c77438dd8a660f743ad149137ddf3f262157e2ece01a63f995a6b01281974",
+  "text": "Fancy a new look? Hold Super and Control, then press Space to open the Background switcher.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 430,
+      "endOffset": 7
+    },
+    {
+      "startMs": 510,
+      "endOffset": 11
+    },
+    {
+      "startMs": 790,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 22
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 28
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 46
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 52
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 61
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 66
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 70
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 81
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 91
+    }
+  ]
+}

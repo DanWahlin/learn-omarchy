@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "audioHash": "50542fc3f5d10457a8e8f1a18ece7bf3df7e5d9330b0043ed13ac129ab178e18",
+  "text": "The shortcut guide is open. To leave without running a shortcut, Escape clears typed text; press it again to close, or once if empty.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 510,
+      "endOffset": 18
+    },
+    {
+      "startMs": 750,
+      "endOffset": 21
+    },
+    {
+      "startMs": 870,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 36
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 52
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 54
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 64
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 71
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4230,
+      "endOffset": 84
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 96
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 99
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 105
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 108
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 115
+    },
+    {
+      "startMs": 6750,
+      "endOffset": 118
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 123
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 126
+    },
+    {
+      "startMs": 7470,
+      "endOffset": 133
+    }
+  ]
+}

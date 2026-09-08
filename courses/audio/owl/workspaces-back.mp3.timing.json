@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "4aaabb597e00d7a17d497ba7d15e0a4acc4dbae58de66da6d16c8486a07a507e",
+  "text": "Press Super, Control, and Tab to return to the workspace you were just using.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 390,
+      "endOffset": 12
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 42
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4870,
+      "endOffset": 77
+    }
+  ]
+}

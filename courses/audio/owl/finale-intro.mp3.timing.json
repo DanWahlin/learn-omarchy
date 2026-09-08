@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "audioHash": "553fb3fdbf44ff27f5e55cbe5d7c1c077903b5788f5056c2a0174beb157266c1",
+  "text": "Bring the shortcuts together in a short workflow: open a terminal and browser, move the browser to another workspace, then close both. Use Help whenever you need a reminder.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 470,
+      "endOffset": 9
+    },
+    {
+      "startMs": 590,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5830,
+      "endOffset": 83
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 87
+    },
+    {
+      "startMs": 6350,
+      "endOffset": 95
+    },
+    {
+      "startMs": 6750,
+      "endOffset": 98
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 106
+    },
+    {
+      "startMs": 7350,
+      "endOffset": 117
+    },
+    {
+      "startMs": 8309,
+      "endOffset": 122
+    },
+    {
+      "startMs": 8590,
+      "endOffset": 128
+    },
+    {
+      "startMs": 9030,
+      "endOffset": 134
+    },
+    {
+      "startMs": 10229,
+      "endOffset": 138
+    },
+    {
+      "startMs": 10590,
+      "endOffset": 143
+    },
+    {
+      "startMs": 11030,
+      "endOffset": 152
+    },
+    {
+      "startMs": 11389,
+      "endOffset": 156
+    },
+    {
+      "startMs": 11549,
+      "endOffset": 161
+    },
+    {
+      "startMs": 11790,
+      "endOffset": 163
+    },
+    {
+      "startMs": 11830,
+      "endOffset": 173
+    }
+  ]
+}

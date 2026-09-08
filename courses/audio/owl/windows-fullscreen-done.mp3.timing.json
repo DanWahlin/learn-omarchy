@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "9cc55ec056f3fbfe28ffa17f2422737d53c68e80c160cc2e4b96e20a79aa69a1",
+  "text": "The terminal is fullscreen. Press the same shortcut in the next activity to leave fullscreen.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 710,
+      "endOffset": 15
+    },
+    {
+      "startMs": 950,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 42
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 75
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 93
+    }
+  ]
+}

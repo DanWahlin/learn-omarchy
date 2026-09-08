@@ -37,6 +37,10 @@ test("rehearsals and preview tools describe what they actually do", () => {
   assert.match(completion("capture-practice"), /saved image itself is unchanged/);
   assert.match(completion("display-panel"), /apply immediately/);
   assert.doesNotMatch(completion("display-panel"), /before you commit/);
+  assert.equal(steps.get("apps-search-practice")!.actionLabel, "Start search");
+  assert.match(instruction("apps-search-practice"), /Open the Apps menu with Super, Alt, and Space/);
+  assert.match(detail("apps-search-practice"), /no separate exercise window opens/);
+  assert.doesNotMatch(detail("apps-search-practice"), /choose Finish exercise/);
 });
 
 test("completion messages reinforce outcomes without claiming mastery or unperformed work", () => {
@@ -130,4 +134,89 @@ test("secondary notes are concise and keep important cautions visible", () => {
   assert.match(steps.get("capture-practice")!.note!, /not private windows/);
   assert.equal(steps.get("finale-to-two")!.note, undefined);
   assert.equal(steps.get("finale-to-two")!.detail, undefined);
+});
+
+test("hardware orientation describes Trigger controls and warns before opening", () => {
+  assert.match(instruction("hardware-menu"), /selecting an action can change device behavior immediately/);
+  assert.match(instruction("hardware-menu"), /don't select an action/);
+  assert.match(steps.get("hardware-menu")!.note!, /selecting a hardware action.*immediately/);
+  assert.match(detail("hardware-menu"), /Trigger > Hardware/);
+  assert.match(detail("hardware-menu"), /Depending on your hardware/);
+  for (const label of ["Laptop Display", "Mirror Display", "Hybrid GPU", "Touchpad", "Touchpad Haptics", "Touchscreen"])
+    assert.ok(detail("hardware-menu").includes(label), label);
+  assert.match(detail("hardware-menu"), /Audio, Bluetooth, and Display have separate panels/);
+  assert.match(detail("hardware-menu"), /Setup > Input or Setup > Keybindings/);
+  assert.match(completion("hardware-menu"), /Install and Update sit alongside Trigger at the root/);
+  assert.doesNotMatch(completion("hardware-menu"), /one level up/);
+});
+
+test("the shortcut guide prominently warns that results execute commands", () => {
+  assert.match(instruction("open-keybindings"), /Search and read only/);
+  assert.match(instruction("open-keybindings"), /Enter or clicking a result runs that shortcut/);
+  assert.match(instruction("open-keybindings"), /close windows or lock your screen/);
+  assert.match(steps.get("open-keybindings")!.note!, /Read only.*Enter or clicking a result runs the shortcut/);
+  assert.match(detail("open-keybindings"), /without activating a result/);
+  assert.match(completion("open-keybindings"), /without running a shortcut/);
+});
+
+test("native recordings describe combined inputs using the actual menu labels", () => {
+  for (const label of [
+    "With no audio", "With desktop audio", "With desktop + microphone audio",
+    "With desktop + microphone audio + webcam"
+  ]) assert.ok(detail("recording-intro").includes(`"${label}"`), label);
+  assert.match(detail("recording-intro"), /when a webcam is available/);
+  assert.match(instruction("recording-intro"), /Microphone includes desktop audio; webcam includes both/);
+  assert.match(steps.get("recording-intro")!.note!, /Webcam includes desktop and microphone audio/);
+  assert.match(detail("recording-intro"), /practice recording is silent and limited to a region/);
+  assert.doesNotMatch(detail("recording-intro"), /No audio, desktop audio, microphone, and webcam are different choices/);
+});
+
+test("native search cancellation clears entered text before closing", () => {
+  assert.match(completion("open-root-menu"), /Escape clears typed text; press it again to close/);
+  assert.match(completion("open-root-menu"), /With no text, one press closes/);
+  const cancellationCopy = [
+    detail("open-apps"), completion("open-keybindings"), detail("clipboard-history"),
+    detail("upkeep-install"), detail("upkeep-defaults"), detail("helpers-reminder"),
+    completion("helpers-reminder"), steps.get("helpers-reminder")!.note!, detail("share-menu")
+  ];
+  for (const text of cancellationCopy) {
+    assert.match(text, /Escape clears typed text; press (?:it )?again to close, or once if empty/);
+    assert.doesNotMatch(text, /Escape cancels|Escape to leave without scheduling/);
+  }
+  assert.match(detail("open-apps"), /Then choose Capture Keys/);
+  assert.match(detail("open-keybindings"), /choose Capture Keys to continue/);
+});
+
+test("dictation replacements use the installed configuration, not a nonexistent setup menu", () => {
+  assert.match(instruction("dictation-corrections"), /No edits for this lesson/);
+  assert.match(instruction("dictation-corrections"), /back up the file first/);
+  assert.match(detail("dictation-corrections"), /~\/\.config\/voxtype\/config\.toml/);
+  assert.match(detail("dictation-corrections"), /commented \[text\] replacements example/);
+  assert.match(detail("dictation-corrections"), /Install > AI > Dictation installs the tool; it isn't a configuration menu/);
+  assert.match(detail("dictation-corrections"), /Remove > Dictation removes it/);
+  assert.doesNotMatch(detail("dictation-corrections"), /Find dictation setup/);
+});
+
+test("workspace orientation allows the active marker to replace the number", () => {
+  assert.match(instruction("tour-workspaces"), /may replace its number with an icon/);
+  assert.match(completion("tour-workspace-two"), /active marker at workspace two's position/);
+  assert.match(completion("tour-workspace-two"), /icon instead of a number/);
+  for (const text of [instruction("tour-workspaces"), completion("tour-workspace-two")])
+    assert.doesNotMatch(text, /highlighted number|number is now highlighted/);
+});
+
+test("Display lists actual conditional controls and separates resolution configuration", () => {
+  assert.match(instruction("display-panel"), /changes apply immediately.*leave the controls unchanged/);
+  assert.match(detail("display-panel"), /text size and scale, brightness where supported/);
+  assert.match(detail("display-panel"), /display enable\/disable controls when multiple displays are available/);
+  assert.match(detail("display-panel"), /Resolution is configured separately under Setup > Monitors/);
+  for (const text of [instruction("display-panel"), completion("display-panel"), steps.get("display-panel")!.note!])
+    assert.doesNotMatch(text, /resolution/i);
+});
+
+test("Compose replaces normal Caps Lock behavior while retaining sequential presses", () => {
+  assert.match(instruction("compose-intro"), /Caps Lock as the Compose key by default, instead of toggling capital letters/);
+  assert.match(instruction("compose-intro"), /Tap and release Caps Lock, then m, then s/);
+  assert.match(instruction("compose-intro"), /separate presses/);
+  assert.doesNotMatch(instruction("compose-intro"), /second job/);
 });

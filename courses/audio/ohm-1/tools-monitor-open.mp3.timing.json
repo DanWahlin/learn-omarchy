@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "374ea5fb372512772e140b03de1d7d54534e61668cc3d45cdcca3a92207a0efe",
+  "text": "Wondering what's using your computer? Press Super, Control, and T to open the activity monitor.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 9
+    },
+    {
+      "startMs": 430,
+      "endOffset": 16
+    },
+    {
+      "startMs": 750,
+      "endOffset": 22
+    },
+    {
+      "startMs": 950,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 95
+    }
+  ]
+}

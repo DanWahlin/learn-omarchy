@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "d2f96e3f835ea584f6bcdf9a47de8d90f8f1c310aa76e445900bca715bc31e0a",
+  "text": "The browser is on workspace two; the terminal stays on workspace one.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 11
+    },
+    {
+      "startMs": 590,
+      "endOffset": 14
+    },
+    {
+      "startMs": 670,
+      "endOffset": 17
+    },
+    {
+      "startMs": 830,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 51
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 54
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 64
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 69
+    }
+  ]
+}

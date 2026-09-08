@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "27b7dc02c71833a3cf1320701abd7cc1125b86115b77277f678f87ed3492cc21",
+  "text": "The practice terminal is open. Watch the workspace numbers as you move between desktops.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 630,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1430,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 61
+    },
+    {
+      "startMs": 4430,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 88
+    }
+  ]
+}

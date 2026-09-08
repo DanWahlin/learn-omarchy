@@ -3,9 +3,10 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { chmod, mkdir, mkdtemp, readFile, readdir, rm, stat, truncate, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { PassThrough } from "node:stream";
 import test from "node:test";
 import {
-  loadTiming, MAX_AUDIO_BYTES, MAX_TIMING_BYTES, mpvArguments, parseArguments, validateTiming,
+  loadTiming, MAX_AUDIO_BYTES, MAX_TIMING_BYTES, mpvArguments, parseArguments, readControls, validateTiming,
 } from "../tools/play-timed-speech.mjs";
 
 const player = resolve("tools/play-timed-speech.mjs");
@@ -16,6 +17,27 @@ const metadata = {
   words: [{ startMs: 0, endOffset: 5 }, { startMs: 500, endOffset: 12 }],
 };
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+test("control parsing is bounded, allowlisted, chunk-safe, and releases input listeners", () => {
+  const input = new PassThrough();
+  const commands: string[] = [];
+  const diagnostics: string[] = [];
+  const stop = readControls(input, (command: string) => commands.push(command),
+    (message: string) => diagnostics.push(message));
+  input.write('{"command":"pa');
+  input.write('use"}\n{"command":"resume"}\r\n');
+  input.write('{"command":"SIGUSR1"}\nnot json\n{"command":"pause","extra":true}\n');
+  input.write("x".repeat(2000));
+  input.write('{"command":"pause"}\n{"command":"resume"}\n');
+  assert.deepEqual(commands, ["pause", "resume", "resume"]);
+  assert.equal(diagnostics.length, 4);
+  assert.match(diagnostics[3], /exceeds 1024 bytes/);
+  stop();
+  assert.equal(input.listenerCount("data"), 0);
+  assert.equal(input.listenerCount("end"), 0);
+  assert.equal(input.listenerCount("error"), 0);
+  assert.equal(input.isPaused(), true);
+});
 
 async function fixture() {
   const directory = resolve(await mkdtemp(".timed-speech-test-"));
@@ -82,7 +104,7 @@ test("sidecar loading hashes final audio and bounds both input files", async () 
 });
 
 async function startPlayer(mode: string, timing: unknown = metadata, exitCode = 0,
-  options: { readOnlyCwd?: boolean; longRuntime?: boolean } = {}) {
+  options: { readOnlyCwd?: boolean; longRuntime?: boolean; controls?: boolean } = {}) {
   const f = await fixture();
   const callerDirectory = options.readOnlyCwd ? join(f.directory, "caller") : f.directory;
   if (options.readOnlyCwd) await mkdir(callerDirectory, { mode: 0o500 });
@@ -100,6 +122,9 @@ const mode = process.env.FAKE_MODE;
 const socket = args.find(arg => arg.startsWith("--input-ipc-server="))?.split("=")[1];
 fs.writeFileSync(report("started.json"), JSON.stringify({ args, pid: process.pid, socket }));
 if (mode === "ignore-term") process.on("SIGTERM", () => {});
+if (["heartbeat", "delayed-ipc", "ignore-term"].includes(mode)) {
+  setInterval(() => fs.appendFileSync(report("heartbeat"), "."), 25);
+}
 if (socket && mode !== "no-socket") {
   const server = net.createServer(connection => {
     connection.on("error", () => {});
@@ -122,9 +147,10 @@ if (socket && mode !== "no-socket") {
       }
     });
   });
-  server.listen(socket);
+  if (mode === "delayed-ipc") setTimeout(() => server.listen(socket), 400);
+  else server.listen(socket);
 }
-const duration = ["cancel", "ignore-term"].includes(mode) ? 10000 :
+const duration = ["cancel", "ignore-term", "heartbeat", "delayed-ipc"].includes(mode) ? 10000 :
   ["no-socket", "no-position"].includes(mode) ? 1900 : 240;
 setTimeout(() => {
   fs.writeFileSync(report("finished"), "audio completed");
@@ -136,7 +162,7 @@ setTimeout(() => {
     cwd: callerDirectory,
     env: { ...process.env, PATH: f.directory, XDG_RUNTIME_DIR: runtime,
       FAKE_DIRECTORY: f.directory, FAKE_MODE: mode, FAKE_EXIT: String(exitCode) },
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: [options.controls ? "pipe" : "ignore", "pipe", "pipe"],
   });
   let stdout = "";
   let stderr = "";
@@ -315,6 +341,87 @@ test("playback failures propagate mpv status with useful diagnostics", async () 
     assert.match(f.stderr(), /mpv exited with status 7/);
   } finally {
     await f.cleanup();
+  }
+});
+
+test("stdin pause/resume actually stops and continues owned mpv, with or without timings", async () => {
+  for (const timing of [metadata, null]) {
+    const f = await startPlayer("heartbeat", timing, 0, { controls: true });
+    try {
+      await waitForFile(join(f.directory, "heartbeat"));
+      f.child.stdin!.write('{"command":"pause"}\n');
+      await delay(100);
+      const pausedSize = (await stat(join(f.directory, "heartbeat"))).size;
+      await delay(180);
+      assert.equal((await stat(join(f.directory, "heartbeat"))).size, pausedSize);
+      f.child.stdin!.write('{"command":"resume"}\n');
+      await delay(150);
+      assert.ok((await stat(join(f.directory, "heartbeat"))).size > pausedSize);
+      f.child.stdin!.end();
+      await delay(100);
+      assert.equal(f.child.exitCode, null, "stdin EOF must not stop playback");
+      f.child.kill("SIGTERM");
+      assert.equal((await f.finished).code, 143);
+      await assertClean(f.runtime);
+    } finally {
+      await f.cleanup();
+    }
+  }
+});
+
+test("early pause suspends the IPC startup deadline without inventing positions", async () => {
+  const f = await startPlayer("delayed-ipc", metadata, 0, { controls: true });
+  try {
+    await waitForFile(join(f.directory, "started.json"));
+    f.child.stdin!.write('{"command":"pause"}\n');
+    await delay(1800);
+    assert.equal(f.child.exitCode, null);
+    assert.equal(f.events().filter((event) => event.type === "fallback").length, 0);
+    assert.equal(f.events().filter((event) => event.type === "position").length, 0);
+    f.child.stdin!.write('{"command":"resume"}\n');
+    await waitForFile(join(f.directory, "observed.json"));
+    await delay(120);
+    assert.ok(f.events().some((event) => event.type === "position"));
+    assert.equal(f.events().filter((event) => event.type === "fallback").length, 0);
+    f.child.kill("SIGTERM");
+    assert.equal((await f.finished).code, 143);
+    await assertClean(f.runtime);
+  } finally {
+    await f.cleanup();
+  }
+});
+
+test("pausing after the initial timing deadline does not rearm a failed deadline on resume", async () => {
+  const f = await startPlayer("heartbeat", metadata, 0, { controls: true });
+  try {
+    await waitForFile(join(f.directory, "observed.json"));
+    await delay(1700);
+    assert.ok(f.events().some(event => event.type === "position"));
+    f.child.stdin!.write('{"command":"pause"}\n');
+    await delay(100);
+    f.child.stdin!.write('{"command":"resume"}\n');
+    await delay(150);
+    assert.equal(f.events().some(event => event.type === "fallback"), false);
+  } finally {
+    await f.cleanup();
+  }
+});
+
+test("cancelling a paused player resumes it for termination and escalates only the owned child", async () => {
+  for (const mode of ["heartbeat", "ignore-term"]) {
+    const f = await startPlayer(mode, metadata, 0, { controls: true });
+    try {
+      const started = JSON.parse(await waitForFile(join(f.directory, "started.json")));
+      await waitForFile(join(f.directory, "heartbeat"));
+      f.child.stdin!.write('{"command":"pause"}\n');
+      await delay(100);
+      f.child.kill("SIGTERM");
+      assert.equal((await f.finished).code, 143);
+      assert.throws(() => process.kill(started.pid, 0), { code: "ESRCH" });
+      await assertClean(f.runtime);
+    } finally {
+      await f.cleanup();
+    }
   }
 });
 

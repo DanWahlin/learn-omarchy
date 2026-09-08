@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "audioHash": "95222d8c51ad9036669e7aabf527714bdac137646b233e94c667de0616f98cd1",
+  "text": "The Network panel is open. You can check your connection without disconnecting or changing networks.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 11
+    },
+    {
+      "startMs": 470,
+      "endOffset": 17
+    },
+    {
+      "startMs": 670,
+      "endOffset": 20
+    },
+    {
+      "startMs": 790,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 34
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 56
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 64
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 78
+    },
+    {
+      "startMs": 3789,
+      "endOffset": 81
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 90
+    },
+    {
+      "startMs": 4430,
+      "endOffset": 100
+    }
+  ]
+}

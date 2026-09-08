@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "5674b425bc0a2669b98ecf28a0748b4b0821d4ca221c75c3084f1eba9e272051",
+  "text": "Hold Super and Shift, then press 2 to send this terminal to workspace two.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 350,
+      "endOffset": 10
+    },
+    {
+      "startMs": 910,
+      "endOffset": 14
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 21
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 26
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 34
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 37
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 42
+    },
+    {
+      "startMs": 3750,
+      "endOffset": 47
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 69
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 74
+    }
+  ]
+}

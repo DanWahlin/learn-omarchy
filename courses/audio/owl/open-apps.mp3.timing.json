@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "audioHash": "cb29a68300721f58e5403dcf746d627fa442d85f9c0da033bdbee7bc3878a76f",
+  "text": "Now for your apps. Alt is the Option key on a Mac keyboard. Hold Super and Alt, then tap Space to open the Apps menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 350,
+      "endOffset": 7
+    },
+    {
+      "startMs": 750,
+      "endOffset": 12
+    },
+    {
+      "startMs": 910,
+      "endOffset": 18
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 22
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 29
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 36
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 43
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 45
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 49
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 59
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 64
+    },
+    {
+      "startMs": 5950,
+      "endOffset": 70
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 74
+    },
+    {
+      "startMs": 6750,
+      "endOffset": 79
+    },
+    {
+      "startMs": 7350,
+      "endOffset": 84
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 88
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 94
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 97
+    },
+    {
+      "startMs": 8709,
+      "endOffset": 102
+    },
+    {
+      "startMs": 9030,
+      "endOffset": 106
+    },
+    {
+      "startMs": 9190,
+      "endOffset": 111
+    },
+    {
+      "startMs": 9549,
+      "endOffset": 117
+    }
+  ]
+}

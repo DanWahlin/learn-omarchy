@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "28cd2a4a7f016c4ad1599983cd852492b0a2fe589a89f49ddac46fdbaeb306f2",
+  "text": "Nice work, that's the tour. You've explored the desktop bar, switched workspaces, and opened the Omarchy menu.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 390,
+      "endOffset": 10
+    },
+    {
+      "startMs": 950,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 69
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 81
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 85
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 92
+    },
+    {
+      "startMs": 6870,
+      "endOffset": 96
+    },
+    {
+      "startMs": 7110,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7630,
+      "endOffset": 110
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "598204e892755eb67acfde63e34f24e79fa06da0cc1c67b1b56ed3170185cfe3",
+  "text": "An image can contain useful text. Select the sample text on the practice card, extract it, and paste the result.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 2
+    },
+    {
+      "startMs": 190,
+      "endOffset": 8
+    },
+    {
+      "startMs": 430,
+      "endOffset": 12
+    },
+    {
+      "startMs": 590,
+      "endOffset": 20
+    },
+    {
+      "startMs": 990,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 63
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5590,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 94
+    },
+    {
+      "startMs": 5790,
+      "endOffset": 100
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 104
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 112
+    }
+  ]
+}

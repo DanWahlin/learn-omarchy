@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "audioHash": "7ad2ba04dbc8975277121aca809e419369066a616fdf6259c27a798a559f8ee9",
+  "text": "Press Super and Return once more to open a second terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 470,
+      "endOffset": 11
+    },
+    {
+      "startMs": 670,
+      "endOffset": 15
+    },
+    {
+      "startMs": 790,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 59
+    }
+  ]
+}

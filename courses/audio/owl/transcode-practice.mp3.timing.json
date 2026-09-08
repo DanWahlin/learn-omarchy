@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "audioHash": "9b376302ceb11d48ecddb4b1dc2075dcaee890dec8289b6fc39e2c0543ccbf9c",
+  "text": "A recording can be too large to share comfortably. Let's create a smaller copy of a harmless practice clip and inspect the result.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 1
+    },
+    {
+      "startMs": 150,
+      "endOffset": 11
+    },
+    {
+      "startMs": 750,
+      "endOffset": 15
+    },
+    {
+      "startMs": 910,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 73
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 83
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 92
+    },
+    {
+      "startMs": 5950,
+      "endOffset": 101
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 106
+    },
+    {
+      "startMs": 7030,
+      "endOffset": 110
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 118
+    },
+    {
+      "startMs": 7790,
+      "endOffset": 122
+    },
+    {
+      "startMs": 7910,
+      "endOffset": 130
+    }
+  ]
+}

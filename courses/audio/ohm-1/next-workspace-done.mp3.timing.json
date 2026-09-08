@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "eb6b0145736b3461c9ccdfc902c41e1298b8d7755cf6a3cdcf07d48c6534ed67",
+  "text": "See the highlight move in the bar? That's you on a new workspace.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 7
+    },
+    {
+      "startMs": 710,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 34
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 48
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 54
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 65
+    }
+  ]
+}

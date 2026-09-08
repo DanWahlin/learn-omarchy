@@ -54,3 +54,12 @@ test("muted reading reveals gradually and never hides an already visible prefix"
   assert.equal(timing.readingOffset(text, 0, 200, text.length), text.length);
   assert.equal(timing.readingOffset(text, 0, 0, 0), -1);
 });
+
+test("similar-length unrelated prompts cannot borrow timing from a recording", () => {
+  const words = [{ startMs: 0, endOffset: 4 }, { startMs: 200, endOffset: 13 }];
+  assert.equal(timing.revealOffset("Open terminal", "Help me again", "Help me again", words, 200), -1);
+  assert.equal(timing.revealOffset("Hi HEXON!", "Hi Ohm-1?", "Hi Ohm-1?",
+    [{ startMs: 0, endOffset: 2 }, { startMs: 100, endOffset: 9 }], 100), -1);
+  assert.equal(timing.revealOffset("Hi HEXON!", "Hi OHM!", "Hi OHM!",
+    [{ startMs: 0, endOffset: 2 }, { startMs: 100, endOffset: 9 }], 100), 7);
+});

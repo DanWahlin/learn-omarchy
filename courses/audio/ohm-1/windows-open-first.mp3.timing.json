@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "b94d17e252c66fa728fba5c4ae54471ffa0226ae0ff324fe08d7b93de2bad2c4",
+  "text": "Let's see how tiling works. Press Super and Return to open a terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 270,
+      "endOffset": 9
+    },
+    {
+      "startMs": 470,
+      "endOffset": 13
+    },
+    {
+      "startMs": 630,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 70
+    }
+  ]
+}

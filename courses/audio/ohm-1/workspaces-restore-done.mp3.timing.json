@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "3eef310dcb593ef746efdf46ee9885bda18a80ddeabc3a650418eb38489c1225",
+  "text": "The terminal is back on workspace two and no longer in the scratchpad.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 590,
+      "endOffset": 15
+    },
+    {
+      "startMs": 710,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 44
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 51
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 54
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 70
+    }
+  ]
+}

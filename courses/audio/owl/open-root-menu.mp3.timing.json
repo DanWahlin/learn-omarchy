@@ -1,0 +1,107 @@
+{
+  "version": 1,
+  "audioHash": "7e23885111345a43080b65b2f0e17fb6d04e460dc09880e6197bcc7e31ba9a1c",
+  "text": "Press Super and Space to open the Omarchy menu. If you tried this on the tour, use it as a quick refresher or choose Skip.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 470,
+      "endOffset": 11
+    },
+    {
+      "startMs": 950,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 29
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 65
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 68
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 78
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 82
+    },
+    {
+      "startMs": 6350,
+      "endOffset": 85
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 88
+    },
+    {
+      "startMs": 6670,
+      "endOffset": 90
+    },
+    {
+      "startMs": 6790,
+      "endOffset": 96
+    },
+    {
+      "startMs": 7030,
+      "endOffset": 106
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 109
+    },
+    {
+      "startMs": 8229,
+      "endOffset": 116
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 122
+    }
+  ]
+}

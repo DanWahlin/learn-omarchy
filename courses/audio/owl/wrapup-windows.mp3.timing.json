@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "audioHash": "9c052531834ee45ebacc73522ba3b2d11bfd13c01164d8b110785b26696c7b11",
+  "text": "Nice work. You've practiced arranging windows and switching your focus between them. Use the layout that suits your task.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 430,
+      "endOffset": 10
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 64
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4430,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4830,
+      "endOffset": 84
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 88
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 92
+    },
+    {
+      "startMs": 6230,
+      "endOffset": 99
+    },
+    {
+      "startMs": 6670,
+      "endOffset": 104
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 110
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 115
+    },
+    {
+      "startMs": 7470,
+      "endOffset": 121
+    }
+  ]
+}

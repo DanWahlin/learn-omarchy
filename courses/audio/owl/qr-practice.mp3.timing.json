@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "audioHash": "6e0387487e5a9b412af8135831b7b9bbd40cfd9aedf11bd62e640e0decaca307",
+  "text": "Let's read a QR code that's already on screen. Capture the sample code, then paste the decoded text.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 10
+    },
+    {
+      "startMs": 590,
+      "endOffset": 12
+    },
+    {
+      "startMs": 670,
+      "endOffset": 15
+    },
+    {
+      "startMs": 950,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2270,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4030,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 71
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 76
+    },
+    {
+      "startMs": 5870,
+      "endOffset": 82
+    },
+    {
+      "startMs": 6270,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6390,
+      "endOffset": 94
+    },
+    {
+      "startMs": 7030,
+      "endOffset": 100
+    }
+  ]
+}
