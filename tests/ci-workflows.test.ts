@@ -32,6 +32,9 @@ test("CI pins actions and Arch image and restricts credentials and artifact uplo
   assert.match(release, /needs: validate/);
   assert.match(release, /--verify-tag --draft --prerelease/);
   assert.match(release, /--notes-file RELEASE-NOTES\.md/);
+  assert.match(release, /PKGBUILD SRCINFO/);
+  assert.ok(release.indexOf("gh release download") > release.indexOf("gh release create"),
+    "check downloaded release assets, not just the files before upload");
   assert.doesNotMatch(release, /gh release (edit|upload)|--latest/);
   assert.ok(ci.indexOf("pacman -Syu") < ci.indexOf("runuser -u ci"));
 });
@@ -43,6 +46,8 @@ test("candidate artifacts preserve the tagged release notes and require offline 
   assert.match(script, /"--package", binary, "--source-root", source/);
   assert.match(script, /JSON\.parse\(verification\)\.verified !== true/);
   assert.ok(script.indexOf("JSON.parse(verification).verified") < script.indexOf("await mkdir(dist)"));
+  assert.match(script, /name === "\.SRCINFO" \? "SRCINFO" : name/,
+    "checksum filenames must survive GitHub's leading-dot asset renaming");
 });
 
 test("CI requires native tools and executes all mandatory checks without cloud credentials", async () => {

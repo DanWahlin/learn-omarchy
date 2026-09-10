@@ -1,6 +1,6 @@
 # Release acceptance
 
-The first candidate is **0.1.0-rc.1** (Arch version **0.1.0rc1**).
+The current candidate is **0.1.0-rc.2** (Arch version **0.1.0rc2**).
 It is not a stable release. CI and packaging checks do not establish that every
 desktop, hardware device, or installed Omarchy version behaves correctly.
 

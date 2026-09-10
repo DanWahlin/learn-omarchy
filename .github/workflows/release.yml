@@ -50,5 +50,9 @@ jobs:
             --verify-tag --draft --prerelease \
             --title "Learn Omarchy $RELEASE_TAG (candidate)" \
             --notes-file RELEASE-NOTES.md \
-            ./*.tar.gz ./*.pkg.tar.zst PKGBUILD .SRCINFO \
+            ./*.tar.gz ./*.pkg.tar.zst PKGBUILD SRCINFO \
             SHA256SUMS BUILD-INFO.txt VERIFICATION.json RELEASE-NOTES.txt RELEASE-NOTES.md
+          mkdir ../uploaded
+          gh release download "$RELEASE_TAG" --dir ../uploaded
+          cd ../uploaded
+          sha256sum --check SHA256SUMS

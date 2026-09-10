@@ -1,4 +1,4 @@
-# Learn Omarchy 0.1.0-rc.1
+# Learn Omarchy 0.1.0-rc.2
 
 **Release candidate for testing, not a stable release.**
 
@@ -14,7 +14,7 @@ release, then verify the package checksum:
 
 ```sh
 sha256sum --ignore-missing -c SHA256SUMS
-sudo pacman -U ./learn-omarchy-0.1.0rc1-1-any.pkg.tar.zst
+sudo pacman -U ./learn-omarchy-0.1.0rc2-1-any.pkg.tar.zst
 /usr/bin/learn-omarchy
 ```
 
@@ -45,6 +45,9 @@ cleanup preserves progress, settings, backups, and user-edited files. Removing
 only the package directly through pacman can leave the user integration behind.
 
 ## Candidate highlights
+
+This candidate replaces the initial draft, fixing GitHub asset-name handling
+so the downloadable metadata filenames match `SHA256SUMS`.
 
 - Clear goals throughout shortcut Practice mode; hints reveal instructions and keycaps.
 - Welcome mute/unmute no longer replays the current line.

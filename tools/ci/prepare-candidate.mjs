@@ -54,7 +54,7 @@ export async function prepareCandidate(tag) {
   const dist = join(work, "dist");
   await mkdir(dist);
   for (const name of [packages[0], `learn-omarchy-${archVersion}.tar.gz`, "PKGBUILD", ".SRCINFO"])
-    await copyFile(join(build, name), join(dist, name));
+    await copyFile(join(build, name), join(dist, name === ".SRCINFO" ? "SRCINFO" : name));
   await copyFile(join(source, "packaging/RELEASE-NOTES.md"), join(dist, "RELEASE-NOTES.md"));
   await writeFile(join(dist, "VERIFICATION.json"), verification);
   await writeFile(join(dist, "BUILD-INFO.txt"), [

@@ -355,7 +355,7 @@ and exit codes. It reports playback, not merely that an MP3 exists.
 
 ## Install
 
-The first release is being prepared as **0.1.0-rc.1**, a candidate for testing,
+The first release is being prepared as **0.1.0-rc.2**, a candidate for testing,
 not a stable release. See [candidate notes](packaging/RELEASE-NOTES.md) for
 compatibility and [release acceptance](packaging/ACCEPTANCE.md) for remaining
 desktop/hardware checks. Download availability follows repository access:

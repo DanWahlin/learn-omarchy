@@ -68,7 +68,8 @@ The only uploaded directory is `.ci-release/dist/`, artifact name
 
 - `learn-omarchy-ARCH_VERSION.tar.gz`
 - `learn-omarchy-ARCH_VERSION-1-any.pkg.tar.zst`
-- `PKGBUILD` and `.SRCINFO`
+- `PKGBUILD` and `SRCINFO` (the `.SRCINFO` recipe metadata is renamed for
+  downloads because GitHub rewrites asset names beginning with a dot)
 - `BUILD-INFO.txt`, `VERIFICATION.json`, and `RELEASE-NOTES.txt`
 - `RELEASE-NOTES.md`, copied unchanged from the tagged source and used as the
   draft's release description
@@ -78,6 +79,8 @@ Build trees, npm modules, private state, and test output directories are not
 uploaded. Pull requests and ordinary branch pushes never upload artifacts.
 The separate release job downloads only this run's verified artifact,
 rechecks SHA256 hashes, and attaches the listed files to a draft prerelease.
+It then downloads the attached files and verifies the checksums again, catching
+hosting-side filename changes as well as missing or changed uploads.
 It refuses to replace an existing release on reruns. Inspect and explicitly
 remove an obsolete draft before rerunning; never delete a published release
 just to make automation pass.
