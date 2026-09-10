@@ -193,7 +193,7 @@ else if (args.join(' ') === 'learnGeometry capabilities') {
     console.error('No geometry IPC target'); process.exit(4);
   }
   console.log(JSON.stringify({shellAvailable:!fs.existsSync(process.env.HOME + '/disconnected'), barAvailable:true,
-    activeBarId:'omarchy.bar', manifestId:'', slotsAvailable:true, windowMappingAvailable:true}));
+    manifestId:'', slotsAvailable:false, windowMappingAvailable:false}));
 }
 else if (args.join(' ') === 'plugin enable learn-omarchy.geometry') {
   if (!fs.existsSync(process.env.HOME + '/discovered')) process.exit(2);

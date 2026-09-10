@@ -132,7 +132,8 @@ function serviceReadiness() {
   if (!capabilities || typeof capabilities !== "object" || Array.isArray(capabilities) ||
       !["shellAvailable", "barAvailable", "slotsAvailable", "windowMappingAvailable"]
         .every(key => typeof capabilities[key] === "boolean") ||
-      typeof capabilities.activeBarId !== "string" || typeof capabilities.manifestId !== "string") {
+      (capabilities.activeBarId !== undefined && typeof capabilities.activeBarId !== "string") ||
+      typeof capabilities.manifestId !== "string") {
     return { ready: false, reason: "Geometry service returned an unsupported capability response." };
   }
   return capabilities.shellAvailable

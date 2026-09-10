@@ -53,8 +53,8 @@ if (name === "qs") {
   console.log(JSON.stringify(fs.existsSync(home + "/discovered") && fs.existsSync(target) ?
     [{id:"learn-omarchy.geometry", kinds:["service"], firstParty:false, enabled, active:false}] : []));
 } else if (args.join(" ") === "learnGeometry capabilities") {
-  console.log(JSON.stringify({shellAvailable:true, barAvailable:true, activeBarId:"omarchy.bar",
-    manifestId:"", slotsAvailable:true, windowMappingAvailable:true}));
+  console.log(JSON.stringify({shellAvailable:true, barAvailable:true, manifestId:"",
+    slotsAvailable:false, windowMappingAvailable:false}));
 } else if (args.join(" ") === "plugin --help") {
   console.log("omarchy plugin enable\\nomarchy plugin list");
 } else if (args[0] === "plugin" && args[1] === "validate") {
