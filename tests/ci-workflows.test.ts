@@ -25,6 +25,7 @@ test("CI pins actions and Arch image and restricts credentials and artifact uplo
   }
   assert.match(ci, /archlinux:base@sha256:[a-f0-9]{64}/);
   assert.match(ci, /persist-credentials: false/);
+  assert.match(ci, /ttf-liberation noto-fonts-emoji/);
   assert.match(ci, /runuser -u ci -- env -i/);
   assert.match(ci, /github\.event_name == 'push'.*refs\/tags\/v/);
   assert.match(ci, /path: \.ci-release\/dist\//);

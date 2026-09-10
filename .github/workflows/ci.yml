@@ -30,7 +30,7 @@ jobs:
           pacman -Syu --noconfirm --needed \
             base-devel git libarchive nodejs npm quickshell qt6-declarative \
             qt6-multimedia qt6-multimedia-ffmpeg ffmpeg mpv zbar qrencode \
-            tesseract tesseract-data-eng
+            tesseract tesseract-data-eng ttf-liberation noto-fonts-emoji
           useradd --create-home --shell /bin/bash ci
       - name: Check out exact source without persisting credentials
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2

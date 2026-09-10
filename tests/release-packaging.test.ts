@@ -116,7 +116,7 @@ test("release preparation uses exact archive bytes and emits one self-contained 
     assert.equal(spawnSync("bash", ["-n", join(output, "PKGBUILD")]).status, 0);
     const srcinfo = await readFile(join(output, ".SRCINFO"), "utf8");
     for (const dependency of ["grim", "slurp", "gpu-screen-recorder", "util-linux", "ffmpeg", "qt6-multimedia",
-      "qt6-multimedia-ffmpeg", "xdg-terminal-exec", "nautilus", "sudo"]) {
+      "qt6-multimedia-ffmpeg", "xdg-terminal-exec", "nautilus", "sudo", "ttf-liberation", "noto-fonts-emoji"]) {
       assert.ok(srcinfo.includes(`\tdepends = ${dependency}\n`), `${dependency} supports required lessons`);
       assert.ok(!srcinfo.includes(`\toptdepends = ${dependency}:`), dependency);
     }

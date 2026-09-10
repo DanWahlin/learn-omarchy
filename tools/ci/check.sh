@@ -19,10 +19,12 @@ mkdir -p "$TMPDIR" "$XDG_RUNTIME_DIR" "$XDG_CONFIG_HOME" \
 chmod 700 "$TMPDIR" "$XDG_RUNTIME_DIR"
 
 # Missing optional local-test tools must fail CI instead of silently skipping coverage.
-for tool in node npm qs makepkg make gcc ffmpeg ffprobe zbarimg qrencode bsdtar; do
+for tool in node npm qs makepkg make gcc ffmpeg ffprobe zbarimg qrencode bsdtar fc-match; do
   command -v "$tool" >/dev/null
 done
 test -x /usr/lib/qt6/bin/qmltestrunner
+test -n "$(fc-match --format='%{file}' sans-serif)"
+test -n "$(fc-match --format='%{file}' monospace)"
 qs --version
 installed_qs="$(pacman -Q quickshell | cut -d ' ' -f 2)"
 test "$(vercmp "$installed_qs" 0.3)" -ge 0

@@ -15,7 +15,9 @@ container. Before running source code, the container installs:
 - `quickshell` (checked to be at least 0.3), `qt6-declarative` (including
   Quick Controls and qmltestrunner), `qt6-multimedia`, and
   `qt6-multimedia-ffmpeg`;
-- `ffmpeg`, `mpv`, `zbar`, `qrencode`, `tesseract`, and `tesseract-data-eng`.
+- `ffmpeg`, `mpv`, `zbar`, `qrencode`, `tesseract`, and `tesseract-data-eng`;
+- `ttf-liberation` and `noto-fonts-emoji` so text-layout tests have actual
+  scalable text fonts and the Compose samples have emoji glyphs.
 
 The checkout and all test/build commands then run as an unprivileged `ci`
 user without sudo access. This prevents makepkg's root refusal from silently

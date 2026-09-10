@@ -120,6 +120,8 @@ Required dependencies are encoded in `PKGBUILD.in`:
 - `qt6-declarative` for QtQuick/Controls/Layouts and **`qt6-multimedia`** for
   `PracticeContent.qml`'s `QtMultimedia` import, even before a media lesson.
   `qt6-multimedia-ffmpeg` supplies the playback backend.
+- `ttf-liberation` supplies scalable text fonts; `noto-fonts-emoji` displays
+  the Compose practice samples. Tests must not run against a fontless image.
 - `mpv` for narration; `xdg-utils` for browser resolution using `xdg-settings`
   and `xdg-mime`; `bash` and `coreutils` for the launchers, and `sudo` for
   the explicitly requested terminal-based package removal.
