@@ -12,6 +12,7 @@ QtObject {
     property var colors: ThemeColors.normalized(fallbackColors)
     property string diagnostic: ""
     property string loadedText: ""
+    property int refreshRetries: 0
 
     function apply(raw) {
         try {
@@ -25,7 +26,14 @@ QtObject {
             loadedText = ""
         }
     }
-    function refresh() { colorFile.reload() }
+    function refresh() {
+        refreshRetries = 3
+        reloadTimer.restart()
+    }
+    property Timer reloadTimer: Timer {
+        interval: 75
+        onTriggered: colorFile.reload()
+    }
     onFallbackColorsChanged: {
         if (loadedText) apply(loadedText)
         else colors = ThemeColors.normalized(fallbackColors)
@@ -35,8 +43,15 @@ QtObject {
         path: root.themeDirectory + "/colors.toml"
         watchChanges: true
         printErrors: false
-        onLoaded: root.apply(text())
-        onFileChanged: reload()
+        onLoaded: {
+            root.apply(text())
+            // Editors can notify on truncation before writing the replacement.
+            if (root.diagnostic && root.refreshRetries > 0) {
+                root.refreshRetries--
+                root.reloadTimer.restart()
+            }
+        }
+        onFileChanged: root.refresh()
         onLoadFailed: {
             root.loadedText = ""
             root.colors = ThemeColors.normalized(root.fallbackColors)

@@ -429,6 +429,7 @@ import { copyFileSync, writeFileSync } from "node:fs";
 writeFileSync(${JSON.stringify(join(directory, "recorder.pid"))}, String(process.pid));
 writeFileSync(${JSON.stringify(join(directory, "args.json"))}, JSON.stringify(process.argv.slice(2)));
 process.on("SIGINT", () => {
+  writeFileSync(${JSON.stringify(join(directory, "recorder.stopped"))}, String(process.pid));
   copyFileSync(${JSON.stringify(sample)}, process.argv[process.argv.indexOf("-o") + 1]);
   process.exit(0);
 });
@@ -461,6 +462,7 @@ setInterval(() => {}, 1000);
     let output = "";
     interrupted.stdout.on("data", data => { output += data; });
     try {
+      await rm(join(directory, "recorder.stopped"), { force: true });
       interrupted.stdin.write('{"action":"select"}\n{"action":"start"}\n');
       for (let i = 0; i < 100 && !output.includes('"recording":true'); i++) {
         await new Promise(resolveWait => setTimeout(resolveWait, 20));
@@ -469,11 +471,24 @@ setInterval(() => {}, 1000);
       const guardedPid = Number(await readFile(join(directory, "recorder.pid"), "utf8"));
       interrupted.kill("SIGKILL");
       await interruptedExited;
+      async function recorderStillRunning() {
+        try {
+          const stat = await readFile(`/proc/${guardedPid}/stat`, "utf8");
+          const state = stat.slice(stat.lastIndexOf(")") + 2).split(" ")[0];
+          // Minimal container PID 1 may retain exited orphan children as zombies.
+          return state !== "Z" && state !== "X";
+        } catch (error) {
+          if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+          throw error;
+        }
+      }
       for (let i = 0; i < 100; i++) {
-        try { process.kill(guardedPid, 0); } catch { break; }
+        if (!await recorderStillRunning()) break;
         await new Promise(resolveWait => setTimeout(resolveWait, 20));
       }
-      assert.throws(() => process.kill(guardedPid, 0), { code: "ESRCH" }, "Kernel parent-death guard stops the recorder after a forced helper exit");
+      assert.equal(await recorderStillRunning(), false, "Kernel parent-death guard stops the recorder after a forced helper exit");
+      assert.equal(await readFile(join(directory, "recorder.stopped"), "utf8"), String(guardedPid),
+        "the owned recorder received its termination signal, even if container PID 1 hasn't reaped it");
       process.kill(unrelated.pid!, 0);
     } finally {
       if (interrupted.exitCode === null && interrupted.signalCode === null) {

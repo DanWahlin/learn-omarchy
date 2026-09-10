@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, open, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -73,7 +73,11 @@ ShellRoot {
       assert.fail(`Theme update timed out: ${log}`);
     }
     await waitFor("#111111");
-    await writeFile(colors, 'background = "#ffffff"\nforeground = "#333333"\naccent = "#a84466"\n');
+    const replacement = await open(colors, "w");
+    try {
+      await delay(100);
+      await replacement.write('background = "#ffffff"\nforeground = "#333333"\naccent = "#a84466"\n');
+    } finally { await replacement.close(); }
     const light = await waitFor("#ffffff");
     assert.equal(light.colors.accent, "#a84466");
     await writeFile(colors, "invalid theme");
