@@ -2,3 +2,10 @@ node_modules/
 pkg/
 src/*.tar.*
 *.pkg.tar.*
+.learn-omarchy-practice/
+.ci-tmp/
+.ci-runtime/
+.ci-home/
+.ci-release/
+release-work/
+local-stage/

@@ -37,9 +37,11 @@ Missing notices, unresolved metadata, or a blocked approval record still
 prevent preparation. All license files and asset provenance ship with the app.
 Notices are installed under `/usr/share/licenses/learn-omarchy` and at the
 application root so relative links from the installed documentation resolve.
-No publication workflow is installed. Do not upload build/CI artifacts until
-the gate passes; any future publishing workflow must run it on the exact
-tagged source before building or uploading, with an explicit release trigger.
+The [CI and draft-release workflows](CI.md) run this gate on exact tagged
+source before building or uploading. Branch CI runs the regression suites;
+version-tag CI produces only a draft prerelease. It never publishes or
+promotes a candidate to stable automatically. Complete the
+[acceptance gates](ACCEPTANCE.md) before approving publication.
 
 ## Prepare a release from actual source bytes
 
@@ -49,21 +51,23 @@ whose `package.json` version and license approval are correct:
 
 ```sh
 # Replace these with the actual existing tag and its package.json version.
-VERSION=0.1.0
-TAG=v0.1.0
+VERSION=0.1.0-rc.1
+TAG="v$VERSION"
 git rev-parse --verify "refs/tags/$TAG"
+ARCH_VERSION="$(node --input-type=module -e \
+  "import {packageVersion} from './tools/prepare-release.mjs'; console.log(packageVersion('$VERSION'))")"
 export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct "refs/tags/$TAG")"
 mkdir -p release-work
-git archive --format=tar.gz --prefix="learn-omarchy-$VERSION/" \
-  "refs/tags/$TAG" > "release-work/learn-omarchy-$VERSION.tar.gz"
+git archive --format=tar.gz --prefix="learn-omarchy-$ARCH_VERSION/" \
+  "refs/tags/$TAG" > "release-work/learn-omarchy-$ARCH_VERSION.tar.gz"
 node tools/prepare-release.mjs \
-  --archive "release-work/learn-omarchy-$VERSION.tar.gz" \
+  --archive "release-work/learn-omarchy-$ARCH_VERSION.tar.gz" \
   --output "release-work/arch-$VERSION"
 cd "release-work/arch-$VERSION"
 makepkg --cleanbuild
 ```
 
-These commands are instructions, not a claim that `v0.1.0` exists. An existing
+These commands are instructions, not a claim that the example tag exists. An existing
 trusted local `.tar.gz` with the same versioned root layout works too.
 `git archive` excludes untracked recordings, user data, and `node_modules`;
 never create release sources by blindly archiving a working directory.
@@ -84,6 +88,23 @@ Archive inputs and Makefiles must be trusted: inspecting them does not make
 executing their build scripts safe. Only add a public source URL after that
 specific tagged archive really exists, and recalculate its checksum from the
 downloaded bytes (hosting-service archives can differ from `git archive`).
+
+Candidate SemVer `0.1.0-rc.1` maps to Arch version `0.1.0rc1`, so candidate and
+stable packages don't share the same identity. Use `v0.1.0-rc.1` for the Git tag
+and `learn-omarchy-0.1.0rc1/` inside the source archive.
+
+Verify the final binary package against that same source checkout:
+
+```sh
+node tools/verify-release-package.mjs \
+  --package /path/to/learn-omarchy-0.1.0rc1-1-any.pkg.tar.zst \
+  --source-root /path/to/exact-tag-checkout
+```
+
+This checks every installed file and executable bit, rejects development-only
+paths, and runs the extracted course/audio validators and launcher help with
+private empty user state. It neither installs the package nor substitutes for
+the graphical acceptance gates in [ACCEPTANCE.md](ACCEPTANCE.md).
 
 ## Runtime dependencies
 

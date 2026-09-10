@@ -8,6 +8,13 @@ const repository = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const versionPattern = /^\d+\.\d+\.\d+(?:[a-z]+\d*)?$/;
 const identifierPattern = /^[A-Za-z0-9][A-Za-z0-9.+-]*$/;
 
+export function packageVersion(version) {
+  if (typeof version !== "string") throw new Error("A release version is required.");
+  const match = version.match(/^(\d+\.\d+\.\d+)(?:-(alpha|beta|rc)\.(\d+))?$/);
+  if (!match) throw new Error("Use a release version such as 1.2.3 or 1.2.3-rc.1.");
+  return match[1] + (match[2] ? match[2] + match[3] : "");
+}
+
 // This verifies recorded decisions and shipped notices, not ownership or legal permission.
 export async function checkLicenses(read) {
   const problems = [];
@@ -104,7 +111,10 @@ export async function prepareRelease(archive, output) {
   archive = resolve(archive);
   const inspected = inspectArchive(archive);
   const { problems, policy, version } = await checkLicenses(inspected.read);
-  if (version !== inspected.version) problems.push("package.json version does not match the archive directory.");
+  let archVersion;
+  try { archVersion = packageVersion(version); }
+  catch (error) { problems.push(error.message); }
+  if (archVersion !== inspected.version) problems.push("package.json version does not match the archive directory.");
   for (const path of [
     "Makefile", "bin/learn-omarchy", "app/shell.qml", "tools/install-geometry-provider.mjs",
     "tools/prepare-release.mjs", "packaging/PKGBUILD.in",
@@ -116,14 +126,14 @@ export async function prepareRelease(archive, output) {
   const checksum = createHash("sha256").update(await readFile(archive)).digest("hex");
   const licenses = [...new Set([policy.codeLicense, policy.artLicense, "CC0-1.0"])];
   const template = (await inspected.read("packaging/PKGBUILD.in")).toString();
-  const pkgbuild = template.replaceAll("@VERSION@", version)
+  const pkgbuild = template.replaceAll("@VERSION@", archVersion)
     .replaceAll("@SHA256@", checksum).replaceAll("@LICENSES@", licenses.map(value => `'${value}'`).join(" "));
   // Refuse to overwrite an existing release directory, even after a failed build.
   await mkdir(output);
-  await copyFile(archive, join(output, `learn-omarchy-${version}.tar.gz`));
+  await copyFile(archive, join(output, `learn-omarchy-${archVersion}.tar.gz`));
   await writeFile(join(output, "PKGBUILD"), pkgbuild);
-  await writeFile(join(output, ".SRCINFO"), srcinfo(pkgbuild, version, checksum, licenses));
-  return { version, checksum, output: resolve(output) };
+  await writeFile(join(output, ".SRCINFO"), srcinfo(pkgbuild, archVersion, checksum, licenses));
+  return { version, packageVersion: archVersion, checksum, output: resolve(output) };
 }
 
 async function main(args) {

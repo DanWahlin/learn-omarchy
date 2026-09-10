@@ -355,6 +355,12 @@ and exit codes. It reports playback, not merely that an MP3 exists.
 
 ## Install
 
+The first release is being prepared as **0.1.0-rc.1**, a candidate for testing,
+not a stable release. See [candidate notes](packaging/RELEASE-NOTES.md) for
+compatibility and [release acceptance](packaging/ACCEPTANCE.md) for remaining
+desktop/hardware checks. Download availability follows repository access:
+releases in a private repository are not public downloads.
+
 Learn Omarchy is one package containing the application, both coaches, recorded
 narration, and the read-only desktop integration. Install it and open the app:
 there's no separate plugin download, Enable button, or setup command.
@@ -409,6 +415,11 @@ or install anything. See [packaging/RELEASING.md](packaging/RELEASING.md) for
 tagged-source preparation, dependencies, reproducibility, and removal.
 To uninstall the Arch package and its unchanged integration for your account,
 run `learn-omarchy --uninstall` as your regular user from a terminal.
+
+Branch and pull-request CI run the regression, QML, audio, and licensing checks.
+Version tags additionally build and verify one package, then create a draft
+prerelease with checksums. See [packaging/CI.md](packaging/CI.md); stable
+publication remains a separate acceptance decision.
 
 Progress is stored at:
 

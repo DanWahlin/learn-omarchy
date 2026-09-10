@@ -4,7 +4,7 @@ import { spawnSync } from "node:child_process";
 import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
-import { checkLicenses, inspectArchive, prepareRelease } from "../tools/prepare-release.mjs";
+import { checkLicenses, inspectArchive, packageVersion, prepareRelease } from "../tools/prepare-release.mjs";
 
 const template = await readFile(new URL("../packaging/PKGBUILD.in", import.meta.url), "utf8");
 
@@ -46,6 +46,33 @@ async function archiveFixture(directory: string, files: Record<string, string | 
   assert.equal(tar.status, 0, tar.stderr);
   return archive;
 }
+
+test("candidate versions map to Arch versions that remain distinct from stable releases", () => {
+  for (const [version, expected] of [
+    ["0.1.0", "0.1.0"], ["0.1.0-rc.1", "0.1.0rc1"], ["1.2.3-beta.12", "1.2.3beta12"],
+    ["1.2.3-alpha.1", "1.2.3alpha1"],
+  ]) assert.equal(packageVersion(version), expected);
+  for (const version of ["", "v1.2.3", "1.2.3-rc", "1.2.3+other", "../1.2.3", "1.2.3;echo bad"])
+    assert.throws(() => packageVersion(version));
+});
+
+test("candidate archive names and package metadata use the mapped Arch version", async () => {
+  const directory = await mkdtemp(resolve(".learn-release-test-"));
+  try {
+    const files = fixture();
+    const pkg = JSON.parse(String(files["package.json"]));
+    pkg.version = "1.2.3-rc.1";
+    files["package.json"] = JSON.stringify(pkg);
+    const archive = await archiveFixture(directory, files, "1.2.3rc1");
+    const output = join(directory, "prepared");
+    const result = await prepareRelease(archive, output);
+    assert.equal(result.version, "1.2.3-rc.1");
+    assert.equal(result.packageVersion, "1.2.3rc1");
+    assert.match(await readFile(join(output, "PKGBUILD"), "utf8"), /pkgver=1\.2\.3rc1/);
+    assert.match(await readFile(join(output, ".SRCINFO"), "utf8"), /source = learn-omarchy-1\.2\.3rc1\.tar\.gz/);
+    assert.ok((await readdir(output)).includes("learn-omarchy-1.2.3rc1.tar.gz"));
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
 
 test("licensing gate reports unresolved code, character, splash, and bird metadata together", async () => {
   const result = await checkLicenses(async () => { throw new Error("not supplied"); });

@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: ["**"]
+  workflow_call:
+    inputs:
+      prepare_release:
+        description: Build a candidate from the triggering version tag
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  arch:
+    name: Arch tests and packaging checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    container:
+      image: archlinux:base@sha256:b944cc65c5f28665dfd5fdbf5ed2997c88f5bb4a0aefac7ee8a7ef01893e5ed9
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install Arch test and build prerequisites
+        run: |
+          pacman -Syu --noconfirm --needed \
+            base-devel git libarchive nodejs npm quickshell qt6-declarative \
+            qt6-multimedia qt6-multimedia-ffmpeg ffmpeg mpv zbar qrencode \
+            tesseract tesseract-data-eng
+          useradd --create-home --shell /bin/bash ci
+      - name: Check out exact source without persisting credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Give the unprivileged test user its checkout
+        run: chown -R ci:ci "$GITHUB_WORKSPACE"
+      - name: Run real offscreen tests and release checks as a regular user
+        env:
+          PREPARE_RELEASE: ${{ inputs.prepare_release && 'true' || 'false' }}
+        run: |
+          runuser -u ci -- env -i \
+            HOME=/home/ci PATH=/usr/local/sbin:/usr/local/bin:/usr/bin \
+            CI=true LANG=C.UTF-8 \
+            RELEASE_TAG="$GITHUB_REF_NAME" \
+            PREPARE_RELEASE="$PREPARE_RELEASE" \
+            bash tools/ci/check.sh
+      - name: Upload only verified candidate files
+        if: ${{ inputs.prepare_release && github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-candidate
+          path: .ci-release/dist/
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
