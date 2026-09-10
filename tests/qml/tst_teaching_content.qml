@@ -351,6 +351,60 @@ Item {
       verify(!root.buttons(fixture).some(function(button) { return button.label === "DETAILS" }))
     }
 
+    function test_practiceAlwaysShowsTheGoalButRevealsShortcutsOnlyWithAHint() {
+      var xhr = new XMLHttpRequest()
+      xhr.open("GET", Qt.resolvedUrl("../../courses/omarchy-basics.json"), false)
+      xhr.send()
+      var course = JSON.parse(xhr.responseText)
+      root.currentStepIsTour = false
+      root.practiceMode = true
+      var count = 0
+      for (var lesson of course.lessons) {
+        for (var step of lesson.steps) {
+          if (!step.help) continue
+          root.currentStep = step
+          root.practiceHintVisible = false
+          wait(1)
+          verify(fixture.instructionText.visible, step.id)
+          compare(fixture.instructionText.text, step.practicePrompt, step.id)
+          verify(!fixture.keycaps.visible, step.id)
+          if (step.note) verify(fixture.note.visible, step.id)
+          root.practiceHintVisible = true
+          wait(1)
+          compare(fixture.instructionText.text, step.instruction, step.id)
+          verify(fixture.keycaps.visible, step.id)
+          count++
+        }
+      }
+      verify(count > 50)
+      root.currentStep = { instruction: "Switch to workspace one with Super and 1.", keys: ["SUPER", "+", "1"],
+        help: { label: "Take me there" } }
+      root.practiceHintVisible = false
+      wait(1)
+      compare(fixture.instructionText.text, root.currentStep.instruction, "legacy courses show real guidance, never a generic button label")
+    }
+
+    function test_practiceGoalSwitchesToInstructionOnDetailsAndResultOnCompletion() {
+      root.currentStepIsTour = false
+      root.practiceMode = true
+      root.currentStep = { instruction: "Press Super and 1.", practicePrompt: "Switch to workspace one.",
+        keys: ["SUPER", "+", "1"], help: {label: "Take me there"},
+        detail: "Your other windows stay open.", note: "Leave your other windows open.",
+        completionMessage: "You're on workspace one.", completion: { type: "hyprland-workspace-is", id: 1 },
+        highlight: { target: "workspace" } }
+      wait(20)
+      compare(fixture.instructionText.text, "Switch to workspace one.")
+      root.buttons(fixture).find(function(button) { return button.label === "DETAILS" }).clicked()
+      wait(20)
+      compare(fixture.instructionText.text, "Press Super and 1.")
+      verify(fixture.keycaps.visible)
+      verify(root.stepAssisted)
+      compare(root.lastAction, "", "requesting a hint doesn't perform the task")
+      root.phase = "highlight"
+      wait(20)
+      compare(fixture.instructionText.text, "You're on workspace one.")
+    }
+
     function test_practiceKeepsSafetyNoteAfterActionAndDetailsCountAsAHint() {
       root.currentStepIsTour = false
       root.practiceMode = true

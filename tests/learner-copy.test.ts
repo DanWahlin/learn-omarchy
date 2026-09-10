@@ -9,6 +9,21 @@ const instruction = (id: string) => steps.get(id)!.instruction;
 const detail = (id: string) => steps.get(id)!.detail!;
 const completion = (id: string) => steps.get(id)!.completionMessage!;
 
+test("every shortcut practice step has a concrete goal instead of a Help-button label", () => {
+  for (const step of steps.values()) {
+    if (!step.help) continue;
+    assert.ok(step.practicePrompt && step.practicePrompt.length <= 240, step.id);
+    assert.notEqual(step.practicePrompt, step.help.label.replace(/ for me$/i, "") + ".", step.id);
+    assert.doesNotMatch(step.practicePrompt, /^(Take me there|Switch for me|Show me how|Open it|Close it|Move it)\.?$/i, step.id);
+    assert.doesNotMatch(step.practicePrompt, /\bSuper\b|\bControl\b|\bShift\b|\bAlt\b/, step.id);
+  }
+  assert.match(steps.get("workspaces-home")!.practicePrompt!, /workspace one/);
+  assert.match(steps.get("workspaces-send")!.practicePrompt!, /terminal.*workspace two/);
+  assert.match(steps.get("workspaces-restore")!.practicePrompt!, /terminal.*scratchpad.*workspace two/);
+  assert.match(steps.get("open-keybindings")!.practicePrompt!, /Read only.*runs that shortcut/);
+  assert.match(steps.get("hardware-menu")!.practicePrompt!, /selecting.*immediately/);
+});
+
 test("first-use orientation defines the keys and concepts a new learner needs", () => {
   assert.match(instruction("tour-welcome"), /You'll use the Super key for many of Omarchy's keyboard shortcuts/);
   assert.match(instruction("tour-welcome"), /On a Mac keyboard, that's Command/);

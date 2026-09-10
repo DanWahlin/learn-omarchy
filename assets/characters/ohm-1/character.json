@@ -5,7 +5,7 @@
   "spokenName": "Ohm",
   "description": "Pixel robot with a CRT head and boot flames. Precise, upbeat, and always pointing the way.",
   "author": { "name": "Dan Wahlin", "status": "declared" },
-  "license": { "status": "unresolved", "note": "The repository does not declare an asset license. Confirm redistribution rights before republishing artwork." },
+  "license": { "status": "declared", "identifier": "CC-BY-4.0", "note": "Copyright 2026 Dan Wahlin. https://creativecommons.org/licenses/by/4.0/. Credit Learn Omarchy and indicate changes." },
   "preview": { "sprite": "idle", "frame": 0 },
   "sprites": {
     "idle": { "path": "sprites/ohm-1-idle.png", "frameWidth": 192, "frameHeight": 192, "frames": 16, "timeline": [

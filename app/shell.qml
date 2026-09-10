@@ -47,6 +47,9 @@ ShellRoot {
   readonly property string characterDisplayName: String(characterConfig.displayName || "Coach")
   readonly property bool characterFlames: Boolean(characterConfig.effects && characterConfig.effects.thrusters)
   readonly property string characterNotice: characterStore.notice
+  property string integrationNotice: Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR")
+    ? "Precise pointing couldn't be prepared. Learn Omarchy will retry when reopened. " +
+      Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR") : ""
   property string introNotice: ""
   Component.onDestruction: {
     cancelIntro()
@@ -1229,6 +1232,7 @@ ShellRoot {
     if (provider) {
       if (exitCode === 0 && parseProviderGeometry(raw, screens)) {
         geometryProviderAvailable = true
+        integrationNotice = ""
         return
       }
       geometryProviderAvailable = false
@@ -1446,7 +1450,7 @@ ShellRoot {
     formattedText: root.captionText(displayText)
     typeText: root.synchronizedWelcomeText
     reducedMotion: root.reducedMotion
-    narrationEnabled: root.narrationEnabled
+    narrationEnabled: root.narrationEnabled && !root.welcomeReadingActive
     audioAvailable: root.welcomeAudioPath() !== ""
     active: root.welcomeReadingActive && root.welcomeCaptionVisible
     wordsPerMinute: root.readingWordsPerMinute
@@ -1577,8 +1581,8 @@ ShellRoot {
 
   function welcomeCaptionShown() {
     if (welcomeStage !== "welcome" && welcomeStage !== "controls" && welcomeStage !== "recommendation") return
-    welcomeReadingActive = !narrationEnabled
-    if (narrationEnabled && welcomeNarration && !welcomeNarrationFinished) {
+    if (!narrationEnabled) welcomeReadingActive = true
+    if (narrationEnabled && !welcomeReadingActive && welcomeNarration && !welcomeNarrationFinished) {
       var path = welcomeAudioPath()
       if (path !== "") {
         if (welcomeSpeechStopping) return
@@ -1593,6 +1597,8 @@ ShellRoot {
         return
       }
     }
+    if (welcomeReadTimer.running && welcomeReadTimer.generation === introGeneration &&
+        welcomeReadTimer.stage === welcomeStage) return
     welcomeReadTimer.generation = introGeneration
     welcomeReadTimer.stage = welcomeStage
     welcomeReadTimer.interval = readingDuration(welcomeText)
@@ -3077,8 +3083,13 @@ ShellRoot {
       if (!speechEnabled || introActive) return
       if ((phase === "welcome" && (welcomeStage === "welcome" || welcomeStage === "controls")) ||
           (phase === "menu" && welcomeStage === "recommendation")) {
-        welcomeNarrationStarted = false
-        welcomeNarrationFinished = false
+        // Sound toggles don't replay a line already being read or spoken.
+        // Stage advancement resets reading mode for the next narration.
+        if (welcomeNarrationStarted || welcomeNarrationFinished || welcomeReadingActive) {
+          welcomeReadingStartOffset = visibleWelcomeEnd < 0 ? captionText(welcomeText).length : visibleWelcomeEnd
+          welcomeReadingElapsed = 0
+          welcomeReadingActive = true
+        }
         welcomeCaptionShown()
       } else if (phase === "lesson-complete") {
         lessonWrapupPlayed = false
@@ -3701,6 +3712,7 @@ ShellRoot {
         requestedCharacter: root.requestedCharacter,
         characterPacksReady: characterStore.ready,
         characterNotice: root.characterNotice,
+        integrationNotice: root.integrationNotice,
         introActive: root.introActive,
         introGeneration: root.introGeneration,
         introNotice: root.introNotice,
@@ -4870,7 +4882,7 @@ ShellRoot {
         UiPanel {
           id: packNoticePanel
           visible: root.phase !== "settings" && root.phase !== "loading" &&
-            (root.characterNotice !== "" || root.introNotice !== "")
+            (root.characterNotice !== "" || root.introNotice !== "" || root.integrationNotice !== "")
           anchors.horizontalCenter: parent.horizontalCenter
           y: 44
           width: Math.min(680, parent.width - 48)
@@ -4883,7 +4895,7 @@ ShellRoot {
             anchors.margins: 12
             Text {
               Layout.fillWidth: true
-              text: root.characterNotice || root.introNotice
+              text: [root.characterNotice || root.introNotice, root.integrationNotice].filter(function(value) { return value }).join("\n")
               textFormat: Text.PlainText
               color: root.foreground
               wrapMode: Text.WordWrap
@@ -4892,6 +4904,7 @@ ShellRoot {
             UiButton {
               compact: true
               label: "COACH SETTINGS"
+              visible: root.characterNotice !== "" || root.introNotice !== ""
               onClicked: root.openSettings("settings")
             }
           }
@@ -4991,7 +5004,7 @@ ShellRoot {
                 Text {
                   Layout.fillWidth: true
                   visible: text !== ""
-                  text: [root.characterNotice, root.introNotice, characterStore.narrationNotice].filter(function(value) { return value }).join("\n")
+                  text: [root.characterNotice, root.introNotice, characterStore.narrationNotice, root.integrationNotice].filter(function(value) { return value }).join("\n")
                   textFormat: Text.PlainText
                   color: root.instruction
                   wrapMode: Text.WordWrap
@@ -5948,8 +5961,8 @@ ShellRoot {
               readonly property string message: {
                 if (root.phase === "highlight" && root.currentStep && root.currentStep.completionMessage)
                   return root.characterText(root.currentStep.completionMessage)
-                if (root.practiceMode && !root.practiceHintVisible && root.currentStep && root.currentStep.help)
-                  return root.currentStep.help.label.replace(/ for me$/i, "") + "."
+                if (root.practiceMode && !root.practiceHintVisible && root.currentStep && root.currentStep.practicePrompt)
+                  return root.characterText(root.currentStep.practicePrompt)
                 if (root.currentStepIsTour && root.currentStep && root.currentStep.detail)
                   return root.characterText(root.currentStep.detail)
                 return root.currentStep ? root.characterText(root.currentStep.instruction) : ""

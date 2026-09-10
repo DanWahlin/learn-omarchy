@@ -90,6 +90,7 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
     running: true
     onTriggered: {
       console.log("COMPLETE_SHELL_LOADED")
+      console.log("INTEGRATION_NOTICE", root.integrationNotice)
       Qt.quit()
     }
   }
@@ -102,6 +103,7 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
       XDG_STATE_HOME: join(directory, "state"), XDG_DATA_HOME: join(directory, "data"),
       LEARN_OMARCHY_ROOT: directory, LEARN_OMARCHY_COURSE: join(directory, "absent-course.json"),
       LEARN_OMARCHY_COURSE_DIR: directory, LEARN_OMARCHY_CHARACTER: "",
+      LEARN_OMARCHY_INTEGRATION_ERROR: "Mock desktop integration unavailable",
       DBUS_SESSION_BUS_ADDRESS: `unix:path=${directory}/no-bus`,
     };
     delete env.WAYLAND_DISPLAY;
@@ -112,6 +114,7 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
     assert.equal(result.error, undefined, String(result.error));
     assert.equal(result.status, 0, output);
     assert.match(output, /COMPLETE_SHELL_LOADED/);
+    assert.match(output, /INTEGRATION_NOTICE.*Mock desktop integration unavailable/);
     assert.doesNotMatch(output, /ReferenceError|TypeError|Cannot assign|is not a type|Binding loop|Failed to load configuration/);
   } finally {
     await rm(directory, { recursive: true, force: true });

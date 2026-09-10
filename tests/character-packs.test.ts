@@ -66,8 +66,9 @@ test("bundled packs preserve IDs, registration, voice metadata and asset filenam
     assert.equal(pack.manifest.author.status, "declared");
     assert.equal(pack.manifest.author.name, "Dan Wahlin");
     assert.ok(!pack.diagnostics.some(message => message.includes("author is unresolved")));
-    assert.equal(pack.manifest.license.status, "unresolved");
-    assert.ok(pack.diagnostics.some(message => message.includes("license is unresolved")));
+    assert.equal(pack.manifest.license.status, "declared");
+    assert.equal(pack.manifest.license.identifier, "CC-BY-4.0");
+    assert.ok(!pack.diagnostics.some(message => message.includes("license is unresolved")));
     assert.ok(pack.assetUrl.startsWith("file:///"));
     assert.ok(!pack.assetUrl.endsWith("/"));
     assert.ok(pack.runtimeFiles.includes("character.json"));
@@ -338,16 +339,25 @@ test("CLI discover emits machine-readable JSON and validate rejects bad input", 
   assert.match(validation.stderr, /Character packs:/);
 });
 
-test("CLI check-bundled reports warnings without failing and rejects invalid catalogs", async t => {
+test("CLI check-bundled accepts declared licenses and rejects invalid catalogs", async t => {
   const root = await fixture(t);
   const run = (path: string) => spawnSync(process.execPath,
     ["--experimental-strip-types", "tools/character-packs.ts", "check-bundled", "--bundled-root", path], { encoding: "utf8" });
   const valid = run(bundledRoot);
   assert.equal(valid.status, 0, valid.stderr);
-  assert.match(valid.stdout, /license is unresolved/);
+  assert.doesNotMatch(valid.stdout, /license is unresolved/);
   assert.match(valid.stdout, /Validated bundled character packs:/);
   const invalid = run(root);
   assert.equal(invalid.status, 1);
   assert.match(invalid.stdout, /No valid character packs/);
   assert.match(invalid.stderr, /validation failed/);
+});
+
+test("unresolved user-pack licensing still warns without preventing local use", async t => {
+  const root = await fixture(t);
+  const manifest = await copyExample(root);
+  manifest.license = { status: "unresolved" };
+  await save(root, manifest);
+  const pack = await loadCharacterPack(root);
+  assert.ok(pack.diagnostics.some(message => message.includes("license is unresolved")));
 });

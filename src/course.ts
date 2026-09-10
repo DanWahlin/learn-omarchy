@@ -94,6 +94,7 @@ export interface CourseStep {
   directionFromStep?: string;
   optional?: boolean;
   instruction: string;
+  practicePrompt?: string;
   note?: string;
   detail?: string;
   kind?: "tour" | "practice";
@@ -411,6 +412,12 @@ const validateStep = (
     seenIds.add(value.id);
   }
   addStringError(errors, value.instruction, `${path}.instruction`);
+  if (value.practicePrompt !== undefined) {
+    addStringError(errors, value.practicePrompt, `${path}.practicePrompt`);
+    if (typeof value.practicePrompt === "string" &&
+        (value.practicePrompt.length > 240 || /[\r\n]/.test(value.practicePrompt)))
+      errors.push(`${path}.practicePrompt must be a single short paragraph (at most 240 characters)`);
+  }
   if (value.windowSize !== undefined) {
     if (!isRecord(value.windowSize) ||
         !Number.isInteger(value.windowSize.width) || Number(value.windowSize.width) < 400 ||

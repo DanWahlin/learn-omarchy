@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, readdir, rm, symlink, mkdir } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { mkdtemp, readFile, readdir, rm, symlink, mkdir, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
@@ -10,7 +9,7 @@ import { installBundledPacks } from "../tools/install-character-packs.ts";
 const bundledRoot = resolve("assets/characters");
 
 test("installation copies complete validated runtime packs without authoring machinery", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "learn-pack-install-"));
+  const directory = await mkdtemp(resolve(".learn-pack-install-"));
   try {
     const destination = join(directory, "characters");
     const ids = await installBundledPacks(bundledRoot, destination);
@@ -33,7 +32,7 @@ test("installation copies complete validated runtime packs without authoring mac
 
 test("installation cannot write through a pack-directory symlink or overwrite its source", async () => {
   await assert.rejects(installBundledPacks(bundledRoot, bundledRoot), /overwrite the source/);
-  const directory = await mkdtemp(join(tmpdir(), "learn-pack-install-"));
+  const directory = await mkdtemp(resolve(".learn-pack-install-"));
   try {
     const destination = join(directory, "characters");
     const outside = join(directory, "outside");
@@ -48,9 +47,17 @@ test("installation cannot write through a pack-directory symlink or overwrite it
 });
 
 test("the package install includes shared pack code and pack-owned intro assets", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "learn-pack-package-"));
+  const directory = await mkdtemp(resolve(".learn-pack-package-"));
   try {
-    const result = spawnSync("make", ["install", `DESTDIR=${directory}`, "PREFIX=/usr"], { encoding: "utf8" });
+    const home = join(directory, "home");
+    await mkdir(join(home, ".local/state/learn-omarchy"), { recursive: true });
+    await mkdir(join(home, ".config/omarchy/plugins/learn-omarchy.geometry"), { recursive: true });
+    const progress = join(home, ".local/state/learn-omarchy/progress.json");
+    const editedIntegration = join(home, ".config/omarchy/plugins/learn-omarchy.geometry/Geometry.js");
+    await writeFile(progress, '{"completed":["first-lesson"]}');
+    await writeFile(editedIntegration, "// user-owned changes");
+    const env = { ...process.env, HOME: home };
+    const result = spawnSync("make", ["install", `DESTDIR=${directory}`, "PREFIX=/usr"], { encoding: "utf8", env });
     assert.equal(result.status, 0, result.stderr || result.stdout);
     const root = join(directory, "usr/share/learn-omarchy");
     for (const file of [
@@ -58,12 +65,18 @@ test("the package install includes shared pack code and pack-owned intro assets"
       "app/AppSearchSession.qml", "app/app-search.qml",
       "app/PracticeSession.qml", "app/TeachingLayout.js", "tools/tutorial-launch.mjs",
       "app/SplashScreen.qml", "assets/splash/learn-omarchy.png",
+      "assets/splash/provenance.json",
       "assets/sounds/birds-welcome.opus", "assets/sounds/birds-welcome.provenance.json",
       "app/WordRevealText.qml", "app/CaptionReveal.qml", "app/CaptionTiming.js", "tools/play-timed-speech.mjs",
       "app/IntroTimeline.js", "app/IntroEffect.qml", "app/qmldir",
       "src/character-packs.ts", "src/intro-sequence.ts", "tools/character-packs.ts",
       "tools/validate-course-audio.ts", "tools/audio-coverage.ts", "tools/audio-production.ts",
       "tools/validate-course.ts", "tools/capture-practice.mjs", "tools/verify-window-owner.mjs",
+      "tools/install-geometry-provider.mjs",
+      "integrations/omarchy/learn-omarchy.geometry/manifest.json",
+      "integrations/omarchy/learn-omarchy.geometry/Service.qml",
+      "integrations/omarchy/learn-omarchy.geometry/SnapshotProvider.qml",
+      "integrations/omarchy/learn-omarchy.geometry/Geometry.js",
       "docs/character-packs.md", "docs/character-intros.md", "experiments/hexon-lab/shell.qml",
       "experiments/hexon-lab/qmldir",
       "assets/characters/ohm-1/intro/sequence.json", "assets/characters/owl/intro/sequence.json",
@@ -72,8 +85,17 @@ test("the package install includes shared pack code and pack-owned intro assets"
     ]) {
       assert.ok((await readFile(join(root, file))).length > 0, file);
     }
+    for (const file of ["LICENSE", "LICENSE-ASSETS.md", "LICENSES/CC-BY-4.0.txt", "LICENSES/CC0-1.0.txt"]) {
+      assert.deepEqual(await readFile(join(directory, "usr/share/licenses/learn-omarchy", file)), await readFile(file), file);
+      assert.deepEqual(await readFile(join(root, file)), await readFile(file), `installed documentation links: ${file}`);
+    }
+    for (const file of [
+      "assets/characters/ohm-1/character.json", "assets/characters/owl/character.json",
+      "assets/splash/provenance.json", "assets/sounds/birds-welcome.provenance.json",
+    ]) assert.deepEqual(await readFile(join(root, file)), await readFile(file), file);
     assert.deepEqual((await readdir(join(root, "tools"))).sort(),
       ["audio-coverage.ts", "audio-production.ts", "capture-practice.mjs", "character-packs.ts",
+        "install-geometry-provider.mjs",
         "play-timed-speech.mjs", "tutorial-launch.mjs", "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
     const audioCheck = spawnSync(process.execPath, ["--experimental-strip-types",
       join(root, "tools/validate-course-audio.ts"), join(root, "courses/omarchy-basics.json")],
@@ -85,6 +107,11 @@ test("the package install includes shared pack code and pack-owned intro assets"
     const help = spawnSync(join(directory, "usr/bin/learn-omarchy"), ["--help"], { encoding: "utf8" });
     assert.equal(help.status, 0, help.stderr);
     assert.match(help.stdout, /user data directory/);
+    const removed = spawnSync("make", ["uninstall", `DESTDIR=${directory}`, "PREFIX=/usr"], { encoding: "utf8", env });
+    assert.equal(removed.status, 0, removed.stderr);
+    await assert.rejects(readFile(join(root, "tools/install-geometry-provider.mjs")), /ENOENT/);
+    assert.equal(await readFile(progress, "utf8"), '{"completed":["first-lesson"]}');
+    assert.equal(await readFile(editedIntegration, "utf8"), "// user-owned changes");
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

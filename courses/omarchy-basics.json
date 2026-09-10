@@ -99,6 +99,7 @@
         },
         {
           "id": "tour-workspace-two",
+          "practicePrompt": "Switch to workspace two. Leave your windows open.",
           "note": "Your windows stay open when you switch workspaces.",
           "instruction": "Hold Super and tap 2 on the top row. Then release both keys.",
           "detail": "Switching workspaces doesn't close or move your windows. Workspace two may already have windows in it. If you're already there, we'll move on to switching to workspace one.",
@@ -131,6 +132,7 @@
         },
         {
           "id": "tour-workspace-one",
+          "practicePrompt": "Return to workspace one.",
           "instruction": "Now hold Super and tap 1 on the top row. Then release both keys. You're heading to workspace one.",
           "detail": "If you started on workspace one, this brings you back. If you started elsewhere, it takes you to workspace one instead. Nothing is closed or moved.",
           "keys": ["SUPER", "+", "1"],
@@ -221,6 +223,7 @@
         },
         {
           "id": "tour-omarchy-menu",
+          "practicePrompt": "Open the Omarchy menu.",
           "instruction": "Let's try another shortcut. Hold Super and tap Space to open the Omarchy menu.",
           "detail": "The Omarchy menu brings together apps, settings, and system tools. In guided activities, the course captures your shortcut keys; Release Keys lets you interact with the opened menu.",
           "keys": [
@@ -299,6 +302,7 @@
       "steps": [
         {
           "id": "open-root-menu",
+          "practicePrompt": "Open the main Omarchy menu.",
           "instruction": "Press Super and Space to open the Omarchy menu. If you tried this on the tour, use it as a quick refresher or choose Skip.",
           "detail": "This menu is a useful starting point for apps, settings, and system tools.",
           "keys": [
@@ -345,6 +349,7 @@
         },
         {
           "id": "open-apps",
+          "practicePrompt": "Open the Apps menu.",
           "instruction": "Now for your apps. Alt is the Option key on a Mac keyboard. Hold Super and Alt, then tap Space to open the Apps menu.",
           "detail": "The Apps menu lists launchable apps, not every installed package. Choose Release Keys to search it. Escape clears typed text; press it again to close, or once if empty. Then choose Capture Keys to return to the course.",
           "keys": [
@@ -419,6 +424,7 @@
         },
         {
           "id": "open-keybindings",
+          "practicePrompt": "Open the shortcut guide. Read only: pressing Enter or clicking a result runs that shortcut.",
           "instruction": "Need to look up a shortcut? Press Super and K to open the shortcut guide. Search and read only for this lesson: pressing Enter or clicking a result runs that shortcut, which could close windows or lock your screen.",
           "detail": "Choose Release Keys to type a filter. Read the matching key combinations without activating a result, then close the guide and choose Capture Keys to continue.",
           "note": "Read only: Enter or clicking a result runs the shortcut, not a help page.",
@@ -472,6 +478,7 @@
       "steps": [
         {
           "id": "launch-terminal",
+          "practicePrompt": "Open a new terminal window.",
           "note": "A terminal is a window where you can type commands.",
           "instruction": "Press Super and Return to open a terminal. Return is the Enter key on most keyboards.",
           "detail": "A terminal is a window where you can type commands. You won't need to enter commands in this activity. Omarchy fits the new window alongside your existing work.",
@@ -509,6 +516,7 @@
         },
         {
           "id": "close-terminal",
+          "practicePrompt": "Close the terminal you just opened.",
           "note": "Only the terminal opened for this activity will close.",
           "windowFromStep": "launch-terminal",
           "instruction": "Now let's tidy up. Press Super and W to close that terminal.",
@@ -551,6 +559,7 @@
         },
         {
           "id": "launch-browser",
+          "practicePrompt": "Open a new browser window.",
           "instruction": "Let's get online. Hold Super and Shift, then press Return to open your browser.",
           "detail": "This shortcut uses the browser you've configured in Omarchy. Browser settings can affect whether a new window opens.",
           "keys": [
@@ -589,6 +598,7 @@
         },
         {
           "id": "launch-files",
+          "practicePrompt": "Open the Files application.",
           "note": "A file manager helps you browse folders and documents.",
           "instruction": "Need your files? Hold Super and Shift, then press F to open the file manager.",
           "detail": "The file manager opens in a new window, ready for browsing, drag and drop, or a quick search.",
@@ -629,6 +639,7 @@
         },
         {
           "id": "close-files",
+          "practicePrompt": "Close the Files window opened by this lesson.",
           "note": "Your other windows stay open.",
           "windowFromStep": "launch-files",
           "instruction": "Same move again. Press Super and W to close the file manager.",
@@ -681,6 +692,7 @@
       "steps": [
         {
           "id": "windows-open-first",
+          "practicePrompt": "Open a terminal to begin practicing window management.",
           "note": "Tiling arranges your windows without overlap.",
           "instruction": "Let's see how tiling works. Press Super and Return to open a terminal.",
           "detail": "Tiling arranges windows without overlap. A single tiled window fills the available workspace; additional windows share that space.",
@@ -718,6 +730,7 @@
         },
         {
           "id": "windows-open-second",
+          "practicePrompt": "Open a second terminal, keeping the first one open.",
           "instruction": "Press Super and Return once more to open a second terminal.",
           "detail": "Tiling means no overlapping and no manual arranging. Omarchy splits the space for you.",
           "keys": [
@@ -754,6 +767,7 @@
         },
         {
           "id": "windows-focus-next",
+          "practicePrompt": "Switch keyboard focus to the other practice terminal.",
           "note": "Focus means which window receives your keyboard input.",
           "windowFromStep": "windows-open-first",
           "instruction": "Two windows, one keyboard. Press Alt and Tab to hop to the other terminal.",
@@ -799,6 +813,7 @@
         },
         {
           "id": "windows-float",
+          "practicePrompt": "Make the focused practice terminal float instead of staying tiled.",
           "note": "Floating windows can sit above the tiled layout.",
           "windowFromStep": "windows-open-first",
           "instruction": "Sometimes you want a window to float free. Press Super and T to toggle floating.",
@@ -844,6 +859,7 @@
         },
         {
           "id": "windows-fullscreen",
+          "practicePrompt": "Make the floating practice terminal fullscreen.",
           "note": "Use the same shortcut again to leave fullscreen.",
           "windowFromStep": "windows-open-first",
           "instruction": "Need to focus on one thing? Press Super and F for fullscreen.",
@@ -889,6 +905,7 @@
         },
         {
           "id": "windows-exit-fullscreen",
+          "practicePrompt": "Take the practice terminal out of fullscreen.",
           "windowFromStep": "windows-open-first",
           "instruction": "Press Super and F again to leave fullscreen.",
           "detail": "The same shortcut gets you in and out, so you're never stuck.",
@@ -936,6 +953,7 @@
         },
         {
           "id": "windows-retile",
+          "practicePrompt": "Return the floating practice terminal to the tiled layout.",
           "windowFromStep": "windows-open-first",
           "instruction": "Press Super and T to put that floating terminal back into the tiled layout.",
           "detail": "Tiling fits the practice window around your existing work.",
@@ -983,6 +1001,7 @@
         },
         {
           "id": "windows-focus-right",
+          "practicePrompt": "Focus the neighboring practice terminal using the directional window-focus shortcut.",
           "windowFromStep": "windows-open-second",
           "directionFromStep": "windows-open-first",
           "instruction": "Super and an arrow focuses a neighboring window. Use the highlighted arrow to focus your other practice terminal.",
@@ -1031,6 +1050,7 @@
         },
         {
           "id": "windows-swap",
+          "practicePrompt": "Swap the positions of the two practice terminals using the directional swap shortcut.",
           "note": "Only our two practice terminals will change positions.",
           "windowFromStep": "windows-open-second",
           "instruction": "Add Shift to swap window positions. Hold Super and Shift, then press the highlighted arrow.",
@@ -1082,6 +1102,7 @@
         },
         {
           "id": "windows-close-one",
+          "practicePrompt": "Close the focused practice terminal, leaving the other one open.",
           "windowFromStep": "windows-open-second",
           "instruction": "Let's clean up. Press Super and W to close this window.",
           "detail": "Closing a tiled window gives its space back to the others instantly.",
@@ -1123,6 +1144,7 @@
         },
         {
           "id": "windows-close-two",
+          "practicePrompt": "Close the remaining practice terminal.",
           "windowFromStep": "windows-open-first",
           "instruction": "And once more. Press Super and W to close the last terminal.",
           "detail": "That's the whole loop: open, arrange, focus, close. All from the keyboard.",
@@ -1174,6 +1196,7 @@
       "steps": [
         {
           "id": "workspaces-home",
+          "practicePrompt": "Switch to workspace one to begin.",
           "instruction": "First, let's start from workspace one. Press Super and 1.",
           "detail": "If you're already on workspace one, this step takes care of itself.",
           "keys": [
@@ -1213,6 +1236,7 @@
         },
         {
           "id": "workspaces-open-terminal",
+          "practicePrompt": "Open a terminal on workspace one. You'll move it between workspaces.",
           "instruction": "We'll need a window to move around. Press Super and Return to open a terminal.",
           "detail": "Workspaces are separate desktops. Each one holds its own set of tiled windows.",
           "keys": [
@@ -1249,6 +1273,7 @@
         },
         {
           "id": "workspaces-jump",
+          "practicePrompt": "Switch to workspace two without moving the terminal.",
           "note": "Your windows stay open when you switch workspaces.",
           "instruction": "Press Super and 2 to visit workspace two.",
           "detail": "Workspaces separate your tasks. A workspace may already contain windows; switching doesn't close them.",
@@ -1289,6 +1314,7 @@
         },
         {
           "id": "workspaces-back",
+          "practicePrompt": "Return to the workspace you were just using, with the previous-used-workspace shortcut.",
           "instruction": "Press Super, Control, and Tab to return to the workspace you were just using.",
           "detail": "This shortcut returns to the last workspace you visited. In this activity, that's workspace one.",
           "keys": [
@@ -1330,6 +1356,7 @@
         },
         {
           "id": "workspaces-send",
+          "practicePrompt": "Send the practice terminal to workspace two.",
           "note": "The terminal moves to workspace two, and you follow it.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Hold Super and Shift, then press 2 to send this terminal to workspace two.",
@@ -1381,6 +1408,7 @@
         },
         {
           "id": "next-workspace",
+          "practicePrompt": "Switch to the next workspace in order.",
           "instruction": "Let's hop desktops. Press Super and Tab to move to the next workspace.",
           "detail": "Workspaces keep projects separate without minimizing anything. Watch the numbers in the bar.",
           "keys": [
@@ -1417,6 +1445,7 @@
         },
         {
           "id": "previous-workspace",
+          "practicePrompt": "Switch back to the previous workspace in order.",
           "instruction": "Now head back. Hold Super and Shift, then press Tab to return to the previous workspace.",
           "detail": "Adding Shift reverses the direction. Super plus a number jumps straight to that workspace.",
           "keys": [
@@ -1455,6 +1484,7 @@
         },
         {
           "id": "workspaces-stash",
+          "practicePrompt": "Move the practice terminal into the scratchpad, the hidden workspace.",
           "note": "The scratchpad is a hidden workspace you can show over your desktop.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Let's give the scratchpad something useful. Press Super, Alt, and S to put our terminal there.",
@@ -1507,6 +1537,7 @@
         },
         {
           "id": "workspaces-scratchpad",
+          "practicePrompt": "Show the scratchpad so you can see the practice terminal.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Press Super and S to reveal the scratchpad with your terminal in it.",
           "detail": "The scratchpad is a hidden workspace you can show over your current one. Super and S shows or hides it.",
@@ -1554,6 +1585,7 @@
         },
         {
           "id": "workspaces-scratchpad-hide",
+          "practicePrompt": "Hide the scratchpad again without closing its terminal.",
           "windowFromStep": "workspaces-open-terminal",
           "note": "The terminal stays open while the scratchpad is hidden.",
           "instruction": "Press Super and S again to tuck the scratchpad away.",
@@ -1601,6 +1633,7 @@
         },
         {
           "id": "workspaces-reveal-before-restore",
+          "practicePrompt": "Show the scratchpad again and bring the practice terminal into focus.",
           "note": "Select our practice terminal if other windows are in the scratchpad.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Reveal the scratchpad again with Super and S. We'll move the practice terminal only after it has focus.",
@@ -1627,6 +1660,7 @@
         },
         {
           "id": "workspaces-restore",
+          "practicePrompt": "Move the practice terminal out of the scratchpad and onto workspace two.",
           "note": "The terminal must be visible and focused before you move it.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Press Super, Shift, and 2 to bring the practice terminal back to workspace two.",
@@ -1680,6 +1714,7 @@
         },
         {
           "id": "workspaces-close",
+          "practicePrompt": "Close the practice terminal, leaving your other windows alone.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Let's leave the desktop tidy. Press Super and W to close our practice terminal.",
           "detail": "This guided action closes only the terminal from this lesson. Your other work stays open.",
@@ -1731,6 +1766,7 @@
       "steps": [
         {
           "id": "audio-panel",
+          "practicePrompt": "Open the Audio panel.",
           "note": "Output is where sound plays; input is your microphone.",
           "instruction": "Hold Super and Control, then press A to open the Audio panel.",
           "detail": "Output is where sound plays; input is your microphone. Release Keys to explore the panel, Escape to close it, then Capture Keys to return. No volume changes are required.",
@@ -1781,6 +1817,7 @@
         },
         {
           "id": "network-panel",
+          "practicePrompt": "Open the Network panel.",
           "note": "Check the connection without disconnecting or changing networks.",
           "instruction": "Hold Super and Control, then press W to open the Network panel.",
           "detail": "Read the connection status without disconnecting. Release Keys to use the panel, Escape to close it, and Capture Keys to return.",
@@ -1831,6 +1868,7 @@
         },
         {
           "id": "power-panel",
+          "practicePrompt": "Open the Power panel to view battery information.",
           "instruction": "How's your battery? Hold Super and Control, then press P to open the Power panel.",
           "detail": "Battery status and power profiles, ready for when you need to squeeze out more time.",
           "keys": [
@@ -1880,6 +1918,7 @@
         },
         {
           "id": "calendar-panel",
+          "practicePrompt": "Open the calendar.",
           "note": "Clicking the clock opens the same calendar.",
           "instruction": "What's the date? Hold Super, Control, and Alt, then press D to open the calendar.",
           "detail": "Clicking the clock is a useful alternative to this longer shortcut. Explore with Release Keys; Escape closes the panel.",
@@ -1932,6 +1971,7 @@
         },
         {
           "id": "background-menu",
+          "practicePrompt": "Open the Background switcher. Look without selecting a different background.",
           "note": "Choosing a background changes your desktop immediately.",
           "instruction": "Fancy a new look? Hold Super and Control, then press Space to open the Background switcher.",
           "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
@@ -1979,6 +2019,7 @@
         },
         {
           "id": "theme-menu",
+          "practicePrompt": "Open the Theme menu. Look without changing your theme.",
           "note": "Choosing a theme applies it immediately; no change is required.",
           "instruction": "Hold Super, Shift, and Control, then press Space to open the Theme menu.",
           "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
@@ -2028,6 +2069,7 @@
         },
         {
           "id": "toggle-menu",
+          "practicePrompt": "Open the Toggle menu. Look only: selecting an entry changes that setting.",
           "note": "Selecting an entry changes that setting.",
           "instruction": "One more. Hold Super and Control, then press O to open the Toggle menu.",
           "detail": "Night light, idle locking, the top bar, and other switches all live here.",
@@ -2110,6 +2152,7 @@
         },
         {
           "id": "clipboard-history",
+          "practicePrompt": "Open clipboard history to see where earlier copied items are kept.",
           "note": "History may contain private information; select entries carefully.",
           "instruction": "Copied something earlier? Hold Super and Control, then press V to open your clipboard history.",
           "detail": "Clipboard history keeps recent copied items. Activating an entry normally pastes it into the previously focused field. Shift+Enter copies an entry without pasting. To cancel, Escape clears typed text; press it again to close, or once if empty. Be mindful of private information in your history.",
@@ -2244,6 +2287,7 @@
       "steps": [
         {
           "id": "capture-menu",
+          "practicePrompt": "Open the Capture menu without starting a capture.",
           "instruction": "Grab what's on screen. Hold Super and Control, then press C to open the Capture menu.",
           "detail": "Screenshots, screen recordings, color picking, and text extraction all start here.",
           "keys": [
@@ -2610,6 +2654,7 @@
       "steps": [
         {
           "id": "hardware-menu",
+          "practicePrompt": "Open the Hardware menu. Look only: selecting an action can change device behavior immediately.",
           "instruction": "Hold Super and Control, then press H to open the Hardware menu. Opening it is safe, but selecting an action can change device behavior immediately. Just look for this lesson; don't select an action.",
           "detail": "This is Trigger > Hardware. Depending on your hardware, it offers Laptop Display, Mirror Display, Hybrid GPU, Touchpad, Touchpad Haptics, and Touchscreen controls. Audio, Bluetooth, and Display have separate panels. Keyboard configuration is under Setup > Input or Setup > Keybindings.",
           "note": "Look only: selecting a hardware action can change device behavior immediately.",
@@ -2656,6 +2701,7 @@
         },
         {
           "id": "display-panel",
+          "practicePrompt": "Open the Display panel. Leave its controls unchanged; changes apply immediately.",
           "note": "Display changes apply immediately; leave the controls unchanged.",
           "instruction": "Hold Super and Control, then press D to open the Display panel. Just look for now: changes apply immediately, so leave the controls unchanged.",
           "detail": "The panel offers text size and scale, brightness where supported, and display enable/disable controls when multiple displays are available. Release Keys to explore; Escape closes it. Resolution is configured separately under Setup > Monitors.",
@@ -2706,6 +2752,7 @@
         },
         {
           "id": "system-menu",
+          "practicePrompt": "Open the System menu. Don't select Lock, Logout, Restart, or Shutdown.",
           "note": "Close the menu without choosing logout, restart, or shutdown.",
           "instruction": "Hold Super and press Escape to open the System menu.",
           "detail": "Lock, suspend, log out, reboot, or shut down from one keyboard-driven list.",
@@ -2787,6 +2834,7 @@
       "steps": [
         {
           "id": "helpers-emoji",
+          "practicePrompt": "Open the emoji picker.",
           "note": "The selected emoji is inserted into your previous text field.",
           "instruction": "Need an emoji? Hold Super and Control, then press E to open the emoji picker.",
           "detail": "Type a word to search, press Enter, and the emoji lands in whatever you were typing.",
@@ -2834,6 +2882,7 @@
         },
         {
           "id": "helpers-reminder",
+          "practicePrompt": "Open the reminder prompt. You don't need to create a reminder.",
           "note": "Reminder optional. Escape clears typed text; press again to close, or once if empty.",
           "instruction": "Need a reminder? Hold Super and Control, then press R to set one.",
           "detail": "Enter the number of minutes first, then your reminder message. Before scheduling, Escape clears typed text; press it again to close, or once if empty.",
@@ -2947,6 +2996,7 @@
       "steps": [
         {
           "id": "tools-monitor-open",
+          "practicePrompt": "Open the activity monitor to inspect resource use. Don't stop any programs.",
           "windowSize": { "width": 1200, "height": 640 },
           "note": "Inspect resource use without stopping any programs.",
           "instruction": "Wondering what's using your computer? Press Super, Control, and T to open the activity monitor.",
@@ -2989,6 +3039,7 @@
         },
         {
           "id": "tools-monitor-close",
+          "practicePrompt": "Close the activity-monitor window opened by this lesson.",
           "windowFromStep": "tools-monitor-open",
           "instruction": "Press Super and W to close our activity monitor.",
           "detail": "The course closes only the window it opened, never an existing tool window.",
@@ -3030,6 +3081,7 @@
         },
         {
           "id": "tools-calculator-open",
+          "practicePrompt": "Open Omarchy's calculator.",
           "note": "The lesson checks that the calculator opens, not your calculation.",
           "instruction": "For a quick calculation, press Super, Control, and Q. The calculator is built right in.",
           "detail": "Release Keys and try 5 + 5, then Capture Keys to return. This activity checks that the calculator opened, not the calculation. An existing calculator window won't be closed by the course.",
@@ -3067,6 +3119,7 @@
         },
         {
           "id": "tools-calculator-close",
+          "practicePrompt": "Close the calculator opened by this lesson.",
           "windowFromStep": "tools-calculator-open",
           "instruction": "Press Super and W to close our calculator.",
           "detail": "The course closes only the window it opened, never an existing tool window.",
@@ -3199,6 +3252,7 @@
         },
         {
           "id": "share-menu",
+          "practicePrompt": "Open the Share menu without starting a transfer.",
           "note": "Opening the menu sends nothing; check the file and recipient before sharing.",
           "instruction": "Here's an optional tool for sharing. Press Super, Control, and S to open the Share menu.",
           "detail": "Opening the menu sends nothing. Before sharing, check the selected content and recipient. Never send secrets or personal files just to complete a lesson. Escape clears typed text; press it again to close, or once if empty.",
@@ -3306,6 +3360,7 @@
         },
         {
           "id": "finale-home",
+          "practicePrompt": "Switch to workspace one to begin your practice session.",
           "instruction": "Let's begin on workspace one. Press Super and 1.",
           "detail": "If you're already on workspace one, this step takes care of itself.",
           "keys": [
@@ -3345,6 +3400,7 @@
         },
         {
           "id": "finale-terminal",
+          "practicePrompt": "Open a new terminal on workspace one.",
           "instruction": "Start with a terminal. Press Super and Return.",
           "keys": [
             "SUPER",
@@ -3380,6 +3436,7 @@
         },
         {
           "id": "finale-browser",
+          "practicePrompt": "Open a new browser window alongside the terminal.",
           "instruction": "Now a browser. Hold Super and Shift, then press Return.",
           "keys": [
             "SUPER",
@@ -3417,6 +3474,7 @@
         },
         {
           "id": "finale-send-browser",
+          "practicePrompt": "Move the practice browser window to workspace two.",
           "windowFromStep": "finale-browser",
           "instruction": "Let's give the browser its own desktop. Hold Super and Shift, then press 2.",
           "detail": "The browser moves to workspace two and you go with it.",
@@ -3467,6 +3525,7 @@
         },
         {
           "id": "finale-back-to-one",
+          "practicePrompt": "Return to workspace one, where you left the terminal.",
           "instruction": "Press Super and 1 to return to the terminal's workspace.",
           "keys": [
             "SUPER",
@@ -3505,6 +3564,7 @@
         },
         {
           "id": "finale-close-terminal",
+          "practicePrompt": "Close the practice terminal on workspace one.",
           "windowFromStep": "finale-terminal",
           "instruction": "Done with the terminal for now. Press Super and W.",
           "keys": [
@@ -3545,6 +3605,7 @@
         },
         {
           "id": "finale-to-two",
+          "practicePrompt": "Switch to workspace two, where you left the browser.",
           "instruction": "Press Super and 2 to head over to the browser.",
           "keys": [
             "SUPER",
@@ -3583,6 +3644,7 @@
         },
         {
           "id": "finale-close-browser",
+          "practicePrompt": "Close the practice browser window on workspace two.",
           "windowFromStep": "finale-browser",
           "instruction": "And close it. Press Super and W.",
           "keys": [

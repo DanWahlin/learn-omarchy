@@ -51,6 +51,18 @@ test("owned-window presentation and scratchpad visibility metadata reject unsafe
   }
 });
 
+test("practice prompts are optional for external courses but reject empty or oversized goals", async () => {
+  const original = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
+  for (const prompt of ["", "   ", "x".repeat(241), "First\nSecond", 123, null]) {
+    const course = structuredClone(original);
+    course.lessons[1].steps[0].practicePrompt = prompt;
+    assert.ok(validateCourse(course).some(error => error.includes(".practicePrompt")));
+  }
+  for (const lesson of original.lessons)
+    for (const step of lesson.steps) delete step.practicePrompt;
+  assert.deepEqual(validateCourse(original), [], "existing courses can fall back to their full instruction");
+});
+
 test("secondary notes are optional but must be short single-paragraph text", async () => {
   const original = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
   for (const note of ["", "x".repeat(141), "First line\nSecond line", 123]) {

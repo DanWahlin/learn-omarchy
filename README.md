@@ -161,6 +161,9 @@ later workspace-switching activities use individual destination markers.
   retry or Skip and restores the previous capture setting. Help starts the
   exercise rather than completing it for you.
 - Use **Mute** to stop narration and effects immediately.
+  During the welcome, unmuting doesn't replay the current line or reset its
+  text. Reading continues from your place; the next welcome line uses the new
+  audio setting.
 - **Settings** groups preferences into Coach, Audio, and Reading & motion.
   Separate narration and effects sliders show **Off** at zero; toolbar Mute
   temporarily silences both without changing their levels. When muted, the Audio
@@ -199,7 +202,9 @@ later workspace-switching activities use individual destination markers.
   The matching text remains visible with narration muted or unavailable.
   Welcome retains its existing greeting and menu handoff.
 - Press **P** on the topic picker, or choose **Practice** after a module, to
-  recall shortcuts without visible keycaps or spoken answers. **H** reveals a
+  recall shortcuts without visible keycaps or spoken answers. Each shortcut
+  step still shows a concrete goal (for example, "Switch to workspace one")
+  and its safety note. **H** reveals the full instruction and keycaps as a
   hint, and Help remains available. Practice still dispatches course-guided
   actions; it doesn't verify customized native Hyprland bindings.
 - Activity results distinguish **introduced**, **assisted**, **practiced**, and
@@ -350,6 +355,16 @@ and exit codes. It reports playback, not merely that an MP3 exists.
 
 ## Install
 
+Learn Omarchy is one package containing the application, both coaches, recorded
+narration, and the read-only desktop integration. Install it and open the app:
+there's no separate plugin download, Enable button, or setup command.
+
+On launch, the app prepares the bundled integration for the current account
+and updates it when the package contains a newer version. An already-current,
+active integration isn't reinstalled or reloaded. User-edited or conflicting
+plugin files are preserved; a visible notice explains if precise pointing
+is temporarily unavailable, and the next launch retries automatically.
+
 To put this checkout in Omarchy's Apps menu without copying it anywhere:
 
 ```bash
@@ -369,15 +384,31 @@ make install PREFIX="$HOME/.local"
 Ensure `~/.local/bin` is on `PATH`, then run `learn-omarchy` or open **Learn
 Omarchy** from the Apps menu.
 
-Build and install an Arch package from this working tree:
+Install a built Arch package (replace `VERSION` with its actual version):
 
 ```bash
-cd packaging
-makepkg -si
+sudo pacman -U ./learn-omarchy-VERSION-1-any.pkg.tar.zst
 ```
 
-The included `PKGBUILD` is local development scaffolding. A release package
-should use a tagged source archive and its checksum.
+Open **Learn Omarchy** from the Apps menu after installation. Dependencies
+for the required lessons are installed with the package. OCR, QR, and dictation
+extras are listed as optional dependencies.
+
+To build a package from a trusted, existing versioned source archive:
+
+```bash
+node tools/prepare-release.mjs --check
+node tools/prepare-release.mjs --archive /path/to/learn-omarchy-VERSION.tar.gz --output /path/to/new-build-directory
+cd /path/to/new-build-directory
+makepkg --cleanbuild
+```
+
+Preparation validates the archive's licensing and bundled integration, computes
+its real checksum, and generates `PKGBUILD` and `.SRCINFO`. It doesn't publish
+or install anything. See [packaging/RELEASING.md](packaging/RELEASING.md) for
+tagged-source preparation, dependencies, reproducibility, and removal.
+To uninstall the Arch package and its unchanged integration for your account,
+run `learn-omarchy --uninstall` as your regular user from a terminal.
 
 Progress is stored at:
 
@@ -386,6 +417,13 @@ ${XDG_STATE_HOME:-$HOME/.local/state}/learn-omarchy/progress.json
 ```
 
 ## Course metadata
+
+Steps may include a `practicePrompt`: a short, single-paragraph goal of at most
+240 characters that identifies the task without giving away its shortcut.
+Practice mode shows it until a hint is requested. All bundled shortcut steps
+provide one; external courses that omit it retain the full instruction instead
+of substituting a Help-button label. These recall prompts are shown as text;
+Replay continues to use the existing narrated instruction.
 
 Courses use schema version 2:
 
@@ -560,20 +598,28 @@ tour points to that card after Super + Space, then closes it and introduces the
 bar icon in a separate narrated stop. Unsupported menu layouts remain unmeasured
 instead of redirecting the opening step to the icon.
 
-Enable the read-only measurement service for your user:
+The launcher automatically prepares `learn-omarchy.geometry` under
+`~/.config/omarchy/plugins` using Omarchy's plugin manager. No separate user
+installation or activation is needed. It doesn't modify packaged Omarchy
+files or your bar layout. The helper refuses to overwrite an unrelated plugin
+or locally edited provider files. Clean upgrades preserve the previous version
+and use content-addressed component paths, so Omarchy can load the new code
+without restarting the desktop shell.
 
-```bash
-npm run geometry:install
-```
+For troubleshooting only, `npm run geometry:install` runs the same bundled
+helper from a checkout. Installed copies include
+`tools/install-geometry-provider.mjs`; normal users don't need to run it.
 
-This installs `learn-omarchy.geometry` under `~/.config/omarchy/plugins` and
-enables it through Omarchy's plugin manager. It doesn't modify packaged files or
-your bar layout. The installer refuses to overwrite an unrelated plugin or
-locally edited provider files. Clean upgrades preserve the previous version and
-use content-addressed component paths, so Omarchy can load the new code without
-restarting the desktop shell. For a system installation, invoke
-`node /usr/local/share/learn-omarchy/tools/install-geometry-provider.mjs`
-(adjust the prefix if installed elsewhere).
+For an Arch-package installation, run `learn-omarchy --uninstall` from a terminal
+as your regular user. It requests package-removal permission and retains
+pacman's confirmation, then removes the unchanged managed companion for that
+account through Omarchy's supported removal command. Cancelling package
+removal leaves the integration alone. Progress, backups, and user-edited or
+unrelated plugin files are preserved; other users' configuration isn't touched.
+
+For source installations or advanced cleanup, `learn-omarchy --remove-integration`
+removes only the unchanged managed companion. Opening the app again
+automatically restores it.
 
 Without that service, the runtime can use the stock `debugBarGeometry` API on a
 single monitor. Those records omit the bar window's edge offset, so they remain
@@ -741,10 +787,10 @@ audio set. Borrowed clips that name the original coach are intentionally omitted
 the selected character's text stays visible and the normal reading-time fallback
 applies. Ohm and OLLIE retain their existing voices and audio-set directories.
 
-**Artwork attribution and licensing:** Dan Wahlin is the declared author of
-Ohm-1 and Ollie. An asset license has not yet been selected; the official
-manifests flag that separately. Don't assume the artwork is licensed for
-redistribution merely because it is bundled.
+**Licensing:** Application code and technical documentation use the
+[MIT license](LICENSE). Original artwork and course content, including Ohm-1
+and Ollie by Dan Wahlin, use [CC BY 4.0](LICENSE-ASSETS.md). The bird recording
+and Spark's example artwork retain their separately declared CC0 terms.
 
 ### Trusted repository artwork tools
 

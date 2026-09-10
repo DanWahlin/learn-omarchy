@@ -303,10 +303,11 @@ The idle frame-zero preview reuses each pack's installed idle PNG.
 
 Declared metadata records the publisher's claim; validation does not determine
 copyright ownership. Unresolved author/license status warns rather than blocking
-local use. Dan Wahlin is the declared author of Ohm-1 and Ollie. Their asset
-licenses remain unresolved until redistribution terms are selected. Do not infer a license
-from project code or packaging and do not redistribute that artwork without
-clarification.
+local use. Dan Wahlin is the declared author of Ohm-1 and Ollie. Their artwork
+is licensed under CC BY 4.0, separately from the MIT-licensed application code.
+See [LICENSE-ASSETS.md](../LICENSE-ASSETS.md) for scope, attribution, and the
+separately licensed CC0 material. Publishing a new pack still requires its own
+accurate rights and attribution metadata.
 
 Spark's four simple geometric placeholder PNGs are original example
 project-generated shapes, explicitly CC0-1.0. This declaration applies only to
@@ -321,8 +322,8 @@ at runtime. Open a PR with this checklist:
 
 - [ ] Choose a unique, stable ID and provide accurate author attribution and
       a declared asset license permitting redistribution. Include any required
-      attribution and license terms in the review. Existing unresolved official
-      asset metadata is not permission to reuse that artwork.
+      attribution and license terms in the review. Unresolved metadata is not
+      permission to redistribute artwork.
 - [ ] Add `assets/characters/<id>/character.json` and its referenced PNG assets.
       Include a validated intro sequence and its assets if the character has
       one; otherwise confirm that the graphics-only fallback is intentional.

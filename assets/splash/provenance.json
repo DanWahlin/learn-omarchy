@@ -16,7 +16,8 @@
   ],
   "postprocessing": "Rebalanced the illustration with a smaller corner-perched owl and a lower desktop. Equalized both right panes to 435x179 pixels. Moved both title lines down 30 pixels. Replaced the subtitle locally with 'YOUR DESKTOP. YOUR WAY.' in cyan JetBrains Mono lettering, leaving the lower illustration unchanged.",
   "license": {
-    "status": "unresolved",
-    "note": "Derived from character artwork authored by Dan Wahlin. Redistribution terms remain unresolved; no new license is asserted."
+    "status": "declared",
+    "identifier": "CC-BY-4.0",
+    "note": "Derived from character artwork authored by Dan Wahlin. https://creativecommons.org/licenses/by/4.0/. Credit Learn Omarchy and indicate changes."
   }
 }

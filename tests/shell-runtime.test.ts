@@ -24,7 +24,8 @@ function timer() {
   };
 }
 
-function captionRuntime(state: any, source: () => string, display: () => string, available: () => boolean) {
+function captionRuntime(state: any, source: () => string, display: () => string, available: () => boolean,
+    narrationEnabled = () => state.narrationEnabled) {
   const deadline = timer();
   const context = createContext({
     CaptionTiming: captionTiming, timingDeadline: deadline, deadline, console: state.console,
@@ -37,7 +38,7 @@ function captionRuntime(state: any, source: () => string, display: () => string,
     formattedText: { get: () => state.captionText(display()) },
     typeText: { get: () => state.synchronizedWelcomeText },
     reducedMotion: { get: () => state.reducedMotion },
-    narrationEnabled: { get: () => state.narrationEnabled },
+    narrationEnabled: { get: narrationEnabled },
     audioAvailable: { get: available }, wordsPerMinute: { get: () => state.readingWordsPerMinute },
     paused: { get: () => state.phase === "paused" || state.phase === "settings" },
     revealEnd: { get: () => runInContext(revealSource.match(/readonly property int revealEnd: ([\s\S]*?)\n\n/)![1], context) },
@@ -253,7 +254,8 @@ function runtime(stepId: string, reducedMotion = true) {
       shell.match(/readonly property string welcomeText: ([\s\S]*?)\n  property bool introActive/)![1], context) },
   });
   context.welcomeReveal = captionRuntime(context, () => context.welcomeInstruction(),
-    () => context.welcomeText, () => context.welcomeAudioPath() !== "");
+    () => context.welcomeText, () => context.welcomeAudioPath() !== "",
+    () => context.narrationEnabled && !context.welcomeReadingActive);
   context.lessonReveal = captionRuntime(context, () => context.lessonCaptionStage === "completion"
     ? context.currentStep?.completionMessage || "" : context.currentStep?.instruction || "",
     () => context.characterText(context.lessonReveal.sourceText),
@@ -2796,9 +2798,62 @@ test("controls mute, skip, and settings do not leave welcome narration running",
       assert.equal(state.welcomeStage, "controls");
       assert.equal(state.welcomeReadTimer.stage, "controls");
       state.toggleAudio();
-      assert.equal(state.welcomeSpeech.running, true);
+      assert.equal(state.welcomeSpeech.running, false, "unmuting must not replay the controls explanation");
     } else assert.equal(state.welcomeStage, "");
   }
+});
+
+test("welcome mute/unmute never replays or rewinds the current caption, including late speech exits", () => {
+  for (const stage of ["welcome", "controls", "recommendation"]) {
+    const state = runtime("tour-welcome", false);
+    state.phase = stage === "recommendation" ? "menu" : "welcome";
+    state.welcomeStage = stage;
+    state.audioEnabled = true;
+    state.welcomeCaptionShown();
+    state.receiveWelcomePlayback(timingPacket(state.welcomeInstruction()), state.introGeneration, stage);
+    state.receiveWelcomePlayback('{"type":"position","positionMs":1300}', state.introGeneration, stage);
+    const revealed = state.welcomeRevealEnd;
+    assert.ok(revealed > 0);
+    const captionGeneration = state.welcomeSpeech.captionGeneration;
+    state.toggleAudio();
+    assert.equal(state.welcomeSpeech.running, false);
+    assert.equal(state.welcomeReadingActive, true);
+    assert.ok(state.welcomeRevealEnd >= revealed);
+    state.welcomeReadingElapsed = 500;
+    const afterReading = state.welcomeRevealEnd;
+    const timerGeneration = state.welcomeReadTimer.generation;
+    state.toggleAudio();
+    assert.equal(state.audioEnabled, true);
+    assert.equal(state.welcomeSpeech.running, false);
+    assert.equal(state.welcomeSpeech.captionGeneration, captionGeneration);
+    assert.ok(state.welcomeRevealEnd >= afterReading);
+    state.welcomeSpeechExited(143, state.introGeneration, stage);
+    state.welcomeCaptionShown();
+    assert.equal(state.welcomeSpeech.running, false, "late cancellation cannot restart voice");
+    assert.ok(state.welcomeRevealEnd >= afterReading);
+    assert.equal(state.welcomeReadTimer.generation, timerGeneration);
+    state.welcomeReadingElapsed = 1000;
+    assert.ok(state.welcomeRevealEnd > afterReading, "reading continues even with audio enabled");
+    if (stage !== "recommendation") {
+      state.advanceWelcome(state.introGeneration, stage);
+      state.welcomeArrived(state.introGeneration);
+      state.welcomeCaptionShown();
+      assert.equal(state.welcomeSpeech.running, true, "the next line uses the new audio preference");
+    }
+  }
+});
+
+test("unmuting a welcome line that began muted preserves its reading position", () => {
+  const state = runtime("tour-welcome", false);
+  state.phase = "welcome";
+  state.welcomeStage = "controls";
+  state.welcomeCaptionShown();
+  state.welcomeReadingElapsed = 1500;
+  const revealed = state.welcomeRevealEnd;
+  state.toggleAudio();
+  assert.equal(state.welcomeSpeech.running, false);
+  assert.equal(state.welcomeReadingActive, true);
+  assert.ok(state.welcomeRevealEnd >= revealed);
 });
 
 test("Ohm-1's approved greeting is character-specific and retains its spoken pause", () => {
@@ -3392,6 +3447,22 @@ test("welcome ambience rejects stale cues and respects effects, mute, and motion
     assert.equal(state.introAmbienceProcess.running, false, handler);
     state[setting] = previous;
   }
+});
+
+test("automatic integration failures stay visible until the companion returns valid geometry", () => {
+  const state = runtime("tour-workspaces");
+  state.integrationNotice = "Precise pointing couldn't be prepared.";
+  state.geometryScreens = () => [];
+  state.parseBarGeometry = () => true;
+  state.parseProviderGeometry = () => false;
+  state.finishBarGeometry(0, "{}", [], false);
+  assert.notEqual(state.integrationNotice, "", "fallback geometry doesn't claim the integration is ready");
+  state.finishBarGeometry(0, "{}", [], true);
+  assert.notEqual(state.integrationNotice, "", "invalid provider output doesn't clear the warning");
+  state.parseProviderGeometry = () => true;
+  state.finishBarGeometry(0, "{}", [], true);
+  assert.equal(state.integrationNotice, "");
+  assert.equal(state.geometryProviderAvailable, true);
 });
 
 test("cleanup resolves owned targets and refuses a missing target", () => {

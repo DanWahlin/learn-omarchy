@@ -11,6 +11,8 @@ fi
 app_root="${LEARN_OMARCHY_ROOT:-$default_root}"
 course="${LEARN_OMARCHY_COURSE:-$app_root/courses/omarchy-basics.json}"
 character="${LEARN_OMARCHY_CHARACTER:-}"
+remove_integration=false
+uninstall=false
 
 while (($# > 0)); do
   case "$1" in
@@ -24,13 +26,28 @@ while (($# > 0)); do
       character="$2"
       shift 2
       ;;
+    --remove-integration)
+      remove_integration=true
+      shift
+      ;;
+    --uninstall)
+      uninstall=true
+      shift
+      ;;
     -h|--help)
       cat <<'USAGE'
 Usage: learn-omarchy [--course PATH] [--character NAME]
+       learn-omarchy --remove-integration
+       learn-omarchy --uninstall
 
 Run an interactive, theme-aware Omarchy course. Character packs are discovered
 from the bundled assets and your user data directory. Invalid or missing
 selections recover to an available pack with a visible diagnostic.
+The bundled desktop integration is prepared automatically; no separate setup
+or download is needed. --remove-integration safely removes its managed copy
+for this user before uninstalling, without deleting learning progress.
+--uninstall removes the Arch package and its managed integration for this user,
+preserving progress. Run it from a terminal as your regular user.
 USAGE
       exit 0
       ;;
@@ -41,17 +58,57 @@ USAGE
   esac
 done
 
-for command in node qs mpv; do
+required_commands=(node)
+if [[ "$remove_integration" == false && "$uninstall" == false ]]; then required_commands+=(qs mpv); fi
+for command in "${required_commands[@]}"; do
   command -v "$command" >/dev/null 2>&1 || {
     echo "learn-omarchy: required command not found: $command" >&2
     exit 1
   }
 done
 
+if [[ "$uninstall" == true ]]; then
+  [[ "$remove_integration" == false ]] || { echo "learn-omarchy: choose one removal option" >&2; exit 2; }
+  [[ $EUID -ne 0 && -t 0 && -t 1 ]] || {
+    echo "learn-omarchy: run --uninstall from a terminal as your regular user; it will request package-removal permission." >&2
+    exit 1
+  }
+  command -v pacman >/dev/null && command -v sudo >/dev/null || {
+    echo "learn-omarchy: Arch package removal requires pacman and sudo." >&2
+    exit 1
+  }
+  pacman -Q learn-omarchy >/dev/null 2>&1 || {
+    echo "learn-omarchy: no installed Arch package was found; use the removal method for your source installation." >&2
+    exit 1
+  }
+  cleanup_dir="$(mktemp -d "${TMPDIR:-/tmp}/learn-omarchy-uninstall.XXXXXXXX")"
+  cleanup_helper="$cleanup_dir/integration.mjs"
+  trap 'rm -f -- "$cleanup_helper"; rmdir -- "$cleanup_dir"' EXIT
+  cp -- "$app_root/tools/install-geometry-provider.mjs" "$cleanup_helper"
+  # Keep pacman's confirmation. Cancelling leaves the integration untouched.
+  sudo pacman -R learn-omarchy
+  if ! node "$cleanup_helper" --remove; then
+    echo "learn-omarchy: the package was removed, but the integration was preserved because cleanup could not be completed safely." >&2
+    exit 1
+  fi
+  exit 0
+fi
+
+if [[ "$remove_integration" == true ]]; then
+  exec node "$app_root/tools/install-geometry-provider.mjs" --remove
+fi
+
 course="$(realpath -- "$course")"
 course_dir="$(dirname -- "$course")"
 node --experimental-strip-types "$app_root/tools/validate-course.ts" "$course"
 mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/learn-omarchy"
+
+if integration_output="$(node "$app_root/tools/install-geometry-provider.mjs" --quiet 2>&1)"; then
+  export LEARN_OMARCHY_INTEGRATION_ERROR=""
+else
+  printf '%s\n' "$integration_output" >&2
+  export LEARN_OMARCHY_INTEGRATION_ERROR="${integration_output:0:2000}"
+fi
 
 # Only an explicit choice becomes an override; otherwise the app shows the
 # coach picker on first run and remembers the selection.

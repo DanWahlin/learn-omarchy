@@ -10,6 +10,9 @@ const id = "learn-omarchy.geometry";
 const ownerFile = ".learn-omarchy-owner.json";
 const source = fileURLToPath(new URL(`../integrations/omarchy/${id}/`, import.meta.url));
 const hash = (content) => createHash("sha256").update(content).digest("hex");
+const args = process.argv.slice(2);
+const quiet = args.includes("--quiet");
+const report = message => { if (!quiet) console.log(message); };
 
 function command(program, args) {
   const result = spawnSync(program, args, { encoding: "utf8", timeout: 15000 });
@@ -98,43 +101,100 @@ function sameFingerprints(left, right) {
 function listed() {
   const plugins = JSON.parse(command("omarchy", ["plugin", "list", "--json"]));
   if (!Array.isArray(plugins)) throw new Error("Unsupported Omarchy plugin discovery response");
-  return plugins.find((plugin) => plugin.id === id);
+  const matches = plugins.filter((plugin) => plugin && plugin.id === id);
+  if (matches.length > 1) throw new Error(`Ambiguous plugin registration for ${id}`);
+  return matches[0];
+}
+
+function checkRegistration(plugin, target) {
+  if (!plugin) return;
+  if (!Array.isArray(plugin.kinds) || !plugin.kinds.includes("service") || plugin.firstParty === true ||
+      (plugin.manifestPath && resolve(plugin.manifestPath) !== join(target, "manifest.json"))) {
+    throw new Error(`Plugin id ${id} is registered to a conflicting integration`);
+  }
+}
+
+function serviceReadiness() {
+  // listPlugins.active identifies the selected bar, not a running service.
+  const result = spawnSync("omarchy-shell", ["learnGeometry", "capabilities"], {
+    encoding: "utf8", timeout: 2000, maxBuffer: 64 * 1024,
+  });
+  if (result.error || result.status !== 0) {
+    return { ready: false, reason: `Geometry service is not responding: ${
+      result.error?.message || result.stderr?.trim() || result.stdout?.trim() || `exit ${result.status}`}` };
+  }
+  let capabilities;
+  try { capabilities = JSON.parse(result.stdout); }
+  catch (error) {
+    if (!(error instanceof SyntaxError)) throw error;
+    return { ready: false, reason: "Geometry service returned invalid capability JSON." };
+  }
+  if (!capabilities || typeof capabilities !== "object" || Array.isArray(capabilities) ||
+      !["shellAvailable", "barAvailable", "slotsAvailable", "windowMappingAvailable"]
+        .every(key => typeof capabilities[key] === "boolean") ||
+      typeof capabilities.activeBarId !== "string" || typeof capabilities.manifestId !== "string") {
+    return { ready: false, reason: "Geometry service returned an unsupported capability response." };
+  }
+  return capabilities.shellAvailable
+    ? { ready: true }
+    : { ready: false, reason: "Geometry service is waiting for its desktop shell connection." };
+}
+
+async function ownedPayload(target) {
+  const ownerPath = join(target, ownerFile);
+  const ownerStat = await stat(ownerPath);
+  if (!ownerStat?.isFile() || ownerStat.isSymbolicLink()) throw new Error(`Refusing unowned plugin: ${target}`);
+  const owner = JSON.parse(await readFile(ownerPath, "utf8"));
+  const installed = await payload(target, true);
+  if (owner.id !== id || owner.installer !== "learn-omarchy" || owner.version !== 1
+    || !sameFingerprints(owner.files, fingerprints(installed))) {
+    throw new Error(`Refusing locally modified or conflicting plugin: ${target}`);
+  }
+  return installed;
 }
 
 async function install() {
-  if (process.argv.length > 2) {
-    if (process.argv.length === 3 && ["--help", "-h"].includes(process.argv[2])) {
-      console.log("Usage: node tools/install-geometry-provider.mjs\nExplicitly installs and enables the read-only geometry service for the current user. Never use sudo.");
-      return;
-    }
-    throw new Error("Unknown argument; use --help");
+  if (args.length === 1 && ["--help", "-h"].includes(args[0])) {
+    console.log("Usage: node tools/install-geometry-provider.mjs [--quiet] [--remove]\nPrepares the bundled read-only integration for the current user. --remove safely removes an unchanged managed integration. Never use sudo.");
+    return;
   }
+  if (new Set(args).size !== args.length || args.some(arg => !["--quiet", "--remove"].includes(arg)))
+    throw new Error("Unknown argument; use --help");
   if (process.getuid?.() === 0) throw new Error("Do not run this user-level installer as root or with sudo");
   if (!process.env.HOME || !isAbsolute(process.env.HOME)) throw new Error("HOME must be an absolute user home");
   const plugins = join(resolve(process.env.HOME), ".config", "omarchy", "plugins");
   const target = join(plugins, id);
   await safeDirectory(target);
+  const existing = await stat(target);
+  const installed = existing ? await ownedPayload(target) : null;
+  if (args.includes("--remove")) {
+    if (!existing) { report("No managed integration is installed."); return; }
+    checkRegistration(listed(), target);
+    await ownedPayload(target);
+    // Omarchy disables the service and backs up non-git plugin folders.
+    command("omarchy", ["plugin", "remove", id, "--yes"]);
+    if (await stat(target)) throw new Error("The managed integration folder was not removed");
+    for (let attempt = 0; attempt < 20; attempt++) {
+      if (!listed()) { report(`Removed managed integration ${id}; learning progress is unchanged.`); return; }
+      await setTimeout(100);
+    }
+    throw new Error("The integration was removed, but the desktop has not confirmed it was unloaded");
+  }
   const files = releasePayload(await payload(source));
   const sums = fingerprints(files);
-  const existing = await stat(target);
-  if (existing) {
-    const ownerPath = join(target, ownerFile);
-    const ownerStat = await stat(ownerPath);
-    if (!ownerStat?.isFile() || ownerStat.isSymbolicLink()) throw new Error(`Refusing unowned plugin: ${target}`);
-    const owner = JSON.parse(await readFile(ownerPath, "utf8"));
-    const installed = await payload(target, true);
-    if (owner.id !== id || owner.installer !== "learn-omarchy" || owner.version !== 1
-      || !sameFingerprints(owner.files, fingerprints(installed))) {
-      throw new Error(`Refusing locally modified or conflicting plugin: ${target}`);
-    }
+  const registered = listed();
+  checkRegistration(registered, target);
+  if (!existing && registered) throw new Error(`Plugin id ${id} is already registered elsewhere; refusing conflict`);
+  const unchanged = installed && sameFingerprints(fingerprints(installed), sums);
+  if (unchanged && registered?.enabled === true && serviceReadiness().ready) {
+    report(`Integration ${id} is already ready.`);
+    return;
   }
   const help = command("omarchy", ["plugin", "--help"]);
   if (!help.includes("omarchy plugin enable") || !help.includes("omarchy plugin list")) {
     throw new Error("This Omarchy version does not expose supported plugin enable/list commands");
   }
   command("omarchy", ["plugin", "validate", source]);
-  if (!existing && listed()) throw new Error(`Plugin id ${id} is already registered elsewhere; refusing conflict`);
-  const unchanged = existing && sameFingerprints(fingerprints(await payload(target, true)), sums);
   if (!unchanged) {
     await mkdir(plugins, { recursive: true });
     const stage = join(plugins, `.${id}.stage-${randomUUID()}`);
@@ -149,6 +209,8 @@ async function install() {
         { flag: "wx", mode: 0o600 });
       command("omarchy", ["plugin", "validate", stage]);
       if (existing) {
+        if (!sameFingerprints(fingerprints(await ownedPayload(target)), fingerprints(installed)))
+          throw new Error("The managed integration changed during setup; refusing to overwrite it");
         backup = join(plugins, `.${id}.backup-${randomUUID()}`);
         await rename(target, backup);
       } else if (await stat(target)) {
@@ -156,13 +218,13 @@ async function install() {
       }
       try { await rename(stage, target); }
       catch (error) { if (backup) await rename(backup, target); throw error; }
-      if (backup) console.log(`Previous owned version preserved at ${backup}`);
+      if (backup) report(`Previous owned version preserved at ${backup}`);
     } finally {
       await rm(stage, { recursive: true, force: true });
     }
   }
   // This is the same rescan used by Omarchy's own plugin installer. It changes
-  // plugin discovery only; enabling remains the supported explicit CLI action.
+  // plugin discovery only; activation uses the supported plugin manager.
   command("omarchy-shell", ["shell", "rescanPlugins"]);
   let plugin;
   for (let attempt = 0; attempt < 20; attempt++) {
@@ -170,12 +232,24 @@ async function install() {
     if (plugin) break;
     await setTimeout(100);
   }
-  if (!plugin || !plugin.kinds?.includes("service") || plugin.firstParty === true) {
+  checkRegistration(plugin, target);
+  if (!plugin) {
     throw new Error(`Installed ${target}, but the running shell did not discover the service. It was not enabled.`);
   }
   command("omarchy", ["plugin", "enable", id]);
-  if (listed()?.enabled !== true) throw new Error("Enable command completed, but the running shell did not confirm activation");
-  console.log(`Installed and enabled ${id} at ${target}`);
+  let readiness = { ready: false, reason: "The integration is not enabled." };
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const active = listed();
+    checkRegistration(active, target);
+    readiness = active?.enabled === true ? serviceReadiness()
+      : { ready: false, reason: "The integration is not enabled." };
+    if (readiness.ready) {
+      report(`Installed and enabled ${id} at ${target}`);
+      return;
+    }
+    await setTimeout(100);
+  }
+  throw new Error(`The desktop integration isn't ready. ${readiness.reason}`);
 }
 
 install().catch((error) => {

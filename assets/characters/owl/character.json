@@ -4,7 +4,7 @@
   "displayName": "Ollie",
   "description": "A wise little owl with a pink scarf. Glides between stops and explains things calmly.",
   "author": { "name": "Dan Wahlin", "status": "declared" },
-  "license": { "status": "unresolved", "note": "The repository does not declare an asset license. Confirm redistribution rights before republishing artwork." },
+  "license": { "status": "declared", "identifier": "CC-BY-4.0", "note": "Copyright 2026 Dan Wahlin. https://creativecommons.org/licenses/by/4.0/. Credit Learn Omarchy and indicate changes." },
   "preview": { "sprite": "idle", "frame": 0 },
   "sprites": {
     "idle": { "path": "sprites/owl-idle.png", "frameWidth": 192, "frameHeight": 192, "frames": 16, "timeline": [
