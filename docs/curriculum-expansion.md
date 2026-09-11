@@ -173,13 +173,59 @@ same lesson.
 
 ## Printable reference
 
-The HTML derives all shortcuts from `courses/omarchy-basics.json`: normal step
-`keys` and `practicePrompt`, and `shortcuts` references on introduction steps.
-No second shortcut table is maintained. Repeated chords are listed once.
-Directional focus and swap exercises print `ARROW` with a note to choose the
-direction toward the other practice window. Their authored arrow is only a
-runtime seed, not a universal shortcut direction. The footer refers to the
-loaded course, so generated references also describe custom courses correctly.
+The HTML is generated from explicit `references` in each lesson of
+`courses/omarchy-basics.json`, not from guided instructions, practice prompts,
+or safety notes. Native shortcuts affect the real focused window: the app's
+owned-window protections do not apply outside a guided activity.
+
+The course's `reference` metadata names the platform, version, review date and
+source catalog. Each source has either an HTTPS `url` or a safe application-relative
+`path` for bundled course code. The bundled reference targets **Omarchy 4.0.3**, using
+the official release-tagged manual and implementation. Course-specific practice
+sources are identified separately. Source links are printed, but no remote
+resources are loaded to read or print the document.
+
+Each lesson entry has this shape:
+
+```json
+{
+  "kind": "chord",
+  "keys": ["SUPER", "+", "W"],
+  "action": "Close the focused window.",
+  "caution": "Save your work first.",
+  "stepIds": ["close-terminal"],
+  "sourceIds": ["tiling-bindings"]
+}
+```
+
+`kind` is `chord`, `sequence`, `gesture`, or `workflow`. Source IDs must refer
+to the course catalog; activity IDs must belong to that lesson. Coverage is
+required for every activity, including embedded exercises and read-only
+introductions. Welcome has no activity IDs but still has reference entries.
+Group repeated activities within a lesson using `stepIds`; retain useful
+shortcuts in each relevant lesson rather than globally deduplicating chords.
+An entry is marked optional when all its activities are optional, or its entire
+lesson is optional. Optional lessons appear after core lessons.
+
+Compose sequences explicitly distinguish tapping and releasing from holding
+a chord. Screenshot-picker and clipboard controls identify their context.
+Focus and swap entries use `ARROW`; a guided activity's initial direction is
+only a runtime seed. The clipboard entry deliberately follows the 4.0.3
+implementation: Enter attempts a paste, while Shift+Enter copies only. The
+release's clipboard manual is less precise about this distinction.
+
+Validation rejects missing coverage, unknown activity/source IDs, duplicate
+sources, unsafe source URLs and malformed metadata. Regression tests also
+compare every taught native chord with its reference, check the previously
+omitted skills, and prevent guided-only promises from leaking into print.
+Changing a lesson requires reviewing its references and sources, not merely
+regenerating HTML. Version changes require another source review.
+
+Legacy custom courses without `reference` metadata remain loadable. Their
+generated output is prominently marked unreviewed and potentially incomplete;
+it uses explicit legacy `shortcuts` where supplied, and otherwise lists keys
+without copying guided instructions or safety assurances. Versioned courses
+use lesson references exclusively, not a duplicate `step.shortcuts` table.
 
 ```sh
 node --experimental-strip-types tools/generate-cheat-sheet.mjs
@@ -188,13 +234,15 @@ node --experimental-strip-types tools/generate-cheat-sheet.mjs --check
 
 Open `courses/omarchy-shortcuts.html` and select **Print or save as PDF**. The
 document is offline, escapes all course text, uses print CSS, and distinguishes
-optional reference material. Its HTML is shipped in the existing `courses`
+optional activities, sequential inputs, mouse gestures and workflows. Long
+lessons can continue across print columns; individual entries stay together.
+Its HTML is shipped in the existing `courses`
 directory, which `make install` already copies.
 
-For npm integration add `"cheatsheet:generate"` and `"cheatsheet:check"` scripts
-using those commands, then include the check in `npm run check`. For installed
-regeneration include `tools/generate-cheat-sheet.mjs` in Makefile's tools copy;
-opening the bundled HTML does not need Node or the generator.
+`npm run cheatsheet` regenerates the bundled HTML; `npm run check` rejects stale
+output. The installer copies both the HTML and generator, so the installed app
+can regenerate the same reference. Opening the existing HTML directly does not
+need Node or the generator.
 
 ## Validation
 

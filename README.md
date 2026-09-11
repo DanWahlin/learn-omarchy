@@ -221,7 +221,18 @@ later workspace-switching activities use individual destination markers.
   verification, cleanup, and ID-based progress. Continue explicitly between
   modules; capture, locking, microphone, and sharing exercises are excluded.
 - **Printable shortcuts** generates a local reference from the loaded course
-  and opens it in the browser for printing or saving as PDF. `npm run cheatsheet`
+  and opens it in the browser for printing or saving as PDF. The bundled sheet
+  covers every lesson, including Compose sequences, capture controls and
+  non-keyboard workflows, with explicit Omarchy 4.0.3 source references.
+  Standalone descriptions distinguish real desktop actions from guided practice.
+  Coverage validation rejects missing activities; older custom courses without
+  reference metadata are clearly marked unreviewed. It releases keyboard
+  capture so the browser can receive your input, and moves the course panels
+  and coach aside so they don't cover the document. A small return banner
+  brings back your picker or completion screen and its previous Keys state.
+  An existing browser may be on another workspace. A rejected browser launch
+  leaves the course visible and restores the previous capture state.
+  `npm run cheatsheet`
   regenerates the bundled reference. See [curriculum and retention](docs/curriculum-expansion.md).
 - Soft accepted-chord, wrong-key, verified-step, and earned-module cues use
   **Effects** volume and Mute independently of narration. They are throttled

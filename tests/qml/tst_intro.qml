@@ -174,6 +174,13 @@ Item {
             var cue = findChild(player, "introCueText")
             verify(cue !== null)
             compare(cue.textFormat, Text.PlainText)
+            var background = findChild(player, "introCueBackground")
+            verify(background !== null)
+            for (var themeBackground of ["#1a1b26", "#f5f5f5"]) {
+                player.palette = { background: themeBackground }
+                compare(background.color.a, 1)
+                compare(background.color, themeBackground)
+            }
             compare(cue.text, '> <b>NAME</b><img src="missing.png">$&')
             compare(player.substituted("{displayName}/{displayName}"),
                 player.displayName + "/" + player.displayName)

@@ -249,13 +249,14 @@ Item {
                 mipmap: false
             }
             Rectangle {
+                objectName: "introCueBackground"
                 visible: layerItem.definition.type === "text"
                 x: -10
                 y: -10
                 width: prompt.implicitWidth + 20
                 height: prompt.implicitHeight + 20
                 readonly property color panelColor: player.resolveColor(layerItem.definition.background || "theme:background")
-                color: Qt.rgba(panelColor.r, panelColor.g, panelColor.b, 0.82)
+                color: Qt.rgba(panelColor.r, panelColor.g, panelColor.b, 1)
                 border.color: player.resolveColor(layerItem.definition.border || "theme:accent")
                 radius: 4
             }

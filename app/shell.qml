@@ -38,6 +38,9 @@ ShellRoot {
   readonly property bool mixedPracticeActive: mixedLessonIds.length > 0
   readonly property int mixedEligibleCount: Retention.eligibleLessons(course, stepResults, stepCredits).length
   property string retentionNotice: ""
+  property bool referenceBrowsing: false
+  property bool referenceRestoreCapture: false
+  property string referenceRequestPhase: ""
   readonly property string cheatSheetPath: stateHome + "/learn-omarchy/shortcuts.html"
 
   function startMixedPractice() {
@@ -71,11 +74,48 @@ ShellRoot {
   }
 
   function openCheatSheet() {
-    if (cheatSheetProcess.running || !course) return
-    retentionNotice = ""
+    if (cheatSheetProcess.running || !course || referenceBrowsing ||
+        (phase !== "menu" && phase !== "lesson-complete")) return
+    referenceRequestPhase = phase
+    retentionNotice = "Preparing printable shortcuts..."
     cheatSheetProcess.command = ["node", "--experimental-strip-types",
       appRoot + "/tools/generate-cheat-sheet.mjs", coursePath, cheatSheetPath]
     cheatSheetProcess.running = true
+  }
+
+  function finishCheatSheetGeneration(code, errors) {
+    if (code !== 0) {
+      retentionNotice = "The printable reference couldn't be generated. Try again."
+      console.warn("learn-omarchy: cheat sheet generation failed:", code, errors)
+      return
+    }
+    if (phase !== referenceRequestPhase) {
+      retentionNotice = "Printable shortcuts are saved at " + cheatSheetPath + ". Open them when you're ready."
+      return
+    }
+    var captureWasExclusive = keyboardExclusive
+    setKeyboardExclusive(false)
+    var url = "file://" + cheatSheetPath.split("/").map(encodeURIComponent).join("/")
+    if (Qt.openUrlExternally(url)) {
+      referenceRestoreCapture = captureWasExclusive
+      referenceBrowsing = true
+      if (welcomeStage !== "") finishWelcome()
+      stopAudio()
+      retentionNotice = "Shortcuts sent to your browser; it may be on another workspace. Keys are released for printing. Use the return banner when you're finished."
+    } else {
+      setKeyboardExclusive(captureWasExclusive)
+      retentionNotice = "Couldn't open the browser. The reference is saved at " + cheatSheetPath + "; open it in your browser to print."
+      console.warn("learn-omarchy: couldn't open printable reference:", url)
+    }
+  }
+
+  function returnFromReference() {
+    if (!referenceBrowsing) return
+    referenceBrowsing = false
+    var restoreCapture = referenceRestoreCapture
+    referenceRestoreCapture = false
+    setKeyboardExclusive(restoreCapture)
+    retentionNotice = ""
   }
 
   function finishSplash() {
@@ -426,6 +466,7 @@ ShellRoot {
   property int stepIndex: 0
   property string phase: "loading"
   onPhaseChanged: {
+    if (referenceBrowsing) returnFromReference()
     tourDetailsExpanded = false
     if (phase === "menu") {
       menuWheelRemainder = 0
@@ -890,9 +931,9 @@ ShellRoot {
 
   // Shared look for every panel, button, and keycap so the app reads as one
   // console rather than a collection of pills.
-  readonly property color panelColor: colorWithAlpha(background, 0.96)
+  readonly property color panelColor: background
   readonly property color panelBorder: colorWithAlpha(foreground, 0.16)
-  readonly property color subtleFill: colorWithAlpha(foreground, 0.06)
+  readonly property color subtleFill: Qt.tint(panelColor, colorWithAlpha(foreground, 0.06))
   readonly property color keyFace: Qt.lighter(background, 1.45)
 
   component UiPanel: Item {
@@ -984,15 +1025,15 @@ ShellRoot {
     implicitWidth: icon !== "" ? implicitHeight : buttonLabel.implicitWidth + (compact ? 24 : 32)
     implicitHeight: icon !== "" ? 44 * root.textScale : compact ? 32 : 40
     radius: 9
-    color: primary
+    color: !enabled ? root.subtleFill : primary
       ? (hovered ? Qt.lighter(root.accent, 1.18) : root.accent)
       : danger
-        ? root.colorWithAlpha(root.urgent, hovered ? 0.34 : 0.14)
+        ? Qt.tint(root.panelColor, root.colorWithAlpha(root.urgent, hovered ? 0.34 : 0.14))
         : ghost
-          ? root.colorWithAlpha(root.foreground, hovered ? 0.16 : 0.06)
-          : root.colorWithAlpha(root.accent, hovered ? 0.36 : 0.16)
+          ? Qt.tint(root.panelColor, root.colorWithAlpha(root.foreground, hovered ? 0.16 : 0.06))
+          : Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, hovered ? 0.36 : 0.16))
     border.width: activeFocus ? 3 : 1
-    border.color: primary
+    border.color: !enabled ? root.panelBorder : primary
       ? root.accent
       : danger
         ? root.colorWithAlpha(root.urgent, 0.7)
@@ -1008,7 +1049,7 @@ ShellRoot {
       anchors.centerIn: parent
       text: button.label
       textFormat: Text.PlainText
-      color: button.primary ? root.controlPalette.highlightedText : root.foreground
+      color: !button.enabled ? root.muted : button.primary ? root.controlPalette.highlightedText : root.foreground
       font.family: "monospace"
       font.pixelSize: (button.compact ? 11 : 12) * root.textScale
       font.weight: Font.Bold
@@ -1024,7 +1065,7 @@ ShellRoot {
       sourceSize.height: height
       source: button.icon === "" ? "" : "data:image/svg+xml;utf8," + encodeURIComponent(
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="'
-        + (button.primary ? root.controlPalette.highlightedText : root.foreground)
+        + (!button.enabled ? root.muted : button.primary ? root.controlPalette.highlightedText : root.foreground)
         + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="'
         + button.iconPaths[button.icon] + '"/></svg>')
     }
@@ -1154,7 +1195,7 @@ ShellRoot {
       visible: !keycap.isPlus
       anchors.fill: parent
       radius: keycap.small ? 5 : 9
-      color: keycap.active ? Qt.darker(root.accent, 1.5) : root.colorWithAlpha(root.foreground, 0.28)
+      color: keycap.active ? Qt.darker(root.accent, 1.5) : Qt.tint(root.panelColor, root.colorWithAlpha(root.foreground, 0.28))
     }
     Rectangle {
       visible: !keycap.isPlus
@@ -3762,6 +3803,12 @@ ShellRoot {
   function handleKeyPressed(event) {
     if (handleSystemVolumeKey(event)) return
     var plain = event.modifiers === Qt.NoModifier
+    if (referenceBrowsing) {
+      if (isPlainEscape(event) || (plain && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)))
+        returnFromReference()
+      event.accepted = true
+      return
+    }
     if (phase === "welcome" && plain) {
       if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)
         advanceWelcome(introGeneration, welcomeStage)
@@ -3923,6 +3970,8 @@ ShellRoot {
         characterPacksReady: characterStore.ready,
         characterNotice: root.characterNotice,
         integrationNotice: root.integrationNotice,
+        retentionNotice: root.retentionNotice,
+        referenceBrowsing: root.referenceBrowsing,
         geometryProviderAvailable: root.geometryProviderAvailable,
         barGeometry: root.barGeometry,
         introActive: root.introActive,
@@ -4105,17 +4154,7 @@ ShellRoot {
     id: cheatSheetProcess
     stdout: StdioCollector { }
     stderr: StdioCollector { id: cheatSheetErrors }
-    onExited: function(code) {
-      if (code !== 0) {
-        root.retentionNotice = "The printable reference couldn't be generated. Try again."
-        console.warn("learn-omarchy: cheat sheet generation failed:", cheatSheetErrors.text)
-        return
-      }
-      root.setKeyboardExclusive(false)
-      var url = "file://" + root.cheatSheetPath.split("/").map(encodeURIComponent).join("/")
-      if (!Qt.openUrlExternally(url))
-        root.retentionNotice = "The reference is saved at " + root.cheatSheetPath + "; open it in your browser to print."
-    }
+    onExited: function(code) { root.finishCheatSheetGeneration(code, cheatSheetErrors.text) }
   }
 
   Process {
@@ -5140,7 +5179,8 @@ ShellRoot {
 
         Rectangle {
           anchors.fill: parent
-          visible: root.phase === "menu" || root.phase === "settings" || root.phase === "lesson-complete" || root.phase === "error"
+          visible: !root.referenceBrowsing &&
+            (root.phase === "menu" || root.phase === "settings" || root.phase === "lesson-complete" || root.phase === "error")
           color: root.colorWithAlpha(root.background, 0.72)
         }
 
@@ -5157,7 +5197,7 @@ ShellRoot {
 
         UiPanel {
           id: packNoticePanel
-          visible: root.phase !== "settings" && root.phase !== "loading" &&
+          visible: !root.referenceBrowsing && root.phase !== "settings" && root.phase !== "loading" &&
             (root.characterNotice !== "" || root.introNotice !== "" || root.integrationNotice !== "")
           anchors.horizontalCenter: parent.horizontalCenter
           y: 44
@@ -5333,7 +5373,7 @@ ShellRoot {
                       Layout.minimumWidth: 0
                       implicitWidth: 300
                       implicitHeight: root.settingsMode === "first-run" ? 320 : Math.max(160, coachDetails.implicitHeight + 32)
-                      color: characterCardMouse.containsMouse || selected ? root.colorWithAlpha(root.accent, 0.14) : root.subtleFill
+                      color: characterCardMouse.containsMouse || selected ? Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, 0.14)) : root.subtleFill
                       border.color: selected ? root.colorWithAlpha(root.accent, 0.85) : root.colorWithAlpha(root.foreground, 0.12)
                       border.width: selected ? 2 : 1
                       radius: 14
@@ -5659,7 +5699,7 @@ ShellRoot {
 
         UiPanel {
           id: topicPanel
-          visible: root.phase === "menu" && root.course
+          visible: !root.referenceBrowsing && root.phase === "menu" && root.course
           anchors.centerIn: parent
           width: Math.min(860, parent.width - 64)
           height: Math.min(900, parent.height - 80)
@@ -5799,7 +5839,7 @@ ShellRoot {
                     Layout.preferredHeight: lessonColumn.rowHeight
                     Layout.rightMargin: 6
                     color: cardMouse.containsMouse || selected
-                      ? root.colorWithAlpha(root.accent, 0.14)
+                      ? Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, 0.14))
                       : root.subtleFill
                     border.color: selected ? root.colorWithAlpha(root.accent, 0.8) : root.colorWithAlpha(root.foreground, 0.1)
                     border.width: 1
@@ -5849,7 +5889,7 @@ ShellRoot {
                       Rectangle {
                         implicitWidth: 42
                         implicitHeight: 42
-                        color: lessonCard.completed ? root.accent : root.colorWithAlpha(root.accent, 0.16)
+                        color: lessonCard.completed ? root.accent : Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, 0.16))
                         border.color: root.colorWithAlpha(root.accent, lessonCard.completed ? 1 : 0.5)
                         border.width: 1
                         radius: 10
@@ -5966,6 +6006,7 @@ ShellRoot {
               }
               UiButton {
                 label: cheatSheetProcess.running ? "PREPARING REFERENCE..." : "PRINTABLE SHORTCUTS"
+                description: "Open the shortcut sheet in your browser, move the course aside, and release keys for printing"
                 enabled: !cheatSheetProcess.running
                 onClicked: root.openCheatSheet()
               }
@@ -6024,14 +6065,14 @@ ShellRoot {
           width: keyboardHintText.implicitWidth + 32
           height: 40
           radius: 10
-          color: keyboardHintMouse.containsMouse ? root.colorWithAlpha(root.instruction, 0.3) : root.panelColor
+          color: keyboardHintMouse.containsMouse ? Qt.tint(root.panelColor, root.colorWithAlpha(root.instruction, 0.3)) : root.panelColor
           border.color: root.instruction
           border.width: 1
 
           Text {
             id: keyboardHintText
             anchors.centerIn: parent
-            text: root.keyboardFocused
+            text: root.referenceBrowsing ? "Print in your browser · click to return to Learn Omarchy" : root.keyboardFocused
               ? "⌨  Keys follow the mouse right now  ·  click to keep them here"
               : "⌨  Keys are going to your other windows  ·  click to bring them back"
             color: root.foreground
@@ -6045,7 +6086,7 @@ ShellRoot {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            onClicked: root.setKeyboardExclusive(true)
+            onClicked: root.referenceBrowsing ? root.returnFromReference() : root.setKeyboardExclusive(true)
           }
         }
 
@@ -6115,7 +6156,6 @@ ShellRoot {
                   compact: true
                   label: "BACK"
                   enabled: root.stepIndex > 0 && !root.lessonTransitionRunning
-                  opacity: enabled ? 1 : 0.4
                   onClicked: root.previousStep()
                 }
                 }
@@ -6456,7 +6496,7 @@ ShellRoot {
         GridLayout {
           id: controls
           z: 100
-          visible: root.phase !== "loading" && root.phase !== "settings"
+          visible: !root.referenceBrowsing && root.phase !== "loading" && root.phase !== "settings"
           readonly property bool leftDock: root.phase === "waiting" &&
             root.currentStepIsTour &&
             Boolean(overlay.highlight) &&
@@ -6507,7 +6547,6 @@ ShellRoot {
           UiButton {
             visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.help)
             enabled: !root.actionRunning && root.outcomeAddress === ""
-            opacity: enabled ? 1 : 0.5
             compact: true
             icon: "help"
             label: "HELP"
@@ -6569,7 +6608,7 @@ ShellRoot {
             when: overlay.shouldShow
             value: completionPanel.narrationReady
           }
-          visible: root.phase === "lesson-complete" && root.currentLesson
+          visible: !root.referenceBrowsing && root.phase === "lesson-complete" && root.currentLesson
           onVisibleChanged: if (visible) completionScroll.contentY = 0
           opacity: root.lessonContentOpacity
           anchors.centerIn: parent
@@ -6613,7 +6652,7 @@ ShellRoot {
               implicitWidth: 72
               implicitHeight: 72
               radius: 36
-              color: root.colorWithAlpha(root.accent, 0.16)
+              color: Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, 0.16))
               border.color: root.accent
               border.width: 2
 
@@ -6708,7 +6747,8 @@ ShellRoot {
                 onClicked: root.startLesson(root.lessonIndex, true, false)
               }
               UiButton {
-                label: "PRINTABLE SHORTCUTS"
+                label: cheatSheetProcess.running ? "PREPARING REFERENCE..." : "PRINTABLE SHORTCUTS"
+                description: "Open the shortcut sheet in your browser, move the course aside, and release keys for printing"
                 enabled: !cheatSheetProcess.running
                 onClicked: root.openCheatSheet()
               }
@@ -6814,7 +6854,7 @@ ShellRoot {
         screen: screenScope.modelData
         // Track the main overlay's real window visibility, then re-map just
         // after it appears so this window is always the newer (upper) surface.
-        visible: overlay.visible && mapped
+        visible: overlay.visible && mapped && !root.referenceBrowsing
         contentItem.opacity: root.startupOpacity
         anchors {
           top: true

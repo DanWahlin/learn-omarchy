@@ -49,6 +49,7 @@ Item {
   property color urgent: "#f7768e"
   property color muted: "#a0a9c9"
   property color panelColor: background
+  property color subtleFill: background
   property color panelBorder: "#414868"
   property color keyFace: background
   property Palette controlPalette: Palette { highlightedText: "black" }
@@ -171,6 +172,7 @@ Item {
     }
 
     function test_embeddedPracticeKeepsNormalNavigationAndItsSafetyNote() {
+      root.stepIndex = 0
       root.currentStepIsTour = false
       root.currentStep = { instruction: "Start the exercise.", keys: [], practice: "clipboard",
         actionLabel: "Start exercise", note: "Use only the harmless sample." }
@@ -184,6 +186,11 @@ Item {
       verify(!fixture.actionButton.visible)
       verify(!fixture.instructionText.visible)
       verify(root.buttons(fixture).some(function(button) { return button.label === "SKIP →" }))
+      var back = root.buttons(fixture).find(function(button) { return button.label === "BACK" })
+      verify(!back.enabled)
+      compare(back.opacity, 1)
+      compare(back.color.a, 1)
+      root.stepIndex = 1
     }
 
     function test_tourHasOneQuietNavigationRowWithoutDuplicateProse() {

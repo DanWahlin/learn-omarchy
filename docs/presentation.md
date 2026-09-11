@@ -1,5 +1,18 @@
 # Caption, splash, and interaction presentation
 
+## Text surfaces
+
+Settled panels, captions, buttons, keycaps, cards, tooltips and keyboard/print
+banners have opaque backgrounds. Hover and selection colours use `Qt.tint`
+over the solid theme background instead of reducing the surface alpha.
+Disabled buttons use muted text and a subdued solid fill, not whole-button
+opacity. Intro text prompts and capture practice cards follow the same rule.
+Decorative shadows, desktop highlights and deliberate transition fades retain
+their transparency. The surface regression renders the production components
+over changing backgrounds, including hovered and disabled controls.
+
+## Splash and startup
+
 The splash restores the original illustrated poster: Ohm hovering beside a
 three-pane desktop, Ollie perched on its corner, and the large Learn Omarchy
 title above. `SplashArtwork` displays `assets/splash/learn-omarchy-poster.png`

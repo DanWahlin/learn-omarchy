@@ -3,6 +3,32 @@
   "id": "omarchy-essentials",
   "title": "Learn Omarchy",
   "description": "Build practical desktop skills with guided shortcuts and real exercises. Optional modules let you explore further.",
+  "reference": {
+    "platform": "Omarchy",
+    "version": "4.0.3",
+    "verifiedOn": "2026-09-11",
+    "sources": [
+      { "id": "hotkeys", "title": "Omarchy 4.0.3: Hotkeys", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/07-hotkeys.md" },
+      { "id": "navigation", "title": "Omarchy 4.0.3: Navigation", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/04-navigation.md" },
+      { "id": "top-bar", "title": "Omarchy 4.0.3: The top bar", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/05-the-top-bar.md" },
+      { "id": "clipboard-guide", "title": "Omarchy 4.0.3: Clipboard history overview (activation behavior: see implementation)", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/08-unified-clipboard-history.md" },
+      { "id": "capture", "title": "Omarchy 4.0.3: Screenshots and recording", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/12-screenshots-recording.md" },
+      { "id": "text-tools", "title": "Omarchy 4.0.3: Text extraction and dictation", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/11-text-extraction-dictation.md" },
+      { "id": "packages", "title": "Omarchy 4.0.3: Other packages", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/29-other-packages.md" },
+      { "id": "web-apps", "title": "Omarchy 4.0.3: Web apps", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/25-web-apps.md" },
+      { "id": "browsers", "title": "Omarchy 4.0.3: Browsers", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/23-browsers.md" },
+      { "id": "updates", "title": "Omarchy 4.0.3: Updates", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/30-updates.md" },
+      { "id": "guis", "title": "Omarchy 4.0.3: Graphical tools", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/manual/22-guis.md" },
+      { "id": "tiling-bindings", "title": "Omarchy 4.0.3: Window, workspace and physical resize bindings", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/tiling.lua" },
+      { "id": "utility-bindings", "title": "Omarchy 4.0.3: Menus, panels, capture and notification bindings", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/utilities.lua" },
+      { "id": "app-bindings", "title": "Omarchy 4.0.3: Application bindings", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/applications.lua" },
+      { "id": "clipboard-implementation", "title": "Omarchy 4.0.3: Clipboard implementation, Shift+Enter copy-only and Enter paste attempt", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/shell/plugins/clipboard/Clipboard.qml#L388-L392" },
+      { "id": "compose", "title": "Omarchy 4.0.3: Compose smile and heart sequences", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/default/xcompose#L3-L8" },
+      { "id": "dictation-bindings", "title": "Omarchy 4.0.3: Voxtype toggle and push-to-talk bindings", "url": "https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/voxtype.lua" },
+      { "id": "course-controls", "title": "Learn Omarchy course controls (bundled app source)", "path": "app/shell.qml" },
+      { "id": "course-practice", "title": "Learn Omarchy course practice (bundled app source)", "path": "app/PracticeContent.qml" }
+    ]
+  },
   "wrapUp": {
     "assisted": {
       "text": "Nice work exploring this topic with some guidance. You can use Practice whenever you'd like to try the activities on your own.",
@@ -16,6 +42,10 @@
   "lessons": [
     {
       "id": "welcome",
+      "references": [
+        { "kind": "workflow", "keys": ["COURSE: Welcome and lesson controls"], "action": "Replay Welcome, choose a topic, and use Practice to revisit activities. Help demonstrates; Skip leaves an activity for later.", "caution": "These are Learn Omarchy course controls, not default Omarchy shortcuts. Introduced content is not proof of hands-on practice.", "stepIds": [], "sourceIds": ["course-controls"] },
+        { "kind": "workflow", "keys": ["COURSE: Capture Keys / Release Keys"], "action": "Capture Keys sends input to the coach; Release Keys gives input to desktop apps. Return to Capture Keys to resume guided shortcuts.", "caution": "Released shortcuts affect your real desktop. Course-owned-window protections do not apply to everyday shortcuts.", "stepIds": [], "sourceIds": ["course-controls"] }
+      ],
       "kind": "welcome",
       "title": "Welcome to Omarchy",
       "description": "Meet your coach and discover how to make this desktop your own. Replay the welcome anytime.",
@@ -25,6 +55,16 @@
     },
     {
       "id": "omarchy-tour",
+      "references": [
+        { "kind": "workflow", "keys": ["Desktop bar and Super key"], "action": "The bar provides workspaces, clock and system controls. Super is the Windows-logo key, or Command on a Mac keyboard.", "stepIds": ["tour-welcome"], "sourceIds": ["top-bar", "hotkeys"] },
+        { "kind": "workflow", "keys": ["Bar > Workspaces"], "action": "Each workspace holds its own windows. The active marker can be an icon rather than a number; switching keeps windows open.", "stepIds": ["tour-workspaces"], "sourceIds": ["top-bar", "navigation"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "2"], "action": "Switch to workspace two without moving or closing its windows.", "stepIds": ["tour-workspace-two"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "1"], "action": "Switch to workspace one.", "stepIds": ["tour-workspace-one"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "workflow", "keys": ["Bar > Clock"], "action": "Click the clock for the calendar. Hover for quick tools such as reminders and recording; weather appears when enabled.", "stepIds": ["tour-clock"], "sourceIds": ["top-bar"] },
+        { "kind": "workflow", "keys": ["Bar > Status indicators"], "action": "Select network, Bluetooth, audio or power indicators to inspect controls. Available indicators depend on hardware and bar settings.", "stepIds": ["tour-status"], "sourceIds": ["top-bar"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SPACE"], "action": "Open the Omarchy menu for apps, settings and system tools.", "stepIds": ["tour-omarchy-menu"], "sourceIds": ["utility-bindings"] },
+        { "kind": "workflow", "keys": ["Bar > Omarchy icon"], "action": "Click the Omarchy icon to open the same menu without a keyboard shortcut.", "stepIds": ["tour-menu-icon"], "sourceIds": ["top-bar"] }
+      ],
       "wrapUp": { "text": "Nice work, that's the tour. You've explored the desktop bar, switched workspaces, and opened the Omarchy menu.", "audio": "audio/wrapup-omarchy-tour.mp3" },
       "title": "Omarchy tour",
       "description": "Get oriented with the desktop bar, try switching workspaces, then open the Omarchy menu.",
@@ -294,6 +334,13 @@
     },
     {
       "id": "menus-and-apps",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "SPACE"], "action": "Open the Omarchy menu for apps, settings and system tools.", "stepIds": ["open-root-menu"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "SPACE"], "action": "Open Apps to search launchable applications, not every installed package. Alt is Option on a Mac keyboard.", "stepIds": ["open-apps", "apps-search-practice"], "sourceIds": ["utility-bindings"] },
+        { "kind": "workflow", "keys": ["Apps > Search > Launch"], "action": "Open Apps, type Terminal or Ghostty, select the installed terminal and press Enter. In the COURSE, choose Start search first, then close the newly opened terminal to finish.", "caution": "Escape clears typed search text; press again to close, or once if empty. Check the focused window before closing anything.", "stepIds": ["open-apps", "apps-search-practice"], "sourceIds": ["navigation", "course-controls"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Save work first. This is not limited to the terminal opened for practice.", "stepIds": ["apps-search-practice"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "K"], "action": "Open the shortcut guide and type to filter bindings.", "caution": "Enter or clicking a result runs that shortcut, potentially closing a window or locking the screen. Read without activating unfamiliar results.", "stepIds": ["open-keybindings"], "sourceIds": ["hotkeys"] }
+      ],
       "mixedPractice": true,
       "wrapUp": { "text": "That wraps up menus and apps. You have a starting point for finding commands, opening apps, and looking up shortcuts.", "audio": "audio/wrapup-menus-and-apps.mp3" },
       "title": "Menus and apps",
@@ -471,6 +518,12 @@
     },
     {
       "id": "everyday-apps",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "RETURN"], "action": "Open a terminal for commands. Return is the Enter key on most keyboards.", "stepIds": ["launch-terminal"], "sourceIds": ["app-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Save work and verify focus first; any focused app can close, not only a practice terminal or file manager.", "stepIds": ["close-terminal", "close-files"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "RETURN"], "action": "Launch the configured browser. Browser settings determine whether a new window opens.", "stepIds": ["launch-browser"], "sourceIds": ["app-bindings", "browsers"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "F"], "action": "Open the file manager to browse folders and documents.", "stepIds": ["launch-files"], "sourceIds": ["app-bindings"] }
+      ],
       "wrapUp": { "text": "Nicely done. You've practiced opening everyday apps and closing the windows you no longer need.", "audio": "audio/wrapup-everyday-apps.mp3" },
       "title": "Everyday apps",
       "description": "Launch the terminal, browser, and file manager, and learn to close what you open.",
@@ -685,6 +738,24 @@
     },
     {
       "id": "windows",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "RETURN"], "action": "Open a terminal. Tiling fits additional windows into the available workspace without overlap.", "stepIds": ["windows-open-first", "windows-open-second"], "sourceIds": ["app-bindings", "navigation"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "J"], "action": "Toggle the split direction within the dwindle layout; repeat to toggle back.", "caution": "Needs tiled windows in dwindle. This does not switch workspace layouts or provide the same split behavior in floating, scrolling or custom layouts.", "stepIds": ["windows-split", "windows-split-restore"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["ALT", "+", "TAB"], "action": "Cycle focus through windows on the active workspace. Focus determines which window receives keyboard input.", "caution": "Includes your existing windows, not just practice windows.", "stepIds": ["windows-focus-next"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "T"], "action": "Toggle the focused window between floating and tiling. Repeat to return it to the tiled layout.", "stepIds": ["windows-float", "windows-retile"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "EQUAL"], "action": "Resize horizontally by a 100-pixel step using physical keycode 21, immediately left of Backspace (normally equals on US keyboards).", "caution": "No Shift or Plus key is needed. Physical position, window size limits and the movable tiled edge determine the result.", "stepIds": ["windows-resize"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "MINUS"], "action": "Resize horizontally in the other direction by a 100-pixel step using physical keycode 20, two places left of Backspace (normally minus on US keyboards).", "caution": "These are physical keycodes, not character bindings. Tiled edges and size limits affect the result; reversing need not restore the exact size.", "stepIds": ["windows-resize-back"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "EQUAL"], "action": "Resize height instead of width by a 100-pixel step.", "caution": "Use physical keycode 21, immediately left of Backspace, not a typed Plus character. Layout constraints still apply.", "stepIds": ["windows-resize-back"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "MINUS"], "action": "Resize height in the other direction by a 100-pixel step.", "caution": "Use physical keycode 20, two places left of Backspace. Layout constraints still apply.", "stepIds": ["windows-resize-back"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "EQUAL"], "action": "Use a finer 25-pixel horizontal resize step. Add Shift for height instead of width.", "caution": "Use physical keycode 21, immediately left of Backspace. Size limits and tiled edges can prevent resizing.", "stepIds": ["windows-resize-back"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "MINUS"], "action": "Use a finer 25-pixel horizontal resize step in the other direction. Add Shift for height.", "caution": "Use physical keycode 20, two places left of Backspace. Size limits and tiled edges can prevent resizing.", "stepIds": ["windows-resize-back"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "EQUAL"], "action": "Use a larger 300-pixel horizontal resize step. Add Shift for height instead of width.", "caution": "Use physical keycode 21, immediately left of Backspace. Size limits and tiled edges can prevent resizing.", "stepIds": ["windows-resize-back"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "MINUS"], "action": "Use a larger 300-pixel horizontal resize step in the other direction. Add Shift for height.", "caution": "Use physical keycode 20, two places left of Backspace. Size limits and tiled edges can prevent resizing.", "stepIds": ["windows-resize-back"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "F"], "action": "Toggle fullscreen for the focused window; repeat to leave fullscreen.", "stepIds": ["windows-fullscreen", "windows-exit-fullscreen"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ARROW"], "action": "Focus the neighboring window in the chosen direction: left, right, up or down.", "stepIds": ["windows-focus-right"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "ARROW"], "action": "Swap the focused window with the adjacent window in the chosen direction.", "caution": "Changes both windows' positions, including existing work. Check focus and the neighbor first.", "stepIds": ["windows-swap"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window; remaining tiles reclaim its space.", "caution": "Save work first. The shortcut can close any focused window.", "stepIds": ["windows-close-one", "windows-close-two"], "sourceIds": ["tiling-bindings"] }
+      ],
       "mixedPractice": true,
       "wrapUp": { "text": "Nice work. You've practiced arranging windows and switching your focus between them. Use the layout that suits your task.", "audio": "audio/wrapup-windows.mp3" },
       "title": "Windows",
@@ -1286,6 +1357,18 @@
     },
     {
       "id": "workspaces",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "1"], "action": "Switch to workspace one.", "stepIds": ["workspaces-home"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "RETURN"], "action": "Open a terminal on the current workspace. Each workspace holds its own windows.", "stepIds": ["workspaces-open-terminal"], "sourceIds": ["app-bindings", "navigation"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "2"], "action": "Switch to workspace two, leaving windows open on their own workspaces.", "stepIds": ["workspaces-jump"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "TAB"], "action": "Return to the last workspace you visited.", "stepIds": ["workspaces-back"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "2"], "action": "Move the focused window to workspace two and follow it there. Also restores a visible, focused scratchpad window to that numbered workspace.", "caution": "Check focus first. A hidden scratchpad window is not the target; reveal it and select it before moving.", "stepIds": ["workspaces-send", "workspaces-restore"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "TAB"], "action": "Switch to the next workspace.", "stepIds": ["next-workspace"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "TAB"], "action": "Switch to the previous workspace.", "stepIds": ["previous-workspace"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "S"], "action": "Move the focused window to the scratchpad, a hidden workspace that can appear over your desktop.", "caution": "Verify which window has focus before stashing it.", "stepIds": ["workspaces-stash"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "S"], "action": "Toggle scratchpad show/hide. Hidden scratchpad windows stay open; reveal and focus the intended window before restoring it.", "stepIds": ["workspaces-scratchpad", "workspaces-scratchpad-hide", "workspaces-reveal-before-restore"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Save work and check focus first; the native shortcut is not restricted to a practice terminal.", "stepIds": ["workspaces-close"], "sourceIds": ["tiling-bindings"] }
+      ],
       "mixedPractice": true,
       "wrapUp": { "text": "That wraps up workspaces. You can keep different tasks on separate desktops and switch between them without closing your windows.", "audio": "audio/wrapup-workspaces.mp3" },
       "title": "Workspaces",
@@ -1857,6 +1940,17 @@
     },
     {
       "id": "advanced-windows",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "G"], "action": "Toggle window grouping", "caution": "A group holds several windows in one tile with tabs along the top. Affects the focused window; try with disposable windows first.", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings", "navigation"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "ARROW"], "action": "Move the active window into the adjacent group", "caution": "Use the arrow for the desired direction. Check the focused window and adjacent group before moving it.", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "TAB"], "action": "Next window in the group", "caution": "Add Shift for the previous window.", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "SHIFT", "+", "TAB"], "action": "Previous window in the group.", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "G"], "action": "Move the active window out of its group", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "O"], "action": "Pop a tiled window out: float and pin", "caution": "Start tiled. Invoke again on the pinned pop-out to unpin and retile. Pop-out also resizes and centers; pinning keeps it visible across workspaces on its display. Already-floating or independently pinned windows can behave differently.", "stepIds": ["advanced-window-pop"], "sourceIds": ["tiling-bindings", "navigation"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "L"], "action": "Toggle workspace layout between dwindle and scrolling", "caution": "Persists a setting. A custom layout is not restored by toggling again. The saved setting is per-workspace; a custom layout switches to dwindle. Dwindle divides tiles; scrolling extends windows horizontally. This is not the dwindle split toggle.", "stepIds": ["advanced-window-layout"], "sourceIds": ["tiling-bindings", "navigation"] },
+        { "kind": "gesture", "keys": ["SUPER", "+", "LEFT MOUSE DRAG"], "action": "Move a window", "caution": "Hold Super while dragging with the left mouse button, then release both. Start with a disposable floating window; on tiled windows, the layout determines the effect.", "stepIds": ["advanced-window-mouse"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "gesture", "keys": ["SUPER", "+", "RIGHT MOUSE DRAG"], "action": "Resize a window", "caution": "Hold Super while dragging with the right mouse button, then release both. Start with a disposable floating window; tiled layout constraints affect resizing.", "stepIds": ["advanced-window-mouse"], "sourceIds": ["tiling-bindings"] }
+      ],
       "wrapUp": {
         "text": "You've been introduced to groups, pop-out windows, workspace layouts, and mouse controls. Nothing was changed for you. Try these later with disposable windows, and keep the printable reference nearby.",
         "audio": "audio/wrapup-advanced-windows.mp3"
@@ -1876,12 +1970,6 @@
           "note": "Reference only. No grouping action is run or marked as practiced.",
           "instruction": "A window group holds several windows in one tile, with tabs along the top. Super and G toggles grouping. Super, Alt, and an arrow moves a window into an adjacent group; Super, Alt, and Tab cycles the group. This is a read-only introduction.",
           "detail": "Super, Alt, and G removes the active window from its group. These commands affect the focused window, so try them later only with disposable practice windows. Reading this reference is recorded as introduced, not as a verified grouping exercise.",
-          "shortcuts": [
-            { "keys": ["SUPER", "+", "G"], "action": "Toggle window grouping" },
-            { "keys": ["SUPER", "+", "ALT", "+", "ARROW"], "action": "Move the active window into the adjacent group" },
-            { "keys": ["SUPER", "+", "ALT", "+", "TAB"], "action": "Next window in the group", "caution": "Add Shift for the previous window." },
-            { "keys": ["SUPER", "+", "ALT", "+", "G"], "action": "Move the active window out of its group" }
-          ],
           "completion": { "type": "narration-complete", "delayMs": 900 },
           "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
         },
@@ -1894,9 +1982,6 @@
           "note": "Reference only. Nothing is floated or pinned by this activity.",
           "instruction": "Super and O pops a tiled window out: it floats, resizes, centers, and pins the window on its display. Pinned windows remain visible when you change workspaces on that display. Pressing the shortcut again on that pinned pop-out unpins and retiles it.",
           "detail": "Start from a tiled window when trying pop-out later. This is not the same as Super and T, which only toggles floating. The installed pop-out script toggles floating, so starting with an already-floating or independently pinned window can produce different results.",
-          "shortcuts": [
-            { "keys": ["SUPER", "+", "O"], "action": "Pop a tiled window out: float and pin", "caution": "Start tiled. Invoke again on the pinned pop-out to unpin and retile." }
-          ],
           "completion": { "type": "narration-complete", "delayMs": 900 },
           "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
         },
@@ -1909,9 +1994,6 @@
           "note": "Reference only. Layout switching persists a workspace setting; this lesson does not run it.",
           "instruction": "Super and L switches the current workspace between dwindle tiling and scrolling. Dwindle divides the available space into tiles; scrolling lets windows extend horizontally. This shortcut changes a saved workspace setting, so we are only introducing it.",
           "detail": "This is not Super and J, which changes a split within dwindle. The installed layout helper saves a rule under your local state directory. On a custom layout it switches to dwindle; toggling again does not necessarily restore your original custom layout.",
-          "shortcuts": [
-            { "keys": ["SUPER", "+", "L"], "action": "Toggle workspace layout between dwindle and scrolling", "caution": "Persists a setting. A custom layout is not restored by toggling again." }
-          ],
           "completion": { "type": "narration-complete", "delayMs": 900 },
           "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
         },
@@ -1924,10 +2006,6 @@
           "note": "Reference only. Mouse gestures are not verified by the keyboard exercise runner.",
           "instruction": "The mouse works with Super too. Hold Super and drag with the left mouse button to move a window; hold Super and drag with the right button to resize it. Release the mouse button and Super when you are done.",
           "detail": "Try these later on a disposable floating terminal, where movement is easiest to see. On a tiled window, the layout decides how dragging changes the tiles. This reference does not capture a mouse gesture or claim you performed one.",
-          "shortcuts": [
-            { "keys": ["SUPER", "+", "LEFT MOUSE DRAG"], "action": "Move a window" },
-            { "keys": ["SUPER", "+", "RIGHT MOUSE DRAG"], "action": "Resize a window" }
-          ],
           "completion": { "type": "narration-complete", "delayMs": 900 },
           "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
         }
@@ -1935,6 +2013,13 @@
     },
     {
       "id": "notifications",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "ALT", "+", "COMMA"], "action": "Open notification history", "stepIds": ["notifications-history"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "COMMA"], "action": "Dismiss the latest notification", "caution": "Affects your real notifications.", "stepIds": ["notifications-history"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "COMMA"], "action": "Dismiss all notifications", "caution": "Affects your real notifications.", "stepIds": ["notifications-history"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "COMMA"], "action": "Invoke the latest notification", "caution": "May launch an app or follow a link; inspect it first.", "stepIds": ["notifications-history"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "COMMA"], "action": "Toggle notification silencing", "caution": "Changes your real preference; toggle back when finished.", "stepIds": ["notifications-quiet"], "sourceIds": ["utility-bindings"] }
+      ],
       "wrapUp": {
         "text": "You now have a reference for notification history, dismissal, actions, and silencing. Your notifications and preferences are unchanged. Use these shortcuts when you need them, and inspect a notification before invoking its action.",
         "audio": "audio/wrapup-notifications.mp3"
@@ -1954,12 +2039,6 @@
           "note": "Reference only. No notifications are opened, dismissed, or invoked for you.",
           "instruction": "Notification history is available with Super, Shift, Alt, and comma. Super and comma dismisses the latest notification; adding Shift dismisses all. This lesson leaves your notifications untouched.",
           "detail": "Super, Alt, and comma invokes the latest notification's action, which may launch an app or follow a link. Do not try it on an unfamiliar notification. Read these shortcuts here, then use them when you actually need them.",
-          "shortcuts": [
-            { "keys": ["SUPER", "+", "SHIFT", "+", "ALT", "+", "COMMA"], "action": "Open notification history" },
-            { "keys": ["SUPER", "+", "COMMA"], "action": "Dismiss the latest notification" },
-            { "keys": ["SUPER", "+", "SHIFT", "+", "COMMA"], "action": "Dismiss all notifications", "caution": "Affects your real notifications." },
-            { "keys": ["SUPER", "+", "ALT", "+", "COMMA"], "action": "Invoke the latest notification", "caution": "May launch an app or follow a link; inspect it first." }
-          ],
           "completion": { "type": "narration-complete", "delayMs": 900 },
           "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
         },
@@ -1972,9 +2051,6 @@
           "note": "Reference only. Notification silencing is not changed.",
           "instruction": "Super, Control, and comma toggles notification silencing. It is useful when you need quiet, but remember to turn it off when you want alerts again. We do not change it during this introduction.",
           "detail": "The installed helper toggles your real notification-silencing preference. This is deliberately a read-only reference, not a task that silently changes your desktop.",
-          "shortcuts": [
-            { "keys": ["SUPER", "+", "CTRL", "+", "COMMA"], "action": "Toggle notification silencing", "caution": "Changes your real preference; toggle back when finished." }
-          ],
           "completion": { "type": "narration-complete", "delayMs": 900 },
           "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
         }
@@ -1982,6 +2058,15 @@
     },
     {
       "id": "bar-panels",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "A"], "action": "Open Audio: output is where sound plays; input is your microphone. Escape closes the panel.", "stepIds": ["audio-panel"], "sourceIds": ["utility-bindings", "top-bar"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "W"], "action": "Open Network to inspect connection status. Escape closes the panel.", "caution": "Changing networks or disconnecting interrupts network activity.", "stepIds": ["network-panel"], "sourceIds": ["utility-bindings", "top-bar"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "P"], "action": "Open Power to inspect battery status and power profiles.", "stepIds": ["power-panel"], "sourceIds": ["utility-bindings", "top-bar"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "ALT", "+", "D"], "action": "Open the calendar. Clicking the bar clock is the mouse alternative; Escape closes it.", "stepIds": ["calendar-panel"], "sourceIds": ["utility-bindings", "top-bar"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "SPACE"], "action": "Open the Background switcher to preview choices. Escape clears search text; press again to close, or once if empty.", "caution": "Applying a choice changes the desktop immediately; closing the menu does not undo it. Remember your previous selection if you want to restore it.", "stepIds": ["background-menu"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "CTRL", "+", "SPACE"], "action": "Open the Theme menu to preview choices. Escape clears search text; press again to close, or once if empty.", "caution": "Applying a theme changes the desktop immediately; closing the menu does not undo it. Remember your previous selection if you want to restore it.", "stepIds": ["theme-menu"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "O"], "action": "Open Toggle for night light, idle locking, the bar and other switches.", "caution": "Selecting an entry changes that setting, including protections such as idle locking.", "stepIds": ["toggle-menu"], "sourceIds": ["utility-bindings"] }
+      ],
       "wrapUp": { "text": "You've explored the desktop controls. The bar gives you a quick place to check your system and reach the settings you need.", "audio": "audio/wrapup-bar-panels.mp3" },
       "title": "Desktop controls",
       "description": "Optional: understand status, preview themes, and explore desktop controls safely.",
@@ -2343,6 +2428,16 @@
     },
     {
       "id": "clipboard-and-helpers",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "C"], "action": "Copy selected text using Omarchy's shared copy shortcut, including in supported terminals.", "caution": "Replaces the current clipboard. Custom bindings and app support can differ.", "stepIds": ["helpers-universal-copy", "clipboard-practice"], "sourceIds": ["hotkeys", "course-practice"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "V"], "action": "Paste the clipboard into the focused destination using Omarchy's shared paste shortcut.", "caution": "Check the destination first, especially terminals and sensitive fields. App support can differ.", "stepIds": ["helpers-universal-copy", "clipboard-practice"], "sourceIds": ["hotkeys", "course-practice"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "V"], "action": "Open clipboard history to search recent copies. Use arrow keys to highlight an entry or select with the mouse.", "caution": "History may contain private information. Escape clears search text, then closes when empty.", "stepIds": ["clipboard-history", "clipboard-practice"], "sourceIds": ["clipboard-guide", "clipboard-implementation"] },
+        { "kind": "chord", "keys": ["SHIFT", "+", "ENTER"], "action": "In clipboard history, copy the highlighted entry without pasting. Then focus the destination and paste once.", "stepIds": ["clipboard-history", "clipboard-practice"], "sourceIds": ["clipboard-implementation"] },
+        { "kind": "chord", "keys": ["ENTER"], "action": "In clipboard history, activate the highlighted entry and attempt immediate paste into the previously focused app.", "caution": "Mouse activation also attempts paste. Behavior depends on the target app; use Shift+Enter for copy-only rather than assuming Enter just copies.", "stepIds": ["clipboard-history", "clipboard-practice"], "sourceIds": ["clipboard-implementation"] },
+        { "kind": "workflow", "keys": ["COURSE: Clipboard practice"], "action": "Select and copy the first sample, then the newer sample. Open history, highlight the first note and use Shift+Enter. Click the destination and paste once; check it matches the first note.", "caution": "This exercise replaces your clipboard with harmless sample text.", "stepIds": ["clipboard-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "sequence", "keys": ["CAPS LOCK", "→", "m", "→", "s"], "action": "Compose a smile (😄): tap and release Caps Lock, then press lowercase m, then lowercase s.", "caution": "Separate presses, not held together; no Shift. Caps Lock is Compose by default, but custom mappings may differ.", "stepIds": ["compose-intro", "compose-practice"], "sourceIds": ["compose", "course-practice"] },
+        { "kind": "sequence", "keys": ["CAPS LOCK", "→", "m", "→", "h"], "action": "Compose a heart (❤️): tap and release Caps Lock, then press lowercase m, then lowercase h.", "caution": "Separate presses, not held together; no Shift. In COURSE practice, enter smile and heart in their respective fields; skip rather than changing custom mappings.", "stepIds": ["compose-intro", "compose-practice"], "sourceIds": ["compose", "course-practice"] }
+      ],
       "mixedPractice": true,
       "wrapUp": { "text": "Nicely done. You've explored clipboard history and practiced Compose sequences. A few useful characters and shortcuts can save you time.", "audio": "audio/wrapup-clipboard-and-helpers.mp3" },
       "title": "Clipboard and Compose",
@@ -2504,6 +2599,22 @@
     },
     {
       "id": "capture-and-share",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "C"], "action": "Open Capture for screenshots, recordings, color picking and text extraction. Use the menu if your keyboard has no Print key.", "stepIds": ["capture-menu"], "sourceIds": ["utility-bindings", "capture"] },
+        { "kind": "chord", "keys": ["PRINT"], "action": "Start a screenshot with the frozen-screen picker; drag over the desired region. Alternatively search Screenshot in the Omarchy menu.", "caution": "Inspect for private content first. Screenshots save to the configured Pictures directory and clipboard.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture"] },
+        { "kind": "sequence", "keys": ["TAB", "→", "ENTER"], "action": "In the screenshot picker, use Tab to select a window, then Enter to capture the selected window.", "caution": "These are sequential presses in the picker, not a held chord. Check the selected window before capturing.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture"] },
+        { "kind": "chord", "keys": ["CTRL", "+", "ENTER"], "action": "In the screenshot picker, capture the full screen.", "caution": "Includes visible private windows and notifications; inspect before capturing.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture"] },
+        { "kind": "chord", "keys": ["ESCAPE"], "action": "Cancel screenshot region selection without taking a capture.", "stepIds": ["capture-native-workflow", "capture-practice"], "sourceIds": ["capture", "course-practice"] },
+        { "kind": "workflow", "keys": ["Screenshot notification > Edit"], "action": "Click the screenshot notification to open the captured image for editing.", "caution": "Verify it is the intended screenshot notification before invoking its action.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "COMMA"], "action": "Invoke the latest notification's action; when it is the screenshot notification, open the screenshot editor.", "caution": "A different notification may launch an app or follow a link. Inspect the latest notification first.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture", "utility-bindings"] },
+        { "kind": "workflow", "keys": ["COURSE: Capture practice"], "action": "Select only the harmless card, inspect the saved image, copy its file path and add a label to the preview.", "caution": "The course uses its own capture tools. Preview annotation does not alter the saved image; nothing is uploaded.", "stepIds": ["capture-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "chord", "keys": ["ALT", "+", "PRINT"], "action": "Open recording options, or stop an active recording. Choices: no audio; desktop audio; desktop + microphone audio; or desktop + microphone audio + webcam when available. Saved clips go to the configured Videos directory.", "caution": "Microphone includes desktop audio; webcam includes both. Review the region and recording indicator, know how to stop, and get permission before recording other people's voices or private content.", "stepIds": ["recording-intro"], "sourceIds": ["capture", "utility-bindings"] },
+        { "kind": "workflow", "keys": ["COURSE: Record > Stop > Replay"], "action": "Select and review the animated card's region. Explicitly start a silent recording, record at least one second, stop your recording, then play the saved clip.", "caution": "This course-specific recorder uses no microphone or webcam and owns only its recording; it does not stop an existing recorder. This is separate from native recording options.", "stepIds": ["recording-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "PRINT"], "action": "Extract text from a selected screen region with OCR (optical character recognition).", "caution": "Recognition can make mistakes. Proofread against the source before using the text; avoid private regions.", "stepIds": ["ocr-practice"], "sourceIds": ["text-tools", "utility-bindings"] },
+        { "kind": "workflow", "keys": ["COURSE: OCR practice"], "action": "Select the sample text card, extract it, copy the recognized sample and paste it into the destination. Compare every word with the original.", "caution": "Requires slurp, grim and tesseract; course verification is a reviewed sample, not a guarantee of general OCR accuracy.", "stepIds": ["ocr-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "workflow", "keys": ["Omarchy menu > QR Code"], "action": "Search QR Code to select and decode a code already on screen, then inspect the decoded text.", "caution": "Decoding is not permission to open an unknown link.", "stepIds": ["qr-practice"], "sourceIds": ["capture", "text-tools"] },
+        { "kind": "workflow", "keys": ["COURSE: QR practice"], "action": "Prepare the harmless QR sample, select and decode it, copy the result and paste it below to compare with the sample.", "caution": "The sample contains text, not a website; no link is opened. Requires qrencode, slurp, grim and zbarimg.", "stepIds": ["qr-practice"], "sourceIds": ["course-practice"] }
+      ],
       "wrapUp": { "text": "That wraps up capture. You've practiced making a screenshot and a short recording. Remember to check for private information before sharing.", "audio": "audio/wrapup-capture-and-share.mp3" },
       "title": "Capture",
       "description": "Capture an image, record and replay a short clip, and optionally extract text or decode a QR code.",
@@ -2721,6 +2832,13 @@
     },
     {
       "id": "apps-and-upkeep",
+      "references": [
+        { "kind": "workflow", "keys": ["Omarchy menu > Install"], "action": "Search Install to find software packages. Prefer official packages; review community Arch User Repository (AUR) packages more closely.", "caution": "Installing can request your password and change the system. Inspect package details before confirming; no installation is needed to learn the menu.", "stepIds": ["upkeep-install"], "sourceIds": ["packages"] },
+        { "kind": "workflow", "keys": ["Omarchy menu > Remove"], "action": "Uninstall an unwanted package only after checking its name and the full removal list. Dependencies are software other apps need.", "caution": "Removal may affect other software. Cancel if you do not understand the proposed changes.", "stepIds": ["upkeep-remove"], "sourceIds": ["packages"] },
+        { "kind": "workflow", "keys": ["Setup > Defaults"], "action": "Choose which installed apps Omarchy launches by default. Open the Omarchy menu and search Defaults.", "caution": "Default changes affect future launches immediately. Installing an app and making it the default are separate decisions.", "stepIds": ["upkeep-defaults"], "sourceIds": ["browsers", "app-bindings"] },
+        { "kind": "workflow", "keys": ["Omarchy menu > Update"], "action": "Save work, review proposed changes and use the stable channel for everyday updates to Omarchy and its packages.", "caution": "Some installations create rollback snapshots before updates. Snapshots are not independent backups of personal files.", "stepIds": ["upkeep-updates"], "sourceIds": ["updates"] },
+        { "kind": "workflow", "keys": ["Update > Hardware"], "action": "Use targeted hardware restarts only when needed. Distinguish restarting a device or updating software from resetting its configuration.", "caution": "Network or audio restarts can interrupt calls, downloads and recordings. Back up custom settings under ~/.config before resets; do not edit packaged defaults under /usr/share/omarchy.", "stepIds": ["upkeep-recovery"], "sourceIds": ["updates", "course-controls"] }
+      ],
       "wrapUp": { "text": "You've explored where to find apps and upkeep tools. Knowing where a setting lives is a useful first step. Read the changes before confirming them.", "audio": "audio/wrapup-apps-and-upkeep.mp3" },
       "title": "Apps and upkeep",
       "icon": "10",
@@ -2871,6 +2989,13 @@
     },
     {
       "id": "setup-and-install",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "H"], "action": "Open Trigger > Hardware for available laptop display, mirror, GPU, touchpad, haptics and touchscreen actions.", "caution": "Selecting an action can change device behavior immediately. Keyboard settings are under Setup > Input or Keybindings; audio, Bluetooth and display have separate panels.", "stepIds": ["hardware-menu"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "D"], "action": "Open Display for text size, scale, supported brightness and multi-display enable/disable controls. Escape closes the panel.", "caution": "Changes apply immediately. Configure resolution separately under Setup > Monitors.", "stepIds": ["display-panel"], "sourceIds": ["utility-bindings", "top-bar"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ESCAPE"], "action": "Open System for lock, suspend, logout, reboot and shutdown.", "caution": "Inspect without selecting a disruptive action; save work before logging out, restarting or shutting down.", "stepIds": ["system-menu"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "L"], "action": "Lock the screen without suspending the computer.", "caution": "Optional practice: save work and know your password before locking. You need it to return.", "stepIds": ["lock-practice"], "sourceIds": ["utility-bindings", "course-practice"] },
+        { "kind": "workflow", "keys": ["COURSE: Screen-lock practice"], "action": "When ready, explicitly choose the lock button, unlock with your password, then return to the course. Skip if you are not ready.", "caution": "Opening the exercise alone does not lock the computer.", "stepIds": ["lock-practice"], "sourceIds": ["course-practice"] }
+      ],
       "wrapUp": { "text": "That wraps up setup and system controls. You know where to look when you need them, without changing settings just for practice.", "audio": "audio/wrapup-setup-and-install.mp3" },
       "title": "Setup and system",
       "description": "Reach hardware setup, display settings, and safe system actions from the keyboard.",
@@ -3050,6 +3175,14 @@
     },
     {
       "id": "productivity-extras",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "E"], "action": "Open the emoji picker, type a search word and press Enter to insert the selection into the previously focused text field.", "caution": "Check the intended destination before choosing an emoji.", "stepIds": ["helpers-emoji"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "R"], "action": "Open reminders; enter minutes first, then the reminder message.", "caution": "Before scheduling, Escape clears typed text; press again to close, or once if empty.", "stepIds": ["helpers-reminder"], "sourceIds": ["utility-bindings", "top-bar"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "X"], "action": "Toggle local dictation on/off when Voxtype is installed. Focus the destination, start, speak, stop and proofread.", "caution": "You control the microphone. Installed software does not guarantee a configured microphone or running service; skip if unavailable.", "stepIds": ["dictation-practice"], "sourceIds": ["dictation-bindings", "text-tools", "course-practice"] },
+        { "kind": "gesture", "keys": ["F9", "HOLD", "→", "RELEASE"], "action": "With Voxtype installed, hold F9 while speaking and release it to finish push-to-talk dictation.", "caution": "Review the resulting text; do not leave recording active. The toggle shortcut is an alternative if your keyboard lacks F9.", "stepIds": ["dictation-practice"], "sourceIds": ["dictation-bindings", "text-tools"] },
+        { "kind": "workflow", "keys": ["COURSE: Dictation practice"], "action": "Check availability, enable the practice field when ready, use the dictation shortcut for 'Omarchy practice', stop and review the words.", "caution": "The exercise does not start your microphone. It checks the entered sample and your review, not whether speech produced the text.", "stepIds": ["dictation-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "workflow", "keys": ["Voxtype > config.toml > Replacements"], "action": "For installed Voxtype, review ~/.config/voxtype/config.toml and its commented [text] replacements example to correct recurring recognition errors.", "caution": "Back up before edits, keep replacements specific and test a harmless phrase. Install > AI > Dictation installs the tool, not its configuration; Remove > Dictation removes it. Replacements affect dictation, not ordinary typing.", "stepIds": ["dictation-corrections"], "sourceIds": ["text-tools", "course-controls"] }
+      ],
       "wrapUp": { "text": "That wraps up productivity extras. You've explored emojis, reminders, and dictation. Choose the tools that help with your own work.", "audio": "audio/wrapup-productivity-extras.mp3" },
       "title": "Productivity extras",
       "optional": true,
@@ -3212,6 +3345,12 @@
     },
     {
       "id": "useful-tools",
+      "references": [
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "T"], "action": "Open the activity monitor to inspect processor, memory, storage and running programs.", "caution": "Inspect resource use without stopping programs; ending a process can lose work or interrupt services.", "stepIds": ["tools-monitor-open"], "sourceIds": ["app-bindings", "guis"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Check focus and save work first. Outside guided practice this can close any focused app, not only the monitor or calculator.", "stepIds": ["tools-monitor-close", "tools-calculator-close"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "Q"], "action": "Open the calculator. Enter a simple calculation such as 5 + 5 and inspect the result.", "stepIds": ["tools-calculator-open"], "sourceIds": ["app-bindings", "guis"] },
+        { "kind": "workflow", "keys": ["Omarchy menu > Disk Usage"], "action": "Search Disk Usage to inspect which folders consume storage before deciding what to clean.", "caution": "Inspect, do not delete during exploration. Large folders may be important work; backups, caches and packages require different cleanup decisions.", "stepIds": ["tools-disk-usage"], "sourceIds": ["guis"] }
+      ],
       "wrapUp": { "text": "That wraps up useful tools. You have places to check resource use, do a quick calculation, and investigate disk space before deleting anything.", "audio": "audio/wrapup-useful-tools.mp3" },
       "title": "Useful tools",
       "optional": true,
@@ -3416,6 +3555,15 @@
     },
     {
       "id": "create-and-share",
+      "references": [
+        { "kind": "workflow", "keys": ["Install > Web App / Remove > Web App"], "action": "Install Web App asks for a name and website URL to create a launcher. Remove Web App removes that launcher, not your website account.", "caution": "A real web app opens its URL in a browser window; check the address before installing or opening it.", "stepIds": ["web-app-practice"], "sourceIds": ["web-apps", "browsers"] },
+        { "kind": "workflow", "keys": ["COURSE: Web-app demo"], "action": "Explicitly create the isolated demo entry, open its local preview, then remove it.", "caution": "This is not an installed app: it only uses the exercise folder, does not change Apps, and the local preview makes no network request.", "stepIds": ["web-app-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "workflow", "keys": ["Transcode > Keep original > Compare output"], "action": "Convert a separate media copy at a sensible resolution. Compare file size and playback quality before sharing. MP4 suits longer clips; GIF suits short silent loops.", "caution": "Keep the original. Neither format nor conversion guarantees a smaller file; GIF can be larger than MP4.", "stepIds": ["transcode-practice"], "sourceIds": ["capture", "course-practice"] },
+        { "kind": "workflow", "keys": ["COURSE: Transcode practice"], "action": "Generate the harmless silent sample, play the original, choose a lower resolution and create a separate MP4 copy. Play the output and compare size and quality.", "caution": "Requires ffmpeg and ffprobe. The course keeps the original; evaluate output rather than assuming lower resolution always means acceptable quality.", "stepIds": ["transcode-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "S"], "action": "Open Share; opening the menu alone sends nothing.", "caution": "Verify content and recipient before sending. Escape clears typed text; press again to close, or once if empty.", "stepIds": ["share-menu"], "sourceIds": ["utility-bindings"] },
+        { "kind": "workflow", "keys": ["LocalSend > File > Recipient"], "action": "For a real transfer, use LocalSend on both devices with a network connection between them. Inspect the file and verify the intended recipient before sending; confirm receipt.", "caution": "Never send private files or secrets merely to test sharing. A nearby device is not necessarily the intended recipient.", "stepIds": ["sharing-practice"], "sourceIds": ["guis", "course-practice"] },
+        { "kind": "workflow", "keys": ["COURSE: Sharing rehearsal"], "action": "Prepare and read the sample file, choose 'My test phone (demo)', then confirm you checked the file and demo recipient.", "caution": "Simulation only: it does not discover real devices, send files or confirm delivery.", "stepIds": ["sharing-practice"], "sourceIds": ["course-practice"] }
+      ],
       "wrapUp": { "text": "Nice work exploring these creation and sharing tools. Preview what you've made, and check the file and recipient before sending anything.", "audio": "audio/wrapup-create-and-share.mp3" },
       "title": "Create and share",
       "optional": true,
@@ -3552,6 +3700,15 @@
     },
     {
       "id": "first-real-session",
+      "references": [
+        { "kind": "workflow", "keys": ["Short desktop workflow"], "action": "On workspace one, open a terminal and browser. Focus the browser, move it to workspace two and follow. Return to one, focus and close the terminal; visit two, focus and close the browser.", "caution": "Use disposable windows, save work and check focus before moving or closing. Native shortcuts have no course-owned-window protection.", "stepIds": ["finale-intro"], "sourceIds": ["navigation", "tiling-bindings", "course-controls"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "1"], "action": "Switch to workspace one.", "stepIds": ["finale-home", "finale-back-to-one"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "RETURN"], "action": "Open a terminal.", "stepIds": ["finale-terminal"], "sourceIds": ["app-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "RETURN"], "action": "Launch the configured browser; its settings determine whether a new window opens.", "stepIds": ["finale-browser"], "sourceIds": ["app-bindings", "browsers"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "2"], "action": "Move the focused window to workspace two and follow it there.", "caution": "Focus the intended window first; this does not automatically target the browser.", "stepIds": ["finale-send-browser"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Save work and verify focus first. This can close existing work, not only windows from the capstone.", "stepIds": ["finale-close-terminal", "finale-close-browser"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "2"], "action": "Switch to workspace two.", "stepIds": ["finale-to-two"], "sourceIds": ["tiling-bindings"] }
+      ],
       "wrapUp": { "text": "Nicely done. You've brought app, window, and workspace shortcuts together in one workflow. Super and K opens the shortcut guide whenever you need a reminder. Keep the shortcuts that help you. Your desktop. Your way.", "audio": "audio/wrapup-first-real-session.mp3" },
       "title": "Your first real session",
       "description": "Combine app, window, and workspace shortcuts in one practical workflow.",

@@ -766,7 +766,7 @@ Rectangle {
           Layout.fillWidth: true
           implicitHeight: 150
           radius: 12
-          color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.18)
+          color: Qt.tint(root.backgroundColor, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.18))
           Text {
             anchors.centerIn: parent
             width: parent.width - 24

@@ -102,7 +102,8 @@ test("advanced windows and notifications are explicit optional introductions wit
       assert.equal(step.help, undefined);
       assert.equal(step.cleanup, undefined);
       assert.equal(step.audio, "audio/" + step.id + ".mp3");
-      assert.ok(step.shortcuts?.length);
+      assert.ok(lesson.references?.some(entry => entry.stepIds.includes(step.id)));
+      assert.equal(step.shortcuts, undefined, "reference content has one explicit source");
     }
   }
 });

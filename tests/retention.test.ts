@@ -54,35 +54,35 @@ test("optional split activities do not exclude a custom-layout learner from mixe
   assert.ok(plan.includes("windows"));
 });
 
-test("printable reference is generated from source, includes optional references, and deduplicates chords", async () => {
+test("printable reference is generated from explicit source and retains each lesson's context", async () => {
   const html = renderCheatSheet(course);
   assert.equal(await readFile(new URL("../courses/omarchy-shortcuts.html", import.meta.url), "utf8"), html);
   const entries = shortcutSections(course).flatMap(section => section.entries);
-  assert.equal(new Set(entries.map(entry => entry.keys.join(" "))).size, entries.length);
   for (const stepId of ["windows-resize", "windows-resize-back", "windows-split", "notifications-history", "advanced-window-mouse"])
-    assert.ok(entries.some(entry => entry.stepId === stepId), stepId);
+    assert.ok(entries.some(entry => entry.stepIds.includes(stepId)), stepId);
   assert.match(html, /@media print/);
   assert.match(html, /window\.print\(\)/);
-  assert.doesNotMatch(html, /<script|https?:\/\/|<iframe|<img/);
+  assert.doesNotMatch(html, /<script|<iframe|<img|<link|@import/);
 });
 
 test("printable content escapes curriculum HTML and never treats commands as markup", () => {
   const altered = structuredClone(course);
   altered.title = '<img src=x onerror="alert(1)">';
-  altered.lessons[2].steps[0].practicePrompt = "<script>bad()</script>";
+  altered.lessons[2].references![0].action = "<script>bad()</script>";
   const html = renderCheatSheet(altered);
   assert.doesNotMatch(html, /<script|<img/);
   assert.match(html, /&lt;img/);
+  assert.match(html, /&lt;script&gt;/);
 });
 
 test("printable directional exercises use a layout-relative arrow, never the authored seed", () => {
   const entries = shortcutSections(course).flatMap(section => section.entries);
   for (const id of ["windows-focus-right", "windows-swap"]) {
-    const entry = entries.find(item => item.stepId === id)!;
+    const entry = entries.find(item => item.stepIds.includes(id))!;
     assert.ok(entry.keys.includes("ARROW"), id);
     assert.ok(!entry.keys.some(key => ["LEFT", "RIGHT", "UP", "DOWN"].includes(key)), id);
-    assert.match(entry.caution!, /toward the other practice window/);
-    assert.match(entry.caution!, /depends on the current layout/);
+    assert.match(entry.action + " " + entry.caution, /direction|neighbor/i);
+    assert.doesNotMatch(entry.action + " " + entry.caution, /only.*practice/i);
   }
   const altered = structuredClone(course);
   const step = altered.lessons.flatMap(lesson => lesson.steps).find(item => item.id === "windows-focus-right")!;

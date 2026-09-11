@@ -69,9 +69,13 @@ function runtime(stepId: string, reducedMotion = true) {
     mixedLessonIds: [],
     mixedLessonPosition: 0,
     retentionNotice: "",
+    referenceBrowsing: false,
+    referenceRestoreCapture: false,
+    referenceRequestPhase: "",
     cheatSheetPath: "/state/learn-omarchy/shortcuts.html",
     cheatSheetProcess: { running: false, command: [] },
     courseDir: "/course",
+    coursePath: "/course/omarchy-basics.json",
     requestedCharacter: "ohm-1",
     characterState: "coach",
     characterParked: false,
@@ -1855,6 +1859,90 @@ test("interaction sounds distinguish accepted chords, wrong keys and verified ou
   assert.deepEqual(cues, ["wrong", "correct", "step-complete"]);
   state.completeCurrentStep();
   assert.equal(cues.length, 3, "repeated completion cannot replay the cue");
+});
+
+test("printable shortcuts explain the browser handoff and preserve the current lesson", () => {
+  for (const phase of ["menu", "lesson-complete"]) {
+    const state = runtime("open-root-menu");
+    state.phase = phase;
+    const lessonIndex = state.lessonIndex;
+    const stepIndex = state.stepIndex;
+    state.coursePath = "/course/custom course.json";
+    state.cheatSheetPath = "/state/custom #1/shortcuts.html";
+    let opened = "";
+    state.Qt.openUrlExternally = (url: string) => {
+      assert.equal(state.keyboardExclusive, false, "release capture before launching the browser");
+      opened = url;
+      return true;
+    };
+    state.openCheatSheet();
+    assert.match(state.retentionNotice, /Preparing printable shortcuts/);
+    assert.equal(state.keyboardExclusive, true, "generation must not release keys");
+    assert.deepEqual(Array.from(state.cheatSheetProcess.command),
+      ["node", "--experimental-strip-types", "/app/tools/generate-cheat-sheet.mjs",
+        state.coursePath, state.cheatSheetPath]);
+    state.finishCheatSheetGeneration(0, "");
+    assert.equal(opened, "file:///state/custom%20%231/shortcuts.html");
+    assert.equal(state.keyboardExclusive, false);
+    assert.match(state.retentionNotice, /browser.*another workspace/);
+    assert.match(state.retentionNotice, /Keys are released for printing.*return banner/);
+    assert.equal(state.referenceBrowsing, true);
+    assert.equal(state.phase, phase);
+    assert.equal(state.lessonIndex, lessonIndex);
+    assert.equal(state.stepIndex, stepIndex);
+    state.returnFromReference();
+    assert.equal(state.referenceBrowsing, false);
+    assert.equal(state.keyboardExclusive, true);
+    assert.equal(state.phase, phase);
+    assert.equal(state.lessonIndex, lessonIndex);
+    assert.equal(state.stepIndex, stepIndex);
+  }
+});
+
+test("reference generation and browser rejection leave the original Keys state intact", () => {
+  for (const exclusive of [true, false]) {
+    for (const code of [0, 1]) {
+      const state = runtime("open-root-menu");
+      state.phase = "menu";
+      state.openCheatSheet();
+      state.keyboardExclusive = exclusive;
+      let launches = 0;
+      let warnings = 0;
+      state.Qt.openUrlExternally = () => { launches++; return false; };
+      state.console.warn = () => { warnings++; };
+      state.finishCheatSheetGeneration(code, "generation diagnostic");
+      assert.equal(state.keyboardExclusive, exclusive);
+      assert.equal(state.referenceBrowsing, false);
+      assert.equal(launches, code === 0 ? 1 : 0);
+      assert.equal(warnings, 1);
+      assert.match(state.retentionNotice, code === 0 ? /Couldn't open the browser.*shortcuts\.html/ : /couldn't be generated/);
+    }
+  }
+});
+
+test("returning from a reference preserves intentionally released keys", () => {
+  const state = runtime("open-root-menu");
+  state.phase = "menu";
+  state.keyboardExclusive = false;
+  state.Qt.openUrlExternally = () => true;
+  state.openCheatSheet();
+  state.finishCheatSheetGeneration(0, "");
+  assert.equal(state.referenceBrowsing, true);
+  state.returnFromReference();
+  assert.equal(state.keyboardExclusive, false);
+  assert.equal(state.referenceBrowsing, false);
+});
+
+test("a reference generated after leaving the picker cannot interrupt the lesson", () => {
+  const state = runtime("open-root-menu");
+  state.phase = "menu";
+  state.Qt.openUrlExternally = () => { assert.fail("must not launch a browser after navigation"); };
+  state.openCheatSheet();
+  state.phase = "waiting";
+  state.finishCheatSheetGeneration(0, "");
+  assert.equal(state.referenceBrowsing, false);
+  assert.equal(state.keyboardExclusive, true);
+  assert.match(state.retentionNotice, /saved at.*shortcuts\.html/);
 });
 
 test("resize outcomes require a before snapshot and a real owned-window size change", () => {

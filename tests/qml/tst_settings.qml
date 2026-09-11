@@ -151,6 +151,19 @@ Item {
       compare(controls.map(function(item) { return item.label }).join("|"), "SETTINGS|RELEASE KEYS|MUTE|EXIT")
     }
 
+    function test_disabledHelpKeepsItsSolidBackground() {
+      root.phase = "waiting"
+      root.currentStep = { help: "Practice help" }
+      root.actionRunning = true
+      var help = root.button("HELP")
+      verify(help !== null && help.visible && !help.enabled)
+      compare(help.opacity, 1)
+      compare(help.color.a, 1)
+      root.actionRunning = false
+      root.currentStep = null
+      root.phase = "settings"
+    }
+
     function test_welcomeCaptionSyncCanBeDisabledWithoutChangingSpeech() {
       root.synchronizedWelcomeText = true
       var speech = root.speechEnabled

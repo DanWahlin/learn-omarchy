@@ -120,7 +120,26 @@ export interface LessonWrapUp {
   audio: string;
 }
 
+export interface ReferenceEntry {
+  kind: "chord" | "sequence" | "gesture" | "workflow";
+  keys: string[];
+  action: string;
+  caution?: string;
+  stepIds: string[];
+  sourceIds: string[];
+}
+
+export interface CourseReference {
+  platform: string;
+  version: string;
+  verifiedOn: string;
+  sources: ({ id: string; title: string } & (
+    { url: string; path?: never } | { path: string; url?: never }
+  ))[];
+}
+
 export interface CourseLesson {
+  references?: ReferenceEntry[];
   mixedPractice?: boolean;
   wrapUp?: LessonWrapUp;
   kind?: "welcome";
@@ -134,6 +153,7 @@ export interface CourseLesson {
 }
 
 export interface Course {
+  reference?: CourseReference;
   wrapUp?: { assisted: LessonWrapUp; explored: LessonWrapUp };
   schemaVersion: 2;
   id: string;
@@ -572,6 +592,90 @@ function validateWrapUp(errors: string[], value: unknown, path: string) {
     validateRelativePath(errors, value.audio, `${path}.audio`);
 }
 
+function validateReferenceMetadata(errors: string[], value: unknown): Set<string> {
+  const ids = new Set<string>();
+  const path = "course.reference";
+  if (!isRecord(value)) {
+    errors.push(`${path} must be an object`);
+    return ids;
+  }
+  addStringError(errors, value.platform, `${path}.platform`);
+  addStringError(errors, value.version, `${path}.version`);
+  if (typeof value.verifiedOn !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value.verifiedOn) ||
+      !Number.isFinite(Date.parse(value.verifiedOn)) ||
+      new Date(value.verifiedOn).toISOString().slice(0, 10) !== value.verifiedOn)
+    errors.push(`${path}.verifiedOn must be a valid YYYY-MM-DD date`);
+  if (!Array.isArray(value.sources) || value.sources.length === 0) {
+    errors.push(`${path}.sources must be a non-empty array`);
+    return ids;
+  }
+  value.sources.forEach((source, index) => {
+    const sourcePath = `${path}.sources[${index}]`;
+    if (!isRecord(source)) { errors.push(`${sourcePath} must be an object`); return; }
+    if (addStringError(errors, source.id, `${sourcePath}.id`)) {
+      if (!/^[a-z0-9][a-z0-9-]*$/.test(source.id)) errors.push(`${sourcePath}.id must be a lowercase source identifier`);
+      if (ids.has(source.id)) errors.push(`${sourcePath}.id "${source.id}" is duplicated`);
+      ids.add(source.id);
+    }
+    addStringError(errors, source.title, `${sourcePath}.title`);
+    if ((source.url !== undefined) === (source.path !== undefined))
+      errors.push(`${sourcePath} must have exactly one HTTPS url or bundled path`);
+    if (source.url !== undefined && addStringError(errors, source.url, `${sourcePath}.url`)) {
+      const url = URL.canParse(source.url) ? new URL(source.url) : null;
+      if (!url || url.protocol !== "https:" || url.username || url.password)
+        errors.push(`${sourcePath}.url must be an HTTPS URL without credentials`);
+    }
+    if (source.path !== undefined && addStringError(errors, source.path, `${sourcePath}.path`) &&
+        (/[:\\\u0000-\u001f]/.test(source.path) || source.path.split("/").some(part => !part || part === "." || part === "..")))
+      errors.push(`${sourcePath}.path must be a safe path relative to the application directory`);
+  });
+  return ids;
+}
+
+function validateLessonReferences(errors: string[], lesson: Record<string, unknown>, path: string, sources: Set<string>) {
+  if (!Array.isArray(lesson.references) || lesson.references.length === 0) {
+    errors.push(`${path}.references must cover this lesson with a non-empty array`);
+    return;
+  }
+  const steps = Array.isArray(lesson.steps) ? lesson.steps.filter(isRecord) : [];
+  const ids = new Set(steps.map(step => step.id));
+  const covered = new Set<string>();
+  lesson.references.forEach((entry, index) => {
+    const entryPath = `${path}.references[${index}]`;
+    if (!isRecord(entry)) { errors.push(`${entryPath} must be an object`); return; }
+    if (typeof entry.kind !== "string" || !["chord", "sequence", "gesture", "workflow"].includes(entry.kind))
+      errors.push(`${entryPath}.kind must be chord, sequence, gesture, or workflow`);
+    if (!Array.isArray(entry.keys) || entry.keys.length === 0 ||
+        entry.keys.some(key => typeof key !== "string" || !key.trim()))
+      errors.push(`${entryPath}.keys must be non-empty labels`);
+    addStringError(errors, entry.action, `${entryPath}.action`);
+    if (entry.caution !== undefined) addStringError(errors, entry.caution, `${entryPath}.caution`);
+    if (!Array.isArray(entry.sourceIds) || entry.sourceIds.length === 0 ||
+        entry.sourceIds.some(id => typeof id !== "string" || !sources.has(id)))
+      errors.push(`${entryPath}.sourceIds must reference declared sources`);
+    if (!Array.isArray(entry.stepIds) || (entry.stepIds.length === 0 && lesson.kind !== "welcome")) {
+      errors.push(`${entryPath}.stepIds must cover activities in this lesson`);
+    } else {
+      const seen = new Set<string>();
+      for (const id of entry.stepIds) {
+        if (typeof id !== "string" || !ids.has(id)) {
+          errors.push(`${entryPath}.stepIds contains an unknown activity`);
+        } else {
+          if (seen.has(id)) errors.push(`${entryPath}.stepIds repeats "${id}"`);
+          seen.add(id);
+          covered.add(id);
+        }
+      }
+    }
+  });
+  for (const step of steps) {
+    if (typeof step.id === "string" && !covered.has(step.id))
+      errors.push(`${path}.references is missing activity "${step.id}"`);
+    if (step.shortcuts !== undefined)
+      errors.push(`${path}: use lesson.references instead of duplicating step.shortcuts in a versioned reference`);
+  }
+}
+
 export function validateCourse(value: unknown): string[] {
   const errors: string[] = [];
   if (!isRecord(value)) return ["course must be an object"];
@@ -603,6 +707,7 @@ export function validateCourse(value: unknown): string[] {
 
   const seenLessonIds = new Set<string>();
   const seenStepIds = new Set<string>();
+  const referenceSources = value.reference === undefined ? undefined : validateReferenceMetadata(errors, value.reference);
   value.lessons.forEach((lesson, lessonIndex) => {
     const path = `course.lessons[${lessonIndex}]`;
     if (!isRecord(lesson)) {
@@ -621,6 +726,8 @@ export function validateCourse(value: unknown): string[] {
     if (lesson.mixedPractice !== undefined && typeof lesson.mixedPractice !== "boolean") errors.push(`${path}.mixedPractice must be a boolean`);
     addStringError(errors, lesson.icon, `${path}.icon`);
     addPositiveNumberError(errors, lesson.estimatedMinutes, `${path}.estimatedMinutes`);
+    if (referenceSources) validateLessonReferences(errors, lesson, path, referenceSources);
+    else if (lesson.references !== undefined) errors.push(`${path}.references requires course.reference metadata`);
     if (lesson.kind === "welcome") {
       if (!Array.isArray(lesson.steps) || lesson.steps.length !== 0) errors.push(`${path}.steps must be empty for a welcome lesson`);
       if (lessonIndex !== 0) errors.push(`${path}: the welcome lesson must be first`);

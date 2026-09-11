@@ -1,17 +1,22 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Learn Omarchy — shortcut reference</title>
+<title>Learn Omarchy: shortcut reference</title>
 <style>
 :root { color-scheme: light; font: 15px/1.4 system-ui, sans-serif; color: #17212b; background: white; }
 body { max-width: 1060px; margin: 2rem auto; padding: 0 1.5rem; }
 h1 { font-size: 1.7rem; margin-bottom: .3rem; } h2 { font-size: 1rem; margin: 0 0 .5rem; border-bottom: 1px solid #87939c; }
 p { margin: .5rem 0; } .reference { columns: 2; column-gap: 2rem; margin-top: 1.5rem; }
-section { break-inside: avoid; margin-bottom: 1.3rem; } dl { margin: 0; }
+section { margin-bottom: 1.3rem; } h2 { break-after: avoid; } dl { margin: 0; }
 dl div { break-inside: avoid; margin-bottom: .6rem; } dt { font-weight: 750; font-size: .83rem; }
 dd { margin: 0; } small { display: block; color: #4b5861; font-size: .78rem; font-weight: normal; }
 h2 small { display: inline; } button { padding: .5rem 1rem; font: inherit; cursor: pointer; }
 footer { border-top: 1px solid #87939c; padding-top: .6rem; font-size: .8rem; }
-@media (max-width: 650px) { .reference { columns: 1; } }
+.kind { font-size: .9em; font-weight: normal; } sup { font-size: .75em; }
+a { color: inherit; } .sources { margin-top: 1.5rem; font-size: .8rem; }
+.sources ol { columns: 2; column-gap: 2rem; padding-left: 1.4rem; }
+.sources li { break-inside: avoid; margin-bottom: .65rem; padding-right: .5rem; }
+.source-url { display: block; overflow-wrap: anywhere; font-size: .85em; }
+@media (max-width: 650px) { .reference, .sources ol { columns: 1; } }
 @media print {
   @page { margin: 12mm; }
   :root { font-size: 10pt; } body { margin: 0; padding: 0; max-width: none; }
@@ -20,90 +25,431 @@ footer { border-top: 1px solid #87939c; padding-top: .6rem; font-size: .8rem; }
 }
 </style></head><body>
 <header><h1>Learn Omarchy: shortcut reference</h1>
-<p>Super is the Windows-logo key, or Command on a Mac keyboard. Return means Enter. Hold chord keys together unless the activity says otherwise.</p>
+<p><strong>Omarchy 4.0.3 defaults.</strong> Reviewed 2026-09-11 against the versioned sources below. Reference entries cover all 17 lessons and 101 activities.</p>
+<p>Super is the Windows-logo key, or Command on a Mac keyboard; Alt is Option on a Mac keyboard. Return means Enter. Hold chord keys together. Entries marked <strong>Press in order</strong> are separate key presses, not held chords; <strong>Workflow</strong> entries describe menu paths or procedures.</p>
 <p>MINUS and EQUAL name the two physical keys to the left of Backspace (codes 20 and 21), regardless of their printed labels. COMMA means the comma key.</p>
-<p>Reference only: actions affect your real desktop. Use disposable windows, inspect notifications before invoking them, and check your current bindings with Super + K. Personal overrides may differ.</p>
+<p><strong>Outside the guided app, shortcuts affect your real focused window and desktop, not just lesson-created windows.</strong> Save your work, use disposable windows, and inspect notifications before invoking them. Super + K shows current bindings; Enter or clicking a result executes it. Custom bindings may differ.</p>
 <button type="button" onclick="window.print()">Print or save as PDF</button></header>
-<main class="reference"><section id="omarchy-tour">
+<main class="reference"><section id="welcome">
+<h2>Welcome to Omarchy</h2>
+<dl><div data-step-id="" data-step-ids="[]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Welcome and lesson controls <sup><a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>Replay Welcome, choose a topic, and use Practice to revisit activities. Help demonstrates; Skip leaves an activity for later.<small>These are Learn Omarchy course controls, not default Omarchy shortcuts. Introduced content is not proof of hands-on practice.</small></dd></div>
+<div data-step-id="" data-step-ids="[]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Capture Keys / Release Keys <sup><a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>Capture Keys sends input to the coach; Release Keys gives input to desktop apps. Return to Capture Keys to resume guided shortcuts.<small>Released shortcuts affect your real desktop. Course-owned-window protections do not apply to everyday shortcuts.</small></dd></div></dl></section>
+<section id="omarchy-tour">
 <h2>Omarchy tour</h2>
-<dl><div data-step-id="tour-workspace-two"><dt>SUPER + 2</dt><dd>Switch to workspace two. Leave your windows open.<small>Your windows stay open when you switch workspaces.</small></dd></div>
-<div data-step-id="tour-workspace-one"><dt>SUPER + 1</dt><dd>Return to workspace one.</dd></div>
-<div data-step-id="tour-omarchy-menu"><dt>SUPER + SPACE</dt><dd>Open the Omarchy menu.</dd></div></dl></section>
+<dl><div data-step-id="tour-welcome" data-step-ids="[&quot;tour-welcome&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Desktop bar and Super key <sup><a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a> <a href="#source-hotkeys" aria-label="Omarchy 4.0.3: Hotkeys">[1]</a></sup></dt>
+<dd>The bar provides workspaces, clock and system controls. Super is the Windows-logo key, or Command on a Mac keyboard.</dd></div>
+<div data-step-id="tour-workspaces" data-step-ids="[&quot;tour-workspaces&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Bar &gt; Workspaces <sup><a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
+<dd>Each workspace holds its own windows. The active marker can be an icon rather than a number; switching keeps windows open.</dd></div>
+<div data-step-id="tour-workspace-two" data-step-ids="[&quot;tour-workspace-two&quot;]" data-kind="chord">
+<dt>SUPER + 2 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Switch to workspace two without moving or closing its windows.</dd></div>
+<div data-step-id="tour-workspace-one" data-step-ids="[&quot;tour-workspace-one&quot;]" data-kind="chord">
+<dt>SUPER + 1 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Switch to workspace one.</dd></div>
+<div data-step-id="tour-clock" data-step-ids="[&quot;tour-clock&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Bar &gt; Clock <sup><a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Click the clock for the calendar. Hover for quick tools such as reminders and recording; weather appears when enabled.</dd></div>
+<div data-step-id="tour-status" data-step-ids="[&quot;tour-status&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Bar &gt; Status indicators <sup><a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Select network, Bluetooth, audio or power indicators to inspect controls. Available indicators depend on hardware and bar settings.</dd></div>
+<div data-step-id="tour-omarchy-menu" data-step-ids="[&quot;tour-omarchy-menu&quot;]" data-kind="chord">
+<dt>SUPER + SPACE <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open the Omarchy menu for apps, settings and system tools.</dd></div>
+<div data-step-id="tour-menu-icon" data-step-ids="[&quot;tour-menu-icon&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Bar &gt; Omarchy icon <sup><a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Click the Omarchy icon to open the same menu without a keyboard shortcut.</dd></div></dl></section>
 <section id="menus-and-apps">
 <h2>Menus and apps</h2>
-<dl><div data-step-id="open-apps"><dt>SUPER + ALT + SPACE</dt><dd>Open the Apps menu.</dd></div>
-<div data-step-id="open-keybindings"><dt>SUPER + K</dt><dd>Open the shortcut guide. Read only: pressing Enter or clicking a result runs that shortcut.<small>Read only: Enter or clicking a result runs the shortcut, not a help page.</small></dd></div></dl></section>
+<dl><div data-step-id="open-root-menu" data-step-ids="[&quot;open-root-menu&quot;]" data-kind="chord">
+<dt>SUPER + SPACE <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open the Omarchy menu for apps, settings and system tools.</dd></div>
+<div data-step-id="open-apps" data-step-ids="[&quot;open-apps&quot;,&quot;apps-search-practice&quot;]" data-kind="chord">
+<dt>SUPER + ALT + SPACE <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open Apps to search launchable applications, not every installed package. Alt is Option on a Mac keyboard.</dd></div>
+<div data-step-id="open-apps" data-step-ids="[&quot;open-apps&quot;,&quot;apps-search-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Apps &gt; Search &gt; Launch <sup><a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>Open Apps, type Terminal or Ghostty, select the installed terminal and press Enter. In the COURSE, choose Start search first, then close the newly opened terminal to finish.<small>Escape clears typed search text; press again to close, or once if empty. Check the focused window before closing anything.</small></dd></div>
+<div data-step-id="apps-search-practice" data-step-ids="[&quot;apps-search-practice&quot;]" data-kind="chord">
+<dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Close the focused window.<small>Save work first. This is not limited to the terminal opened for practice.</small></dd></div>
+<div data-step-id="open-keybindings" data-step-ids="[&quot;open-keybindings&quot;]" data-kind="chord">
+<dt>SUPER + K <sup><a href="#source-hotkeys" aria-label="Omarchy 4.0.3: Hotkeys">[1]</a></sup></dt>
+<dd>Open the shortcut guide and type to filter bindings.<small>Enter or clicking a result runs that shortcut, potentially closing a window or locking the screen. Read without activating unfamiliar results.</small></dd></div></dl></section>
 <section id="everyday-apps">
 <h2>Everyday apps</h2>
-<dl><div data-step-id="launch-terminal"><dt>SUPER + RETURN</dt><dd>Open a new terminal window.<small>A terminal is a window where you can type commands.</small></dd></div>
-<div data-step-id="close-terminal"><dt>SUPER + W</dt><dd>Close the terminal you just opened.<small>Only the terminal opened for this activity will close.</small></dd></div>
-<div data-step-id="launch-browser"><dt>SUPER + SHIFT + RETURN</dt><dd>Open a new browser window.</dd></div>
-<div data-step-id="launch-files"><dt>SUPER + SHIFT + F</dt><dd>Open the Files application.<small>A file manager helps you browse folders and documents.</small></dd></div></dl></section>
+<dl><div data-step-id="launch-terminal" data-step-ids="[&quot;launch-terminal&quot;]" data-kind="chord">
+<dt>SUPER + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a></sup></dt>
+<dd>Open a terminal for commands. Return is the Enter key on most keyboards.</dd></div>
+<div data-step-id="close-terminal" data-step-ids="[&quot;close-terminal&quot;,&quot;close-files&quot;]" data-kind="chord">
+<dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Close the focused window.<small>Save work and verify focus first; any focused app can close, not only a practice terminal or file manager.</small></dd></div>
+<div data-step-id="launch-browser" data-step-ids="[&quot;launch-browser&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-browsers" aria-label="Omarchy 4.0.3: Browsers">[9]</a></sup></dt>
+<dd>Launch the configured browser. Browser settings determine whether a new window opens.</dd></div>
+<div data-step-id="launch-files" data-step-ids="[&quot;launch-files&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + F <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a></sup></dt>
+<dd>Open the file manager to browse folders and documents.</dd></div></dl></section>
 <section id="windows">
 <h2>Windows</h2>
-<dl><div data-step-id="windows-split"><dt>SUPER + J</dt><dd>Change the split between the two tiled practice terminals.<small>Split changes require the dwindle layout and two tiled practice windows.</small></dd></div>
-<div data-step-id="windows-focus-next"><dt>ALT + TAB</dt><dd>Switch keyboard focus to the other practice terminal.<small>Focus means which window receives your keyboard input.</small></dd></div>
-<div data-step-id="windows-float"><dt>SUPER + T</dt><dd>Make the focused practice terminal float instead of staying tiled.<small>Floating windows can sit above the tiled layout.</small></dd></div>
-<div data-step-id="windows-resize"><dt>SUPER + EQUAL</dt><dd>Change the width of the floating practice terminal.<small>Use the key immediately left of Backspace, normally = on a US keyboard.</small></dd></div>
-<div data-step-id="windows-resize-back"><dt>SUPER + MINUS</dt><dd>Change the floating practice terminal&#39;s width in the other direction.<small>Use the key two places left of Backspace, normally minus on a US keyboard.</small></dd></div>
-<div data-step-id="windows-fullscreen"><dt>SUPER + F</dt><dd>Make the floating practice terminal fullscreen.<small>Use the same shortcut again to leave fullscreen.</small></dd></div>
-<div data-step-id="windows-focus-right"><dt>SUPER + ARROW</dt><dd>Focus the neighboring practice terminal using the directional window-focus shortcut.<small>Choose the arrow pointing toward the other practice window; the direction depends on the current layout.</small></dd></div>
-<div data-step-id="windows-swap"><dt>SUPER + SHIFT + ARROW</dt><dd>Swap the positions of the two practice terminals using the directional swap shortcut.<small>Only our two practice terminals will change positions. Choose the arrow pointing toward the other practice window; the direction depends on the current layout.</small></dd></div></dl></section>
+<dl><div data-step-id="windows-open-first" data-step-ids="[&quot;windows-open-first&quot;,&quot;windows-open-second&quot;]" data-kind="chord">
+<dt>SUPER + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
+<dd>Open a terminal. Tiling fits additional windows into the available workspace without overlap.</dd></div>
+<div data-step-id="windows-split" data-step-ids="[&quot;windows-split&quot;,&quot;windows-split-restore&quot;]" data-kind="chord">
+<dt>SUPER + J <span class="kind">(optional activity)</span> <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Toggle the split direction within the dwindle layout; repeat to toggle back.<small>Needs tiled windows in dwindle. This does not switch workspace layouts or provide the same split behavior in floating, scrolling or custom layouts.</small></dd></div>
+<div data-step-id="windows-focus-next" data-step-ids="[&quot;windows-focus-next&quot;]" data-kind="chord">
+<dt>ALT + TAB <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Cycle focus through windows on the active workspace. Focus determines which window receives keyboard input.<small>Includes your existing windows, not just practice windows.</small></dd></div>
+<div data-step-id="windows-float" data-step-ids="[&quot;windows-float&quot;,&quot;windows-retile&quot;]" data-kind="chord">
+<dt>SUPER + T <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Toggle the focused window between floating and tiling. Repeat to return it to the tiled layout.</dd></div>
+<div data-step-id="windows-resize" data-step-ids="[&quot;windows-resize&quot;]" data-kind="chord">
+<dt>SUPER + EQUAL <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Resize horizontally by a 100-pixel step using physical keycode 21, immediately left of Backspace (normally equals on US keyboards).<small>No Shift or Plus key is needed. Physical position, window size limits and the movable tiled edge determine the result.</small></dd></div>
+<div data-step-id="windows-resize-back" data-step-ids="[&quot;windows-resize-back&quot;]" data-kind="chord">
+<dt>SUPER + MINUS <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Resize horizontally in the other direction by a 100-pixel step using physical keycode 20, two places left of Backspace (normally minus on US keyboards).<small>These are physical keycodes, not character bindings. Tiled edges and size limits affect the result; reversing need not restore the exact size.</small></dd></div>
+<div data-step-id="windows-resize-back" data-step-ids="[&quot;windows-resize-back&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + EQUAL <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Resize height instead of width by a 100-pixel step.<small>Use physical keycode 21, immediately left of Backspace, not a typed Plus character. Layout constraints still apply.</small></dd></div>
+<div data-step-id="windows-resize-back" data-step-ids="[&quot;windows-resize-back&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + MINUS <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Resize height in the other direction by a 100-pixel step.<small>Use physical keycode 20, two places left of Backspace. Layout constraints still apply.</small></dd></div>
+<div data-step-id="windows-resize-back" data-step-ids="[&quot;windows-resize-back&quot;]" data-kind="chord">
+<dt>SUPER + ALT + EQUAL <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Use a finer 25-pixel horizontal resize step. Add Shift for height instead of width.<small>Use physical keycode 21, immediately left of Backspace. Size limits and tiled edges can prevent resizing.</small></dd></div>
+<div data-step-id="windows-resize-back" data-step-ids="[&quot;windows-resize-back&quot;]" data-kind="chord">
+<dt>SUPER + ALT + MINUS <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Use a finer 25-pixel horizontal resize step in the other direction. Add Shift for height.<small>Use physical keycode 20, two places left of Backspace. Size limits and tiled edges can prevent resizing.</small></dd></div>
+<div data-step-id="windows-resize-back" data-step-ids="[&quot;windows-resize-back&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + EQUAL <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Use a larger 300-pixel horizontal resize step. Add Shift for height instead of width.<small>Use physical keycode 21, immediately left of Backspace. Size limits and tiled edges can prevent resizing.</small></dd></div>
+<div data-step-id="windows-resize-back" data-step-ids="[&quot;windows-resize-back&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + MINUS <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Use a larger 300-pixel horizontal resize step in the other direction. Add Shift for height.<small>Use physical keycode 20, two places left of Backspace. Size limits and tiled edges can prevent resizing.</small></dd></div>
+<div data-step-id="windows-fullscreen" data-step-ids="[&quot;windows-fullscreen&quot;,&quot;windows-exit-fullscreen&quot;]" data-kind="chord">
+<dt>SUPER + F <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Toggle fullscreen for the focused window; repeat to leave fullscreen.</dd></div>
+<div data-step-id="windows-focus-right" data-step-ids="[&quot;windows-focus-right&quot;]" data-kind="chord">
+<dt>SUPER + ARROW <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Focus the neighboring window in the chosen direction: left, right, up or down.</dd></div>
+<div data-step-id="windows-swap" data-step-ids="[&quot;windows-swap&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + ARROW <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Swap the focused window with the adjacent window in the chosen direction.<small>Changes both windows&#39; positions, including existing work. Check focus and the neighbor first.</small></dd></div>
+<div data-step-id="windows-close-one" data-step-ids="[&quot;windows-close-one&quot;,&quot;windows-close-two&quot;]" data-kind="chord">
+<dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Close the focused window; remaining tiles reclaim its space.<small>Save work first. The shortcut can close any focused window.</small></dd></div></dl></section>
 <section id="workspaces">
 <h2>Workspaces</h2>
-<dl><div data-step-id="workspaces-back"><dt>SUPER + CTRL + TAB</dt><dd>Return to the workspace you were just using, with the previous-used-workspace shortcut.</dd></div>
-<div data-step-id="workspaces-send"><dt>SUPER + SHIFT + 2</dt><dd>Send the practice terminal to workspace two.<small>The terminal moves to workspace two, and you follow it.</small></dd></div>
-<div data-step-id="next-workspace"><dt>SUPER + TAB</dt><dd>Switch to the next workspace in order.</dd></div>
-<div data-step-id="previous-workspace"><dt>SUPER + SHIFT + TAB</dt><dd>Switch back to the previous workspace in order.</dd></div>
-<div data-step-id="workspaces-stash"><dt>SUPER + ALT + S</dt><dd>Move the practice terminal into the scratchpad, the hidden workspace.<small>The scratchpad is a hidden workspace you can show over your desktop.</small></dd></div>
-<div data-step-id="workspaces-scratchpad"><dt>SUPER + S</dt><dd>Show the scratchpad so you can see the practice terminal.</dd></div></dl></section>
-<section id="advanced-windows">
-<h2>More window controls <small>(optional)</small></h2>
-<dl><div data-step-id="advanced-window-groups"><dt>SUPER + G</dt><dd>Toggle window grouping</dd></div>
-<div data-step-id="advanced-window-groups"><dt>SUPER + ALT + ARROW</dt><dd>Move the active window into the adjacent group</dd></div>
-<div data-step-id="advanced-window-groups"><dt>SUPER + ALT + TAB</dt><dd>Next window in the group<small>Add Shift for the previous window.</small></dd></div>
-<div data-step-id="advanced-window-groups"><dt>SUPER + ALT + G</dt><dd>Move the active window out of its group</dd></div>
-<div data-step-id="advanced-window-pop"><dt>SUPER + O</dt><dd>Pop a tiled window out: float and pin<small>Start tiled. Invoke again on the pinned pop-out to unpin and retile.</small></dd></div>
-<div data-step-id="advanced-window-layout"><dt>SUPER + L</dt><dd>Toggle workspace layout between dwindle and scrolling<small>Persists a setting. A custom layout is not restored by toggling again.</small></dd></div>
-<div data-step-id="advanced-window-mouse"><dt>SUPER + LEFT MOUSE DRAG</dt><dd>Move a window</dd></div>
-<div data-step-id="advanced-window-mouse"><dt>SUPER + RIGHT MOUSE DRAG</dt><dd>Resize a window</dd></div></dl></section>
-<section id="notifications">
-<h2>Notifications <small>(optional)</small></h2>
-<dl><div data-step-id="notifications-history"><dt>SUPER + SHIFT + ALT + COMMA</dt><dd>Open notification history</dd></div>
-<div data-step-id="notifications-history"><dt>SUPER + COMMA</dt><dd>Dismiss the latest notification</dd></div>
-<div data-step-id="notifications-history"><dt>SUPER + SHIFT + COMMA</dt><dd>Dismiss all notifications<small>Affects your real notifications.</small></dd></div>
-<div data-step-id="notifications-history"><dt>SUPER + ALT + COMMA</dt><dd>Invoke the latest notification<small>May launch an app or follow a link; inspect it first.</small></dd></div>
-<div data-step-id="notifications-quiet"><dt>SUPER + CTRL + COMMA</dt><dd>Toggle notification silencing<small>Changes your real preference; toggle back when finished.</small></dd></div></dl></section>
-<section id="bar-panels">
-<h2>Desktop controls <small>(optional)</small></h2>
-<dl><div data-step-id="audio-panel"><dt>SUPER + CTRL + A</dt><dd>Open the Audio panel.<small>Output is where sound plays; input is your microphone.</small></dd></div>
-<div data-step-id="network-panel"><dt>SUPER + CTRL + W</dt><dd>Open the Network panel.<small>Check the connection without disconnecting or changing networks.</small></dd></div>
-<div data-step-id="power-panel"><dt>SUPER + CTRL + P</dt><dd>Open the Power panel to view battery information.</dd></div>
-<div data-step-id="calendar-panel"><dt>SUPER + CTRL + ALT + D</dt><dd>Open the calendar.<small>Clicking the clock opens the same calendar.</small></dd></div>
-<div data-step-id="background-menu"><dt>SUPER + CTRL + SPACE</dt><dd>Open the Background switcher. Look without selecting a different background.<small>Choosing a background changes your desktop immediately.</small></dd></div>
-<div data-step-id="theme-menu"><dt>SUPER + SHIFT + CTRL + SPACE</dt><dd>Open the Theme menu. Look without changing your theme.<small>Choosing a theme applies it immediately; no change is required.</small></dd></div>
-<div data-step-id="toggle-menu"><dt>SUPER + CTRL + O</dt><dd>Open the Toggle menu. Look only: selecting an entry changes that setting.<small>Selecting an entry changes that setting.</small></dd></div></dl></section>
+<dl><div data-step-id="workspaces-home" data-step-ids="[&quot;workspaces-home&quot;]" data-kind="chord">
+<dt>SUPER + 1 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Switch to workspace one.</dd></div>
+<div data-step-id="workspaces-open-terminal" data-step-ids="[&quot;workspaces-open-terminal&quot;]" data-kind="chord">
+<dt>SUPER + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
+<dd>Open a terminal on the current workspace. Each workspace holds its own windows.</dd></div>
+<div data-step-id="workspaces-jump" data-step-ids="[&quot;workspaces-jump&quot;]" data-kind="chord">
+<dt>SUPER + 2 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Switch to workspace two, leaving windows open on their own workspaces.</dd></div>
+<div data-step-id="workspaces-back" data-step-ids="[&quot;workspaces-back&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + TAB <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Return to the last workspace you visited.</dd></div>
+<div data-step-id="workspaces-send" data-step-ids="[&quot;workspaces-send&quot;,&quot;workspaces-restore&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + 2 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Move the focused window to workspace two and follow it there. Also restores a visible, focused scratchpad window to that numbered workspace.<small>Check focus first. A hidden scratchpad window is not the target; reveal it and select it before moving.</small></dd></div>
+<div data-step-id="next-workspace" data-step-ids="[&quot;next-workspace&quot;]" data-kind="chord">
+<dt>SUPER + TAB <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Switch to the next workspace.</dd></div>
+<div data-step-id="previous-workspace" data-step-ids="[&quot;previous-workspace&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + TAB <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Switch to the previous workspace.</dd></div>
+<div data-step-id="workspaces-stash" data-step-ids="[&quot;workspaces-stash&quot;]" data-kind="chord">
+<dt>SUPER + ALT + S <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Move the focused window to the scratchpad, a hidden workspace that can appear over your desktop.<small>Verify which window has focus before stashing it.</small></dd></div>
+<div data-step-id="workspaces-scratchpad" data-step-ids="[&quot;workspaces-scratchpad&quot;,&quot;workspaces-scratchpad-hide&quot;,&quot;workspaces-reveal-before-restore&quot;]" data-kind="chord">
+<dt>SUPER + S <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Toggle scratchpad show/hide. Hidden scratchpad windows stay open; reveal and focus the intended window before restoring it.</dd></div>
+<div data-step-id="workspaces-close" data-step-ids="[&quot;workspaces-close&quot;]" data-kind="chord">
+<dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Close the focused window.<small>Save work and check focus first; the native shortcut is not restricted to a practice terminal.</small></dd></div></dl></section>
 <section id="clipboard-and-helpers">
 <h2>Clipboard and Compose</h2>
-<dl><div data-step-id="clipboard-history"><dt>SUPER + CTRL + V</dt><dd>Open clipboard history to see where earlier copied items are kept.<small>History may contain private information; select entries carefully.</small></dd></div></dl></section>
+<dl><div data-step-id="helpers-universal-copy" data-step-ids="[&quot;helpers-universal-copy&quot;,&quot;clipboard-practice&quot;]" data-kind="chord">
+<dt>SUPER + C <sup><a href="#source-hotkeys" aria-label="Omarchy 4.0.3: Hotkeys">[1]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Copy selected text using Omarchy&#39;s shared copy shortcut, including in supported terminals.<small>Replaces the current clipboard. Custom bindings and app support can differ.</small></dd></div>
+<div data-step-id="helpers-universal-copy" data-step-ids="[&quot;helpers-universal-copy&quot;,&quot;clipboard-practice&quot;]" data-kind="chord">
+<dt>SUPER + V <sup><a href="#source-hotkeys" aria-label="Omarchy 4.0.3: Hotkeys">[1]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Paste the clipboard into the focused destination using Omarchy&#39;s shared paste shortcut.<small>Check the destination first, especially terminals and sensitive fields. App support can differ.</small></dd></div>
+<div data-step-id="clipboard-history" data-step-ids="[&quot;clipboard-history&quot;,&quot;clipboard-practice&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + V <sup><a href="#source-clipboard-guide" aria-label="Omarchy 4.0.3: Clipboard history overview (activation behavior: see implementation)">[4]</a> <a href="#source-clipboard-implementation" aria-label="Omarchy 4.0.3: Clipboard implementation, Shift+Enter copy-only and Enter paste attempt">[15]</a></sup></dt>
+<dd>Open clipboard history to search recent copies. Use arrow keys to highlight an entry or select with the mouse.<small>History may contain private information. Escape clears search text, then closes when empty.</small></dd></div>
+<div data-step-id="clipboard-history" data-step-ids="[&quot;clipboard-history&quot;,&quot;clipboard-practice&quot;]" data-kind="chord">
+<dt>SHIFT + ENTER <sup><a href="#source-clipboard-implementation" aria-label="Omarchy 4.0.3: Clipboard implementation, Shift+Enter copy-only and Enter paste attempt">[15]</a></sup></dt>
+<dd>In clipboard history, copy the highlighted entry without pasting. Then focus the destination and paste once.</dd></div>
+<div data-step-id="clipboard-history" data-step-ids="[&quot;clipboard-history&quot;,&quot;clipboard-practice&quot;]" data-kind="chord">
+<dt>ENTER <sup><a href="#source-clipboard-implementation" aria-label="Omarchy 4.0.3: Clipboard implementation, Shift+Enter copy-only and Enter paste attempt">[15]</a></sup></dt>
+<dd>In clipboard history, activate the highlighted entry and attempt immediate paste into the previously focused app.<small>Mouse activation also attempts paste. Behavior depends on the target app; use Shift+Enter for copy-only rather than assuming Enter just copies.</small></dd></div>
+<div data-step-id="clipboard-practice" data-step-ids="[&quot;clipboard-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Clipboard practice <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Select and copy the first sample, then the newer sample. Open history, highlight the first note and use Shift+Enter. Click the destination and paste once; check it matches the first note.<small>This exercise replaces your clipboard with harmless sample text.</small></dd></div>
+<div data-step-id="compose-intro" data-step-ids="[&quot;compose-intro&quot;,&quot;compose-practice&quot;]" data-kind="sequence">
+<dt><span class="kind">Press in order: </span>CAPS LOCK → m → s <sup><a href="#source-compose" aria-label="Omarchy 4.0.3: Compose smile and heart sequences">[16]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Compose a smile (😄): tap and release Caps Lock, then press lowercase m, then lowercase s.<small>Separate presses, not held together; no Shift. Caps Lock is Compose by default, but custom mappings may differ.</small></dd></div>
+<div data-step-id="compose-intro" data-step-ids="[&quot;compose-intro&quot;,&quot;compose-practice&quot;]" data-kind="sequence">
+<dt><span class="kind">Press in order: </span>CAPS LOCK → m → h <sup><a href="#source-compose" aria-label="Omarchy 4.0.3: Compose smile and heart sequences">[16]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Compose a heart (❤️): tap and release Caps Lock, then press lowercase m, then lowercase h.<small>Separate presses, not held together; no Shift. In COURSE practice, enter smile and heart in their respective fields; skip rather than changing custom mappings.</small></dd></div></dl></section>
 <section id="capture-and-share">
 <h2>Capture</h2>
-<dl><div data-step-id="capture-menu"><dt>SUPER + CTRL + C</dt><dd>Open the Capture menu without starting a capture.</dd></div></dl></section>
+<dl><div data-step-id="capture-menu" data-step-ids="[&quot;capture-menu&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + C <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a> <a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a></sup></dt>
+<dd>Open Capture for screenshots, recordings, color picking and text extraction. Use the menu if your keyboard has no Print key.</dd></div>
+<div data-step-id="capture-native-workflow" data-step-ids="[&quot;capture-native-workflow&quot;]" data-kind="chord">
+<dt>PRINT <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a></sup></dt>
+<dd>Start a screenshot with the frozen-screen picker; drag over the desired region. Alternatively search Screenshot in the Omarchy menu.<small>Inspect for private content first. Screenshots save to the configured Pictures directory and clipboard.</small></dd></div>
+<div data-step-id="capture-native-workflow" data-step-ids="[&quot;capture-native-workflow&quot;]" data-kind="sequence">
+<dt><span class="kind">Press in order: </span>TAB → ENTER <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a></sup></dt>
+<dd>In the screenshot picker, use Tab to select a window, then Enter to capture the selected window.<small>These are sequential presses in the picker, not a held chord. Check the selected window before capturing.</small></dd></div>
+<div data-step-id="capture-native-workflow" data-step-ids="[&quot;capture-native-workflow&quot;]" data-kind="chord">
+<dt>CTRL + ENTER <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a></sup></dt>
+<dd>In the screenshot picker, capture the full screen.<small>Includes visible private windows and notifications; inspect before capturing.</small></dd></div>
+<div data-step-id="capture-native-workflow" data-step-ids="[&quot;capture-native-workflow&quot;,&quot;capture-practice&quot;]" data-kind="chord">
+<dt>ESCAPE <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Cancel screenshot region selection without taking a capture.</dd></div>
+<div data-step-id="capture-native-workflow" data-step-ids="[&quot;capture-native-workflow&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Screenshot notification &gt; Edit <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a></sup></dt>
+<dd>Click the screenshot notification to open the captured image for editing.<small>Verify it is the intended screenshot notification before invoking its action.</small></dd></div>
+<div data-step-id="capture-native-workflow" data-step-ids="[&quot;capture-native-workflow&quot;]" data-kind="chord">
+<dt>SUPER + ALT + COMMA <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a> <a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Invoke the latest notification&#39;s action; when it is the screenshot notification, open the screenshot editor.<small>A different notification may launch an app or follow a link. Inspect the latest notification first.</small></dd></div>
+<div data-step-id="capture-practice" data-step-ids="[&quot;capture-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Capture practice <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Select only the harmless card, inspect the saved image, copy its file path and add a label to the preview.<small>The course uses its own capture tools. Preview annotation does not alter the saved image; nothing is uploaded.</small></dd></div>
+<div data-step-id="recording-intro" data-step-ids="[&quot;recording-intro&quot;]" data-kind="chord">
+<dt>ALT + PRINT <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a> <a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open recording options, or stop an active recording. Choices: no audio; desktop audio; desktop + microphone audio; or desktop + microphone audio + webcam when available. Saved clips go to the configured Videos directory.<small>Microphone includes desktop audio; webcam includes both. Review the region and recording indicator, know how to stop, and get permission before recording other people&#39;s voices or private content.</small></dd></div>
+<div data-step-id="recording-practice" data-step-ids="[&quot;recording-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Record &gt; Stop &gt; Replay <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Select and review the animated card&#39;s region. Explicitly start a silent recording, record at least one second, stop your recording, then play the saved clip.<small>This course-specific recorder uses no microphone or webcam and owns only its recording; it does not stop an existing recorder. This is separate from native recording options.</small></dd></div>
+<div data-step-id="ocr-practice" data-step-ids="[&quot;ocr-practice&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + PRINT <span class="kind">(optional activity)</span> <sup><a href="#source-text-tools" aria-label="Omarchy 4.0.3: Text extraction and dictation">[6]</a> <a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Extract text from a selected screen region with OCR (optical character recognition).<small>Recognition can make mistakes. Proofread against the source before using the text; avoid private regions.</small></dd></div>
+<div data-step-id="ocr-practice" data-step-ids="[&quot;ocr-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: OCR practice <span class="kind">(optional activity)</span> <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Select the sample text card, extract it, copy the recognized sample and paste it into the destination. Compare every word with the original.<small>Requires slurp, grim and tesseract; course verification is a reviewed sample, not a guarantee of general OCR accuracy.</small></dd></div>
+<div data-step-id="qr-practice" data-step-ids="[&quot;qr-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Omarchy menu &gt; QR Code <span class="kind">(optional activity)</span> <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a> <a href="#source-text-tools" aria-label="Omarchy 4.0.3: Text extraction and dictation">[6]</a></sup></dt>
+<dd>Search QR Code to select and decode a code already on screen, then inspect the decoded text.<small>Decoding is not permission to open an unknown link.</small></dd></div>
+<div data-step-id="qr-practice" data-step-ids="[&quot;qr-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: QR practice <span class="kind">(optional activity)</span> <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Prepare the harmless QR sample, select and decode it, copy the result and paste it below to compare with the sample.<small>The sample contains text, not a website; no link is opened. Requires qrencode, slurp, grim and zbarimg.</small></dd></div></dl></section>
+<section id="apps-and-upkeep">
+<h2>Apps and upkeep</h2>
+<dl><div data-step-id="upkeep-install" data-step-ids="[&quot;upkeep-install&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Omarchy menu &gt; Install <sup><a href="#source-packages" aria-label="Omarchy 4.0.3: Other packages">[7]</a></sup></dt>
+<dd>Search Install to find software packages. Prefer official packages; review community Arch User Repository (AUR) packages more closely.<small>Installing can request your password and change the system. Inspect package details before confirming; no installation is needed to learn the menu.</small></dd></div>
+<div data-step-id="upkeep-remove" data-step-ids="[&quot;upkeep-remove&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Omarchy menu &gt; Remove <sup><a href="#source-packages" aria-label="Omarchy 4.0.3: Other packages">[7]</a></sup></dt>
+<dd>Uninstall an unwanted package only after checking its name and the full removal list. Dependencies are software other apps need.<small>Removal may affect other software. Cancel if you do not understand the proposed changes.</small></dd></div>
+<div data-step-id="upkeep-defaults" data-step-ids="[&quot;upkeep-defaults&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Setup &gt; Defaults <sup><a href="#source-browsers" aria-label="Omarchy 4.0.3: Browsers">[9]</a> <a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a></sup></dt>
+<dd>Choose which installed apps Omarchy launches by default. Open the Omarchy menu and search Defaults.<small>Default changes affect future launches immediately. Installing an app and making it the default are separate decisions.</small></dd></div>
+<div data-step-id="upkeep-updates" data-step-ids="[&quot;upkeep-updates&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Omarchy menu &gt; Update <sup><a href="#source-updates" aria-label="Omarchy 4.0.3: Updates">[10]</a></sup></dt>
+<dd>Save work, review proposed changes and use the stable channel for everyday updates to Omarchy and its packages.<small>Some installations create rollback snapshots before updates. Snapshots are not independent backups of personal files.</small></dd></div>
+<div data-step-id="upkeep-recovery" data-step-ids="[&quot;upkeep-recovery&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Update &gt; Hardware <sup><a href="#source-updates" aria-label="Omarchy 4.0.3: Updates">[10]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>Use targeted hardware restarts only when needed. Distinguish restarting a device or updating software from resetting its configuration.<small>Network or audio restarts can interrupt calls, downloads and recordings. Back up custom settings under ~/.config before resets; do not edit packaged defaults under /usr/share/omarchy.</small></dd></div></dl></section>
 <section id="setup-and-install">
 <h2>Setup and system</h2>
-<dl><div data-step-id="hardware-menu"><dt>SUPER + CTRL + H</dt><dd>Open the Hardware menu. Look only: selecting an action can change device behavior immediately.<small>Look only: selecting a hardware action can change device behavior immediately.</small></dd></div>
-<div data-step-id="display-panel"><dt>SUPER + CTRL + D</dt><dd>Open the Display panel. Leave its controls unchanged; changes apply immediately.<small>Display changes apply immediately; leave the controls unchanged.</small></dd></div>
-<div data-step-id="system-menu"><dt>SUPER + ESCAPE</dt><dd>Open the System menu. Don&#39;t select Lock, Logout, Restart, or Shutdown.<small>Close the menu without choosing logout, restart, or shutdown.</small></dd></div></dl></section>
+<dl><div data-step-id="hardware-menu" data-step-ids="[&quot;hardware-menu&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + H <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open Trigger &gt; Hardware for available laptop display, mirror, GPU, touchpad, haptics and touchscreen actions.<small>Selecting an action can change device behavior immediately. Keyboard settings are under Setup &gt; Input or Keybindings; audio, Bluetooth and display have separate panels.</small></dd></div>
+<div data-step-id="display-panel" data-step-ids="[&quot;display-panel&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + D <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a> <a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Open Display for text size, scale, supported brightness and multi-display enable/disable controls. Escape closes the panel.<small>Changes apply immediately. Configure resolution separately under Setup &gt; Monitors.</small></dd></div>
+<div data-step-id="system-menu" data-step-ids="[&quot;system-menu&quot;]" data-kind="chord">
+<dt>SUPER + ESCAPE <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open System for lock, suspend, logout, reboot and shutdown.<small>Inspect without selecting a disruptive action; save work before logging out, restarting or shutting down.</small></dd></div>
+<div data-step-id="lock-practice" data-step-ids="[&quot;lock-practice&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + L <span class="kind">(optional activity)</span> <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Lock the screen without suspending the computer.<small>Optional practice: save work and know your password before locking. You need it to return.</small></dd></div>
+<div data-step-id="lock-practice" data-step-ids="[&quot;lock-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Screen-lock practice <span class="kind">(optional activity)</span> <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>When ready, explicitly choose the lock button, unlock with your password, then return to the course. Skip if you are not ready.<small>Opening the exercise alone does not lock the computer.</small></dd></div></dl></section>
+<section id="first-real-session">
+<h2>Your first real session</h2>
+<dl><div data-step-id="finale-intro" data-step-ids="[&quot;finale-intro&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Short desktop workflow <sup><a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a> <a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>On workspace one, open a terminal and browser. Focus the browser, move it to workspace two and follow. Return to one, focus and close the terminal; visit two, focus and close the browser.<small>Use disposable windows, save work and check focus before moving or closing. Native shortcuts have no course-owned-window protection.</small></dd></div>
+<div data-step-id="finale-home" data-step-ids="[&quot;finale-home&quot;,&quot;finale-back-to-one&quot;]" data-kind="chord">
+<dt>SUPER + 1 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Switch to workspace one.</dd></div>
+<div data-step-id="finale-terminal" data-step-ids="[&quot;finale-terminal&quot;]" data-kind="chord">
+<dt>SUPER + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a></sup></dt>
+<dd>Open a terminal.</dd></div>
+<div data-step-id="finale-browser" data-step-ids="[&quot;finale-browser&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-browsers" aria-label="Omarchy 4.0.3: Browsers">[9]</a></sup></dt>
+<dd>Launch the configured browser; its settings determine whether a new window opens.</dd></div>
+<div data-step-id="finale-send-browser" data-step-ids="[&quot;finale-send-browser&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + 2 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Move the focused window to workspace two and follow it there.<small>Focus the intended window first; this does not automatically target the browser.</small></dd></div>
+<div data-step-id="finale-close-terminal" data-step-ids="[&quot;finale-close-terminal&quot;,&quot;finale-close-browser&quot;]" data-kind="chord">
+<dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Close the focused window.<small>Save work and verify focus first. This can close existing work, not only windows from the capstone.</small></dd></div>
+<div data-step-id="finale-to-two" data-step-ids="[&quot;finale-to-two&quot;]" data-kind="chord">
+<dt>SUPER + 2 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Switch to workspace two.</dd></div></dl></section>
+<section id="advanced-windows">
+<h2>More window controls <small>(optional)</small></h2>
+<dl><div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
+<dt>SUPER + G <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
+<dd>Toggle window grouping<small>A group holds several windows in one tile with tabs along the top. Affects the focused window; try with disposable windows first.</small></dd></div>
+<div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
+<dt>SUPER + ALT + ARROW <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Move the active window into the adjacent group<small>Use the arrow for the desired direction. Check the focused window and adjacent group before moving it.</small></dd></div>
+<div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
+<dt>SUPER + ALT + TAB <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Next window in the group<small>Add Shift for the previous window.</small></dd></div>
+<div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
+<dt>SUPER + ALT + SHIFT + TAB <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Previous window in the group.</dd></div>
+<div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
+<dt>SUPER + ALT + G <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Move the active window out of its group</dd></div>
+<div data-step-id="advanced-window-pop" data-step-ids="[&quot;advanced-window-pop&quot;]" data-kind="chord">
+<dt>SUPER + O <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
+<dd>Pop a tiled window out: float and pin<small>Start tiled. Invoke again on the pinned pop-out to unpin and retile. Pop-out also resizes and centers; pinning keeps it visible across workspaces on its display. Already-floating or independently pinned windows can behave differently.</small></dd></div>
+<div data-step-id="advanced-window-layout" data-step-ids="[&quot;advanced-window-layout&quot;]" data-kind="chord">
+<dt>SUPER + L <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
+<dd>Toggle workspace layout between dwindle and scrolling<small>Persists a setting. A custom layout is not restored by toggling again. The saved setting is per-workspace; a custom layout switches to dwindle. Dwindle divides tiles; scrolling extends windows horizontally. This is not the dwindle split toggle.</small></dd></div>
+<div data-step-id="advanced-window-mouse" data-step-ids="[&quot;advanced-window-mouse&quot;]" data-kind="gesture">
+<dt><span class="kind">Mouse gesture: </span>SUPER + LEFT MOUSE DRAG <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Move a window<small>Hold Super while dragging with the left mouse button, then release both. Start with a disposable floating window; on tiled windows, the layout determines the effect.</small></dd></div>
+<div data-step-id="advanced-window-mouse" data-step-ids="[&quot;advanced-window-mouse&quot;]" data-kind="gesture">
+<dt><span class="kind">Mouse gesture: </span>SUPER + RIGHT MOUSE DRAG <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Resize a window<small>Hold Super while dragging with the right mouse button, then release both. Start with a disposable floating window; tiled layout constraints affect resizing.</small></dd></div></dl></section>
+<section id="notifications">
+<h2>Notifications <small>(optional)</small></h2>
+<dl><div data-step-id="notifications-history" data-step-ids="[&quot;notifications-history&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + ALT + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open notification history</dd></div>
+<div data-step-id="notifications-history" data-step-ids="[&quot;notifications-history&quot;]" data-kind="chord">
+<dt>SUPER + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Dismiss the latest notification<small>Affects your real notifications.</small></dd></div>
+<div data-step-id="notifications-history" data-step-ids="[&quot;notifications-history&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Dismiss all notifications<small>Affects your real notifications.</small></dd></div>
+<div data-step-id="notifications-history" data-step-ids="[&quot;notifications-history&quot;]" data-kind="chord">
+<dt>SUPER + ALT + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Invoke the latest notification<small>May launch an app or follow a link; inspect it first.</small></dd></div>
+<div data-step-id="notifications-quiet" data-step-ids="[&quot;notifications-quiet&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Toggle notification silencing<small>Changes your real preference; toggle back when finished.</small></dd></div></dl></section>
+<section id="bar-panels">
+<h2>Desktop controls <small>(optional)</small></h2>
+<dl><div data-step-id="audio-panel" data-step-ids="[&quot;audio-panel&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + A <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a> <a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Open Audio: output is where sound plays; input is your microphone. Escape closes the panel.</dd></div>
+<div data-step-id="network-panel" data-step-ids="[&quot;network-panel&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + W <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a> <a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Open Network to inspect connection status. Escape closes the panel.<small>Changing networks or disconnecting interrupts network activity.</small></dd></div>
+<div data-step-id="power-panel" data-step-ids="[&quot;power-panel&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + P <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a> <a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Open Power to inspect battery status and power profiles.</dd></div>
+<div data-step-id="calendar-panel" data-step-ids="[&quot;calendar-panel&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + ALT + D <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a> <a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Open the calendar. Clicking the bar clock is the mouse alternative; Escape closes it.</dd></div>
+<div data-step-id="background-menu" data-step-ids="[&quot;background-menu&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + SPACE <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open the Background switcher to preview choices. Escape clears search text; press again to close, or once if empty.<small>Applying a choice changes the desktop immediately; closing the menu does not undo it. Remember your previous selection if you want to restore it.</small></dd></div>
+<div data-step-id="theme-menu" data-step-ids="[&quot;theme-menu&quot;]" data-kind="chord">
+<dt>SUPER + SHIFT + CTRL + SPACE <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open the Theme menu to preview choices. Escape clears search text; press again to close, or once if empty.<small>Applying a theme changes the desktop immediately; closing the menu does not undo it. Remember your previous selection if you want to restore it.</small></dd></div>
+<div data-step-id="toggle-menu" data-step-ids="[&quot;toggle-menu&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + O <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open Toggle for night light, idle locking, the bar and other switches.<small>Selecting an entry changes that setting, including protections such as idle locking.</small></dd></div></dl></section>
 <section id="productivity-extras">
 <h2>Productivity extras <small>(optional)</small></h2>
-<dl><div data-step-id="helpers-emoji"><dt>SUPER + CTRL + E</dt><dd>Open the emoji picker.<small>The selected emoji is inserted into your previous text field.</small></dd></div>
-<div data-step-id="helpers-reminder"><dt>SUPER + CTRL + R</dt><dd>Open the reminder prompt. You don&#39;t need to create a reminder.<small>Reminder optional. Escape clears typed text; press again to close, or once if empty.</small></dd></div></dl></section>
+<dl><div data-step-id="helpers-emoji" data-step-ids="[&quot;helpers-emoji&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + E <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open the emoji picker, type a search word and press Enter to insert the selection into the previously focused text field.<small>Check the intended destination before choosing an emoji.</small></dd></div>
+<div data-step-id="helpers-reminder" data-step-ids="[&quot;helpers-reminder&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + R <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a> <a href="#source-top-bar" aria-label="Omarchy 4.0.3: The top bar">[3]</a></sup></dt>
+<dd>Open reminders; enter minutes first, then the reminder message.<small>Before scheduling, Escape clears typed text; press again to close, or once if empty.</small></dd></div>
+<div data-step-id="dictation-practice" data-step-ids="[&quot;dictation-practice&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + X <sup><a href="#source-dictation-bindings" aria-label="Omarchy 4.0.3: Voxtype toggle and push-to-talk bindings">[17]</a> <a href="#source-text-tools" aria-label="Omarchy 4.0.3: Text extraction and dictation">[6]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Toggle local dictation on/off when Voxtype is installed. Focus the destination, start, speak, stop and proofread.<small>You control the microphone. Installed software does not guarantee a configured microphone or running service; skip if unavailable.</small></dd></div>
+<div data-step-id="dictation-practice" data-step-ids="[&quot;dictation-practice&quot;]" data-kind="gesture">
+<dt><span class="kind">Mouse gesture: </span>F9 HOLD → RELEASE <sup><a href="#source-dictation-bindings" aria-label="Omarchy 4.0.3: Voxtype toggle and push-to-talk bindings">[17]</a> <a href="#source-text-tools" aria-label="Omarchy 4.0.3: Text extraction and dictation">[6]</a></sup></dt>
+<dd>With Voxtype installed, hold F9 while speaking and release it to finish push-to-talk dictation.<small>Review the resulting text; do not leave recording active. The toggle shortcut is an alternative if your keyboard lacks F9.</small></dd></div>
+<div data-step-id="dictation-practice" data-step-ids="[&quot;dictation-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Dictation practice <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Check availability, enable the practice field when ready, use the dictation shortcut for &#39;Omarchy practice&#39;, stop and review the words.<small>The exercise does not start your microphone. It checks the entered sample and your review, not whether speech produced the text.</small></dd></div>
+<div data-step-id="dictation-corrections" data-step-ids="[&quot;dictation-corrections&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Voxtype &gt; config.toml &gt; Replacements <sup><a href="#source-text-tools" aria-label="Omarchy 4.0.3: Text extraction and dictation">[6]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>For installed Voxtype, review ~/.config/voxtype/config.toml and its commented [text] replacements example to correct recurring recognition errors.<small>Back up before edits, keep replacements specific and test a harmless phrase. Install &gt; AI &gt; Dictation installs the tool, not its configuration; Remove &gt; Dictation removes it. Replacements affect dictation, not ordinary typing.</small></dd></div></dl></section>
 <section id="useful-tools">
 <h2>Useful tools <small>(optional)</small></h2>
-<dl><div data-step-id="tools-monitor-open"><dt>SUPER + CTRL + T</dt><dd>Open the activity monitor to inspect resource use. Don&#39;t stop any programs.<small>Inspect resource use without stopping any programs.</small></dd></div>
-<div data-step-id="tools-calculator-open"><dt>SUPER + CTRL + Q</dt><dd>Open Omarchy&#39;s calculator.<small>The lesson checks that the calculator opens, not your calculation.</small></dd></div></dl></section>
+<dl><div data-step-id="tools-monitor-open" data-step-ids="[&quot;tools-monitor-open&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + T <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-guis" aria-label="Omarchy 4.0.3: Graphical tools">[11]</a></sup></dt>
+<dd>Open the activity monitor to inspect processor, memory, storage and running programs.<small>Inspect resource use without stopping programs; ending a process can lose work or interrupt services.</small></dd></div>
+<div data-step-id="tools-monitor-close" data-step-ids="[&quot;tools-monitor-close&quot;,&quot;tools-calculator-close&quot;]" data-kind="chord">
+<dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Close the focused window.<small>Check focus and save work first. Outside guided practice this can close any focused app, not only the monitor or calculator.</small></dd></div>
+<div data-step-id="tools-calculator-open" data-step-ids="[&quot;tools-calculator-open&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + Q <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-guis" aria-label="Omarchy 4.0.3: Graphical tools">[11]</a></sup></dt>
+<dd>Open the calculator. Enter a simple calculation such as 5 + 5 and inspect the result.</dd></div>
+<div data-step-id="tools-disk-usage" data-step-ids="[&quot;tools-disk-usage&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Omarchy menu &gt; Disk Usage <sup><a href="#source-guis" aria-label="Omarchy 4.0.3: Graphical tools">[11]</a></sup></dt>
+<dd>Search Disk Usage to inspect which folders consume storage before deciding what to clean.<small>Inspect, do not delete during exploration. Large folders may be important work; backups, caches and packages require different cleanup decisions.</small></dd></div></dl></section>
 <section id="create-and-share">
 <h2>Create and share <small>(optional)</small></h2>
-<dl><div data-step-id="share-menu"><dt>SUPER + CTRL + S</dt><dd>Open the Share menu without starting a transfer.<small>Opening the menu sends nothing; check the file and recipient before sharing.</small></dd></div></dl></section></main>
-<footer>Generated from the loaded course; duplicate chords are listed once. Optional references are introductions, not verified exercises. Practice progress stays in the app.</footer>
+<dl><div data-step-id="web-app-practice" data-step-ids="[&quot;web-app-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Install &gt; Web App / Remove &gt; Web App <sup><a href="#source-web-apps" aria-label="Omarchy 4.0.3: Web apps">[8]</a> <a href="#source-browsers" aria-label="Omarchy 4.0.3: Browsers">[9]</a></sup></dt>
+<dd>Install Web App asks for a name and website URL to create a launcher. Remove Web App removes that launcher, not your website account.<small>A real web app opens its URL in a browser window; check the address before installing or opening it.</small></dd></div>
+<div data-step-id="web-app-practice" data-step-ids="[&quot;web-app-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Web-app demo <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Explicitly create the isolated demo entry, open its local preview, then remove it.<small>This is not an installed app: it only uses the exercise folder, does not change Apps, and the local preview makes no network request.</small></dd></div>
+<div data-step-id="transcode-practice" data-step-ids="[&quot;transcode-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>Transcode &gt; Keep original &gt; Compare output <sup><a href="#source-capture" aria-label="Omarchy 4.0.3: Screenshots and recording">[5]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Convert a separate media copy at a sensible resolution. Compare file size and playback quality before sharing. MP4 suits longer clips; GIF suits short silent loops.<small>Keep the original. Neither format nor conversion guarantees a smaller file; GIF can be larger than MP4.</small></dd></div>
+<div data-step-id="transcode-practice" data-step-ids="[&quot;transcode-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Transcode practice <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Generate the harmless silent sample, play the original, choose a lower resolution and create a separate MP4 copy. Play the output and compare size and quality.<small>Requires ffmpeg and ffprobe. The course keeps the original; evaluate output rather than assuming lower resolution always means acceptable quality.</small></dd></div>
+<div data-step-id="share-menu" data-step-ids="[&quot;share-menu&quot;]" data-kind="chord">
+<dt>SUPER + CTRL + S <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
+<dd>Open Share; opening the menu alone sends nothing.<small>Verify content and recipient before sending. Escape clears typed text; press again to close, or once if empty.</small></dd></div>
+<div data-step-id="sharing-practice" data-step-ids="[&quot;sharing-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>LocalSend &gt; File &gt; Recipient <sup><a href="#source-guis" aria-label="Omarchy 4.0.3: Graphical tools">[11]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>For a real transfer, use LocalSend on both devices with a network connection between them. Inspect the file and verify the intended recipient before sending; confirm receipt.<small>Never send private files or secrets merely to test sharing. A nearby device is not necessarily the intended recipient.</small></dd></div>
+<div data-step-id="sharing-practice" data-step-ids="[&quot;sharing-practice&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Sharing rehearsal <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Prepare and read the sample file, choose &#39;My test phone (demo)&#39;, then confirm you checked the file and demo recipient.<small>Simulation only: it does not discover real devices, send files or confirm delivery.</small></dd></div></dl></section></main>
+<aside class="sources"><h2>Sources and version scope</h2>
+<p>Official sources are pinned to the stated release; course-specific practice sources describe Learn Omarchy, not native Omarchy features. Bundled paths are relative to Learn Omarchy's application directory. Newer releases and personal bindings may differ. Links are optional: reading and printing this sheet require no network access.</p>
+<ol><li id="source-hotkeys"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/07-hotkeys.md">Omarchy 4.0.3: Hotkeys</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/07-hotkeys.md</span></li>
+<li id="source-navigation"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/04-navigation.md">Omarchy 4.0.3: Navigation</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/04-navigation.md</span></li>
+<li id="source-top-bar"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/05-the-top-bar.md">Omarchy 4.0.3: The top bar</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/05-the-top-bar.md</span></li>
+<li id="source-clipboard-guide"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/08-unified-clipboard-history.md">Omarchy 4.0.3: Clipboard history overview (activation behavior: see implementation)</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/08-unified-clipboard-history.md</span></li>
+<li id="source-capture"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/12-screenshots-recording.md">Omarchy 4.0.3: Screenshots and recording</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/12-screenshots-recording.md</span></li>
+<li id="source-text-tools"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/11-text-extraction-dictation.md">Omarchy 4.0.3: Text extraction and dictation</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/11-text-extraction-dictation.md</span></li>
+<li id="source-packages"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/29-other-packages.md">Omarchy 4.0.3: Other packages</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/29-other-packages.md</span></li>
+<li id="source-web-apps"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/25-web-apps.md">Omarchy 4.0.3: Web apps</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/25-web-apps.md</span></li>
+<li id="source-browsers"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/23-browsers.md">Omarchy 4.0.3: Browsers</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/23-browsers.md</span></li>
+<li id="source-updates"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/30-updates.md">Omarchy 4.0.3: Updates</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/30-updates.md</span></li>
+<li id="source-guis"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/manual/22-guis.md">Omarchy 4.0.3: Graphical tools</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/manual/22-guis.md</span></li>
+<li id="source-tiling-bindings"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/tiling.lua">Omarchy 4.0.3: Window, workspace and physical resize bindings</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/tiling.lua</span></li>
+<li id="source-utility-bindings"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/utilities.lua">Omarchy 4.0.3: Menus, panels, capture and notification bindings</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/utilities.lua</span></li>
+<li id="source-app-bindings"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/applications.lua">Omarchy 4.0.3: Application bindings</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/applications.lua</span></li>
+<li id="source-clipboard-implementation"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/shell/plugins/clipboard/Clipboard.qml#L388-L392">Omarchy 4.0.3: Clipboard implementation, Shift+Enter copy-only and Enter paste attempt</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/shell/plugins/clipboard/Clipboard.qml#L388-L392</span></li>
+<li id="source-compose"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/default/xcompose#L3-L8">Omarchy 4.0.3: Compose smile and heart sequences</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/default/xcompose#L3-L8</span></li>
+<li id="source-dictation-bindings"><a href="https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/voxtype.lua">Omarchy 4.0.3: Voxtype toggle and push-to-talk bindings</a><span class="source-url">https://github.com/basecamp/omarchy/blob/v4.0.3/default/hypr/bindings/voxtype.lua</span></li>
+<li id="source-course-controls">Learn Omarchy course controls (bundled app source)<span class="source-url">Bundled source: app/shell.qml</span></li>
+<li id="source-course-practice">Learn Omarchy course practice (bundled app source)<span class="source-url">Bundled source: app/PracticeContent.qml</span></li></ol></aside>
+<footer>Generated from the loaded course. Repeated activities share an entry within a lesson; relevant shortcuts remain in each lesson. Optional labels identify optional course material, not a claim that an action was performed. Guided exercises and simulated workflows are identified separately; progress stays in the app.</footer>
 </body></html>
