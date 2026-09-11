@@ -43,6 +43,11 @@ version-tag CI produces only a draft prerelease. It never publishes or
 promotes a candidate to stable automatically. Complete the
 [acceptance gates](ACCEPTANCE.md) before approving publication.
 
+For a future package-repository PR, follow the
+[Omarchy submission kit](omarchy-pkgs/README.md). It reuses the approved release
+recipe and verifies public source availability before generating submission
+files; it never publishes or opens a PR.
+
 ## Prepare a release from actual source bytes
 
 There is no invented tag URL or placeholder checksum. Start with a trusted, existing local tag

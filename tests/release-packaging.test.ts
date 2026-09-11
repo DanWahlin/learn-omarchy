@@ -6,6 +6,7 @@ import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 import { checkLicenses, inspectArchive, packageVersion, prepareRelease } from "../tools/prepare-release.mjs";
 import { prepareCheckoutPackage } from "../tools/prepare-checkout-package.mjs";
+import { prepareOmarchySubmission } from "../tools/prepare-omarchy-submission.mjs";
 
 const template = await readFile(new URL("../packaging/PKGBUILD.in", import.meta.url), "utf8");
 
@@ -65,6 +66,157 @@ async function checkoutFixture(directory: string) {
     + "Copilot-Session: 109acf47-0cc8-4d3f-b7f4-0f451dbe98ca");
   return { source, git };
 }
+
+async function submissionFixture(directory: string, files = fixture(), archiveVersion = "1.2.3") {
+  const archive = await readFile(await archiveFixture(directory, files, archiveVersion));
+  const checksum = createHash("sha256").update(archive).digest("hex");
+  const repository = "DanWahlin/learn-omarchy";
+  const api = `https://api.github.com/repos/${repository}`;
+  const base = `https://github.com/${repository}/releases/download/v1.2.3`;
+  const repo = { private: false, full_name: repository };
+  const release = {
+    tag_name: "v1.2.3", draft: false, prerelease: false, published_at: "2026-09-10T12:00:00Z",
+    assets: ["learn-omarchy-1.2.3.tar.gz", "SHA256SUMS"].map(name => ({
+      name, state: "uploaded", browser_download_url: `${base}/${name}`,
+      digest: name.endsWith(".tar.gz") ? `sha256:${checksum}` : null,
+    })),
+  };
+  const payload = { archive, manifest: `${checksum}  learn-omarchy-1.2.3.tar.gz\n` };
+  const calls: string[] = [];
+  const request: typeof fetch = async (input, options) => {
+    const url = String(input);
+    calls.push(url);
+    assert.equal(options?.headers, undefined, "public readiness must not use authentication headers");
+    if (url === api) return Response.json(repo);
+    if (url === `${api}/releases/tags/v1.2.3`) return Response.json(release);
+    if (url === `${base}/learn-omarchy-1.2.3.tar.gz`) return new Response(new Uint8Array(payload.archive));
+    if (url === `${base}/SHA256SUMS`) return new Response(payload.manifest);
+    return new Response("Missing synthetic response", { status: 404 });
+  };
+  return { repo, release, payload, checksum, calls, request, now: Date.parse("2026-09-12T12:00:00Z") };
+}
+
+test("Omarchy submission uses verified public source, an updatable recipe and explicit pending approval", async context => {
+  const directory = await mkdtemp(resolve(".learn-submission-test-"));
+  try {
+    const fixture = await submissionFixture(directory);
+    fixture.now = Date.parse(fixture.release.published_at) + 24 * 60 * 60 * 1000;
+    const output = join(directory, "submission");
+    const result = await prepareOmarchySubmission("v1.2.3", output, { fetch: fixture.request, now: fixture.now });
+    assert.equal(result.sourceSha256, fixture.checksum);
+    assert.equal(result.anonymousSourceVerified, true);
+    assert.equal(result.submissionApproved, false);
+    const packageDirectory = join(output, "pkgbuilds", "learn-omarchy");
+    assert.deepEqual((await readdir(packageDirectory)).sort(), [".omarchy", "PKGBUILD"]);
+    assert.deepEqual((await readdir(output)).sort(), ["PR.md", "SRCINFO", "SUBMISSION.json", "pkgbuilds"]);
+    const pkgbuild = await readFile(join(packageDirectory, "PKGBUILD"), "utf8");
+    assert.match(pkgbuild, /source=\("https:\/\/github\.com\/DanWahlin\/learn-omarchy\/releases\/download\/v\$pkgver\/learn-omarchy-\$pkgver\.tar\.gz"\)/);
+    const local = await prepareRelease(join(directory, "input.tar.gz"), join(directory, "baseline"));
+    const baseline = await readFile(join(local.output, "PKGBUILD"), "utf8");
+    assert.equal(pkgbuild.replace(/^# Maintainer: .+\n\n/, "")
+      .replace(/^source=.*$/m, 'source=("learn-omarchy-$pkgver.tar.gz")'),
+    baseline, "only the maintainer comment and source URL may differ");
+    const metadata = JSON.parse(await readFile(join(packageDirectory, ".omarchy", "package.json"), "utf8"));
+    assert.deepEqual(metadata, {
+      source: "local", release_ring: "fast", min_release_age: "24h",
+      upstream: { github: "DanWahlin/learn-omarchy", checksums: "SHA256SUMS", assets: { any: "learn-omarchy-{pkgver}.tar.gz" } },
+    });
+    const body = await readFile(join(output, "PR.md"), "utf8");
+    assert.ok(body.includes(fixture.checksum));
+    assert.match(body, /- \[ \] Obtain explicit approval/);
+    assert.doesNotMatch(body, /@[A-Z][A-Z0-9_]*@/);
+    assert.equal(JSON.parse(await readFile(join(output, "SUBMISSION.json"), "utf8")).submissionApproved, false);
+    assert.equal(spawnSync("bash", ["-n", join(packageDirectory, "PKGBUILD")]).status, 0);
+    const info = spawnSync("makepkg", ["--printsrcinfo"], { cwd: packageDirectory, encoding: "utf8" });
+    if (info.error && (info.error as NodeJS.ErrnoException).code === "ENOENT") {
+      context.diagnostic("makepkg unavailable; native recipe checks require Arch/Omarchy.");
+    } else {
+      assert.equal(info.status, 0, info.stderr);
+      const normalized = (text: string) => text.split("\n").map(line => line.trim()).filter(Boolean).sort();
+      assert.deepEqual(normalized(info.stdout), normalized(await readFile(join(output, "SRCINFO"), "utf8")));
+      await writeFile(join(packageDirectory, "learn-omarchy-1.2.3.tar.gz"), fixture.payload.archive);
+      const verify = spawnSync("makepkg", ["--verifysource"], { cwd: packageDirectory, encoding: "utf8" });
+      assert.equal(verify.status, 0, verify.stderr);
+    }
+    const callCount = fixture.calls.length;
+    await assert.rejects(prepareOmarchySubmission("v1.2.3", output, { fetch: fixture.request }), /already exists/);
+    assert.equal(fixture.calls.length, callCount, "existing output is rejected before downloading again");
+    assert.ok(!(await readdir(directory)).some(name => name.startsWith(".learn-omarchy-submission-")));
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("Omarchy submission rejects private, draft, quarantined or inconsistent release metadata without output", async () => {
+  const directory = await mkdtemp(resolve(".learn-submission-test-"));
+  try {
+    const original = await submissionFixture(directory);
+    const cases: Array<[string, (value: typeof original) => void, RegExp]> = [
+      ["private", value => { value.repo.private = true; }, /must be public/],
+      ["wrong-repo", value => { value.repo.full_name = "other/repo"; }, /expected upstream/],
+      ["draft", value => { value.release.draft = true; }, /published as stable/],
+      ["prerelease", value => { value.release.prerelease = true; }, /published as stable/],
+      ["wrong-tag", value => { value.release.tag_name = "v1.2.4"; }, /match the tag/],
+      ["young", value => { value.release.published_at = "2026-09-11T12:00:00.001Z"; }, /at least 24h/],
+      ["future-date", value => { value.release.published_at = "2026-09-13T12:00:00Z"; }, /at least 24h/],
+      ["unknown-age", value => { value.release.published_at = "unknown"; }, /valid publication date/],
+      ["missing-asset", value => { value.release.assets.pop(); }, /exactly one uploaded SHA256SUMS/],
+      ["duplicate-asset", value => { value.release.assets.push(value.release.assets[0]); }, /exactly one uploaded/],
+      ["wrong-url", value => { value.release.assets[0].browser_download_url = "https://example.invalid/source"; }, /expected public URL/],
+      ["not-uploaded", value => { value.release.assets[0].state = "new"; }, /exactly one uploaded/],
+      ["bad-bytes", value => { value.payload.archive = Buffer.from("Not the release"); }, /does not match SHA256SUMS/],
+      ["missing-hash", value => { value.payload.manifest = `${value.checksum}  other.tar.gz\n`; }, /SHA256SUMS is missing/],
+      ["duplicate-hash", value => { value.payload.manifest += value.payload.manifest; }, /duplicate entries/],
+      ["malformed-hash", value => { value.payload.manifest = "SKIP  learn-omarchy-1.2.3.tar.gz\n"; }, /malformed/],
+      ["wrong-digest", value => { value.release.assets[0].digest = `sha256:${"0".repeat(64)}`; }, /GitHub's asset digest/],
+    ];
+    for (const [name, change, error] of cases) {
+      const state = await submissionFixture(directory);
+      change(state);
+      await assert.rejects(prepareOmarchySubmission("v1.2.3", join(directory, name), {
+        fetch: state.request, now: state.now,
+      }), error, name);
+      assert.ok(!(await readdir(directory)).includes(name), name);
+    }
+    await assert.rejects(prepareOmarchySubmission("v1.2.3", join(directory, "unavailable"), {
+      fetch: async () => new Response("Not found", { status: 404 }),
+    }), /anonymously \(HTTP 404\)/);
+    for (const tag of ["v0.1.0-rc.3", "1.2.3", "v1.2.3+build", "v01.2.3", "v1.2.3;echo bad"])
+      await assert.rejects(prepareOmarchySubmission(tag, join(directory, "invalid"), {
+        fetch: async () => { throw new Error("must not fetch an ineligible tag"); },
+      }), /stable vX.Y.Z/);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("Omarchy submission rechecks the downloaded archive version and licensing and cleans failed staging", async () => {
+  const directory = await mkdtemp(resolve(".learn-submission-test-"));
+  try {
+    const files = fixture();
+    const pkg = JSON.parse(String(files["package.json"]));
+    files["package.json"] = JSON.stringify({ ...pkg, version: "2.3.4" });
+    const wrongVersion = await submissionFixture(directory, files, "2.3.4");
+    await assert.rejects(prepareOmarchySubmission("v1.2.3", join(directory, "wrong-version"), {
+      fetch: wrongVersion.request, now: wrongVersion.now,
+    }), /source version does not match/);
+    const blocked = fixture();
+    blocked["packaging/release-licenses.json"] = JSON.stringify({ status: "blocked" });
+    const unapproved = await submissionFixture(directory, blocked);
+    await assert.rejects(prepareOmarchySubmission("v1.2.3", join(directory, "blocked"), {
+      fetch: unapproved.request, now: unapproved.now,
+    }), /Release blocked:[\s\S]*Owner approval/);
+    assert.ok(!(await readdir(directory)).some(name => name.startsWith(".learn-omarchy-submission-") || name === "blocked" || name === "wrong-version"));
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("Omarchy submission CLI is read-only for help and rejects publication or submission options", () => {
+  const script = resolve("tools/prepare-omarchy-submission.mjs");
+  const help = spawnSync(process.execPath, [script, "--help"], { encoding: "utf8" });
+  assert.equal(help.status, 0, help.stderr);
+  assert.match(help.stdout, /Does not build, install, publish, change visibility, commit, push, or create a PR/);
+  for (const args of [["--publish"], ["--create-pr"], ["--release", "v1.2.3"], ["--release", "v1.2.3", "--output", "--help"]]) {
+    const invalid = spawnSync(process.execPath, [script, ...args], { encoding: "utf8" });
+    assert.notEqual(invalid.status, 0);
+    assert.match(invalid.stderr, /Usage:/);
+  }
+});
 
 test("a clean checkout prepares an exact-source package without a tag, install or untracked files", async () => {
   const directory = await mkdtemp(resolve(".learn-release-checkout-test-"));

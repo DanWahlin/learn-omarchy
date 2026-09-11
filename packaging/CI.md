@@ -114,3 +114,8 @@ package-repository PR is a later, separate action. The agent-arcade precedent
 is `omacom/omarchy-pkgs#310`, with a package recipe and upstream-release tracking;
 Learn Omarchy needs an accessible, approved release/version/checksum before
 that submission, not a recipe pointing at a private draft.
+
+The [Omarchy submission kit](omarchy-pkgs/README.md) supplies release-tracking
+metadata, a PR description template, and a generator that verifies an anonymously
+accessible stable release before producing `pkgbuilds/learn-omarchy/`. Omarchy's
+GitHub tracker excludes prereleases, so publishing rc.3 alone is not sufficient.

@@ -1,0 +1,50 @@
+Adds **learn-omarchy**, an interactive Omarchy course with animated coaches,
+spoken guidance, hands-on exercises, mixed practice, and printable shortcuts.
+I'm the upstream author and will maintain this package.
+
+- Repository: https://github.com/DanWahlin/learn-omarchy
+- Release: @RELEASE_URL@
+- Source archive: @SOURCE_URL@
+- Source SHA-256: `@SHA256@`
+
+### Packaging and updates
+
+This is a source package, not a `-bin` repackaging. The release archive includes
+the QML/JavaScript application, course material, recordings, artwork, and Omarchy
+geometry companion. `make install` stages the payload without npm downloads,
+cloud credentials, audio generation, or a separate companion package.
+
+The recipe preserves the upstream package name `learn-omarchy`, so users of the
+upstream Arch package can upgrade normally. `arch=('any')` describes the
+architecture-independent payload, not a claim of desktop testing on every CPU.
+
+Like #310, `.omarchy/package.json` requests the fast ring and a 24-hour release
+quarantine. Unlike that binary package, this uses the upstream `SHA256SUMS`
+manifest and one `any` source asset. Sync updates `pkgver` and the unsuffixed
+`sha256sums`; stable `vX.Y.Z` tags map directly to Arch versions and asset names.
+Drafts and prereleases are deliberately excluded.
+
+### Dependencies and licensing
+
+The PKGBUILD carries the upstream runtime dependencies and version floors for
+Omarchy, Hyprland, Quickshell, Qt multimedia, Node.js, and the tools used by the
+course. Optional OCR, QR, dictation, and activity-monitor tools remain optional.
+The target is an Omarchy desktop, not vanilla Arch.
+
+Code is MIT; original artwork and course content are CC BY 4.0; separately
+identified recordings/example assets retain CC0-1.0. The archive contains the
+notices and full license texts, and installs them under
+`/usr/share/licenses/learn-omarchy`. A duplicate local LICENSE source is not needed.
+There is no package install hook or privileged scan of users' home directories.
+The launcher manages its bundled integration only for the user running the app;
+package removal does not delete course progress.
+
+### Validation to complete before submitting
+
+- [ ] Record the clean Omarchy build and installed-payload verification results for @VERSION@.
+- [ ] Link exact-release stable acceptance evidence, including fresh graphical install,
+      offline use, upgrade/removal, attended activities, and supported display setups.
+- [ ] Record the architectures actually tested; do not infer ARM desktop coverage from `any`.
+- [ ] Validate metadata and release tracking against the current omarchy-pkgs checkout.
+- [ ] Confirm the package name is still available and this package is not in the AUR.
+- [ ] Obtain explicit approval to submit this PR.
