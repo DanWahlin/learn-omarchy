@@ -1,0 +1,155 @@
+{
+  "version": 1,
+  "audioHash": "1f782ca727796d545f82c78c1b1a4d4e17fa3495b90fe349adc4c98b2fb6d589",
+  "text": "Super and L switches the current workspace between dwindle tiling and scrolling. Dwindle divides the available space into tiles; scrolling lets windows extend horizontally. This shortcut changes a saved workspace setting, so we are only introducing it.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 630,
+      "endOffset": 9
+    },
+    {
+      "startMs": 950,
+      "endOffset": 11
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 42
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4870,
+      "endOffset": 80
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 88
+    },
+    {
+      "startMs": 6950,
+      "endOffset": 96
+    },
+    {
+      "startMs": 7470,
+      "endOffset": 100
+    },
+    {
+      "startMs": 7630,
+      "endOffset": 110
+    },
+    {
+      "startMs": 8109,
+      "endOffset": 116
+    },
+    {
+      "startMs": 8590,
+      "endOffset": 121
+    },
+    {
+      "startMs": 8830,
+      "endOffset": 128
+    },
+    {
+      "startMs": 9750,
+      "endOffset": 138
+    },
+    {
+      "startMs": 10389,
+      "endOffset": 143
+    },
+    {
+      "startMs": 10670,
+      "endOffset": 151
+    },
+    {
+      "startMs": 11270,
+      "endOffset": 158
+    },
+    {
+      "startMs": 11910,
+      "endOffset": 172
+    },
+    {
+      "startMs": 13549,
+      "endOffset": 177
+    },
+    {
+      "startMs": 13870,
+      "endOffset": 186
+    },
+    {
+      "startMs": 14750,
+      "endOffset": 194
+    },
+    {
+      "startMs": 15229,
+      "endOffset": 196
+    },
+    {
+      "startMs": 15270,
+      "endOffset": 202
+    },
+    {
+      "startMs": 15790,
+      "endOffset": 212
+    },
+    {
+      "startMs": 16430,
+      "endOffset": 221
+    },
+    {
+      "startMs": 17190,
+      "endOffset": 224
+    },
+    {
+      "startMs": 17390,
+      "endOffset": 227
+    },
+    {
+      "startMs": 17550,
+      "endOffset": 231
+    },
+    {
+      "startMs": 17750,
+      "endOffset": 236
+    },
+    {
+      "startMs": 18030,
+      "endOffset": 248
+    },
+    {
+      "startMs": 18710,
+      "endOffset": 252
+    }
+  ]
+}

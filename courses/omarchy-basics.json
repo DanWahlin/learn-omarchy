@@ -294,6 +294,7 @@
     },
     {
       "id": "menus-and-apps",
+      "mixedPractice": true,
       "wrapUp": { "text": "That wraps up menus and apps. You have a starting point for finding commands, opening apps, and looking up shortcuts.", "audio": "audio/wrapup-menus-and-apps.mp3" },
       "title": "Menus and apps",
       "description": "Find commands, installed apps, and the built-in shortcut guide.",
@@ -684,11 +685,12 @@
     },
     {
       "id": "windows",
+      "mixedPractice": true,
       "wrapUp": { "text": "Nice work. You've practiced arranging windows and switching your focus between them. Use the layout that suits your task.", "audio": "audio/wrapup-windows.mp3" },
       "title": "Windows",
-      "description": "Tile, focus, float, and fullscreen windows without touching the mouse.",
+      "description": "Tile, split, resize, focus, float, and fullscreen practice windows.",
       "icon": "05",
-      "estimatedMinutes": 7,
+      "estimatedMinutes": 10,
       "steps": [
         {
           "id": "windows-open-first",
@@ -764,6 +766,56 @@
           },
           "completionMessage": "There's your second practice terminal. Omarchy fits it around any windows you already had open.",
           "completionAudio": "audio/windows-open-second-done.mp3"
+        },
+        {
+          "id": "windows-split",
+          "optional": true,
+          "windowFromStep": "windows-open-second",
+          "pairWithStep": "windows-open-first",
+          "practicePrompt": "Change the split between the two tiled practice terminals.",
+          "note": "Split changes require the dwindle layout and two tiled practice windows.",
+          "instruction": "Press Super and J to change how the two practice terminals share their space. A split is the dividing line between tiles: this shortcut changes its direction.",
+          "detail": "This activity checks that the same two practice windows change from side by side to stacked, or the reverse. It does not count focus or a successful command as a split. If your workspace uses scrolling or a custom layout, skip this activity rather than changing your workspace settings.",
+          "audio": "audio/windows-split.mp3",
+          "completionAudio": "audio/windows-split-done.mp3",
+          "keys": ["SUPER", "+", "J"],
+          "help": {
+            "label": "Toggle the split for me",
+            "command": ["hyprctl", "eval", "local target = hl.get_window(\"{tutorialWindow}\"); local peer = hl.get_window(\"{peerWindow}\"); assert(target and peer and target.address ~= peer.address and not target.floating and not peer.floating and target.fullscreen == 0 and peer.fullscreen == 0 and target.workspace.id == peer.workspace.id, \"Practice windows are not ready\"); hl.dispatch(hl.dsp.focus({ window = \"{tutorialWindow}\" })); local active = hl.get_active_window(); assert(active and active.address == target.address, \"Practice window could not be focused\"); hl.dispatch(hl.dsp.layout(\"togglesplit\"))"]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": ["activewindowv2", "movewindowv2"],
+            "target": "tutorial-window",
+            "windowState": { "floating": false, "focused": true, "splitChanged": true }
+          },
+          "highlight": { "target": "window", "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800 },
+          "completionMessage": "The two practice terminals now share the space in the other direction."
+        },
+        {
+          "id": "windows-split-restore",
+          "optional": true,
+          "windowFromStep": "windows-open-second",
+          "pairWithStep": "windows-open-first",
+          "practicePrompt": "Toggle the practice terminals' split direction once more.",
+          "note": "This changes the split again, not the workspace's layout setting.",
+          "instruction": "Press Super and J again to toggle the dividing line back. Both terminals should stay tiled.",
+          "detail": "The same shortcut toggles in both directions. We check the two owned practice windows again; unrelated window movement does not finish the activity.",
+          "audio": "audio/windows-split-restore.mp3",
+          "completionAudio": "audio/windows-split-restore-done.mp3",
+          "keys": ["SUPER", "+", "J"],
+          "help": {
+            "label": "Toggle the split back for me",
+            "command": ["hyprctl", "eval", "local target = hl.get_window(\"{tutorialWindow}\"); local peer = hl.get_window(\"{peerWindow}\"); assert(target and peer and target.address ~= peer.address and not target.floating and not peer.floating and target.fullscreen == 0 and peer.fullscreen == 0 and target.workspace.id == peer.workspace.id, \"Practice windows are not ready\"); hl.dispatch(hl.dsp.focus({ window = \"{tutorialWindow}\" })); local active = hl.get_active_window(); assert(active and active.address == target.address, \"Practice window could not be focused\"); hl.dispatch(hl.dsp.layout(\"togglesplit\"))"]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": ["activewindowv2", "movewindowv2"],
+            "target": "tutorial-window",
+            "windowState": { "floating": false, "focused": true, "splitChanged": true }
+          },
+          "highlight": { "target": "window", "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800 },
+          "completionMessage": "The practice terminals' split direction changed again. This is different from floating a window."
         },
         {
           "id": "windows-focus-next",
@@ -856,6 +908,52 @@
           },
           "completionMessage": "It's floating now. Handy for a calculator or a chat window you want to keep in view.",
           "completionAudio": "audio/windows-float-done.mp3"
+        },
+        {
+          "id": "windows-resize",
+          "windowFromStep": "windows-open-first",
+          "practicePrompt": "Change the width of the floating practice terminal.",
+          "note": "Use the key immediately left of Backspace, normally = on a US keyboard.",
+          "instruction": "With the practice terminal floating, hold Super and press the key immediately left of Backspace. On a US keyboard it is equals. This changes the window's width; you do not need Shift.",
+          "detail": "Omarchy binds the physical key position, code 21, rather than the printed equals character. The guided action resizes only the owned terminal by 100 logical pixels. We verify its size changed, not just that the shortcut ran. Window size limits may prevent a change; use Skip if your terminal cannot resize.",
+          "audio": "audio/windows-resize.mp3",
+          "completionAudio": "audio/windows-resize-done.mp3",
+          "keys": ["SUPER", "+", "EQUAL"],
+          "help": {
+            "label": "Resize the practice terminal for me",
+            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.window.resize({ window = \"{tutorialWindow}\", x = 100, y = 0, relative = true }))"]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": ["activewindowv2", "changefloatingmode", "movewindowv2"],
+            "target": "tutorial-window",
+            "windowState": { "floating": true, "resized": true }
+          },
+          "highlight": { "target": "window", "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800 },
+          "completionMessage": "The practice terminal changed size. Floating makes the width change easy to see."
+        },
+        {
+          "id": "windows-resize-back",
+          "windowFromStep": "windows-open-first",
+          "practicePrompt": "Change the floating practice terminal's width in the other direction.",
+          "note": "Use the key two places left of Backspace, normally minus on a US keyboard.",
+          "instruction": "Now hold Super and press the key two places left of Backspace, normally minus. This resizes in the other direction. Adding Shift changes height instead of width.",
+          "detail": "The physical minus-position key is code 20. Alt makes a resize smaller, 25 pixels instead of 100; Control makes it larger, 300 pixels. Tiled resizing also depends on which shared edge can move. This exercise verifies a size change, not an exact restoration to the original size.",
+          "audio": "audio/windows-resize-back.mp3",
+          "completionAudio": "audio/windows-resize-back-done.mp3",
+          "keys": ["SUPER", "+", "MINUS"],
+          "help": {
+            "label": "Resize the other way for me",
+            "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.window.resize({ window = \"{tutorialWindow}\", x = -100, y = 0, relative = true }))"]
+          },
+          "completion": {
+            "type": "hyprland-event",
+            "events": ["activewindowv2", "changefloatingmode", "movewindowv2"],
+            "target": "tutorial-window",
+            "windowState": { "floating": true, "resized": true }
+          },
+          "highlight": { "target": "window", "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800 },
+          "completionMessage": "The terminal changed size again. Width and height use the same two physical keys, with Shift selecting height."
         },
         {
           "id": "windows-fullscreen",
@@ -1188,6 +1286,7 @@
     },
     {
       "id": "workspaces",
+      "mixedPractice": true,
       "wrapUp": { "text": "That wraps up workspaces. You can keep different tasks on separate desktops and switch between them without closing your windows.", "audio": "audio/wrapup-workspaces.mp3" },
       "title": "Workspaces",
       "description": "Jump between desktops, send windows where they belong, and stash things in the scratchpad.",
@@ -1374,7 +1473,7 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.move({ workspace = \"2\", window = \"{tutorialWindow}\" }))"
+              "local target = assert(hl.get_window(\"{tutorialWindow}\"), \"The practice window is unavailable\"); hl.dispatch(hl.dsp.focus({ window = \"{tutorialWindow}\" })); local active = hl.get_active_window(); assert(active and active.address == target.address, \"Could not focus the practice window\"); hl.dispatch(hl.dsp.window.move({ workspace = \"2\", window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {
@@ -1678,7 +1777,7 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.move({ window = \"{tutorialWindow}\", workspace = \"2\" }))"
+              "local target = assert(hl.get_window(\"{tutorialWindow}\"), \"The practice window is unavailable\"); hl.dispatch(hl.dsp.focus({ window = \"{tutorialWindow}\" })); local active = hl.get_active_window(); assert(active and active.address == target.address, \"Could not focus the practice window\"); hl.dispatch(hl.dsp.window.move({ window = \"{tutorialWindow}\", workspace = \"2\" }))"
             ]
           },
           "completion": {
@@ -1753,6 +1852,131 @@
           },
           "completionMessage": "The practice terminal is closed. You've moved between workspaces, moved a window, and used the scratchpad.",
           "completionAudio": "audio/workspaces-close-done.mp3"
+        }
+      ]
+    },
+    {
+      "id": "advanced-windows",
+      "wrapUp": {
+        "text": "You've been introduced to groups, pop-out windows, workspace layouts, and mouse controls. Nothing was changed for you. Try these later with disposable windows, and keep the printable reference nearby.",
+        "audio": "audio/wrapup-advanced-windows.mp3"
+      },
+      "title": "More window controls",
+      "description": "Optional, read-only reference for groups, pop-out pinning, layout switching, and mouse resizing.",
+      "icon": "05",
+      "estimatedMinutes": 4,
+      "optional": true,
+      "steps": [
+        {
+          "id": "advanced-window-groups",
+          "kind": "tour",
+          "pose": "talk",
+          "audio": "audio/advanced-window-groups.mp3",
+          "keys": [],
+          "note": "Reference only. No grouping action is run or marked as practiced.",
+          "instruction": "A window group holds several windows in one tile, with tabs along the top. Super and G toggles grouping. Super, Alt, and an arrow moves a window into an adjacent group; Super, Alt, and Tab cycles the group. This is a read-only introduction.",
+          "detail": "Super, Alt, and G removes the active window from its group. These commands affect the focused window, so try them later only with disposable practice windows. Reading this reference is recorded as introduced, not as a verified grouping exercise.",
+          "shortcuts": [
+            { "keys": ["SUPER", "+", "G"], "action": "Toggle window grouping" },
+            { "keys": ["SUPER", "+", "ALT", "+", "ARROW"], "action": "Move the active window into the adjacent group" },
+            { "keys": ["SUPER", "+", "ALT", "+", "TAB"], "action": "Next window in the group", "caution": "Add Shift for the previous window." },
+            { "keys": ["SUPER", "+", "ALT", "+", "G"], "action": "Move the active window out of its group" }
+          ],
+          "completion": { "type": "narration-complete", "delayMs": 900 },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+        },
+        {
+          "id": "advanced-window-pop",
+          "kind": "tour",
+          "pose": "talk",
+          "audio": "audio/advanced-window-pop.mp3",
+          "keys": [],
+          "note": "Reference only. Nothing is floated or pinned by this activity.",
+          "instruction": "Super and O pops a tiled window out: it floats, resizes, centers, and pins the window on its display. Pinned windows remain visible when you change workspaces on that display. Pressing the shortcut again on that pinned pop-out unpins and retiles it.",
+          "detail": "Start from a tiled window when trying pop-out later. This is not the same as Super and T, which only toggles floating. The installed pop-out script toggles floating, so starting with an already-floating or independently pinned window can produce different results.",
+          "shortcuts": [
+            { "keys": ["SUPER", "+", "O"], "action": "Pop a tiled window out: float and pin", "caution": "Start tiled. Invoke again on the pinned pop-out to unpin and retile." }
+          ],
+          "completion": { "type": "narration-complete", "delayMs": 900 },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+        },
+        {
+          "id": "advanced-window-layout",
+          "kind": "tour",
+          "pose": "talk",
+          "audio": "audio/advanced-window-layout.mp3",
+          "keys": [],
+          "note": "Reference only. Layout switching persists a workspace setting; this lesson does not run it.",
+          "instruction": "Super and L switches the current workspace between dwindle tiling and scrolling. Dwindle divides the available space into tiles; scrolling lets windows extend horizontally. This shortcut changes a saved workspace setting, so we are only introducing it.",
+          "detail": "This is not Super and J, which changes a split within dwindle. The installed layout helper saves a rule under your local state directory. On a custom layout it switches to dwindle; toggling again does not necessarily restore your original custom layout.",
+          "shortcuts": [
+            { "keys": ["SUPER", "+", "L"], "action": "Toggle workspace layout between dwindle and scrolling", "caution": "Persists a setting. A custom layout is not restored by toggling again." }
+          ],
+          "completion": { "type": "narration-complete", "delayMs": 900 },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+        },
+        {
+          "id": "advanced-window-mouse",
+          "kind": "tour",
+          "pose": "talk",
+          "audio": "audio/advanced-window-mouse.mp3",
+          "keys": [],
+          "note": "Reference only. Mouse gestures are not verified by the keyboard exercise runner.",
+          "instruction": "The mouse works with Super too. Hold Super and drag with the left mouse button to move a window; hold Super and drag with the right button to resize it. Release the mouse button and Super when you are done.",
+          "detail": "Try these later on a disposable floating terminal, where movement is easiest to see. On a tiled window, the layout decides how dragging changes the tiles. This reference does not capture a mouse gesture or claim you performed one.",
+          "shortcuts": [
+            { "keys": ["SUPER", "+", "LEFT MOUSE DRAG"], "action": "Move a window" },
+            { "keys": ["SUPER", "+", "RIGHT MOUSE DRAG"], "action": "Resize a window" }
+          ],
+          "completion": { "type": "narration-complete", "delayMs": 900 },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+        }
+      ]
+    },
+    {
+      "id": "notifications",
+      "wrapUp": {
+        "text": "You now have a reference for notification history, dismissal, actions, and silencing. Your notifications and preferences are unchanged. Use these shortcuts when you need them, and inspect a notification before invoking its action.",
+        "audio": "audio/wrapup-notifications.mp3"
+      },
+      "title": "Notifications",
+      "description": "Optional, read-only guide to history, dismissing notifications, and quiet mode.",
+      "icon": "07",
+      "estimatedMinutes": 2,
+      "optional": true,
+      "steps": [
+        {
+          "id": "notifications-history",
+          "kind": "tour",
+          "pose": "talk",
+          "audio": "audio/notifications-history.mp3",
+          "keys": [],
+          "note": "Reference only. No notifications are opened, dismissed, or invoked for you.",
+          "instruction": "Notification history is available with Super, Shift, Alt, and comma. Super and comma dismisses the latest notification; adding Shift dismisses all. This lesson leaves your notifications untouched.",
+          "detail": "Super, Alt, and comma invokes the latest notification's action, which may launch an app or follow a link. Do not try it on an unfamiliar notification. Read these shortcuts here, then use them when you actually need them.",
+          "shortcuts": [
+            { "keys": ["SUPER", "+", "SHIFT", "+", "ALT", "+", "COMMA"], "action": "Open notification history" },
+            { "keys": ["SUPER", "+", "COMMA"], "action": "Dismiss the latest notification" },
+            { "keys": ["SUPER", "+", "SHIFT", "+", "COMMA"], "action": "Dismiss all notifications", "caution": "Affects your real notifications." },
+            { "keys": ["SUPER", "+", "ALT", "+", "COMMA"], "action": "Invoke the latest notification", "caution": "May launch an app or follow a link; inspect it first." }
+          ],
+          "completion": { "type": "narration-complete", "delayMs": 900 },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+        },
+        {
+          "id": "notifications-quiet",
+          "kind": "tour",
+          "pose": "talk",
+          "audio": "audio/notifications-quiet.mp3",
+          "keys": [],
+          "note": "Reference only. Notification silencing is not changed.",
+          "instruction": "Super, Control, and comma toggles notification silencing. It is useful when you need quiet, but remember to turn it off when you want alerts again. We do not change it during this introduction.",
+          "detail": "The installed helper toggles your real notification-silencing preference. This is deliberately a read-only reference, not a task that silently changes your desktop.",
+          "shortcuts": [
+            { "keys": ["SUPER", "+", "CTRL", "+", "COMMA"], "action": "Toggle notification silencing", "caution": "Changes your real preference; toggle back when finished." }
+          ],
+          "completion": { "type": "narration-complete", "delayMs": 900 },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
         }
       ]
     },
@@ -2119,6 +2343,7 @@
     },
     {
       "id": "clipboard-and-helpers",
+      "mixedPractice": true,
       "wrapUp": { "text": "Nicely done. You've explored clipboard history and practiced Compose sequences. A few useful characters and shortcuts can save you time.", "audio": "audio/wrapup-clipboard-and-helpers.mp3" },
       "title": "Clipboard and Compose",
       "description": "Retrieve older clipboard entries and type emojis with sequential Compose keys.",
@@ -3491,7 +3716,7 @@
             "command": [
               "hyprctl",
               "eval",
-              "hl.dispatch(hl.dsp.window.move({ workspace = \"2\", window = \"{tutorialWindow}\" }))"
+              "local target = assert(hl.get_window(\"{tutorialWindow}\"), \"The practice window is unavailable\"); hl.dispatch(hl.dsp.focus({ window = \"{tutorialWindow}\" })); local active = hl.get_active_window(); assert(active and active.address == target.address, \"Could not focus the practice window\"); hl.dispatch(hl.dsp.window.move({ workspace = \"2\", window = \"{tutorialWindow}\" }))"
             ]
           },
           "completion": {

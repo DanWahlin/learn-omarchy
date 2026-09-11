@@ -6,6 +6,8 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
 import "TeachingLayout.js" as TeachingLayout
+import "WindowOutcomes.js" as WindowOutcomes
+import "Retention.js" as Retention
 
 ShellRoot {
   id: root
@@ -28,11 +30,76 @@ ShellRoot {
   property bool welcomeSeen: false
   property bool welcomeSettingPresent: false
   property bool splashActive: true
+  property real startupOpacity: 1
+  property bool startupRevealPending: false
+  readonly property color startupBackground: "#020c1a"
+  property var mixedLessonIds: []
+  property int mixedLessonPosition: 0
+  readonly property bool mixedPracticeActive: mixedLessonIds.length > 0
+  readonly property int mixedEligibleCount: Retention.eligibleLessons(course, stepResults, stepCredits).length
+  property string retentionNotice: ""
+  readonly property string cheatSheetPath: stateHome + "/learn-omarchy/shortcuts.html"
+
+  function startMixedPractice() {
+    var plan = Retention.mixedPracticePlan(course, stepResults, stepCredits, 3)
+    if (plan.length < 2) {
+      retentionNotice = "Complete at least two practice-ready modules to unlock mixed practice."
+      return false
+    }
+    retentionNotice = ""
+    mixedLessonIds = plan
+    mixedLessonPosition = 0
+    startLesson(Retention.lessonIndex(course, plan[0]), true, false, true)
+    return true
+  }
+
+  function nextMixedLesson() {
+    if (!mixedPracticeActive || phase !== "lesson-complete") return
+    if (mixedLessonPosition + 1 >= mixedLessonIds.length) {
+      returnToMenu()
+      return
+    }
+    var next = mixedLessonPosition + 1
+    var index = Retention.lessonIndex(course, mixedLessonIds[next])
+    if (index < 0) {
+      returnToMenu()
+      retentionNotice = "The course changed. Start a new mixed-practice session."
+      return
+    }
+    mixedLessonPosition = next
+    startLesson(index, true, false, true)
+  }
+
+  function openCheatSheet() {
+    if (cheatSheetProcess.running || !course) return
+    retentionNotice = ""
+    cheatSheetProcess.command = ["node", "--experimental-strip-types",
+      appRoot + "/tools/generate-cheat-sheet.mjs", coursePath, cheatSheetPath]
+    cheatSheetProcess.running = true
+  }
 
   function finishSplash() {
     if (!splashActive) return
+    startupRevealPending = !reducedMotion
+    startupOpacity = reducedMotion ? 1 : 0
     splashActive = false
     maybeBeginWelcome()
+    if (!introActive) revealStartupScene()
+  }
+  function revealStartupScene() {
+    if (!startupRevealPending) return
+    startupRevealPending = false
+    if (reducedMotion) startupOpacity = 1
+    else startupFadeIn.restart()
+  }
+  NumberAnimation {
+    id: startupFadeIn
+    target: root
+    property: "startupOpacity"
+    from: 0
+    to: 1
+    duration: 750
+    easing.type: Easing.InOutSine
   }
   readonly property var characterIndex: characterStore.packs
   property int characterPick: 0
@@ -48,10 +115,10 @@ ShellRoot {
   readonly property bool characterFlames: Boolean(characterConfig.effects && characterConfig.effects.thrusters)
   readonly property string characterNotice: characterStore.notice
   property string integrationNotice: Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR")
-    ? "Precise pointing couldn't be prepared. Learn Omarchy will retry when reopened. " +
-      Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR") : ""
+    ? "Some highlights may be approximate on this desktop." : ""
   property string introNotice: ""
   Component.onDestruction: {
+    interactionAudio.stop()
     cancelIntro()
     stopAudio()
     runCleanup()
@@ -418,6 +485,7 @@ ShellRoot {
   property bool barGeometryAvailable: true
   property string barGeometryTopology: ""
   property bool geometryProviderAvailable: true
+  property var windowChangeBaseline: null
   property real geometryProviderRetryAt: 0
   // The overlay holds the keyboard exclusively so shortcuts light up the
   // keycaps. The keyboard button (or IPC "keys") releases it to other
@@ -531,7 +599,12 @@ ShellRoot {
   }
   onReducedMotionChanged: {
     characterTravelDuration = reducedMotion ? 0 : 900
-    if (reducedMotion) introAmbienceProcess.running = false
+    if (reducedMotion) {
+      introAmbienceProcess.running = false
+      startupFadeIn.stop()
+      startupRevealPending = false
+      startupOpacity = 1
+    }
   }
 
   onSelectedLessonIndexChanged: {
@@ -1157,6 +1230,7 @@ ShellRoot {
       lessonWrapupPlayed = false
       wrapupReveal.reset()
       phase = "lesson-complete"
+      if (lessonFullyExplored(currentLesson)) interactionAudio.notify("module-complete")
       if (reducedMotion) {
         setCharacterState("celebrate", lessonFullyExplored(currentLesson) ? "MODULE COMPLETE!" : "MODULE EXPLORED")
       } else {
@@ -1217,7 +1291,7 @@ ShellRoot {
     barGeometryProcess.providerRequest = provider
     barGeometryProcess.command = provider
       ? ["omarchy-shell", "learnGeometry", "snapshot"]
-      : ["omarchy-shell", "shell", "debugBarGeometry"]
+      : ["node", appRoot + "/tools/bar-geometry.mjs"]
     barGeometryProcess.running = true
   }
 
@@ -1236,6 +1310,7 @@ ShellRoot {
         return
       }
       geometryProviderAvailable = false
+      integrationNotice = "Some highlights may be approximate on this desktop."
       geometryProviderRetryAt = Date.now() + 30000
       barGeometry = []
       Qt.callLater(requestBarGeometry)
@@ -1288,6 +1363,11 @@ ShellRoot {
   function parseBarGeometry(raw, requestScreens) {
     try {
       var widgets = JSON.parse(raw)
+      if (widgets && widgets.version === 1) {
+        if (!parseProviderGeometry(raw, requestScreens || geometryScreens()))
+          throw new Error("bar layer measurement doesn't match this desktop")
+        return
+      }
       if (!Array.isArray(widgets)) throw new Error("bar geometry wasn't a list")
       var screens = requestScreens || geometryScreens()
       if (screens.length !== 1 || JSON.stringify(screens) !== JSON.stringify(geometryScreens())) {
@@ -1348,6 +1428,9 @@ ShellRoot {
       viewportWidth || screen.width, viewportHeight || screen.height)
     if (rect && estimated) rect.estimated = true
     if (rect && exactPanel) rect.panel = true
+    if (rect && ["top", "bottom", "left", "right"].indexOf(widgets[0].barEdge) !== -1 &&
+        widgets.every(function(widget) { return widget.barEdge === widgets[0].barEdge }))
+      rect.barEdge = widgets[0].barEdge
     return rect
   }
 
@@ -1365,9 +1448,12 @@ ShellRoot {
   }
 
   function checkWorkspaceCompletion() {
-    if (phase !== "waiting" || !currentStep) return
+    if (phase !== "waiting" || !currentStep || actionRunning) return
     if (currentStep.completion.type === "hyprland-workspace-is") {
-      if (currentWorkspaceId() === Number(currentStep.completion.id)) completeCurrentStep()
+      if (currentWorkspaceId() === Number(currentStep.completion.id)) {
+        restoreActionKeyboard()
+        completeCurrentStep()
+      }
       else if (++workspaceCheckAttempts < 5) workspaceCompletionTimer.restart()
       else if (!actionRunning && actionStepId === currentStep.id) {
         clearActiveKeys()
@@ -1378,11 +1464,16 @@ ShellRoot {
     if (currentStep.completion.type !== "hyprland-workspace-change" || workspaceStartId < 0) return
     var activeWorkspaceId = currentWorkspaceId()
     if (activeWorkspaceId >= 0 && activeWorkspaceId !== workspaceStartId) {
+      restoreActionKeyboard()
       completeCurrentStep()
       return
     }
     workspaceCheckAttempts++
     if (workspaceCheckAttempts < 5) workspaceCompletionTimer.restart()
+    else if (actionStepId === currentStep.id) {
+      clearActiveKeys()
+      showRecovery("The workspace hasn't changed yet. Try the shortcut again, or choose Help.", "")
+    }
   }
 
   function expectedKeyMap() {
@@ -1418,6 +1509,8 @@ ShellRoot {
       // Keycaps acknowledge individual keys; celebrate only the verified outcome.
       return
     } else {
+      if (key && ["SUPER", "CTRL", "ALT", "SHIFT"].indexOf(key) === -1 &&
+          !lessonTransitionRunning && !actionRunning) interactionAudio.notify("wrong")
       setCharacterState("incorrect", "TRY THE HIGHLIGHTED KEYS")
       characterReactionTimer.interval = 680
     }
@@ -1489,6 +1582,7 @@ ShellRoot {
     : (welcomeNarration && welcomeNarration.recommendation
       ? welcomeNarration.recommendation : "Choose a lesson to get started.")
   property bool introActive: false
+  onIntroActiveChanged: if (!introActive) revealStartupScene()
   property int introGeneration: 0
   property bool introPlaybackStarted: false
   property bool introDeparting: false
@@ -1765,6 +1859,9 @@ ShellRoot {
     if (key === Qt.Key_Right) return "RIGHT"
     if (key === Qt.Key_Up) return "UP"
     if (key === Qt.Key_Down) return "DOWN"
+    if (key === Qt.Key_Minus) return "MINUS"
+    if (key === Qt.Key_Equal) return "EQUAL"
+    if (key === Qt.Key_Comma) return "COMMA"
     if (key >= Qt.Key_A && key <= Qt.Key_Z) return String.fromCharCode(key)
     if (key >= Qt.Key_0 && key <= Qt.Key_9) return String.fromCharCode(key)
     return ""
@@ -1789,6 +1886,8 @@ ShellRoot {
     var scan = Number(event.nativeScanCode) || 0
     var physical = Object.assign({}, pressedPhysicalKeys)
     var direct = scan > 0 && physical[scan] ? physical[scan] : keyName(event.key)
+    if (currentStepKeys.indexOf("MINUS") !== -1 && scan === 20) direct = "MINUS"
+    if (currentStepKeys.indexOf("EQUAL") !== -1 && scan === 21) direct = "EQUAL"
     // Wayland exposes XKB scan codes: the number row is 10-19. Shift
     // changes Qt's logical key (for example 2 becomes @), not the keycap.
     if (!direct && (event.modifiers & Qt.ShiftModifier) && scan >= 10 && scan <= 19)
@@ -1997,6 +2096,9 @@ ShellRoot {
 
   function requestOutcomeVerification() {
     if (phase !== "waiting" || !currentStep || !currentStep.completion.windowState) return
+    var expectedChange = currentStep.completion.windowState
+    if ((expectedChange.resized || expectedChange.splitChanged) &&
+        (actionRunning || actionStepId !== currentStep.id || !windowChangeBaseline)) return
     var address = currentTutorialWindow()
     if (address === "") {
       showRecovery("The tutorial window is missing. Return to its launch activity before trying again.", currentStep.windowFromStep)
@@ -2036,6 +2138,8 @@ ShellRoot {
 
   function parseOutcome(raw, generation) {
     if (generation !== outcomeGeneration || outcomeAddress === "" || phase !== "waiting") return
+    if (outcomeExpected && (outcomeExpected.resized || outcomeExpected.splitChanged) &&
+        (actionRunning || !currentStep || actionStepId !== currentStep.id || !windowChangeBaseline)) return
     var clients
     try {
       clients = JSON.parse(raw)
@@ -2056,7 +2160,16 @@ ShellRoot {
         client.at[0] === swapBefore.peerAt[0] && client.at[1] === swapBefore.peerAt[1] &&
         peer.at[0] === swapBefore.firstAt[0] && peer.at[1] === swapBefore.firstAt[1])
     }
-    if (pairSwapped && matchesWindowState(client, outcomeExpected)) {
+    var changedAsExpected = true
+    if (outcomeExpected.resized)
+      changedAsExpected = WindowOutcomes.resized(windowChangeBaseline && windowChangeBaseline.first, client)
+    if (outcomeExpected.splitChanged) {
+      var splitPeer = clients.find(function(item) {
+        return item && normalizedWindowAddress(item.address) === currentPeerWindow()
+      })
+      changedAsExpected = WindowOutcomes.splitChanged(windowChangeBaseline, client, splitPeer)
+    }
+    if (pairSwapped && changedAsExpected && matchesWindowState(client, outcomeExpected)) {
       if (outcomeExpected.specialVisible !== undefined) {
         if (!Number.isInteger(client.monitor)) {
           retryOutcome()
@@ -2470,6 +2583,7 @@ ShellRoot {
     }
     if (activeCount !== expectedCount) return
     comboTriggered = true
+    interactionAudio.notify("correct")
     runStepAction("shortcut")
   }
 
@@ -2479,6 +2593,11 @@ ShellRoot {
     phase = "error"
     setCharacterState("hidden", "")
     console.error("learn-omarchy:", errorMessage)
+  }
+
+  function coreLessonsFirst(lessons) {
+    return lessons.filter(function(lesson) { return !lesson.optional })
+      .concat(lessons.filter(function(lesson) { return lesson.optional }))
   }
 
   function loadCourse(raw) {
@@ -2504,6 +2623,7 @@ ShellRoot {
     // A reload is a lifecycle boundary: nothing from the old course may keep
     // running, or a pending transition would dereference a step that is gone.
     resetLessonRuntime()
+    parsed.lessons = coreLessonsFirst(parsed.lessons)
     course = parsed
     lessonIndex = -1
     selectedLessonIndex = 0
@@ -2652,7 +2772,12 @@ ShellRoot {
   // Common teardown for leaving whatever lesson state is active: outgoing
   // transitions, timers, actions, geometry requests, keys, and narration.
   // Callers then decide where to go (a lesson, the menu, a reload, or an error).
-  function resetLessonRuntime() {
+  function resetLessonRuntime(preserveMixed) {
+    if (!preserveMixed) {
+      mixedLessonIds = []
+      mixedLessonPosition = 0
+    }
+    interactionAudio.stop()
     runCleanup()
     cancelAction()
     stopAudio()
@@ -2683,10 +2808,10 @@ ShellRoot {
     return Boolean(index === openingIndex && lesson && lesson.steps[0] && lesson.steps[0].kind === "tour")
   }
 
-  function startLesson(index, practice, resume) {
+  function startLesson(index, practice, resume, preserveMixed) {
     if (!course || !characterStore.ready || !characterStore.selectedPack ||
         index < 0 || index >= course.lessons.length) return
-    resetLessonRuntime()
+    resetLessonRuntime(preserveMixed)
     selectedLessonIndex = index
     if (course.lessons[index].kind === "welcome") {
       lessonIndex = -1
@@ -2769,6 +2894,9 @@ ShellRoot {
   }
 
   function cancelAction() {
+    windowChangeBaseline = null
+    windowBaselineProcess.running = false
+    layoutPreflightProcess.running = false
     windowLaunchToken = ""
     stopWindowOwnership()
     tutorialLaunchProcess.running = false
@@ -2836,7 +2964,8 @@ ShellRoot {
   }
 
   function currentPeerWindow() {
-    var address = currentStep && currentStep.swapWithStep ? tutorialWindowsByStep[currentStep.swapWithStep] : ""
+    var peerStep = currentStep && (currentStep.swapWithStep || currentStep.pairWithStep)
+    var address = peerStep ? tutorialWindowsByStep[peerStep] : ""
     return address && tutorialWindows.indexOf(address) !== -1 ? address : ""
   }
 
@@ -2907,6 +3036,70 @@ ShellRoot {
     else helpProcess.running = true
   }
 
+  function failWindowPreflight(message) {
+    windowChangeBaseline = null
+    actionRunning = false
+    actionStepId = ""
+    clearActiveKeys()
+    restoreActionKeyboard()
+    showRecovery(message, currentStep && currentStep.windowFromStep || "")
+  }
+
+  function parseWindowBaseline(raw, generation) {
+    if (generation !== actionGeneration || !actionRunning || !currentStep) return
+    var clients
+    try {
+      clients = JSON.parse(raw)
+      if (!Array.isArray(clients)) throw new Error("Expected a window list")
+    } catch (error) {
+      failWindowPreflight("Couldn't measure the practice windows. Try again.")
+      return
+    }
+    var client = clients.find(function(item) {
+      return item && normalizedWindowAddress(item.address) === currentTutorialWindow()
+    })
+    var peer = clients.find(function(item) {
+      return item && normalizedWindowAddress(item.address) === currentPeerWindow()
+    })
+    var baseline = WindowOutcomes.capture(client, peer)
+    var beforeState = Object.assign({}, currentStep.completion.windowState)
+    // The split command focuses its owned target; focus is a postcondition.
+    if (beforeState.splitChanged) delete beforeState.focused
+    if (!baseline.first || !matchesWindowState(client, beforeState)) {
+      failWindowPreflight("The practice window isn't in the expected state. Return to its launch activity or skip.")
+      return
+    }
+    windowChangeBaseline = baseline
+    if (currentStep.completion.windowState.splitChanged) {
+      if (!WindowOutcomes.orientation(baseline.first, baseline.peer)) {
+        failWindowPreflight("Both owned practice windows must be tiled on the same workspace before changing the split.")
+        return
+      }
+      layoutPreflightProcess.requestGeneration = generation
+      layoutPreflightProcess.running = true
+    } else if (restoreKeyboardAfterAction) focusActionTimer.restart()
+    else helpProcess.running = true
+  }
+
+  function parseLayoutPreflight(raw, generation) {
+    if (generation !== actionGeneration || !actionRunning || !windowChangeBaseline) return
+    var workspaces
+    try {
+      workspaces = JSON.parse(raw)
+      if (!Array.isArray(workspaces)) throw new Error("Expected workspace metadata")
+    } catch (error) {
+      failWindowPreflight("Couldn't check the practice workspace's layout. Try again or skip this activity.")
+      return
+    }
+    var workspace = workspaces.find(function(item) { return item.id === windowChangeBaseline.first.workspace })
+    if (!workspace || workspace.tiledLayout !== "dwindle") {
+      failWindowPreflight("This split activity needs the dwindle layout. Your layout is unchanged; skip this activity on a custom layout.")
+      return
+    }
+    if (restoreKeyboardAfterAction) focusActionTimer.restart()
+    else helpProcess.running = true
+  }
+
   function returnToMenu() {
     resetLessonRuntime()
     lessonIndex = -1
@@ -2936,6 +3129,7 @@ ShellRoot {
 
   function completeCurrentStep() {
     if (!currentStep || phase !== "waiting" || lessonTransitionRunning) return
+    if (!currentStepIsTour) interactionAudio.notify("step-complete")
     characterStepArrivalTimer.stop()
     characterHelpPointTimer.stop()
     characterHelpActionTimer.stop()
@@ -3170,8 +3364,8 @@ ShellRoot {
     var tutorialWindow = currentTutorialWindow()
     var command = resolveWindowCommand(currentStep.help.command, tutorialWindow)
     if ((currentStep.help.command.join(" ").indexOf("{tutorialWindow}") !== -1 && tutorialWindow === "") ||
-        (currentStep.swapWithStep && currentPeerWindow() === "")) {
-      var missingStep = tutorialWindow === "" ? currentStep.windowFromStep : currentStep.swapWithStep
+        ((currentStep.swapWithStep || currentStep.pairWithStep) && currentPeerWindow() === "")) {
+      var missingStep = tutorialWindow === "" ? currentStep.windowFromStep : currentStep.swapWithStep || currentStep.pairWithStep
       // The required window is missing; never fall back to another window.
       console.warn("learn-omarchy: Help skipped because the window from", currentStep.windowFromStep, "isn't available; repeat its launch activity or skip this activity")
       actionRunning = false
@@ -3204,12 +3398,20 @@ ShellRoot {
       }
       return
     }
-    if (currentStep.completion.windowState && currentStep.completion.windowState.focused === true && keyboardExclusive) {
+    var changesWorkspace = actionCompletionType === "hyprland-workspace-is" ||
+      actionCompletionType === "hyprland-workspace-change"
+    if (keyboardExclusive && (changesWorkspace ||
+        (currentStep.completion.windowState && currentStep.completion.windowState.focused === true))) {
       restoreKeyboardAfterAction = true
       setKeyboardExclusive(false)
     }
     helpProcess.command = command
-    if (currentStep.swapWithStep) {
+    if (currentStep.completion.windowState &&
+        (currentStep.completion.windowState.resized || currentStep.completion.windowState.splitChanged)) {
+      windowChangeBaseline = null
+      windowBaselineProcess.requestGeneration = actionGeneration
+      windowBaselineProcess.running = true
+    } else if (currentStep.swapWithStep) {
       swapPreflightProcess.requestGeneration = actionGeneration
       swapPreflightProcess.running = true
     } else if (restoreKeyboardAfterAction) focusActionTimer.restart()
@@ -3603,7 +3805,11 @@ ShellRoot {
     if (phase === "lesson-complete") {
       if (event.key === Qt.Key_R) startLesson(lessonIndex, false, false)
       else if (event.key === Qt.Key_P) startLesson(lessonIndex, true, false)
-      else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || isPlainEscape(event)) returnToMenu()
+      else if (isPlainEscape(event)) returnToMenu()
+      else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+        if (mixedPracticeActive) nextMixedLesson()
+        else returnToMenu()
+      }
       else return
       event.accepted = true
       return
@@ -3657,7 +3863,8 @@ ShellRoot {
         return
       }
       updateActiveKeys(event, true)
-      event.accepted = false
+      event.accepted = !!(event.modifiers & (Qt.MetaModifier | Qt.ControlModifier | Qt.AltModifier)) &&
+        expectedKeyMap()[keyName(event.key)] === true
     }
   }
 
@@ -3708,11 +3915,16 @@ ShellRoot {
     function status(): string {
       return JSON.stringify({
         phase: root.phase,
+        splashActive: root.splashActive,
+        startupOpacity: root.startupOpacity,
+        startupRevealPending: root.startupRevealPending,
         character: root.characterName,
         requestedCharacter: root.requestedCharacter,
         characterPacksReady: characterStore.ready,
         characterNotice: root.characterNotice,
         integrationNotice: root.integrationNotice,
+        geometryProviderAvailable: root.geometryProviderAvailable,
+        barGeometry: root.barGeometry,
         introActive: root.introActive,
         introGeneration: root.introGeneration,
         introNotice: root.introNotice,
@@ -3745,6 +3957,8 @@ ShellRoot {
         completedLessons: root.completedLessons,
         stepResults: root.stepResults,
         practiceMode: root.practiceMode,
+        mixedLessonIds: root.mixedLessonIds,
+        mixedLessonPosition: root.mixedLessonPosition,
         recoveryMessage: root.recoveryMessage,
         outcomeAddress: root.outcomeAddress,
         swapBefore: root.swapBefore,
@@ -3822,6 +4036,17 @@ ShellRoot {
       return "ok"
     }
 
+    function mixedPractice(): string {
+      if (root.phase !== "menu" && root.phase !== "lesson-complete") return "busy"
+      return root.startMixedPractice() ? "started" : "needs-completed-modules"
+    }
+
+    function nextMixed(): string {
+      if (!root.mixedPracticeActive || root.phase !== "lesson-complete") return "not-ready"
+      root.nextMixedLesson()
+      return "ok"
+    }
+
     function react(key: string): string {
       if (root.phase !== "waiting" || !root.currentStep) return "not-waiting"
       root.reactToKey(String(key).toUpperCase())
@@ -3867,6 +4092,32 @@ ShellRoot {
 
   // Application sound effects are independent of
   // narration so the two never interrupt each other; muted with the speaker.
+  InteractionAudio {
+    id: interactionAudio
+    appRoot: root.appRoot
+    enabled: root.audioEnabled && root.effectsEnabled
+    volume: root.effectsVolume
+    paused: root.phase === "paused"
+    suspended: root.phase === "settings" || root.introActive || root.welcomeStage !== ""
+  }
+
+  Process {
+    id: cheatSheetProcess
+    stdout: StdioCollector { }
+    stderr: StdioCollector { id: cheatSheetErrors }
+    onExited: function(code) {
+      if (code !== 0) {
+        root.retentionNotice = "The printable reference couldn't be generated. Try again."
+        console.warn("learn-omarchy: cheat sheet generation failed:", cheatSheetErrors.text)
+        return
+      }
+      root.setKeyboardExclusive(false)
+      var url = "file://" + root.cheatSheetPath.split("/").map(encodeURIComponent).join("/")
+      if (!Qt.openUrlExternally(url))
+        root.retentionNotice = "The reference is saved at " + root.cheatSheetPath + "; open it in your browser to print."
+    }
+  }
+
   Process {
     id: sfxProcess
   }
@@ -4033,6 +4284,30 @@ ShellRoot {
       } else if (root.phase === "waiting" && root.characterState === "talk") {
         root.settleCharacter()
       }
+    }
+  }
+
+  Process {
+    id: windowBaselineProcess
+    property int requestGeneration: -1
+    command: ["hyprctl", "clients", "-j"]
+    stdout: StdioCollector { id: windowBaselineOutput }
+    onExited: function(code) {
+      if (requestGeneration !== root.actionGeneration || !root.actionRunning) return
+      if (code !== 0) root.failWindowPreflight("Couldn't inspect the practice windows. Try again.")
+      else root.parseWindowBaseline(windowBaselineOutput.text, requestGeneration)
+    }
+  }
+
+  Process {
+    id: layoutPreflightProcess
+    property int requestGeneration: -1
+    command: ["hyprctl", "workspaces", "-j"]
+    stdout: StdioCollector { id: layoutPreflightOutput }
+    onExited: function(code) {
+      if (requestGeneration !== root.actionGeneration || !root.actionRunning) return
+      if (code !== 0) root.failWindowPreflight("Couldn't inspect the workspace layout. Try again.")
+      else root.parseLayoutPreflight(layoutPreflightOutput.text, requestGeneration)
     }
   }
 
@@ -4632,20 +4907,19 @@ ShellRoot {
         screen: screenScope.modelData
         visible: root.splashActive && overlay.isFocusedScreen
         anchors { top: true; bottom: true; left: true; right: true }
-        color: root.background
+        color: root.startupBackground
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "learn-omarchy-splash"
         WlrLayershell.layer: WlrLayer.Overlay
         WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
         SplashScreen {
           anchors.fill: parent
-          source: root.appRoot + "/assets/splash/learn-omarchy.png"
+          backgroundColor: root.startupBackground
+          source: "file://" + root.appRoot.split("/").map(encodeURIComponent).join("/") + "/assets/splash/learn-omarchy-poster.png"
           active: root.splashActive && overlay.isFocusedScreen
           ready: root.phase === "error" || (root.course !== null && root.settingsResolved &&
             root.progressResolved && characterStore.ready)
           reducedMotion: root.reducedMotion
-          backgroundColor: root.background
-          foregroundColor: root.foreground
           onFinished: root.finishSplash()
           onImageFailed: console.warn("learn-omarchy: splash artwork unavailable; using the title fallback")
         }
@@ -4690,7 +4964,8 @@ ShellRoot {
           (highlight.target === "window" ? !usesWindowTarget
             : !usesWindowTarget && (!measuredBarTarget || measuredBarTarget.estimated === true))
         readonly property bool hasReliableCompletionTarget: !root.currentStepHasNoVisibleTarget &&
-          Boolean(highlight) && !targetIsEstimated
+          Boolean(highlight) && !targetIsEstimated &&
+          (highlight.target !== "panel" || usesWindowTarget || Boolean(measuredBarTarget && measuredBarTarget.panel))
         readonly property real fittedHighlightWidth: usesWindowTarget ? windowTargetWidth
           : measuredBarTarget ? measuredBarTarget.width : estimatedTarget ? estimatedTarget.width : 0
         readonly property real fittedHighlightHeight: usesWindowTarget ? windowTargetHeight
@@ -4752,13 +5027,14 @@ ShellRoot {
 
         screen: screenScope.modelData
         visible: shouldShow
+        contentItem.opacity: root.startupOpacity
         anchors {
           top: true
           bottom: true
           left: true
           right: true
         }
-        color: "transparent"
+        color: root.colorWithAlpha(root.startupBackground, 1 - root.startupOpacity)
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "learn-omarchy"
         WlrLayershell.layer: WlrLayer.Overlay
@@ -5011,7 +5287,7 @@ ShellRoot {
                   font.pixelSize: 13 * root.textScale
                 }
                 UiButton {
-                  visible: characterStore.diagnostics.length > 0
+                  visible: root.settingsMode !== "first-run" && characterStore.diagnostics.length > 0
                   compact: true
                   kind: "ghost"
                   label: (characterPanel.showPackDetails ? "HIDE" : "SHOW") + " COACH PACK DETAILS (" + characterStore.diagnostics.length + ")"
@@ -5020,7 +5296,7 @@ ShellRoot {
                 Text {
                   objectName: "packDetails"
                   Layout.fillWidth: true
-                  visible: characterPanel.showPackDetails && text !== ""
+                  visible: root.settingsMode !== "first-run" && characterPanel.showPackDetails && text !== ""
                   text: characterStore.diagnostics.map(function(item) { return item.message || String(item) }).join("\n")
                   textFormat: Text.PlainText
                   color: root.muted
@@ -5029,6 +5305,7 @@ ShellRoot {
                 }
                 UiButton {
                   label: "REFRESH COACHES"
+                  visible: root.settingsMode !== "first-run"
                   compact: true
                   onClicked: root.refreshCharacters()
                 }
@@ -5247,8 +5524,8 @@ ShellRoot {
                   PreferenceSwitch {
                     objectName: "typeTextSwitch"
                     Layout.fillWidth: true
-                    text: "Type text"
-                    description: "Reveal narrated captions gradually; off shows the full text."
+                    text: "Fade captions"
+                    description: "Gently fade in complete captions; off shows them immediately."
                     checked: root.synchronizedWelcomeText
                     onToggled: { root.synchronizedWelcomeText = checked; root.persistSettings() }
                   }
@@ -5679,6 +5956,32 @@ ShellRoot {
               visible: root.welcomeStage === "menu-flight" || root.welcomeStage === "recommendation"
             }
 
+            GridLayout {
+              Layout.alignment: Qt.AlignHCenter
+              columns: topicPanel.width < 640 ? 1 : 2
+              UiButton {
+                label: "MIXED PRACTICE"
+                enabled: root.mixedEligibleCount >= 2
+                onClicked: root.startMixedPractice()
+              }
+              UiButton {
+                label: cheatSheetProcess.running ? "PREPARING REFERENCE..." : "PRINTABLE SHORTCUTS"
+                enabled: !cheatSheetProcess.running
+                onClicked: root.openCheatSheet()
+              }
+            }
+            Text {
+              Layout.fillWidth: true
+              text: root.retentionNotice || (root.mixedEligibleCount < 2
+                ? "Complete two practice-ready modules to unlock a mixed review."
+                : "Mixed practice reviews up to three completed modules in shuffled order.")
+              textFormat: Text.PlainText
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+              color: root.muted
+              font.pixelSize: 12 * root.textScale
+            }
+
             RowLayout {
               Layout.alignment: Qt.AlignHCenter
               spacing: 18
@@ -5968,6 +6271,7 @@ ShellRoot {
                 return root.currentStep ? root.characterText(root.currentStep.instruction) : ""
               }
               WordRevealText {
+                reducedMotion: root.reducedMotion
                 anchors.fill: parent
                 visible: teachingInstruction.revealEnd >= 0
                 fullText: teachingInstruction.text
@@ -6266,17 +6570,42 @@ ShellRoot {
             value: completionPanel.narrationReady
           }
           visible: root.phase === "lesson-complete" && root.currentLesson
+          onVisibleChanged: if (visible) completionScroll.contentY = 0
           opacity: root.lessonContentOpacity
           anchors.centerIn: parent
           width: Math.min(620, parent.width - 48)
-          height: completionColumn.implicitHeight + 64
+          height: Math.min(parent.height - 72, completionColumn.implicitHeight + 64)
           radius: 18
           stripe: root.accent
 
+          Flickable {
+            id: completionScroll
+            anchors.fill: parent
+            anchors.margins: 32
+            contentWidth: width
+            contentHeight: completionColumn.implicitHeight
+            clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            Controls.ScrollBar.vertical: Controls.ScrollBar { policy: Controls.ScrollBar.AsNeeded }
+            Connections {
+              target: completionScroll.Window.window
+              function onActiveFocusItemChanged() {
+                if (root.phase !== "lesson-complete") return
+                var item = completionScroll.Window.window.activeFocusItem
+                var ancestor = item
+                while (ancestor && ancestor !== completionColumn) ancestor = ancestor.parent
+                if (!ancestor) return
+                var point = item.mapToItem(completionColumn, 0, 0)
+                if (point.y < completionScroll.contentY) completionScroll.contentY = Math.max(0, point.y - 8)
+                else if (point.y + item.height > completionScroll.contentY + completionScroll.height)
+                  completionScroll.contentY = Math.min(completionScroll.contentHeight - completionScroll.height,
+                    point.y + item.height - completionScroll.height + 8)
+              }
+            }
+
           ColumnLayout {
             id: completionColumn
-            anchors.centerIn: parent
-            width: parent.width - 64
+            width: completionScroll.width
             spacing: 14
 
             Rectangle {
@@ -6328,6 +6657,7 @@ ShellRoot {
               font.pixelSize: 18 * root.textScale
               lineHeight: 1.2
               WordRevealText {
+                reducedMotion: root.reducedMotion
                 anchors.fill: parent
                 visible: wrapupReveal.revealEnd >= 0
                 fullText: wrapupCaptionText.text
@@ -6361,8 +6691,11 @@ ShellRoot {
 
               UiButton {
                 kind: "primary"
-                label: "CHOOSE ANOTHER TOPIC"
-                onClicked: root.returnToMenu()
+                label: root.mixedPracticeActive
+                  ? (root.mixedLessonPosition + 1 < root.mixedLessonIds.length
+                    ? "NEXT PRACTICE MODULE" : "FINISH MIXED PRACTICE")
+                  : "CHOOSE ANOTHER TOPIC"
+                onClicked: root.mixedPracticeActive ? root.nextMixedLesson() : root.returnToMenu()
               }
               UiButton {
                 kind: "ghost"
@@ -6374,7 +6707,30 @@ ShellRoot {
                 label: "PRACTICE"
                 onClicked: root.startLesson(root.lessonIndex, true, false)
               }
+              UiButton {
+                label: "PRINTABLE SHORTCUTS"
+                enabled: !cheatSheetProcess.running
+                onClicked: root.openCheatSheet()
+              }
+              UiButton {
+                visible: !root.mixedPracticeActive
+                label: "MIXED PRACTICE"
+                enabled: root.mixedEligibleCount >= 2
+                onClicked: root.startMixedPractice()
+              }
             }
+            Text {
+              Layout.fillWidth: true
+              visible: root.retentionNotice !== "" || root.mixedPracticeActive
+              text: root.retentionNotice || ("Mixed practice: module " +
+                (root.mixedLessonPosition + 1) + " of " + root.mixedLessonIds.length)
+              textFormat: Text.PlainText
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+              color: root.muted
+              font.pixelSize: 12 * root.textScale
+            }
+          }
           }
         }
 
@@ -6459,6 +6815,7 @@ ShellRoot {
         // Track the main overlay's real window visibility, then re-map just
         // after it appears so this window is always the newer (upper) surface.
         visible: overlay.visible && mapped
+        contentItem.opacity: root.startupOpacity
         anchors {
           top: true
           bottom: true
@@ -6698,6 +7055,7 @@ ShellRoot {
               opacity: root.welcomeRevealEnd >= 0 ? 0 : 1
             }
             WordRevealText {
+              reducedMotion: root.reducedMotion
               width: welcomeCaptionText.width
               visible: root.welcomeRevealEnd >= 0
               fullText: welcomeCaptionText.text
@@ -6765,6 +7123,7 @@ ShellRoot {
               opacity: root.lessonRevealEnd(root.currentStep ? root.characterText(root.currentStep.instruction) : "") >= 0 ? 0 : 1
             }
             WordRevealText {
+              reducedMotion: root.reducedMotion
               width: tourCaptionText.width
               fullText: tourCaptionText.text
               revealEnd: root.lessonRevealEnd(root.currentStep ? root.characterText(root.currentStep.instruction) : "")
@@ -6784,6 +7143,10 @@ ShellRoot {
           displayName: root.characterDisplayName
           reducedMotion: root.reducedMotion
           visible: root.introActive && overlay.shouldShow
+          onPhaseChanged: {
+            if (overlay.shouldShow && (phase === "playing" || phase === "fallback"))
+              root.revealStartupScene()
+          }
           property int playbackGeneration: -1
           property bool handoffPinned: false
           palette: ({
@@ -6913,8 +7276,15 @@ ShellRoot {
             root.characterState === "tour-point" ||
             root.characterState === "tour-talk"
           readonly property bool completionPointsUp: targetsCompletion && overlay.targetPointY < 90
-          readonly property bool isPointingUp: root.characterState === "tour-point" ||
-            (root.characterState === "target-point" && completionPointsUp)
+          readonly property var barPosition: (targetsTour || targetsCompletion) && overlay.highlight &&
+            (overlay.highlight.target === "workspace" || overlay.highlight.barWidgets) &&
+            overlay.highlight.target !== "panel"
+            ? TeachingLayout.besideBar(overlay.width, overlay.height, width, height,
+                {x: overlay.targetBoundsX, y: overlay.targetBoundsY,
+                  width: overlay.fittedHighlightWidth, height: overlay.fittedHighlightHeight,
+                  edge: overlay.measuredBarTarget ? overlay.measuredBarTarget.barEdge : undefined}) : null
+          readonly property bool isPointingUp: barPosition ? barPosition.edge === "top" && isPointing :
+            root.characterState === "tour-point" || (root.characterState === "target-point" && completionPointsUp)
           readonly property bool targetsIntro: root.characterState === "intro"
           readonly property bool targetsWelcomeControls: root.phase === "welcome" &&
             (root.welcomeStage === "controls-flight" || root.welcomeStage === "controls")
@@ -6990,7 +7360,7 @@ ShellRoot {
             overlay.targetPointY + (completionPointsUp ? 70 : 0) - height +
               ((height - (completionPointsUp ? upTipLocalY : pointTipLocalY)) * targetScale)
           readonly property real bottomY: overlay.height - height - 28
-          readonly property real contextX: targetsIntro
+          readonly property real contextX: barPosition ? barPosition.x : targetsIntro
             ? introPlayer.characterX - 8
             : targetsWelcomeControls ? Math.max(18, Math.min(overlay.width - width - 18,
                 controls.x + controls.width / 2 - upTipLocalX))
@@ -7004,7 +7374,7 @@ ShellRoot {
               : targetsModuleComplete
                 ? moduleTargetX
               : waitingX
-          readonly property real contextY: targetsIntro
+          readonly property real contextY: barPosition ? barPosition.y : targetsIntro
             ? introPlayer.characterY - (height - 192)
             : targetsWelcomeControls ? Math.max(0, controls.y + controls.height + 16 - upTipLocalY)
             : targetsWelcome ? Math.max(40, (overlay.height - height) / 2 - 40)

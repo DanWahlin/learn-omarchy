@@ -19,6 +19,7 @@ Item {
   property int readingWordsPerMinute: 200
   property bool keyboardExclusive: true
   property real textScale: 1
+  property bool reducedMotion: true
   property real lessonContentOpacity: 1
   property bool lessonTransitionRunning: false
   property string pendingLessonTransition: ""

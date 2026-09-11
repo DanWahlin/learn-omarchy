@@ -1,0 +1,179 @@
+{
+  "version": 1,
+  "audioHash": "1b5b0b44bfcffed5446ffd0c69033d337e0f05f39b02d40d5f88aad3280713f0",
+  "text": "A window group holds several windows in one tile, with tabs along the top. Super and G toggles grouping. Super, Alt, and an arrow moves a window into an adjacent group; Super, Alt, and Tab cycles the group. This is a read-only introduction.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 1
+    },
+    {
+      "startMs": 110,
+      "endOffset": 8
+    },
+    {
+      "startMs": 590,
+      "endOffset": 14
+    },
+    {
+      "startMs": 990,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3670,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 74
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 80
+    },
+    {
+      "startMs": 6070,
+      "endOffset": 84
+    },
+    {
+      "startMs": 6550,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 94
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 111
+    },
+    {
+      "startMs": 8750,
+      "endOffset": 116
+    },
+    {
+      "startMs": 9309,
+      "endOffset": 120
+    },
+    {
+      "startMs": 9510,
+      "endOffset": 123
+    },
+    {
+      "startMs": 9670,
+      "endOffset": 129
+    },
+    {
+      "startMs": 10270,
+      "endOffset": 135
+    },
+    {
+      "startMs": 10670,
+      "endOffset": 137
+    },
+    {
+      "startMs": 10709,
+      "endOffset": 144
+    },
+    {
+      "startMs": 11190,
+      "endOffset": 149
+    },
+    {
+      "startMs": 11469,
+      "endOffset": 152
+    },
+    {
+      "startMs": 11549,
+      "endOffset": 161
+    },
+    {
+      "startMs": 12149,
+      "endOffset": 168
+    },
+    {
+      "startMs": 13110,
+      "endOffset": 175
+    },
+    {
+      "startMs": 13750,
+      "endOffset": 180
+    },
+    {
+      "startMs": 14229,
+      "endOffset": 184
+    },
+    {
+      "startMs": 14430,
+      "endOffset": 188
+    },
+    {
+      "startMs": 15030,
+      "endOffset": 195
+    },
+    {
+      "startMs": 15549,
+      "endOffset": 199
+    },
+    {
+      "startMs": 15709,
+      "endOffset": 206
+    },
+    {
+      "startMs": 16950,
+      "endOffset": 211
+    },
+    {
+      "startMs": 17350,
+      "endOffset": 214
+    },
+    {
+      "startMs": 17470,
+      "endOffset": 216
+    },
+    {
+      "startMs": 17550,
+      "endOffset": 226
+    },
+    {
+      "startMs": 18230,
+      "endOffset": 240
+    }
+  ]
+}

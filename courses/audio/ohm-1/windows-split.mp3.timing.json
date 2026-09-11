@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "audioHash": "7434d0e653a9cf30daf40114adb172d182065299fe5a4266736e8611d2e4d709",
+  "text": "Press Super and J to change how the two practice terminals share their space. A split is the dividing line between tiles: this shortcut changes its direction.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 11
+    },
+    {
+      "startMs": 710,
+      "endOffset": 15
+    },
+    {
+      "startMs": 870,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1350,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 35
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 48
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 58
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 64
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 70
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 79
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 85
+    },
+    {
+      "startMs": 5070,
+      "endOffset": 88
+    },
+    {
+      "startMs": 5190,
+      "endOffset": 92
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 101
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 106
+    },
+    {
+      "startMs": 5950,
+      "endOffset": 114
+    },
+    {
+      "startMs": 6310,
+      "endOffset": 121
+    },
+    {
+      "startMs": 7150,
+      "endOffset": 126
+    },
+    {
+      "startMs": 7350,
+      "endOffset": 135
+    },
+    {
+      "startMs": 7910,
+      "endOffset": 143
+    },
+    {
+      "startMs": 8350,
+      "endOffset": 147
+    },
+    {
+      "startMs": 8510,
+      "endOffset": 158
+    }
+  ]
+}

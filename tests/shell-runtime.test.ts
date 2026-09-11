@@ -8,6 +8,10 @@ const shell = await readFile(new URL("../app/shell.qml", import.meta.url), "utf8
 const revealSource = await readFile(new URL("../app/CaptionReveal.qml", import.meta.url), "utf8");
 const captionTiming = createContext({});
 runInContext(await readFile(new URL("../app/CaptionTiming.js", import.meta.url), "utf8"), captionTiming);
+const windowOutcomes = createContext({});
+runInContext(await readFile(new URL("../app/WindowOutcomes.js", import.meta.url), "utf8"), windowOutcomes);
+const retention = createContext({});
+runInContext(await readFile(new URL("../app/Retention.js", import.meta.url), "utf8"), retention);
 const welcomeSource = await readFile(new URL("../courses/welcome.json", import.meta.url), "utf8");
 const course: Course = JSON.parse(
   await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"),
@@ -57,7 +61,16 @@ function runtime(stepId: string, reducedMotion = true) {
   assert.notEqual(lessonIndex, -1);
   const context = createContext({
     course: structuredClone(course),
+    interactionAudio: { notify(_kind: string) {}, stop() {} },
     CaptionTiming: captionTiming,
+    WindowOutcomes: windowOutcomes,
+    Retention: retention,
+    windowChangeBaseline: null,
+    mixedLessonIds: [],
+    mixedLessonPosition: 0,
+    retentionNotice: "",
+    cheatSheetPath: "/state/learn-omarchy/shortcuts.html",
+    cheatSheetProcess: { running: false, command: [] },
     courseDir: "/course",
     requestedCharacter: "ohm-1",
     characterState: "coach",
@@ -73,6 +86,9 @@ function runtime(stepId: string, reducedMotion = true) {
     welcomeSettingPresent: true,
     welcomeStage: "",
     splashActive: false,
+    startupOpacity: 1,
+    startupRevealPending: false,
+    startupFadeIn: timer(),
     welcomeNarration: JSON.parse(welcomeSource),
     welcomeNarrationStarted: false,
     welcomeNarrationFinished: false,
@@ -218,6 +234,8 @@ function runtime(stepId: string, reducedMotion = true) {
     helpProcess: { running: false, command: [] },
     practiceProcess: { running: false, command: [], requestGeneration: -1 },
     swapPreflightProcess: { running: false, requestGeneration: -1 },
+    windowBaselineProcess: { running: false, requestGeneration: -1 },
+    layoutPreflightProcess: { running: false, requestGeneration: -1 },
     directionPreviewProcess: { running: false, requestGeneration: -1 },
     clientGeometryProcess: { running: false },
     monitorGeometryProcess: { running: false },
@@ -229,6 +247,7 @@ function runtime(stepId: string, reducedMotion = true) {
     Qt: { callLater() {}, rgba: (r: number, g: number, b: number, a: number) => ({ r, g, b, a }) },
   });
   Object.defineProperties(context, {
+    mixedPracticeActive: { get: () => context.mixedLessonIds.length > 0 },
     welcomeRevealEnd: { get: () => context.welcomeReveal.revealEnd },
     lessonCaptionStage: { get: () => context.phase === "highlight" ||
       (["paused", "settings"].includes(context.phase) && context.pausedPhase === "highlight") ? "completion" : "instruction" },
@@ -574,6 +593,43 @@ test("system volume adjustments serialize repeats without touching lesson or nar
     assert.equal(state.currentStep.id, "tour-welcome");
     assert.equal(state.speechVolume, 80);
     assert.equal(state.welcomeStage, "");
+  }
+});
+
+test("workspace actions release compositor focus and recapture only after dispatch finishes", () => {
+  for (const id of ["tour-workspace-two", "next-workspace"]) {
+    const state = runtime(id);
+    state.currentWorkspaceId = () => 1;
+    state.workspaceStartId = 1;
+    state.runStepAction("shortcut");
+    assert.equal(state.keyboardExclusive, false);
+    assert.equal(state.restoreKeyboardAfterAction, true);
+    assert.equal(state.helpProcess.running, false);
+    state.currentWorkspaceId = () => 2;
+    state.checkWorkspaceCompletion();
+    assert.equal(state.phase, "waiting");
+    state.helpExited(0);
+    state.checkWorkspaceCompletion();
+    assert.equal(state.keyboardExclusive, true);
+    assert.equal(state.restoreKeyboardAfterAction, false);
+    assert.equal(state.phase, "highlight");
+  }
+});
+
+test("taught modified Tab chords cannot move focus onto the Topics button", () => {
+  const state = runtime("next-workspace");
+  Object.assign(state.Qt, { NoModifier: 0, ShiftModifier: 1, ControlModifier: 2,
+    AltModifier: 4, MetaModifier: 8, Key_Tab: 0x01000001, Key_Backtab: 0x01000002 });
+  state.updateActiveKeys = () => {};
+  for (const [key, modifiers, accepted] of [
+    [state.Qt.Key_Tab, 8, true],
+    [state.Qt.Key_Backtab, 9, true],
+    [state.Qt.Key_Tab, 0, false],
+    [state.Qt.Key_Backtab, 1, false],
+  ]) {
+    const event = { key, modifiers, accepted: false };
+    state.handleKeyPressed(event);
+    assert.equal(event.accepted, accepted);
   }
 });
 
@@ -1734,6 +1790,167 @@ test("lesson starts resume bookmarks but explicit replay and practice start at t
   assert.equal(state.practiceMode, true);
 });
 
+test("optional lessons appear after the complete core course", () => {
+  const state = runtime("open-root-menu");
+  const ordered = state.coreLessonsFirst([
+    { id: "welcome" },
+    { id: "optional-one", optional: true },
+    { id: "core-one" },
+    { id: "optional-two", optional: true },
+    { id: "core-finale" },
+  ]);
+  assert.deepEqual(
+    Array.from(ordered, (lesson: any) => lesson.id),
+    ["welcome", "core-one", "core-finale", "optional-one", "optional-two"],
+  );
+  state.loadCourse(JSON.stringify(course));
+  assert.deepEqual(Array.from(state.course.lessons, (lesson: any) => lesson.id), [
+    ...course.lessons.filter(lesson => !lesson.optional).map(lesson => lesson.id),
+    ...course.lessons.filter(lesson => lesson.optional).map(lesson => lesson.id),
+  ]);
+  const selected = state.course.lessons.findIndex((lesson: any) => lesson.id === "bar-panels");
+  state.startLesson(selected, true, false);
+  assert.equal(state.currentLesson.id, "bar-panels");
+  assert.equal(state.practiceMode, true);
+});
+
+test("mixed practice reuses original lesson IDs and stops cleanly at a module boundary", () => {
+  const state = runtime("open-root-menu");
+  state.currentWorkspaceId = () => 99;
+  assert.equal(state.startMixedPractice(), false);
+  assert.match(state.retentionNotice, /Complete at least two/);
+  for (const lesson of state.course.lessons.filter((item: any) => item.mixedPractice)) {
+    for (const step of lesson.steps) state.stepCredits[step.id] = true;
+  }
+  assert.equal(state.startMixedPractice(), true);
+  const plan = Array.from(state.mixedLessonIds);
+  assert.ok(plan.length >= 2);
+  assert.equal(state.currentLesson.id, plan[0]);
+  assert.equal(state.practiceMode, true);
+  assert.equal(state.stepIndex, 0);
+  state.phase = "lesson-complete";
+  state.nextMixedLesson();
+  assert.equal(state.currentLesson.id, plan[1]);
+  assert.equal(state.practiceMode, true);
+  state.returnToMenu();
+  assert.equal(state.mixedPracticeActive, false);
+  assert.equal(state.actionRunning, false);
+  assert.ok(Object.keys(state.stepCredits).length > 0);
+});
+
+test("interaction sounds distinguish accepted chords, wrong keys and verified outcomes", () => {
+  const state = runtime("launch-terminal");
+  const cues: string[] = [];
+  state.interactionAudio.notify = (kind: string) => cues.push(kind);
+  state.reactToKey("SHIFT");
+  state.reactToKey("SUPER");
+  assert.deepEqual(cues, []);
+  state.reactToKey("Z");
+  assert.deepEqual(cues, ["wrong"]);
+  state.activeKeys = { SUPER: true, RETURN: true };
+  state.runStepAction = () => {};
+  state.checkExpectedCombo();
+  assert.deepEqual(cues, ["wrong", "correct"]);
+  state.completeCurrentStep();
+  assert.deepEqual(cues, ["wrong", "correct", "step-complete"]);
+  state.completeCurrentStep();
+  assert.equal(cues.length, 3, "repeated completion cannot replay the cue");
+});
+
+test("resize outcomes require a before snapshot and a real owned-window size change", () => {
+  const state = runtime("windows-resize");
+  const client = {address: "0xabc", at: [20, 20], size: [500, 300], mapped: true,
+    hidden: false, monitor: 0, workspace: {id: 1}, floating: true, fullscreen: 0};
+  state.tutorialWindows = ["0xabc"];
+  state.tutorialWindowsByStep = {"windows-open-first": "0xabc"};
+  state.runStepAction("shortcut");
+  assert.equal(state.windowBaselineProcess.running, true);
+  assert.equal(state.helpProcess.running, false);
+  state.parseWindowBaseline(JSON.stringify([client]), state.actionGeneration);
+  assert.equal(state.helpProcess.running, true);
+  assert.equal(state.windowChangeBaseline.first.size[0], 500);
+  state.helpProcess.running = false;
+  state.helpExited(0);
+  state.parseOutcome(JSON.stringify([client]), state.outcomeGeneration);
+  assert.notEqual(state.outcomeAddress, "", "command acknowledgement is not a resize");
+  state.parseOutcome(JSON.stringify([{...client, size: [600, 300]}]), state.outcomeGeneration);
+  assert.equal(state.outcomeAddress, "");
+  assert.equal(state.windowGeometryPending, true);
+  state.cancelAction();
+  assert.equal(state.windowChangeBaseline, null);
+});
+
+test("resize shortcuts recognize physical minus and equals positions on other keyboard layouts", () => {
+  for (const [stepId, scan, label] of [["windows-resize", 21, "EQUAL"],
+    ["windows-resize-back", 20, "MINUS"]] as const) {
+    const state = runtime(stepId);
+    Object.assign(state.Qt, { Key_0: 48, Key_9: 57, Key_A: 65, Key_Z: 90,
+      ShiftModifier: 1, MetaModifier: 2, AltModifier: 4, ControlModifier: 8 });
+    const actions: string[] = [];
+    state.runStepAction = (source: string) => actions.push(source);
+    state.updateActiveKeys({key: 233, nativeScanCode: scan, modifiers: 2, isAutoRepeat: false}, true);
+    assert.deepEqual(actions, ["shortcut"]);
+    assert.equal(state.activeKeys[label], true);
+    state.updateActiveKeys({key: 233, nativeScanCode: scan, modifiers: 0}, false);
+    assert.equal(state.activeKeys[label], undefined);
+  }
+});
+
+test("window-change observations cannot award completion before successful dispatch", () => {
+  const state = runtime("windows-resize");
+  const client = {address: "0xabc", at: [20, 20], size: [500, 300], mapped: true,
+    hidden: false, monitor: 0, workspace: {id: 1}, floating: true, fullscreen: 0};
+  state.tutorialWindows = ["0xabc"];
+  state.tutorialWindowsByStep = {"windows-open-first": "0xabc"};
+  state.runStepAction("shortcut");
+  state.requestOutcomeVerification();
+  assert.equal(state.outcomeAddress, "");
+  state.parseWindowBaseline(JSON.stringify([client]), state.actionGeneration);
+  state.requestOutcomeVerification();
+  assert.equal(state.outcomeAddress, "");
+  state.outcomeAddress = "0xabc";
+  state.outcomeExpected = state.currentStep.completion.windowState;
+  const changed = JSON.stringify([{...client, size: [600, 300]}]);
+  state.parseOutcome(changed, state.outcomeGeneration);
+  assert.equal(state.outcomeAddress, "0xabc", "in-flight changes cannot complete the activity");
+  state.helpProcess.running = false;
+  state.helpExited(1);
+  assert.equal(state.actionStepId, "");
+  state.requestOutcomeVerification();
+  assert.equal(state.outcomeProcess.running, false);
+  state.parseOutcome(changed, state.outcomeGeneration);
+  assert.equal(state.outcomeAddress, "0xabc", "a failed dispatch cannot earn completion");
+});
+
+test("split changes inspect the owned pair and actual workspace layout before dispatch", () => {
+  const state = runtime("windows-split");
+  // Complete the keyboard-release delay; this fixture tests layout gating, not timer scheduling.
+  state.focusActionTimer.restart = () => { state.helpProcess.running = true; };
+  const first = {address: "0xabc", at: [0, 0], size: [500, 600], mapped: true,
+    hidden: false, monitor: 0, workspace: {id: 1}, floating: false, fullscreen: 0, focusHistoryID: 2};
+  const peer = {...first, address: "0xdef", at: [510, 0], focusHistoryID: 1};
+  state.tutorialWindows = ["0xabc", "0xdef"];
+  state.tutorialWindowsByStep = {"windows-open-second": "0xabc", "windows-open-first": "0xdef"};
+  state.runStepAction("shortcut");
+  state.parseWindowBaseline(JSON.stringify([first, peer]), state.actionGeneration);
+  assert.equal(state.helpProcess.running, false);
+  state.parseLayoutPreflight(JSON.stringify([{id: 1, tiledLayout: "lua:custom"}]), state.actionGeneration);
+  assert.equal(state.helpProcess.running, false);
+  assert.match(state.recoveryMessage, /dwindle/);
+  state.runStepAction("shortcut");
+  state.parseWindowBaseline(JSON.stringify([first, peer]), state.actionGeneration);
+  state.parseLayoutPreflight(JSON.stringify([{id: 1, tiledLayout: "dwindle"}]), state.actionGeneration);
+  assert.equal(state.helpProcess.running, true);
+  state.helpProcess.running = false;
+  state.helpExited(0);
+  first.focusHistoryID = 0;
+  state.parseOutcome(JSON.stringify([first, peer]), state.outcomeGeneration);
+  assert.notEqual(state.outcomeAddress, "");
+  state.parseOutcome(JSON.stringify([{...first, size: [1010, 290]},
+    {...peer, at: [0, 300], size: [1010, 300]}]), state.outcomeGeneration);
+  assert.equal(state.outcomeAddress, "");
+});
+
 test("Welcome lesson replays the selected coach without clearing existing progress", () => {
   for (const character of ["ohm-1", "owl"]) {
     const { state, screens } = introRuntime();
@@ -1829,25 +2046,26 @@ test("unmeasured panels avoid falsely precise pointers and outlines", () => {
   assert.match(shell, /id: targetMarker[\s\S]*?visible: root\.phase === "highlight" &&\s+overlay\.hasReliableCompletionTarget/);
 });
 
-test("the coach follows every reliable highlighted panel target, including measured menu widgets", () => {
+test("the coach follows measured popup bounds but not a popup's bar button", () => {
   const estimated = shell.match(/readonly property bool targetIsEstimated: ([\s\S]*?)\n        readonly property bool hasReliableCompletionTarget/)?.[1];
   const reliable = shell.match(/readonly property bool hasReliableCompletionTarget: ([\s\S]*?)\n        readonly property real fittedHighlightWidth/)?.[1];
   const follows = shell.match(/readonly property bool targetsCompletion:\s*([\s\S]*?)\n          readonly property bool targetsTour/)?.[1];
   assert.ok(estimated && reliable && follows);
-  for (const [target, windowMeasured, widgetMeasured, expected] of [
-    ["panel", false, true, true],
-    ["panel", true, false, true],
-    ["panel", false, false, false],
-    ["window", true, false, true],
-    ["window", false, true, false],
-    ["workspace", false, true, true],
+  for (const [target, windowMeasured, widgetMeasured, panelMeasured, expected] of [
+    ["panel", false, true, false, false],
+    ["panel", false, true, true, true],
+    ["panel", true, false, false, true],
+    ["panel", false, false, false, false],
+    ["window", true, false, false, true],
+    ["window", false, true, false, false],
+    ["workspace", false, true, false, true],
   ] as const) {
     for (const state of ["target-fly", "target-settle", "target-point"]) {
       const context = createContext({
         root: { currentStepHasNoVisibleTarget: false, characterState: state },
         highlight: { target },
         usesWindowTarget: windowMeasured,
-        measuredBarTarget: widgetMeasured ? { x: 100, y: 20, width: 40, height: 30 } : null,
+        measuredBarTarget: widgetMeasured ? { x: 100, y: 20, width: 40, height: 30, panel: panelMeasured } : null,
         targetIsEstimated: false,
         overlay: { highlight: { target }, usesWindowTarget: windowMeasured, hasReliableCompletionTarget: false },
       });
@@ -2154,7 +2372,7 @@ test("an unavailable provider falls back without guessing a multi-monitor associ
   state.finishBarGeometry(1, "", state.geometryScreens(), true);
   assert.equal(state.geometryProviderAvailable, false);
   state.requestBarGeometry();
-  assert.deepEqual(Array.from(state.barGeometryProcess.command), ["omarchy-shell", "shell", "debugBarGeometry"]);
+  assert.deepEqual(Array.from(state.barGeometryProcess.command), ["node", "/app/tools/bar-geometry.mjs"]);
   state.barGeometryProcess.running = false;
   state.Quickshell.screens.push({ name: "DP-1", x: 1920, y: 0, width: 1920, height: 1200 });
   state.requestBarGeometry();
@@ -3024,6 +3242,40 @@ test("the startup splash defers the welcome and releases it only once", () => {
   state.finishSplash();
   assert.equal(state.introGeneration, generation);
 });
+test("startup reveals every destination once and waits for an intro's first frame", () => {
+  for (const phase of ["menu", "settings", "welcome", "error"]) {
+    const state = runtime("open-root-menu", false);
+    state.splashActive = true;
+    state.maybeBeginWelcome = () => {
+      state.phase = phase;
+      state.introActive = phase === "welcome";
+    };
+    let reveals = 0;
+    state.startupFadeIn.restart = () => { reveals++; };
+    state.finishSplash();
+    assert.equal(state.startupOpacity, 0);
+    assert.equal(state.startupRevealPending, phase === "welcome");
+    assert.equal(reveals, phase === "welcome" ? 0 : 1);
+    state.revealStartupScene();
+    assert.equal(reveals, 1);
+    state.startupOpacity = 0.4;
+    state.revealStartupScene();
+    state.finishSplash();
+    assert.equal(reveals, 1);
+    assert.equal(state.startupOpacity, 0.4);
+  }
+  assert.equal((shell.match(/contentItem\.opacity: root\.startupOpacity/g) || []).length, 2,
+    "the UI and separately hosted coach/intro must reveal together");
+});
+test("reduced-motion startup does not hide the destination or schedule a fade", () => {
+  const state = runtime("open-root-menu", true);
+  state.splashActive = true;
+  state.maybeBeginWelcome = () => {};
+  state.finishSplash();
+  assert.equal(state.startupOpacity, 1);
+  assert.equal(state.startupRevealPending, false);
+  assert.equal(state.startupFadeIn.running, false);
+});
 test("early lesson selection, Settings, coach changes and skip invalidate all welcome callbacks", () => {
   for (const stage of ["scene", "center-flight", "welcome", "menu-flight", "recommendation"]) {
     for (const action of ["lesson", "settings", "coach", "skip", "close"]) {
@@ -3463,6 +3715,22 @@ test("automatic integration failures stay visible until the companion returns va
   state.finishBarGeometry(0, "{}", [], true);
   assert.equal(state.integrationNotice, "");
   assert.equal(state.geometryProviderAvailable, true);
+});
+
+test("layer-offset fallback promotes widget groups but not inferred workspace pills", () => {
+  const state = runtime("tour-workspaces");
+  const screens = state.geometryScreens();
+  assert.equal(screens.length, 1);
+  const output = { ...screens[0], widgets: [
+    { id: "omarchy.workspaces", x: 40, y: 1170, width: 125, height: 30, visible: true, itemVisible: true },
+  ] };
+  state.parseBarGeometry(JSON.stringify({ version: 1, screens: [output] }), screens);
+  assert.equal(state.barGeometry.length, 1);
+  assert.equal(state.barGeometry[0].estimated, undefined);
+  const group = state.barTargetGeometry({ barWidgets: ["omarchy.workspaces"] }, 0);
+  assert.equal(group.estimated, undefined);
+  const pill = state.barTargetGeometry({ target: "workspace", workspaceId: 2 }, 1);
+  assert.equal(pill.estimated, true);
 });
 
 test("cleanup resolves owned targets and refuses a missing target", () => {

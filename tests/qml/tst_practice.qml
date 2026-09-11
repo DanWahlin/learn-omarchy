@@ -97,6 +97,68 @@ Item {
       keyClick(Qt.Key_Tab)
       tryCompare(findChild(practice, "stopRecording"), "activeFocus", true)
     }
+    function test_reviewedSampleCanTabOutToTheFooter() {
+      practice.mode = "ocr"
+      practice.extracted = "OMARCHY SAFE SAMPLE"
+      var input = findChild(practice, "exerciseInput")
+      input.text = practice.extracted
+      practice.nativeSamplePasted = true
+      var review = findChild(practice, "reviewRecognized")
+      verify(review.enabled)
+      review.clicked()
+      verify(practice.verified)
+      verify(!review.enabled)
+      input.forceActiveFocus()
+      keyClick(Qt.Key_Tab)
+      tryCompare(findChild(practice, "returnWithoutCompleting"), "activeFocus", true)
+      keyClick(Qt.Key_Tab)
+      tryCompare(findChild(practice, "finishExercise"), "activeFocus", true)
+    }
+    function test_sharingFocusFindsTheEnabledRecipientSelector() {
+      practice.mode = "sharing"
+      practice.stage = 1
+      practice.focusPractice()
+      tryCompare(findChild(practice, "shareRecipient"), "activeFocus", true)
+      findChild(practice, "returnWithoutCompleting").forceActiveFocus()
+      keyClick(Qt.Key_Tab)
+      tryCompare(findChild(practice, "shareRecipient"), "activeFocus", true)
+    }
+    function test_mediaPreviewCanTakeFocusAndBeRevealed() {
+      root.width = 640
+      root.height = 320
+      practice.mode = "transcode"
+      practice.original = "/test-original.mp4"
+      var video = findChild(practice, "practiceVideo")
+      video.forceActiveFocus()
+      practice.scheduleReveal(video)
+      wait(50)
+      var scroll = findChild(practice, "practiceScroll")
+      var position = video.mapToItem(scroll, 0, 0)
+      verify(position.y >= -1 && position.y + video.height <= scroll.height + 1)
+      keyClick(Qt.Key_Tab)
+      tryCompare(findChild(practice, "outputResolution"), "activeFocus", true)
+    }
+    function test_qrRemainsFullyVisibleWhenDecodeButtonHasFocus() {
+      root.width = 640
+      root.height = 320
+      practice.mode = "qr"
+      practice.qrImage = Qt.resolvedUrl("../../assets/characters/ohm-1/sprites/ohm-1-point.png")
+        .toString().replace(/^file:\/\//, "")
+      for (var scale of [1, 1.3]) {
+        practice.textScale = scale
+        var extract = findChild(practice, "extractSample")
+        extract.forceActiveFocus()
+        practice.scheduleReveal(extract)
+        wait(50)
+        var scroll = findChild(practice, "practiceScroll")
+        var qr = findChild(practice, "sampleQr")
+        var position = qr.mapToItem(scroll, 0, 0)
+        verify(position.y >= -1, "QR top must not be clipped: " + position.y)
+        verify(position.y + qr.height <= scroll.height + 1, "QR bottom must fit")
+        var buttonPosition = extract.mapToItem(scroll, 0, 0)
+        verify(buttonPosition.y + extract.height <= scroll.height + 1, "Decode button must fit")
+      }
+    }
     function test_nativeSampleStaysFixedWhileControlsScroll() {
       root.width = 640
       root.height = 320

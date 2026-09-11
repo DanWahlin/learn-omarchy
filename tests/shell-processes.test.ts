@@ -114,7 +114,8 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
     assert.equal(result.error, undefined, String(result.error));
     assert.equal(result.status, 0, output);
     assert.match(output, /COMPLETE_SHELL_LOADED/);
-    assert.match(output, /INTEGRATION_NOTICE.*Mock desktop integration unavailable/);
+    assert.match(output, /INTEGRATION_NOTICE.*Some highlights may be approximate on this desktop/);
+    assert.doesNotMatch(output, /INTEGRATION_NOTICE.*Mock desktop integration unavailable/);
     assert.doesNotMatch(output, /ReferenceError|TypeError|Cannot assign|is not a type|Binding loop|Failed to load configuration/);
   } finally {
     await rm(directory, { recursive: true, force: true });

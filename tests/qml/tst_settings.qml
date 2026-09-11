@@ -16,6 +16,7 @@ Item {
   property string characterName: "owl"
   property string characterNotice: ""
   property string introNotice: ""
+  property string integrationNotice: ""
   property int characterPick: 1
   property bool speechEnabled: true
   property bool synchronizedWelcomeText: true
@@ -155,7 +156,7 @@ Item {
       var speech = root.speechEnabled
       var control = findChild(root.fixture, "typeTextSwitch")
       verify(control !== null)
-      compare(control.text, "Type text")
+      compare(control.text, "Fade captions")
       compare(control.checked, true)
       var saves = root.savedCount
       control.checked = false
@@ -231,6 +232,18 @@ Item {
       })
       verify(notices.length > 0 && notices[0].visible)
       root.characterIndex = original
+    }
+
+    function test_firstRunHidesMaintenanceControls() {
+      root.settingsMode = "first-run"
+      characterStore.diagnostics = [{message: "Developer diagnostic"}]
+      wait(50)
+      verify(!root.button("REFRESH COACHES").visible)
+      var details = root.descendants(fixture.panel, function(item) {
+        return "label" in item && item.label.indexOf("COACH PACK DETAILS") >= 0
+      })
+      compare(details.length, 1)
+      verify(!details[0].visible)
     }
 
     function test_packMetadataAndButtonLabelsAreLiteralPlainText() {

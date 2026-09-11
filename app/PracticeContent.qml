@@ -90,7 +90,7 @@ Rectangle {
     else if (exerciseInput.visible && exerciseInput.enabled) exerciseInput.forceActiveFocus()
     else {
       for (var child of bodyColumn.children) {
-        if (child.visible && child.enabled && "clicked" in child) {
+        if (child.visible && child.enabled && ("clicked" in child || child.activeFocusOnTab === true)) {
           child.forceActiveFocus()
           return
         }
@@ -196,6 +196,8 @@ Rectangle {
     player.stop()
     player.source = "file://" + path
     player.play()
+    videoPreview.forceActiveFocus()
+    scheduleReveal(videoPreview)
   }
 
   MediaPlayer {
@@ -455,14 +457,18 @@ Rectangle {
           onClicked: root.requestTask("prepare")
         }
         Image {
+          objectName: "sampleQr"
           visible: root.mode === "qr" && root.qrImage !== ""
           Layout.fillWidth: true
-          Layout.preferredHeight: 260
+          Layout.preferredHeight: Math.max(64, Math.min(200,
+            scrollArea.availableHeight - extractSampleButton.implicitHeight - bodyColumn.spacing - 24))
           source: root.qrImage ? "file://" + root.qrImage : ""
           fillMode: Image.PreserveAspectFit
+          smooth: false
           Accessible.name: "Harmless sample QR code"
         }
         PracticeButton {
+          id: extractSampleButton
           objectName: "extractSample"
           visible: root.mode === "ocr" || root.mode === "qr"
           enabled: !root.busy && (root.mode === "ocr" || root.qrImage !== "")
@@ -508,7 +514,7 @@ Rectangle {
           placeholderText: root.mode === "dictation" ? "Dictate: Omarchy practice" : "Paste the recognized sample here"
           Accessible.name: placeholderText
           KeyNavigation.priority: KeyNavigation.BeforeItem
-          KeyNavigation.tab: reviewRecognized
+          KeyNavigation.tab: reviewRecognized.enabled ? reviewRecognized : cancelButton
           onTextChanged: { root.nativeSamplePasted = false; root.verified = false }
           Keys.priority: Keys.BeforeItem
           Keys.onPressed: function(event) {
@@ -580,6 +586,9 @@ Rectangle {
         }
         VideoOutput {
           id: videoPreview
+          objectName: "practiceVideo"
+          KeyNavigation.priority: KeyNavigation.BeforeItem
+          KeyNavigation.tab: root.mode === "transcode" ? resolution : cancelButton
           visible: ["screen-recording", "transcode"].indexOf(root.mode) !== -1 && (root.original !== "" || root.artifact !== "")
           Layout.fillWidth: true
           Layout.preferredHeight: 170
@@ -883,7 +892,7 @@ Rectangle {
         Layout.fillWidth: true
         text: "Return without completing"
         KeyNavigation.priority: KeyNavigation.BeforeItem
-        KeyNavigation.tab: finishButton
+        KeyNavigation.tab: finishButton.enabled ? finishButton : scrollArea
         onClicked: root.cancelled()
       }
       PracticeButton {

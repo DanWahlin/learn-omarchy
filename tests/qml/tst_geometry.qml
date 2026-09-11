@@ -105,11 +105,21 @@ Item {
     }
 
     function test_estimatedCellsRemainDistinctFromMeasuredCells() {
+      fixture.currentStep = {completion:{type:"hyprland-workspace-is"},
+        highlight:{target:"workspace",shape:"rectangle",anchor:"top-left",x:0,y:0,width:28,height:30}}
       fixture.widgetRect = {x:100,y:0,width:28,height:30,estimated:true}
       compare(fixture.overlay.targetIsEstimated, true)
       compare(fixture.overlay.hasReliableCompletionTarget, false)
       fixture.widgetRect = {x:100,y:0,width:28,height:30}
       compare(fixture.overlay.targetIsEstimated, false)
+      compare(fixture.overlay.hasReliableCompletionTarget, true)
+    }
+
+    function test_panelButtonDoesNotPullTheCoachOverAnUnmeasuredPopup() {
+      fixture.widgetRect = {x:1847,y:0,width:64,height:30}
+      compare(fixture.overlay.targetIsEstimated, false)
+      compare(fixture.overlay.hasReliableCompletionTarget, false)
+      fixture.widgetRect = {x:1470,y:38,width:440,height:264,panel:true}
       compare(fixture.overlay.hasReliableCompletionTarget, true)
     }
 

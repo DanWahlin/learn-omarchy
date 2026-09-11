@@ -14,7 +14,7 @@ The official examples are:
 | OLLIE | `assets/characters/owl/intro/sequence.json` | 3,700 ms | Bottom-pivot tree growth, sway and fireflies, perch reveal, short takeoff, scenery fade |
 | SPARK | `examples/characters/spark/intro/sequence.json` | 2,950 ms | Two independent decorative layers arriving in parallel, then character scale/slide/reveal |
 
-The application has no character-ID, sprite-prefix, propulsion, rocket, or tree dispatch. The first two sequences reference the existing `sprites/ohm-1-intro.png`, `sprites/ohm-1-intro-open.png`, and `sprites/owl-intro.png` in their respective packs. These files are not duplicated. Their presence does not establish their license.
+The application has no character-ID, sprite-prefix, propulsion, rocket, or tree dispatch. Ohm's sequence selects `sprites/ohm-1-intro-pixel.png` and `sprites/ohm-1-intro-open-pixel.png`, nearest-neighbour samples of the pack's original rocket frames. Explicit aspect ratios retain the original scene geometry. Ollie's sequence uses `sprites/owl-intro.png` unchanged. See [presentation](presentation.md) for sampling details and provenance; asset licensing remains documented separately.
 
 ## Version 1 grammar
 

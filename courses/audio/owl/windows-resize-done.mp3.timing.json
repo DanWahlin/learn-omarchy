@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "audioHash": "221b4a9866b26f41e8a444977294e3734b1c6d08b1cca5f4af4354a173672ff2",
+  "text": "The practice terminal changed size. Floating makes the width change easy to see.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 670,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1910,
+      "endOffset": 35
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 44
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 50
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 54
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 67
+    },
+    {
+      "startMs": 5030,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 75
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 80
+    }
+  ]
+}

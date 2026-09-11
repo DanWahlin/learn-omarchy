@@ -252,6 +252,19 @@ Item {
             player.updateFrame()
             verify(player.characterVisible)
             tryCompare(coach, "errorMessage", "")
+            if (data.pack === "assets/characters/ohm-1") {
+                for (var id of ["hull", "hatch"]) {
+                    var image = findChild(player, "introImage-" + id)
+                    verify(image !== null)
+                    tryCompare(image, "status", Image.Ready)
+                    compare(image.implicitWidth, 140)
+                    compare(image.implicitHeight, 320)
+                    compare(image.smooth, false)
+                    compare(image.mipmap, false)
+                    verify(Math.abs(image.width / image.height - 279 / 640) < 0.0001,
+                        "sampling must not change the rocket footprint")
+                }
+            }
             waitForRendering(scene)
             var snapshot = grabImage(scene)
             compare(snapshot.width, scene.width)

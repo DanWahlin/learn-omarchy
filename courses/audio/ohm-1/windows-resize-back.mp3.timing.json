@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "audioHash": "a97f3523ddb34c37521b2eefbb058cad1d03e31ab84a1d6c81cda06a6f1e3870",
+  "text": "Now hold Super and press the key two places left of Backspace, normally minus. This resizes in the other direction. Adding Shift changes height instead of width.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 8
+    },
+    {
+      "startMs": 430,
+      "endOffset": 14
+    },
+    {
+      "startMs": 950,
+      "endOffset": 18
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 48
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 78
+    },
+    {
+      "startMs": 5590,
+      "endOffset": 83
+    },
+    {
+      "startMs": 5870,
+      "endOffset": 91
+    },
+    {
+      "startMs": 6590,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6710,
+      "endOffset": 98
+    },
+    {
+      "startMs": 6870,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 115
+    },
+    {
+      "startMs": 7870,
+      "endOffset": 122
+    },
+    {
+      "startMs": 8229,
+      "endOffset": 128
+    },
+    {
+      "startMs": 8629,
+      "endOffset": 136
+    },
+    {
+      "startMs": 9030,
+      "endOffset": 143
+    },
+    {
+      "startMs": 9430,
+      "endOffset": 151
+    },
+    {
+      "startMs": 9790,
+      "endOffset": 154
+    },
+    {
+      "startMs": 9870,
+      "endOffset": 161
+    }
+  ]
+}

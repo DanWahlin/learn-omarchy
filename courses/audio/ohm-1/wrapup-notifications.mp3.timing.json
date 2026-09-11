@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "audioHash": "6cc25232f6cf687601e539acb5a924dfc45e3465f1d4003f648656f4084e4cee",
+  "text": "You now have a reference for notification history, dismissal, actions, and silencing. Your notifications and preferences are unchanged. Use these shortcuts when you need them, and inspect a notification before invoking its action.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 7
+    },
+    {
+      "startMs": 390,
+      "endOffset": 12
+    },
+    {
+      "startMs": 550,
+      "endOffset": 14
+    },
+    {
+      "startMs": 630,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1030,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 41
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 70
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 74
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 85
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 90
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 104
+    },
+    {
+      "startMs": 6430,
+      "endOffset": 108
+    },
+    {
+      "startMs": 6550,
+      "endOffset": 120
+    },
+    {
+      "startMs": 7310,
+      "endOffset": 124
+    },
+    {
+      "startMs": 7510,
+      "endOffset": 135
+    },
+    {
+      "startMs": 8590,
+      "endOffset": 139
+    },
+    {
+      "startMs": 8870,
+      "endOffset": 145
+    },
+    {
+      "startMs": 9069,
+      "endOffset": 155
+    },
+    {
+      "startMs": 9469,
+      "endOffset": 160
+    },
+    {
+      "startMs": 9629,
+      "endOffset": 164
+    },
+    {
+      "startMs": 9750,
+      "endOffset": 169
+    },
+    {
+      "startMs": 9910,
+      "endOffset": 175
+    },
+    {
+      "startMs": 10309,
+      "endOffset": 179
+    },
+    {
+      "startMs": 10510,
+      "endOffset": 187
+    },
+    {
+      "startMs": 10910,
+      "endOffset": 189
+    },
+    {
+      "startMs": 10950,
+      "endOffset": 202
+    },
+    {
+      "startMs": 11670,
+      "endOffset": 209
+    },
+    {
+      "startMs": 11990,
+      "endOffset": 218
+    },
+    {
+      "startMs": 12469,
+      "endOffset": 222
+    },
+    {
+      "startMs": 12590,
+      "endOffset": 230
+    }
+  ]
+}

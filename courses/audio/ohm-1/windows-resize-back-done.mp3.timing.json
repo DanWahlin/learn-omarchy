@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "audioHash": "a496264a58b92be726c400f3d58263d78bdfef366c6dce6dfebda8fdaa8b3cd5",
+  "text": "The terminal changed size again. Width and height use the same two physical keys, with Shift selecting height.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 12
+    },
+    {
+      "startMs": 510,
+      "endOffset": 20
+    },
+    {
+      "startMs": 870,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 66
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 75
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 92
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 102
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 110
+    }
+  ]
+}

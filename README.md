@@ -2,25 +2,33 @@
 
 Learn Omarchy is an interactive, theme-aware desktop course for Omarchy 4. It
 teaches real shortcuts and system surfaces in short modules, responds as each
-expected key is pressed, performs an action on request, narrates every
-activity, and highlights the result on screen.
+expected key is pressed, performs an action on request, plays available coach
+narration, and highlights the result on screen.
 
-The bundled course contains 11 modules and 66 activities: nine core modules,
-two optional modules, and an optional lock-screen exercise.
+The bundled course includes a welcome, core modules, optional extensions, and
+an explicitly opt-in lock-screen exercise. Optional modules appear after the
+complete core sequence. All bundled activities have current coach narration,
+including the new window exercises and optional shortcut introductions.
 
 | Module | What it covers |
 |---|---|
+| Welcome to Omarchy | Your selected coach, course controls, and getting started |
 | Omarchy tour | Your coach introduces the bar, then Super + Space opens the Omarchy menu |
 | Menus and apps | Omarchy, Apps, and keybindings menus; search for, launch, and close a terminal |
 | Everyday apps | Terminal, browser, and file manager, and closing what you open |
-| Windows | Focus, floating and retiling, entering and leaving fullscreen, swapping, and closing |
+| Windows | Focus, floating and retiling, resize, dwindle split changes, fullscreen, swapping, and closing |
 | Workspaces | Numbered and former workspaces, moving windows, and populating, showing, hiding, and emptying the scratchpad |
-| Desktop controls (optional) | Audio, network, power, calendar, backgrounds, themes, and Toggle |
-| Clipboard | Copy two notes, retrieve the older entry from history, and paste it |
-| Capture | Capture menu and a real region-selection exercise with an image preview |
+| Clipboard and Compose | Clipboard history and sequential Compose-key input |
+| Capture | Region-selection exercise, image preview, and screen recording |
+| Apps and upkeep | Application discovery and maintenance orientation |
 | Setup and system | Hardware, Display, and System; optional explicit lock/unlock practice |
-| Productivity extras (optional) | Emoji, reminders, and sharing |
 | Your first real session | A finale that strings the shortcuts together, then a send-off |
+| More window controls (optional) | Grouping, pop-out/pin, workspace layout, zoom, and mouse gestures |
+| Notifications (optional) | Notification-panel orientation and shortcut reference |
+| Desktop controls (optional) | Audio, network, power, calendar, backgrounds, themes, and Toggle |
+| Productivity extras (optional) | Emoji, reminders, and sharing |
+| Useful tools (optional) | Tools and optional productivity activities |
+| Create and share (optional) | Local media and sharing practice |
 
 Progress and your current activity are saved automatically, and any module can
 be resumed or repeated independently. Optional activities don't block a module's
@@ -86,12 +94,11 @@ and then introduces the course menu while pointing at **Omarchy tour**,
 now lesson #2. The tour is
 recommended, not started: choose any lesson with the mouse or keyboard.
 Captions fade in only after the coach arrives, with time to read each message.
-Narrated captions can reveal words in sync with speech when the recording has
-validated word timings. The caption keeps its full layout rather than reflowing
-as words appear. Missing or incompatible timing with narration playing shows
-the complete text immediately. Muted narration reveals words at reading speed;
-reduced motion shows all text immediately. Turn off **Type text** in Settings
-to disable the reveal. This applies to welcome messages, lesson instructions,
+Complete captions fade in briefly without empty reserved rows or per-word
+layout changes. Validated recording timings and muted reading timers continue
+to govern progression, not text visibility. Reduced motion shows text
+immediately. Turn off **Fade captions** in Settings to disable the fade.
+This applies to welcome messages, lesson instructions,
 completion messages, and lesson wrap-ups. Keycaps, action buttons, safety notes,
 and expanded Details remain fully visible.
 Choose **Welcome to Omarchy** anytime to replay the entrance and greeting with
@@ -209,6 +216,16 @@ later workspace-switching activities use individual destination markers.
   actions; it doesn't verify customized native Hyprland bindings.
 - Activity results distinguish **introduced**, **assisted**, **practiced**, and
   **skipped**. Skipping a module doesn't earn a completion checkmark.
+- **Mixed practice** unlocks after two eligible modules are explored. It shuffles
+  up to three complete lesson blocks, retaining their owned-window setup,
+  verification, cleanup, and ID-based progress. Continue explicitly between
+  modules; capture, locking, microphone, and sharing exercises are excluded.
+- **Printable shortcuts** generates a local reference from the loaded course
+  and opens it in the browser for printing or saving as PDF. `npm run cheatsheet`
+  regenerates the bundled reference. See [curriculum and retention](docs/curriculum-expansion.md).
+- Soft accepted-chord, wrong-key, verified-step, and earned-module cues use
+  **Effects** volume and Mute independently of narration. They are throttled
+  and never replace visual feedback. See [presentation](docs/presentation.md).
 - **Tab** moves between controls and **Enter** activates them. Settings sliders
   also support arrow keys.
 - Press `Escape` to return to Topics during a module.
@@ -218,6 +235,9 @@ and remains continuously mapped during success animations. When the complete
 combination is held, it runs
 the configured semantic Omarchy action and verifies the result. It doesn't
 inject privileged synthetic input.
+Workspace changes and window-focus actions briefly release keyboard capture so
+the compositor can establish the new desktop focus. Capture returns after the
+outcome is verified, rather than pulling the learner back to the previous workspace.
 
 Focus activities briefly yield the keyboard to verify the actual application
 focus before capturing it again. Applications are launched independently of the
@@ -632,12 +652,25 @@ For source installations or advanced cleanup, `learn-omarchy --remove-integratio
 removes only the unchanged managed companion. Opening the app again
 automatically restores it.
 
-Without that service, the runtime can use the stock `debugBarGeometry` API on a
-single monitor. Those records omit the bar window's edge offset, so they remain
-labeled estimates. Untagged records are never assigned to a monitor by guessing
-their order. Display additions, removals, moves, and size changes invalidate
-cached measurements and in-flight results. The service is probed again periodically,
-so enabling it doesn't require restarting the course.
+Omarchy 4.0.3 gives third-party services a restricted facade without live widget
+slots. On a single monitor, the runtime combines `debugBarGeometry` widget
+measurements with the live Hyprland bar layer to account for top, bottom, left,
+and right placement. Customized widgets exposed by that API remain measurable.
+The helper rejects ambiguous, hidden, out-of-bounds, and changing layouts.
+
+Individual workspace pills are still estimates when the host exposes only the
+workspace group's bounds. Untagged widget records are never assigned to an
+output by guessing their order, so multi-monitor precision requires the
+monitor-aware companion API. Custom bar implementations without measured widget
+records also retain explicit estimates. Full support needs a host-provided,
+read-only geometry API; the app never traverses restricted plugin internals or
+changes packaged Omarchy files. Display changes invalidate cached measurements
+and in-flight results. The service is probed periodically.
+
+The coach parks inside the desktop, clear of the bar and its tooltip space.
+First-run setup hides pack-maintenance controls; **Refresh coaches** and pack
+diagnostics remain in Settings. Desktop-integration notices use plain language,
+while detailed startup errors remain in terminal output.
 
 Supported anchors are `top-left`, `top`, `top-right`, `left`, `center`,
 `right`, `bottom-left`, `bottom`, and `bottom-right`. Highlights are clamped
@@ -734,10 +767,19 @@ diagnostics.
 
 ## Characters
 
-On startup, a short splash illustration introduces Ohm-1 and Ollie together.
-It dismisses automatically once the app is ready, or immediately with a click,
-Enter, Space, or Escape. Reduced motion removes the display delay. The splash
-doesn't start a lesson or change the selected coach.
+On startup, a short illustrated splash features Ohm flying beside a tiled
+desktop, with Ollie perched on its corner. It preserves the original poster
+composition with magenta accents and magenta/cyan boot flames matching the
+characters. The artwork fits the screen without cropping, against a dark navy
+background independent of the desktop theme. Both mascots appear as app branding;
+the selected coach still controls the entrance and lessons. If the image cannot
+load, a neutral title remains visible and the app logs a warning.
+Once the app is ready, the splash fades out over 650 ms, then the first scene
+fades in over 750 ms. This applies to the lesson picker, first-run coach picker,
+and either character's entrance. Intro reveals wait for the first playable
+frame so loading doesn't consume the fade. Click, Enter, Space, or Escape
+starts the transition early; reduced motion skips both the display delay and
+fades. The splash doesn't start a lesson or change the selected coach.
 
 Ohm-1 (pronounced "Ohm") is the default coach, with pack ID `ohm-1`, assets under
 `assets/characters/ohm-1/`, and narration under `courses/audio/ohm-1/`. The

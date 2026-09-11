@@ -26,13 +26,15 @@
       "z": -2, "state": { "x": 0.5, "y": 1, "offsetY": -6, "opacity": 0 }
     },
     {
-      "id": "hull", "type": "image", "images": ["sprites/ohm-1-intro.png"],
+      "id": "hull", "type": "image", "images": ["sprites/ohm-1-intro-pixel.png"],
+      "aspect": 0.4359375,
       "height": { "viewport": 0.5, "min": 360, "max": 700 },
       "anchorX": 0.5, "anchorY": 1, "z": 1,
       "state": { "x": 0.5, "y": 0, "offsetY": -80 }
     },
     {
-      "id": "hatch", "type": "image", "images": ["sprites/ohm-1-intro-open.png"],
+      "id": "hatch", "type": "image", "images": ["sprites/ohm-1-intro-open-pixel.png"],
+      "aspect": 0.4359375,
       "height": { "viewport": 0.5, "min": 360, "max": 700 }, "z": 2,
       "state": { "x": { "layer": "hull", "anchor": 0 }, "y": { "layer": "hull", "anchor": 0 }, "opacity": 0 }
     },

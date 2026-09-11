@@ -1,0 +1,26 @@
+{
+  "creator": "Learn Omarchy",
+  "copyright": "2026 Dan Wahlin",
+  "license": "CC-BY-4.0",
+  "generator": "tools/prepare-intro-pixels.mjs",
+  "operation": "Nearest-neighbor half-resolution sampling of existing pack artwork; original colours and alpha retained.",
+  "sampling": {
+    "width": 140,
+    "height": 320,
+    "filter": "nearest-neighbor"
+  },
+  "files": [
+    {
+      "source": "ohm-1-intro.png",
+      "output": "ohm-1-intro-pixel.png",
+      "sourceSha256": "c7fde5407f9aba6bbdc670ed0ee32b0e85657c3baa3a13a116697eb04ffdee6b",
+      "outputSha256": "d1c661bb880e51b1b2c732b8fff4aef478a45366681c2d5b9772c498fddd5870"
+    },
+    {
+      "source": "ohm-1-intro-open.png",
+      "output": "ohm-1-intro-open-pixel.png",
+      "sourceSha256": "db8b900db087d62bb8e513fe68037c10413869abdd7c2c5d81bff96f33eec420",
+      "outputSha256": "7ffc0aae36565131fd91fc9be5b4d750489a02e1966235a9e38d395801489317"
+    }
+  ]
+}

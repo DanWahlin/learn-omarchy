@@ -478,7 +478,9 @@ setInterval(() => {}, 1000);
           // Minimal container PID 1 may retain exited orphan children as zombies.
           return state !== "Z" && state !== "X";
         } catch (error) {
-          if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+          const code = (error as NodeJS.ErrnoException).code;
+          // Linux can lose the process after opening /proc but before reading it.
+          if (code === "ENOENT" || code === "ESRCH") return false;
           throw error;
         }
       }

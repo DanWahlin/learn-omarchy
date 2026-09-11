@@ -40,20 +40,29 @@ Item {
         }
       }
     }
-    function test_invisibleSuffixActuallyDisappears() {
+    function test_fullCaptionFadesOnceWithoutInvisibleRows() {
       reference.text = "Hello world"
       reference.width = 600
       reveal.revealEnd = 0
+      tryCompare(reveal, "opacity", 1)
+      compare(reveal.text, reference.text)
+      var full = grabImage(reveal)
+      reveal.revealEnd = 3
       wait(20)
-      var hidden = grabImage(reveal)
+      compare(reveal.opacity, 1, "word-clock updates must not restart the fade")
+      verify(full.equals(grabImage(reveal)))
       reveal.revealEnd = -1
       wait(20)
-      var full = grabImage(reveal)
-      var changed = 0
-      for (var y = 0; y < Math.min(reveal.height, 30); y++)
-        for (var x = 0; x < 120; x++)
-          if (hidden.pixel(x, y) !== full.pixel(x, y)) changed++
-      verify(changed > 20, "transparent styling must hide the unrevealed words")
+      verify(full.equals(grabImage(reveal)), "timing completion does not change caption layout or text")
+    }
+    function test_reducedMotionAndPlainText() {
+      reveal.reducedMotion = true
+      reference.text = "Read <this> & that.\n\nKeep every line."
+      compare(reveal.opacity, 1)
+      compare(reveal.text, reference.text)
+      compare(reveal.textFormat, Text.PlainText)
+      compare(reveal.Accessible.name, reference.text)
+      reveal.reducedMotion = false
     }
   }
 }

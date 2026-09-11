@@ -1,0 +1,16 @@
+{
+  "creator": "Learn Omarchy",
+  "copyright": "2026 Dan Wahlin",
+  "license": "CC-BY-4.0",
+  "source": "Original deterministic additive sine synthesis; no sampled or third-party audio.",
+  "generator": "tools/generate-interaction-sounds.mjs",
+  "command": "node tools/generate-interaction-sounds.mjs",
+  "format": "PCM signed 16-bit mono WAV, 48000 Hz",
+  "peakAmplitude": 0.11,
+  "files": [
+    "interaction-correct.wav",
+    "interaction-wrong.wav",
+    "interaction-step-complete.wav",
+    "interaction-module-complete.wav"
+  ]
+}

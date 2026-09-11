@@ -1,0 +1,167 @@
+{
+  "version": 1,
+  "audioHash": "fbccedc49643fbff5b58b8f22399d3033d94537653888b55fd4801b9d7d10662",
+  "text": "The mouse works with Super too. Hold Super and drag with the left mouse button to move a window; hold Super and drag with the right button to resize it. Release the mouse button and Super when you are done.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 9
+    },
+    {
+      "startMs": 430,
+      "endOffset": 15
+    },
+    {
+      "startMs": 630,
+      "endOffset": 20
+    },
+    {
+      "startMs": 790,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3270,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 60
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 65
+    },
+    {
+      "startMs": 3869,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4590,
+      "endOffset": 86
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 88
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 96
+    },
+    {
+      "startMs": 5750,
+      "endOffset": 101
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 107
+    },
+    {
+      "startMs": 6470,
+      "endOffset": 111
+    },
+    {
+      "startMs": 6630,
+      "endOffset": 116
+    },
+    {
+      "startMs": 6910,
+      "endOffset": 121
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 125
+    },
+    {
+      "startMs": 7190,
+      "endOffset": 131
+    },
+    {
+      "startMs": 7470,
+      "endOffset": 138
+    },
+    {
+      "startMs": 7750,
+      "endOffset": 141
+    },
+    {
+      "startMs": 7910,
+      "endOffset": 148
+    },
+    {
+      "startMs": 8469,
+      "endOffset": 152
+    },
+    {
+      "startMs": 9149,
+      "endOffset": 160
+    },
+    {
+      "startMs": 9549,
+      "endOffset": 164
+    },
+    {
+      "startMs": 9670,
+      "endOffset": 170
+    },
+    {
+      "startMs": 9950,
+      "endOffset": 177
+    },
+    {
+      "startMs": 10190,
+      "endOffset": 181
+    },
+    {
+      "startMs": 10309,
+      "endOffset": 187
+    },
+    {
+      "startMs": 10670,
+      "endOffset": 192
+    },
+    {
+      "startMs": 10830,
+      "endOffset": 196
+    },
+    {
+      "startMs": 10950,
+      "endOffset": 200
+    },
+    {
+      "startMs": 11069,
+      "endOffset": 206
+    }
+  ]
+}

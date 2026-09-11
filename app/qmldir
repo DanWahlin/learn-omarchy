@@ -7,6 +7,8 @@ PracticeSession 1.0 PracticeSession.qml
 OmarchyTheme 1.0 OmarchyTheme.qml
 ThemePalette 1.0 ThemePalette.qml
 SplashScreen 1.0 SplashScreen.qml
+SplashArtwork 1.0 SplashArtwork.qml
+InteractionAudio 1.0 InteractionAudio.qml
 WordRevealText 1.0 WordRevealText.qml
 CaptionReveal 1.0 CaptionReveal.qml
 AppSearchSession 1.0 AppSearchSession.qml

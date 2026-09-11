@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "audioHash": "6bedee0a2d8675208f868002c522a6d36605706fb080285c509191062284b300",
+  "text": "Super, Control, and comma toggles notification silencing. It is useful when you need quiet, but remember to turn it off when you want alerts again. We do not change it during this introduction.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 670,
+      "endOffset": 15
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 19
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 25
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 46
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4990,
+      "endOffset": 63
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 70
+    },
+    {
+      "startMs": 5630,
+      "endOffset": 75
+    },
+    {
+      "startMs": 5830,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5950,
+      "endOffset": 84
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 91
+    },
+    {
+      "startMs": 6910,
+      "endOffset": 95
+    },
+    {
+      "startMs": 7150,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7590,
+      "endOffset": 107
+    },
+    {
+      "startMs": 7710,
+      "endOffset": 112
+    },
+    {
+      "startMs": 7950,
+      "endOffset": 115
+    },
+    {
+      "startMs": 8109,
+      "endOffset": 119
+    },
+    {
+      "startMs": 8389,
+      "endOffset": 124
+    },
+    {
+      "startMs": 8549,
+      "endOffset": 128
+    },
+    {
+      "startMs": 8670,
+      "endOffset": 133
+    },
+    {
+      "startMs": 8910,
+      "endOffset": 140
+    },
+    {
+      "startMs": 9309,
+      "endOffset": 147
+    },
+    {
+      "startMs": 10229,
+      "endOffset": 150
+    },
+    {
+      "startMs": 10469,
+      "endOffset": 153
+    },
+    {
+      "startMs": 10629,
+      "endOffset": 157
+    },
+    {
+      "startMs": 10870,
+      "endOffset": 164
+    },
+    {
+      "startMs": 11229,
+      "endOffset": 167
+    },
+    {
+      "startMs": 11389,
+      "endOffset": 174
+    },
+    {
+      "startMs": 11670,
+      "endOffset": 179
+    },
+    {
+      "startMs": 11870,
+      "endOffset": 193
+    }
+  ]
+}

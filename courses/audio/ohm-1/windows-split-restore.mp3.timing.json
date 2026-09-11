@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "261286458bb46f0bbd295847dd5c0b5b2ca0298ca9375d3733bfee63b5259bbd",
+  "text": "Press Super and J again to toggle the dividing line back. Both terminals should stay tiled.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 11
+    },
+    {
+      "startMs": 710,
+      "endOffset": 15
+    },
+    {
+      "startMs": 870,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2469,
+      "endOffset": 51
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 57
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 79
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 84
+    },
+    {
+      "startMs": 4550,
+      "endOffset": 91
+    }
+  ]
+}

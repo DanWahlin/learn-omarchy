@@ -32,3 +32,24 @@ function position(viewportWidth, viewportHeight, width, height, target) {
   }
   return centered
 }
+
+function besideBar(viewportWidth, viewportHeight, width, height, target) {
+  var distances = [target.y, viewportHeight - target.y - target.height,
+    target.x, viewportWidth - target.x - target.width]
+  var knownEdge = ["top", "bottom", "left", "right"].indexOf(target.edge)
+  var edge = knownEdge >= 0 ? knownEdge : target.height > target.width
+    ? (distances[2] <= distances[3] ? 2 : 3)
+    : (distances[0] <= distances[1] ? 0 : 1)
+  var gap = 64
+  var x = target.x + target.width / 2 - width / 2
+  var y = target.y + target.height / 2 - height / 2
+  if (edge === 0) y = target.y + target.height + gap
+  else if (edge === 1) y = target.y - height - gap
+  else if (edge === 2) x = target.x + target.width + gap
+  else x = target.x - width - gap
+  return {
+    x: Math.max(18, Math.min(viewportWidth - width - 18, x)),
+    y: Math.max(50, Math.min(viewportHeight - height - 28, y)),
+    edge: ["top", "bottom", "left", "right"][edge]
+  }
+}

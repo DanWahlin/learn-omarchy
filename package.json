@@ -8,6 +8,7 @@
     "node": ">=22.6"
   },
   "scripts": {
+    "cheatsheet": "node --experimental-strip-types tools/generate-cheat-sheet.mjs",
     "geometry:install": "node tools/install-geometry-provider.mjs",
     "audio:generate": "node --experimental-strip-types tools/generate-course-audio.ts courses/omarchy-basics.json",
     "audio:normalize": "node --experimental-strip-types tools/normalize-course-audio.ts courses/audio",
@@ -15,7 +16,7 @@
     "character:prepare": "tools/prepare-hexon-sprites.sh",
     "packs:list": "node --experimental-strip-types tools/character-packs.ts discover",
     "packs:validate": "node --experimental-strip-types tools/character-packs.ts validate",
-    "check": "node --experimental-strip-types tools/validate-course.ts courses/omarchy-basics.json && node --experimental-strip-types tools/character-packs.ts check-bundled && npm run audio:check",
+    "check": "node --experimental-strip-types tools/validate-course.ts courses/omarchy-basics.json && node --experimental-strip-types tools/character-packs.ts check-bundled && npm run audio:check && npm run cheatsheet -- --check",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:ui": "QT_QPA_PLATFORM=offscreen QT_QPA_PLATFORMTHEME=generic QT_QUICK_CONTROLS_STYLE=Basic QML_XHR_ALLOW_FILE_READ=1 /usr/lib/qt6/bin/qmltestrunner -input tests/qml"
   },

@@ -35,6 +35,8 @@ export interface WindowState {
   specialWorkspace?: "scratchpad";
   specialVisible?: boolean;
   swapped?: true;
+  resized?: true;
+  splitChanged?: true;
 }
 
 export type Completion =
@@ -91,6 +93,7 @@ export interface CourseStep {
   windowSize?: { width: number; height: number };
   windowFromStep?: string;
   swapWithStep?: string;
+  pairWithStep?: string;
   directionFromStep?: string;
   optional?: boolean;
   instruction: string;
@@ -103,6 +106,7 @@ export interface CourseStep {
   keys: string[];
   actionLabel?: string;
   audio?: string | null;
+  shortcuts?: { keys: string[]; action: string; caution?: string }[];
   help?: CommandAction;
   cleanup?: string[];
   completion: Completion;
@@ -117,6 +121,7 @@ export interface LessonWrapUp {
 }
 
 export interface CourseLesson {
+  mixedPractice?: boolean;
   wrapUp?: LessonWrapUp;
   kind?: "welcome";
   id: string;
@@ -158,7 +163,7 @@ const namedKeyLabels = new Set([
   "SPACE",
   "RETURN",
   "TAB",
-  "ESCAPE", "LEFT", "RIGHT", "UP", "DOWN",
+  "ESCAPE", "LEFT", "RIGHT", "UP", "DOWN", "MINUS", "EQUAL",
 ]);
 
 const isSupportedKeyLabel = (value: string): boolean =>
@@ -305,8 +310,8 @@ const validateWindowState = (errors: string[], value: unknown, path: string): vo
     } else if (key === "specialVisible") {
       if (typeof state !== "boolean") errors.push(`${path}.specialVisible must be a boolean`);
       if (value.specialWorkspace !== "scratchpad") errors.push(`${path}.specialVisible requires specialWorkspace`);
-    } else if (key === "swapped") {
-      if (state !== true) errors.push(`${path}.swapped must be true`);
+    } else if (["swapped", "resized", "splitChanged"].includes(key)) {
+      if (state !== true) errors.push(`${path}.${key} must be true`);
     } else if (["floating", "fullscreen", "focused"].includes(key)) {
       if (typeof state !== "boolean") errors.push(`${path}.${key} must be a boolean`);
     } else {
@@ -450,6 +455,21 @@ const validateStep = (
     errors.push(`${path}.kind must be "tour" or "practice" when present`);
   }
   validateRelativePath(errors, value.audio, `${path}.audio`);
+  if (value.shortcuts !== undefined) {
+    if (!Array.isArray(value.shortcuts) || value.shortcuts.length === 0) {
+      errors.push(`${path}.shortcuts must be a non-empty array`);
+    } else {
+      value.shortcuts.forEach((shortcut, index) => {
+        const shortcutPath = `${path}.shortcuts[${index}]`;
+        if (!isRecord(shortcut)) { errors.push(`${shortcutPath} must be an object`); return; }
+        if (!Array.isArray(shortcut.keys) || shortcut.keys.length === 0 ||
+            shortcut.keys.some(key => typeof key !== "string" || !key.trim()))
+          errors.push(`${shortcutPath}.keys must be non-empty labels`);
+        addStringError(errors, shortcut.action, `${shortcutPath}.action`);
+        if (shortcut.caution !== undefined) addStringError(errors, shortcut.caution, `${shortcutPath}.caution`);
+      });
+    }
+  }
   validateRelativePath(errors, value.completionAudio, `${path}.completionAudio`);
   if (value.completionMessage !== undefined) {
     addStringError(errors, value.completionMessage, `${path}.completionMessage`);
@@ -465,7 +485,7 @@ const validateStep = (
     if (typeof value.practice !== "string" || !["app-search", "clipboard", "capture", "screen-lock", "compose", "screen-recording", "ocr", "qr", "dictation", "web-app", "transcode", "sharing"].includes(value.practice)) errors.push(`${path}.practice is not supported`);
     if (!Array.isArray(value.keys) || value.keys.length !== 0) errors.push(`${path}.keys must be empty for practice`);
     addStringError(errors, value.actionLabel, `${path}.actionLabel`);
-    if (value.help !== undefined || value.cleanup !== undefined || value.pose !== undefined || value.windowFromStep !== undefined || value.swapWithStep !== undefined || value.directionFromStep !== undefined) {
+    if (value.help !== undefined || value.cleanup !== undefined || value.pose !== undefined || value.windowFromStep !== undefined || value.swapWithStep !== undefined || value.directionFromStep !== undefined || value.pairWithStep !== undefined) {
       errors.push(`${path}: practice cannot define help, cleanup, pose or window targets`);
     }
     if (!isRecord(value.completion) || value.completion.type !== "practice-result") errors.push(`${path}.completion must be practice-result`);
@@ -474,6 +494,13 @@ const validateStep = (
   }
   if (isRecord(value.completion) && value.completion.type === "practice-result") errors.push(`${path}.completion requires kind "practice"`);
   const swapped = isRecord(value.completion) && isRecord(value.completion.windowState) && value.completion.windowState.swapped;
+  const splitChanged = isRecord(value.completion) && isRecord(value.completion.windowState) && value.completion.windowState.splitChanged;
+  if (value.pairWithStep !== undefined || splitChanged) {
+    addStringError(errors, value.pairWithStep, `${path}.pairWithStep`);
+    if (!splitChanged || !value.windowFromStep || value.pairWithStep === value.windowFromStep ||
+        value.swapWithStep !== undefined || value.directionFromStep !== undefined)
+      errors.push(`${path}.pairWithStep requires distinct owned windows and splitChanged verification`);
+  }
   if (value.directionFromStep !== undefined) {
     addStringError(errors, value.directionFromStep, `${path}.directionFromStep`);
     if (value.swapWithStep !== undefined) errors.push(`${path}.directionFromStep cannot be combined with swapWithStep`);
@@ -491,8 +518,8 @@ const validateStep = (
     addStringError(errors, value.swapWithStep, `${path}.swapWithStep`);
     if (!swapped || !value.windowFromStep || value.swapWithStep === value.windowFromStep) errors.push(`${path}.swapWithStep requires two distinct owned window references and swapped verification`);
   }
-  if (isRecord(value.help) && isCommand(value.help.command) && value.help.command.some((part) => part.includes("{peerWindow}")) && !value.swapWithStep) {
-    errors.push(`${path}.help.command requires swapWithStep for {peerWindow}`);
+  if (isRecord(value.help) && isCommand(value.help.command) && value.help.command.some((part) => part.includes("{peerWindow}")) && !value.swapWithStep && !value.pairWithStep) {
+    errors.push(`${path}.help.command requires swapWithStep or pairWithStep for {peerWindow}`);
   }
   if (!isTour && value.pose !== undefined) {
     errors.push(`${path}.pose is only valid for tour steps`);
@@ -591,6 +618,7 @@ export function validateCourse(value: unknown): string[] {
     if (lesson.wrapUp !== undefined) validateWrapUp(errors, lesson.wrapUp, `${path}.wrapUp`);
     if (lesson.kind !== undefined && lesson.kind !== "welcome") errors.push(`${path}.kind must be welcome when provided`);
     if (lesson.optional !== undefined && typeof lesson.optional !== "boolean") errors.push(`${path}.optional must be a boolean`);
+    if (lesson.mixedPractice !== undefined && typeof lesson.mixedPractice !== "boolean") errors.push(`${path}.mixedPractice must be a boolean`);
     addStringError(errors, lesson.icon, `${path}.icon`);
     addPositiveNumberError(errors, lesson.estimatedMinutes, `${path}.estimatedMinutes`);
     if (lesson.kind === "welcome") {
@@ -612,6 +640,9 @@ export function validateCourse(value: unknown): string[] {
       }
       if (typeof step.swapWithStep === "string" && !launchSteps.has(step.swapWithStep)) {
         errors.push(`${stepPath}.swapWithStep must reference an earlier window-launch step in the same lesson`);
+      }
+      if (typeof step.pairWithStep === "string" && !launchSteps.has(step.pairWithStep)) {
+        errors.push(`${stepPath}.pairWithStep must reference an earlier window-launch step in the same lesson`);
       }
       if (typeof step.directionFromStep === "string" && !launchSteps.has(step.directionFromStep)) {
         errors.push(`${stepPath}.directionFromStep must reference an earlier window-launch step in the same lesson`);

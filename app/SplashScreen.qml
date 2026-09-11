@@ -6,9 +6,11 @@ Rectangle {
     property bool active: false
     property bool ready: false
     property bool reducedMotion: false
-    property color backgroundColor: "#1a1b26"
+    property color backgroundColor: "#020c1a"
     property color foregroundColor: "#c0caf5"
     property int displayDuration: 1600
+    property int fadeDuration: 650
+    readonly property bool transitioning: fadeOut.running
     property bool elapsed: false
     property bool dismissed: false
     signal finished()
@@ -23,7 +25,8 @@ Rectangle {
     function tryFinish() {
         if (!active || dismissed || !ready || !elapsed) return
         dismissed = true
-        finished()
+        if (reducedMotion) finished()
+        else fadeOut.restart()
     }
     function dismiss() {
         elapsed = true
@@ -31,6 +34,8 @@ Rectangle {
     }
     onActiveChanged: {
         minimumDisplay.stop()
+        fadeOut.stop()
+        opacity = 1
         if (!active) return
         dismissed = false
         elapsed = reducedMotion
@@ -39,7 +44,13 @@ Rectangle {
         tryFinish()
     }
     onReadyChanged: tryFinish()
-    onReducedMotionChanged: if (reducedMotion) dismiss()
+    onReducedMotionChanged: {
+        if (!reducedMotion) return
+        if (transitioning) {
+            fadeOut.stop()
+            if (active) finished()
+        } else dismiss()
+    }
     Component.onCompleted: {
         if (active) {
             elapsed = reducedMotion
@@ -52,26 +63,26 @@ Rectangle {
         interval: root.displayDuration
         onTriggered: root.dismiss()
     }
-    Image {
-        id: artwork
-        anchors.centerIn: parent
-        width: Math.max(0, Math.min(1100, parent.width - 48, (parent.height - 100) * 1.5))
-        height: width / 1.5
-        source: root.source
-        fillMode: Image.PreserveAspectFit
-        asynchronous: true
-        smooth: true
-        mipmap: true
-        onStatusChanged: if (status === Image.Error) root.imageFailed()
+    NumberAnimation {
+        id: fadeOut
+        target: root
+        property: "opacity"
+        from: 1
+        to: 0
+        duration: root.fadeDuration
+        easing.type: Easing.InOutSine
+        onFinished: if (root.active) root.finished()
     }
-    Text {
-        visible: artwork.status !== Image.Ready
-        anchors.centerIn: parent
-        text: "LEARN OMARCHY"
-        textFormat: Text.PlainText
-        color: root.foregroundColor
-        font.pixelSize: Math.min(36, root.width / 16)
-        font.bold: true
+    SplashArtwork {
+        id: artwork
+        anchors.top: parent.top
+        anchors.horizontalCenter: parent.horizontalCenter
+        objectName: "splashArtwork"
+        width: parent.width
+        height: Math.max(0, parent.height - 64)
+        source: root.source
+        foregroundColor: root.foregroundColor
+        onLoadFailed: root.imageFailed()
     }
     Text {
         anchors.horizontalCenter: parent.horizontalCenter

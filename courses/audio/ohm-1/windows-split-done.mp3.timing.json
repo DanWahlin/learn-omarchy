@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "5adbd4f8e99d2f0cd5a2be5c054d66503a6bae2fa6cf263a68c1883e731dae34",
+  "text": "The two practice terminals now share the space in the other direction.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 7
+    },
+    {
+      "startMs": 350,
+      "endOffset": 16
+    },
+    {
+      "startMs": 750,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 36
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 40
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 53
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 59
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 70
+    }
+  ]
+}

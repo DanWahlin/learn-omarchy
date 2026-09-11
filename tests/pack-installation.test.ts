@@ -65,6 +65,14 @@ test("the package install includes shared pack code and pack-owned intro assets"
       "app/AppSearchSession.qml", "app/app-search.qml",
       "app/PracticeSession.qml", "app/TeachingLayout.js", "tools/tutorial-launch.mjs",
       "app/SplashScreen.qml", "assets/splash/learn-omarchy.png",
+      "app/SplashArtwork.qml", "app/InteractionAudio.qml", "app/WindowOutcomes.js", "app/Retention.js",
+      "assets/sounds/interaction-correct.wav", "assets/sounds/interaction-wrong.wav",
+      "assets/sounds/interaction-step-complete.wav", "assets/sounds/interaction-module-complete.wav",
+      "tools/bar-geometry.mjs", "tools/generate-cheat-sheet.mjs", "tools/generate-interaction-sounds.mjs",
+      "tools/prepare-intro-pixels.mjs",
+      "tools/prepare-splash-poster.mjs", "assets/splash/learn-omarchy-poster.png",
+      "assets/splash/poster.provenance.json",
+      "docs/presentation.md", "docs/curriculum-expansion.md", "courses/omarchy-shortcuts.html",
       "assets/splash/provenance.json",
       "assets/sounds/birds-welcome.opus", "assets/sounds/birds-welcome.provenance.json",
       "app/WordRevealText.qml", "app/CaptionReveal.qml", "app/CaptionTiming.js", "tools/play-timed-speech.mjs",
@@ -94,13 +102,21 @@ test("the package install includes shared pack code and pack-owned intro assets"
       "assets/splash/provenance.json", "assets/sounds/birds-welcome.provenance.json",
     ]) assert.deepEqual(await readFile(join(root, file)), await readFile(file), file);
     assert.deepEqual((await readdir(join(root, "tools"))).sort(),
-      ["audio-coverage.ts", "audio-production.ts", "capture-practice.mjs", "character-packs.ts",
+      ["audio-coverage.ts", "audio-production.ts", "bar-geometry.mjs", "capture-practice.mjs", "character-packs.ts",
+        "generate-cheat-sheet.mjs", "generate-interaction-sounds.mjs",
         "install-geometry-provider.mjs",
-        "play-timed-speech.mjs", "tutorial-launch.mjs", "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
+        "play-timed-speech.mjs", "prepare-intro-pixels.mjs", "prepare-splash-poster.mjs",
+        "tutorial-launch.mjs", "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
     const audioCheck = spawnSync(process.execPath, ["--experimental-strip-types",
       join(root, "tools/validate-course-audio.ts"), join(root, "courses/omarchy-basics.json")],
     { encoding: "utf8" });
     assert.equal(audioCheck.status, 0, audioCheck.stderr || audioCheck.stdout);
+    const sheet = join(directory, "reference.html");
+    const generated = spawnSync(process.execPath, ["--experimental-strip-types",
+      join(root, "tools/generate-cheat-sheet.mjs"), join(root, "courses/omarchy-basics.json"), sheet],
+    { cwd: directory, encoding: "utf8" });
+    assert.equal(generated.status, 0, generated.stderr || generated.stdout);
+    assert.match(await readFile(sheet, "utf8"), /Print or save as PDF/);
     const catalog = await discoverCharacterPacks({ bundledRoot: join(root, "assets/characters") });
     assert.deepEqual(catalog.invalidBundledIds, []);
     assert.ok(catalog.packs.every(pack => pack.intro !== null));

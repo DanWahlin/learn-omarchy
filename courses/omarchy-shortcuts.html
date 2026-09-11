@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learn Omarchy — shortcut reference</title>
+<style>
+:root { color-scheme: light; font: 15px/1.4 system-ui, sans-serif; color: #17212b; background: white; }
+body { max-width: 1060px; margin: 2rem auto; padding: 0 1.5rem; }
+h1 { font-size: 1.7rem; margin-bottom: .3rem; } h2 { font-size: 1rem; margin: 0 0 .5rem; border-bottom: 1px solid #87939c; }
+p { margin: .5rem 0; } .reference { columns: 2; column-gap: 2rem; margin-top: 1.5rem; }
+section { break-inside: avoid; margin-bottom: 1.3rem; } dl { margin: 0; }
+dl div { break-inside: avoid; margin-bottom: .6rem; } dt { font-weight: 750; font-size: .83rem; }
+dd { margin: 0; } small { display: block; color: #4b5861; font-size: .78rem; font-weight: normal; }
+h2 small { display: inline; } button { padding: .5rem 1rem; font: inherit; cursor: pointer; }
+footer { border-top: 1px solid #87939c; padding-top: .6rem; font-size: .8rem; }
+@media (max-width: 650px) { .reference { columns: 1; } }
+@media print {
+  @page { margin: 12mm; }
+  :root { font-size: 10pt; } body { margin: 0; padding: 0; max-width: none; }
+  button { display: none; } .reference { columns: 2; column-gap: 8mm; }
+  h1 { font-size: 17pt; } section { margin-bottom: 4mm; }
+}
+</style></head><body>
+<header><h1>Learn Omarchy: shortcut reference</h1>
+<p>Super is the Windows-logo key, or Command on a Mac keyboard. Return means Enter. Hold chord keys together unless the activity says otherwise.</p>
+<p>MINUS and EQUAL name the two physical keys to the left of Backspace (codes 20 and 21), regardless of their printed labels. COMMA means the comma key.</p>
+<p>Reference only: actions affect your real desktop. Use disposable windows, inspect notifications before invoking them, and check your current bindings with Super + K. Personal overrides may differ.</p>
+<button type="button" onclick="window.print()">Print or save as PDF</button></header>
+<main class="reference"><section id="omarchy-tour">
+<h2>Omarchy tour</h2>
+<dl><div data-step-id="tour-workspace-two"><dt>SUPER + 2</dt><dd>Switch to workspace two. Leave your windows open.<small>Your windows stay open when you switch workspaces.</small></dd></div>
+<div data-step-id="tour-workspace-one"><dt>SUPER + 1</dt><dd>Return to workspace one.</dd></div>
+<div data-step-id="tour-omarchy-menu"><dt>SUPER + SPACE</dt><dd>Open the Omarchy menu.</dd></div></dl></section>
+<section id="menus-and-apps">
+<h2>Menus and apps</h2>
+<dl><div data-step-id="open-apps"><dt>SUPER + ALT + SPACE</dt><dd>Open the Apps menu.</dd></div>
+<div data-step-id="open-keybindings"><dt>SUPER + K</dt><dd>Open the shortcut guide. Read only: pressing Enter or clicking a result runs that shortcut.<small>Read only: Enter or clicking a result runs the shortcut, not a help page.</small></dd></div></dl></section>
+<section id="everyday-apps">
+<h2>Everyday apps</h2>
+<dl><div data-step-id="launch-terminal"><dt>SUPER + RETURN</dt><dd>Open a new terminal window.<small>A terminal is a window where you can type commands.</small></dd></div>
+<div data-step-id="close-terminal"><dt>SUPER + W</dt><dd>Close the terminal you just opened.<small>Only the terminal opened for this activity will close.</small></dd></div>
+<div data-step-id="launch-browser"><dt>SUPER + SHIFT + RETURN</dt><dd>Open a new browser window.</dd></div>
+<div data-step-id="launch-files"><dt>SUPER + SHIFT + F</dt><dd>Open the Files application.<small>A file manager helps you browse folders and documents.</small></dd></div></dl></section>
+<section id="windows">
+<h2>Windows</h2>
+<dl><div data-step-id="windows-split"><dt>SUPER + J</dt><dd>Change the split between the two tiled practice terminals.<small>Split changes require the dwindle layout and two tiled practice windows.</small></dd></div>
+<div data-step-id="windows-focus-next"><dt>ALT + TAB</dt><dd>Switch keyboard focus to the other practice terminal.<small>Focus means which window receives your keyboard input.</small></dd></div>
+<div data-step-id="windows-float"><dt>SUPER + T</dt><dd>Make the focused practice terminal float instead of staying tiled.<small>Floating windows can sit above the tiled layout.</small></dd></div>
+<div data-step-id="windows-resize"><dt>SUPER + EQUAL</dt><dd>Change the width of the floating practice terminal.<small>Use the key immediately left of Backspace, normally = on a US keyboard.</small></dd></div>
+<div data-step-id="windows-resize-back"><dt>SUPER + MINUS</dt><dd>Change the floating practice terminal&#39;s width in the other direction.<small>Use the key two places left of Backspace, normally minus on a US keyboard.</small></dd></div>
+<div data-step-id="windows-fullscreen"><dt>SUPER + F</dt><dd>Make the floating practice terminal fullscreen.<small>Use the same shortcut again to leave fullscreen.</small></dd></div>
+<div data-step-id="windows-focus-right"><dt>SUPER + ARROW</dt><dd>Focus the neighboring practice terminal using the directional window-focus shortcut.<small>Choose the arrow pointing toward the other practice window; the direction depends on the current layout.</small></dd></div>
+<div data-step-id="windows-swap"><dt>SUPER + SHIFT + ARROW</dt><dd>Swap the positions of the two practice terminals using the directional swap shortcut.<small>Only our two practice terminals will change positions. Choose the arrow pointing toward the other practice window; the direction depends on the current layout.</small></dd></div></dl></section>
+<section id="workspaces">
+<h2>Workspaces</h2>
+<dl><div data-step-id="workspaces-back"><dt>SUPER + CTRL + TAB</dt><dd>Return to the workspace you were just using, with the previous-used-workspace shortcut.</dd></div>
+<div data-step-id="workspaces-send"><dt>SUPER + SHIFT + 2</dt><dd>Send the practice terminal to workspace two.<small>The terminal moves to workspace two, and you follow it.</small></dd></div>
+<div data-step-id="next-workspace"><dt>SUPER + TAB</dt><dd>Switch to the next workspace in order.</dd></div>
+<div data-step-id="previous-workspace"><dt>SUPER + SHIFT + TAB</dt><dd>Switch back to the previous workspace in order.</dd></div>
+<div data-step-id="workspaces-stash"><dt>SUPER + ALT + S</dt><dd>Move the practice terminal into the scratchpad, the hidden workspace.<small>The scratchpad is a hidden workspace you can show over your desktop.</small></dd></div>
+<div data-step-id="workspaces-scratchpad"><dt>SUPER + S</dt><dd>Show the scratchpad so you can see the practice terminal.</dd></div></dl></section>
+<section id="advanced-windows">
+<h2>More window controls <small>(optional)</small></h2>
+<dl><div data-step-id="advanced-window-groups"><dt>SUPER + G</dt><dd>Toggle window grouping</dd></div>
+<div data-step-id="advanced-window-groups"><dt>SUPER + ALT + ARROW</dt><dd>Move the active window into the adjacent group</dd></div>
+<div data-step-id="advanced-window-groups"><dt>SUPER + ALT + TAB</dt><dd>Next window in the group<small>Add Shift for the previous window.</small></dd></div>
+<div data-step-id="advanced-window-groups"><dt>SUPER + ALT + G</dt><dd>Move the active window out of its group</dd></div>
+<div data-step-id="advanced-window-pop"><dt>SUPER + O</dt><dd>Pop a tiled window out: float and pin<small>Start tiled. Invoke again on the pinned pop-out to unpin and retile.</small></dd></div>
+<div data-step-id="advanced-window-layout"><dt>SUPER + L</dt><dd>Toggle workspace layout between dwindle and scrolling<small>Persists a setting. A custom layout is not restored by toggling again.</small></dd></div>
+<div data-step-id="advanced-window-mouse"><dt>SUPER + LEFT MOUSE DRAG</dt><dd>Move a window</dd></div>
+<div data-step-id="advanced-window-mouse"><dt>SUPER + RIGHT MOUSE DRAG</dt><dd>Resize a window</dd></div></dl></section>
+<section id="notifications">
+<h2>Notifications <small>(optional)</small></h2>
+<dl><div data-step-id="notifications-history"><dt>SUPER + SHIFT + ALT + COMMA</dt><dd>Open notification history</dd></div>
+<div data-step-id="notifications-history"><dt>SUPER + COMMA</dt><dd>Dismiss the latest notification</dd></div>
+<div data-step-id="notifications-history"><dt>SUPER + SHIFT + COMMA</dt><dd>Dismiss all notifications<small>Affects your real notifications.</small></dd></div>
+<div data-step-id="notifications-history"><dt>SUPER + ALT + COMMA</dt><dd>Invoke the latest notification<small>May launch an app or follow a link; inspect it first.</small></dd></div>
+<div data-step-id="notifications-quiet"><dt>SUPER + CTRL + COMMA</dt><dd>Toggle notification silencing<small>Changes your real preference; toggle back when finished.</small></dd></div></dl></section>
+<section id="bar-panels">
+<h2>Desktop controls <small>(optional)</small></h2>
+<dl><div data-step-id="audio-panel"><dt>SUPER + CTRL + A</dt><dd>Open the Audio panel.<small>Output is where sound plays; input is your microphone.</small></dd></div>
+<div data-step-id="network-panel"><dt>SUPER + CTRL + W</dt><dd>Open the Network panel.<small>Check the connection without disconnecting or changing networks.</small></dd></div>
+<div data-step-id="power-panel"><dt>SUPER + CTRL + P</dt><dd>Open the Power panel to view battery information.</dd></div>
+<div data-step-id="calendar-panel"><dt>SUPER + CTRL + ALT + D</dt><dd>Open the calendar.<small>Clicking the clock opens the same calendar.</small></dd></div>
+<div data-step-id="background-menu"><dt>SUPER + CTRL + SPACE</dt><dd>Open the Background switcher. Look without selecting a different background.<small>Choosing a background changes your desktop immediately.</small></dd></div>
+<div data-step-id="theme-menu"><dt>SUPER + SHIFT + CTRL + SPACE</dt><dd>Open the Theme menu. Look without changing your theme.<small>Choosing a theme applies it immediately; no change is required.</small></dd></div>
+<div data-step-id="toggle-menu"><dt>SUPER + CTRL + O</dt><dd>Open the Toggle menu. Look only: selecting an entry changes that setting.<small>Selecting an entry changes that setting.</small></dd></div></dl></section>
+<section id="clipboard-and-helpers">
+<h2>Clipboard and Compose</h2>
+<dl><div data-step-id="clipboard-history"><dt>SUPER + CTRL + V</dt><dd>Open clipboard history to see where earlier copied items are kept.<small>History may contain private information; select entries carefully.</small></dd></div></dl></section>
+<section id="capture-and-share">
+<h2>Capture</h2>
+<dl><div data-step-id="capture-menu"><dt>SUPER + CTRL + C</dt><dd>Open the Capture menu without starting a capture.</dd></div></dl></section>
+<section id="setup-and-install">
+<h2>Setup and system</h2>
+<dl><div data-step-id="hardware-menu"><dt>SUPER + CTRL + H</dt><dd>Open the Hardware menu. Look only: selecting an action can change device behavior immediately.<small>Look only: selecting a hardware action can change device behavior immediately.</small></dd></div>
+<div data-step-id="display-panel"><dt>SUPER + CTRL + D</dt><dd>Open the Display panel. Leave its controls unchanged; changes apply immediately.<small>Display changes apply immediately; leave the controls unchanged.</small></dd></div>
+<div data-step-id="system-menu"><dt>SUPER + ESCAPE</dt><dd>Open the System menu. Don&#39;t select Lock, Logout, Restart, or Shutdown.<small>Close the menu without choosing logout, restart, or shutdown.</small></dd></div></dl></section>
+<section id="productivity-extras">
+<h2>Productivity extras <small>(optional)</small></h2>
+<dl><div data-step-id="helpers-emoji"><dt>SUPER + CTRL + E</dt><dd>Open the emoji picker.<small>The selected emoji is inserted into your previous text field.</small></dd></div>
+<div data-step-id="helpers-reminder"><dt>SUPER + CTRL + R</dt><dd>Open the reminder prompt. You don&#39;t need to create a reminder.<small>Reminder optional. Escape clears typed text; press again to close, or once if empty.</small></dd></div></dl></section>
+<section id="useful-tools">
+<h2>Useful tools <small>(optional)</small></h2>
+<dl><div data-step-id="tools-monitor-open"><dt>SUPER + CTRL + T</dt><dd>Open the activity monitor to inspect resource use. Don&#39;t stop any programs.<small>Inspect resource use without stopping any programs.</small></dd></div>
+<div data-step-id="tools-calculator-open"><dt>SUPER + CTRL + Q</dt><dd>Open Omarchy&#39;s calculator.<small>The lesson checks that the calculator opens, not your calculation.</small></dd></div></dl></section>
+<section id="create-and-share">
+<h2>Create and share <small>(optional)</small></h2>
+<dl><div data-step-id="share-menu"><dt>SUPER + CTRL + S</dt><dd>Open the Share menu without starting a transfer.<small>Opening the menu sends nothing; check the file and recipient before sharing.</small></dd></div></dl></section></main>
+<footer>Generated from the loaded course; duplicate chords are listed once. Optional references are introductions, not verified exercises. Practice progress stays in the app.</footer>
+</body></html>

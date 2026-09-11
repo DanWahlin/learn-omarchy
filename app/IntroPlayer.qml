@@ -239,12 +239,14 @@ Item {
             rotation: state.rotation || 0
             transformOrigin: Item.Bottom
             Image {
+                objectName: "introImage-" + layerItem.definition.id
                 anchors.fill: parent
                 visible: layerItem.definition.type === "image"
                 source: visible && layerItem.definition.images
                     ? player.assetUrl(layerItem.definition.images[layerItem.state.frame || 0]) : ""
                 fillMode: Image.Stretch
                 smooth: false
+                mipmap: false
             }
             Rectangle {
                 visible: layerItem.definition.type === "text"

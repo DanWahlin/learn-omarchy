@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "f27fc9342bdb2c262e8e577306f5dcfcedf7c4b23a13bc388d5348a7beddd045",
+  "text": "The practice terminals' split direction changed again. This is different from floating a window.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 12
+    },
+    {
+      "startMs": 670,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 29
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 47
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 54
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4270,
+      "endOffset": 62
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 77
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5630,
+      "endOffset": 88
+    },
+    {
+      "startMs": 5670,
+      "endOffset": 96
+    }
+  ]
+}
