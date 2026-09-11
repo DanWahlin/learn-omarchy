@@ -7,7 +7,7 @@ arch=('any')
 url="https://github.com/DanWahlin/learn-omarchy"
 license=(@LICENSES@)
 depends=(
-  'bash' 'coreutils' 'sudo' 'hyprland' 'mpv' 'nodejs>=22.6' 'omarchy'
+  'bash' 'coreutils' 'sudo' 'hyprland' 'mpv' 'nodejs>=22.6' 'omarchy>=4.0.3'
   'quickshell>=0.3' 'qt6-declarative' 'qt6-multimedia' 'qt6-multimedia-ffmpeg' 'xdg-utils'
   'xdg-terminal-exec' 'nautilus'
   'ttf-liberation' 'noto-fonts-emoji'

@@ -1,6 +1,6 @@
 {
   "name": "learn-omarchy",
-  "version": "0.1.0-rc.2",
+  "version": "0.1.0-rc.3",
   "private": true,
   "license": "MIT AND CC-BY-4.0 AND CC0-1.0",
   "type": "module",
@@ -8,6 +8,7 @@
     "node": ">=22.6"
   },
   "scripts": {
+    "package:prepare": "node tools/prepare-checkout-package.mjs",
     "cheatsheet": "node --experimental-strip-types tools/generate-cheat-sheet.mjs",
     "geometry:install": "node tools/install-geometry-provider.mjs",
     "audio:generate": "node --experimental-strip-types tools/generate-course-audio.ts courses/omarchy-basics.json",

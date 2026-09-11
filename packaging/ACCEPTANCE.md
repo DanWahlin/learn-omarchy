@@ -1,8 +1,21 @@
 # Release acceptance
 
-The current candidate is **0.1.0-rc.2** (Arch version **0.1.0rc2**).
+The current candidate is **0.1.0-rc.3** (Arch version **0.1.0rc3**).
 It is not a stable release. CI and packaging checks do not establish that every
 desktop, hardware device, or installed Omarchy version behaves correctly.
+
+## Testing-prerelease distribution gates
+
+Keep rc.3 private and unpublished until the owner approves distribution.
+Before publishing a **testing prerelease**, require green exact-tag CI,
+license/audio checks, verified package contents, downloadable assets with
+matching checksums, current installation/removal instructions, and explicit
+compatibility/known-limitations notes. Confirm intended repository access:
+an unpublished draft or private repository is not a public download.
+
+Graphical/hardware gates below may remain pending for an explicitly labeled
+testing prerelease only when those limitations are disclosed. Publishing a
+candidate does not approve stable promotion or the Omarchy package PR.
 
 ## Stable-release gates
 
@@ -25,10 +38,14 @@ behavior after fixes. Never mark a gate passed based on an older package.
 
 ## Current evidence and limitations
 
-The development desktop is Omarchy 4.0.2 with Quickshell 0.3.1 and Qt 6.11.2.
+The development desktop is Omarchy 4.0.3-1 with Quickshell 0.3.1 and Qt 6.11.2.
 Prior live testing covered both coaches, native actions, safe practice exercises,
 and the scaled laptop display. The reported installation-status, welcome
-audio-toggle, and practice-goal defects have regression coverage.
+audio-toggle, and practice-goal defects have regression coverage. Subsequent
+live checks reached all 101 activities; physical lock/unlock and spoken dictation
+still need attended acceptance. The printable reference is checked against the
+official 4.0.3 source and rendered PDF; this does not certify customized physical
+key bindings. Customized bars can still lack precise workspace-pill geometry.
 
 The clean Arch CI environment verifies builds, isolated lifecycle tests, QML
 offscreen rendering, and extracted package contents. It does **not** run a clean

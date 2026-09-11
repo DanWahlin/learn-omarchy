@@ -93,8 +93,24 @@ to the reusable workflow. External actions are pinned to verified commit
 SHAs. GitHub token repository settings must allow the narrowly scoped release
 write permission. Restrict tag creation with repository rulesets.
 
-Before publishing, complete [ACCEPTANCE.md](ACCEPTANCE.md) against the exact
-source commit and package checksum, review [RELEASE-NOTES.md](RELEASE-NOTES.md),
-and obtain explicit release approval. Draft creation is not acceptance or
-approval. Stable promotion requires its own approved exact-source evidence;
-do not treat a green workflow or a version tag as that evidence.
+Before publishing a testing prerelease, complete the testing-distribution gates
+in [ACCEPTANCE.md](ACCEPTANCE.md) against the exact source commit and package
+checksum, review [RELEASE-NOTES.md](RELEASE-NOTES.md), and obtain explicit release
+approval. Draft creation is not acceptance or approval. Stable promotion requires
+all stable gates and its own approved exact-source evidence; do not treat a
+green workflow or a version tag as that evidence.
+
+## Preparing rc.3 without publishing
+
+Commit the readiness changes and ensure `package.json` and the lockfile both
+say `0.1.0-rc.3`. Run the full checks, push the commit, then create and push the
+new `v0.1.0-rc.3` tag on that exact commit. Never move the older rc.2 tag.
+The tag workflow builds fresh assets and creates a new draft; keep it a draft
+and keep the repository private under the current distribution approval.
+
+Verify the uploaded package, checksums, source commit in `BUILD-INFO.txt`, and
+release's draft/prerelease flags before handing it to the owner. An Omarchy
+package-repository PR is a later, separate action. The agent-arcade precedent
+is `omacom/omarchy-pkgs#310`, with a package recipe and upstream-release tracking;
+Learn Omarchy needs an accessible, approved release/version/checksum before
+that submission, not a recipe pointing at a private draft.

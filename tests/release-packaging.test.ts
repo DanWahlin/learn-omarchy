@@ -5,6 +5,7 @@ import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promis
 import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 import { checkLicenses, inspectArchive, packageVersion, prepareRelease } from "../tools/prepare-release.mjs";
+import { prepareCheckoutPackage } from "../tools/prepare-checkout-package.mjs";
 
 const template = await readFile(new URL("../packaging/PKGBUILD.in", import.meta.url), "utf8");
 
@@ -46,6 +47,70 @@ async function archiveFixture(directory: string, files: Record<string, string | 
   assert.equal(tar.status, 0, tar.stderr);
   return archive;
 }
+
+async function checkoutFixture(directory: string) {
+  await archiveFixture(directory, fixture());
+  const source = join(directory, "learn-omarchy-1.2.3");
+  const git = (...args: string[]) => {
+    const result = spawnSync("git", ["-c", "core.hooksPath=/dev/null", "-c", "commit.gpgsign=false",
+      "-c", "user.name=Package test", "-c", "user.email=package-test@example.invalid", ...args],
+    { cwd: source, encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+    return result.stdout.trim();
+  };
+  git("init", "--quiet", "--initial-branch=main");
+  git("add", ".");
+  git("commit", "--quiet", "-m", "Synthetic package preparation fixture\n\n"
+    + "Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>\n"
+    + "Copilot-Session: 109acf47-0cc8-4d3f-b7f4-0f451dbe98ca");
+  return { source, git };
+}
+
+test("a clean checkout prepares an exact-source package without a tag, install or untracked files", async () => {
+  const directory = await mkdtemp(resolve(".learn-release-checkout-test-"));
+  try {
+    const { source, git } = await checkoutFixture(directory);
+    await writeFile(join(source, "private-recording.wav"), "Untracked test data must not ship");
+    const result = await prepareCheckoutPackage(source, join(directory, "new output", "package"));
+    assert.equal(result.commit, git("rev-parse", "HEAD"));
+    assert.equal(result.epoch, git("show", "-s", "--format=%ct", "HEAD"));
+    assert.equal(result.packageVersion, "1.2.3");
+    assert.equal(git("tag", "--list"), "", "preparing a checkout does not create release tags");
+    const archive = inspectArchive(join(result.output, "learn-omarchy-1.2.3.tar.gz"));
+    await assert.rejects(archive.read("private-recording.wav"), /missing/);
+    await assert.rejects(archive.read(".git/config"), /missing/);
+    assert.equal(await archive.read("package.json").then(buffer => JSON.parse(buffer.toString()).version), "1.2.3");
+    const info = JSON.parse(await readFile(join(result.output, "CHECKOUT-INFO.json"), "utf8"));
+    assert.equal(info.commit, result.commit);
+    assert.equal(info.sourceSha256, result.checksum);
+    assert.equal(info.sourceDateEpoch, Number(result.epoch));
+    assert.ok(!(await readdir(result.output)).some(name => name.includes(".pkg.tar.")), "no build or installation");
+    await assert.rejects(prepareCheckoutPackage(source, result.output), /EEXIST/);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("checkout preparation rejects tracked edits and nested roots without silently building older source", async () => {
+  const directory = await mkdtemp(resolve(".learn-release-checkout-test-"));
+  try {
+    const { source } = await checkoutFixture(directory);
+    await assert.rejects(prepareCheckoutPackage(join(source, "app"), join(directory, "nested")), /repository root/);
+    await writeFile(join(source, "LICENSE"), "A pending change");
+    await assert.rejects(prepareCheckoutPackage(source, join(directory, "dirty")), /Commit or stash/);
+    assert.ok(!(await readdir(directory)).includes("dirty"));
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test("checkout preparation CLI help is read-only and rejects unsupported options", () => {
+  const command = resolve("tools/prepare-checkout-package.mjs");
+  const help = spawnSync(process.execPath, [command, "--help"], { encoding: "utf8" });
+  assert.equal(help.status, 0, help.stderr);
+  assert.match(help.stdout, /Does not build, install dependencies, install the app, tag, or publish/);
+  for (const args of [["--install"], ["--output"], ["--output", "--help"]]) {
+    const invalid = spawnSync(process.execPath, [command, ...args], { encoding: "utf8" });
+    assert.notEqual(invalid.status, 0);
+    assert.match(invalid.stderr, /Usage:/);
+  }
+});
 
 test("candidate versions map to Arch versions that remain distinct from stable releases", () => {
   for (const [version, expected] of [
@@ -111,7 +176,7 @@ test("release preparation uses exact archive bytes and emits one self-contained 
     assert.match(pkgbuild, /cd "\$srcdir\/learn-omarchy-\$pkgver"/);
     assert.match(pkgbuild, /node tools\/prepare-release\.mjs --check \./);
     assert.doesNotMatch(pkgbuild, /\$startdir|SKIP|@[A-Z]+@|install=.*\.install/);
-    for (const dependency of ["nodejs>=22.6", "quickshell>=0.3", "qt6-multimedia", "xdg-utils", "tesseract-data-eng"])
+    for (const dependency of ["omarchy>=4.0.3", "nodejs>=22.6", "quickshell>=0.3", "qt6-multimedia", "xdg-utils", "tesseract-data-eng"])
       assert.ok(pkgbuild.includes(dependency), dependency);
     assert.equal(spawnSync("bash", ["-n", join(output, "PKGBUILD")]).status, 0);
     const srcinfo = await readFile(join(output, ".SRCINFO"), "utf8");

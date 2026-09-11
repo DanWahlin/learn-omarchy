@@ -45,13 +45,12 @@ promotes a candidate to stable automatically. Complete the
 
 ## Prepare a release from actual source bytes
 
-There is no invented tag URL or placeholder checksum. No release tag existed
-when this tooling was introduced. Start with a trusted, existing local tag
+There is no invented tag URL or placeholder checksum. Start with a trusted, existing local tag
 whose `package.json` version and license approval are correct:
 
 ```sh
 # Replace these with the actual existing tag and its package.json version.
-VERSION=0.1.0-rc.2
+VERSION=0.1.0-rc.3
 TAG="v$VERSION"
 git rev-parse --verify "refs/tags/$TAG"
 ARCH_VERSION="$(node --input-type=module -e \
@@ -67,7 +66,7 @@ cd "release-work/arch-$VERSION"
 makepkg --cleanbuild
 ```
 
-These commands are instructions, not a claim that the example tag exists. An existing
+Verify that the tag exists before running these commands. An existing
 trusted local `.tar.gz` with the same versioned root layout works too.
 `git archive` excludes untracked recordings, user data, and `node_modules`;
 never create release sources by blindly archiving a working directory.
@@ -108,12 +107,20 @@ the graphical acceptance gates in [ACCEPTANCE.md](ACCEPTANCE.md).
 
 ## Runtime dependencies
 
+For collaborators building before a release is published,
+`node tools/prepare-checkout-package.mjs --output release-work/local` prepares
+the same recipe from clean committed `HEAD`, without requiring a tag. It records
+the source commit, version, timestamp and checksum in `CHECKOUT-INFO.json`.
+It never builds, installs dependencies, tags, publishes, or includes untracked
+files. `makepkg --syncdeps --install` is a separate, explicit user action.
+Do not distribute a checkout build as a verified tagged release.
+
 Required dependencies are encoded in `PKGBUILD.in`:
 
 - Node **22.6+**: the bundled validation/pack tools use
   `--experimental-strip-types`, introduced in Node 22.6. No runtime npm
   modules or speech-service credentials are needed.
-- Quickshell **0.3+**, Hyprland, and Omarchy: `Quickshell`, `.Io`, `.Wayland`,
+- Quickshell **0.3+**, Hyprland, and **Omarchy 4.0.3+**: `Quickshell`, `.Io`, `.Wayland`,
   `.Hyprland`, `qs`, `hyprctl`, and the Omarchy companion API. A compatible
   running Omarchy shell is needed for desktop geometry; failure does not
   prevent the course from opening.
@@ -141,7 +148,7 @@ Missing optional tools let learners skip the affected exercises.
 Optional transcoding reuses the required `ffmpeg` package.
 
 The package/version mappings were checked against this Arch/Omarchy host
-(Node 26.7, Quickshell 0.3.1, Qt 6.11.2, Omarchy 4.0.2). This is not a claim
+(Node 26.7, Quickshell 0.3.1, Qt 6.11.2, Omarchy 4.0.3-1). This is not a claim
 of end-to-end testing on the minimum versions.
 
 ## Local development and removal

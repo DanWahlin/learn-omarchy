@@ -23,11 +23,11 @@ including the new window exercises and optional shortcut introductions.
 | Apps and upkeep | Application discovery and maintenance orientation |
 | Setup and system | Hardware, Display, and System; optional explicit lock/unlock practice |
 | Your first real session | A finale that strings the shortcuts together, then a send-off |
-| More window controls (optional) | Grouping, pop-out/pin, workspace layout, zoom, and mouse gestures |
+| More window controls (optional) | Grouping, pop-out/pin, workspace layout, and mouse gestures |
 | Notifications (optional) | Notification-panel orientation and shortcut reference |
 | Desktop controls (optional) | Audio, network, power, calendar, backgrounds, themes, and Toggle |
-| Productivity extras (optional) | Emoji, reminders, and sharing |
-| Useful tools (optional) | Tools and optional productivity activities |
+| Productivity extras (optional) | Emoji, reminders, and optional local dictation |
+| Useful tools (optional) | Activity monitor, calculator, and disk-usage inspection |
 | Create and share (optional) | Local media and sharing practice |
 
 Progress and your current activity are saved automatically, and any module can
@@ -51,7 +51,8 @@ can change without compiling the app.
 
 ## Run from the repository
 
-Learn Omarchy expects a normal Omarchy 4 installation with Hyprland,
+For a managed installation, use the [Arch package instructions](#install).
+Learn Omarchy expects an updated Omarchy **4.0.3 or newer** installation with Hyprland,
 Quickshell 0.3 or newer, Node.js 22.6 or newer, and mpv.
 
 ```bash
@@ -386,11 +387,14 @@ and exit codes. It reports playback, not merely that an MP3 exists.
 
 ## Install
 
-The first release is being prepared as **0.1.0-rc.2**, a candidate for testing,
-not a stable release. See [candidate notes](packaging/RELEASE-NOTES.md) for
+The current testing candidate is **0.1.0-rc.3**, not a stable release.
+See [candidate notes](packaging/RELEASE-NOTES.md) for
 compatibility and [release acceptance](packaging/ACCEPTANCE.md) for remaining
 desktop/hardware checks. Download availability follows repository access:
-releases in a private repository are not public downloads.
+releases in a private repository are not public downloads, and draft releases
+are not published downloads. The repository is currently private and release
+creation produces drafts only. Public testing requires an explicit visibility
+and prerelease-publication decision; there is no public one-line installer yet.
 
 Learn Omarchy is one package containing the application, both coaches, recorded
 narration, and the read-only desktop integration. Install it and open the app:
@@ -402,6 +406,65 @@ active integration isn't reinstalled or reloaded. User-edited or conflicting
 plugin files are preserved; a visible notice explains if precise pointing
 is temporarily unavailable, and the next launch retries automatically.
 
+### Build and install directly from GitHub
+
+This works for collaborators with repository access before a release is public.
+Use your normal GitHub authentication; do not paste tokens into commands.
+Use an updated Omarchy desktop, not a vanilla Arch installation. Run the
+following as your regular user; pacman requests permission when needed:
+
+```bash
+sudo pacman -S --needed base-devel git nodejs
+git clone https://github.com/DanWahlin/learn-omarchy.git
+cd learn-omarchy
+node tools/prepare-checkout-package.mjs --output release-work/local
+cd release-work/local
+# Read PKGBUILD before executing a build from any repository.
+makepkg --syncdeps --install
+/usr/bin/learn-omarchy
+```
+
+The preparation command uses the exact committed checkout, records its commit
+and source SHA256 in `CHECKOUT-INFO.json`, and excludes untracked files.
+Tracked changes must be committed or stashed first. It refuses to overwrite an
+existing output directory; choose a new `--output` directory for a later build.
+It prints an equivalent build command with the source timestamp for reproducibility.
+No `npm install`, Azure account, speech generation, or separate plugin package
+is needed. Preparation does not install anything; `makepkg --syncdeps --install`
+explicitly resolves dependencies and installs the finished package.
+
+For updates, pull the desired trusted commit and prepare a new output directory,
+then build/install again. GitHub-installed candidates do not acquire automatic
+package-repository updates until Learn Omarchy is accepted into a repository.
+
+### Install a downloaded release package
+
+When a testing prerelease is published and you have access, download these two
+assets from the **same release** on the [Releases page](https://github.com/DanWahlin/learn-omarchy/releases):
+`learn-omarchy-0.1.0rc3-1-any.pkg.tar.zst` and `SHA256SUMS`.
+Do not use GitHub's automatic "Source code" downloads as binary packages.
+
+```bash
+PACKAGE=learn-omarchy-0.1.0rc3-1-any.pkg.tar.zst
+awk -v file="$PACKAGE" '$2 == file {print}' SHA256SUMS | sha256sum --check --strict &&
+  sudo pacman -U "./$PACKAGE"
+```
+
+The check must report that exact package as `OK`; installation is chained to
+its success. Checksums detect changed download bytes, not publisher identity.
+Only download from the intended repository/release. Open **Learn Omarchy**
+from Apps or run `/usr/bin/learn-omarchy`.
+
+Required lesson dependencies are installed with the package. OCR, QR, dictation,
+and activity-monitor tools are optional; missing tools offer a retry or Skip.
+The current native window exercises support configured Ghostty/Foot terminals
+and Chrome/Chromium browsers. Other choices are not replaced: unsupported
+adapters show recovery/Skip instead of taking control of an existing window.
+Customized bars may provide approximate rather than individual workspace-pill
+highlights. See the candidate notes for the remaining desktop acceptance limits.
+
+### Unmanaged source and development shortcuts
+
 To put this checkout in Omarchy's Apps menu without copying it anywhere:
 
 ```bash
@@ -409,10 +472,13 @@ make dev-launcher
 ```
 
 That writes a user desktop entry whose `Exec` points at `bin/learn-omarchy`
-in the repository, plus the HEXON icon, so edits apply on the next launch.
+in the repository, plus the app icon, so edits apply on the next launch.
 `make dev-launcher-remove` takes it out again.
+Remove that development entry before switching to a package installation;
+otherwise its user-level Apps entry can still launch the checkout. Calling
+`/usr/bin/learn-omarchy` explicitly always selects the system package.
 
-Install for one user:
+For an unmanaged, one-user copy (dependencies are not resolved for you):
 
 ```bash
 make install PREFIX="$HOME/.local"
@@ -420,16 +486,6 @@ make install PREFIX="$HOME/.local"
 
 Ensure `~/.local/bin` is on `PATH`, then run `learn-omarchy` or open **Learn
 Omarchy** from the Apps menu.
-
-Install a built Arch package (replace `VERSION` with its actual version):
-
-```bash
-sudo pacman -U ./learn-omarchy-VERSION-1-any.pkg.tar.zst
-```
-
-Open **Learn Omarchy** from the Apps menu after installation. Dependencies
-for the required lessons are installed with the package. OCR, QR, and dictation
-extras are listed as optional dependencies.
 
 To build a package from a trusted, existing versioned source archive:
 
