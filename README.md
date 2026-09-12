@@ -1,7 +1,7 @@
 # Learn Omarchy
 
 Learn Omarchy is an interactive desktop course that teaches Omarchy through
-guided, hands-on practice. Choose Ohm-1 or Ollie as your coach, follow them to
+guided, hands-on practice. Choose Ohm-1 or Ollie as your guide, follow them to
 the part of the desktop being discussed, and use the real shortcuts to complete
 each activity.
 
@@ -25,7 +25,7 @@ can be explored at any time without blocking course completion.
 
 ## How it works
 
-- Your coach points to the desktop area used by each lesson.
+- Your guide points to the desktop area used by each lesson.
 - Narration and captions explain what to do.
 - Keycaps respond as you press the real shortcut.
 - Omarchy and Hyprland state confirm the expected result.
@@ -66,7 +66,7 @@ Open **Learn Omarchy** from the Apps menu or run:
 learn-omarchy
 ```
 
-The package includes the application, both coaches, narration, course content,
+The package includes the application, both guides, narration, course content,
 and the desktop integration used for precise pointing.
 
 ### Update
@@ -150,7 +150,7 @@ For trusted source builds and release packaging, follow
 ## Characters and custom courses
 
 Ohm-1 and Ollie use the same data-driven character-pack system available to
-community coaches. Custom courses use a validated JSON format and can be
+community guides. Custom courses use a validated JSON format and can be
 launched without rebuilding the application.
 
 ```bash
