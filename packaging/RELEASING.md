@@ -55,7 +55,7 @@ whose `package.json` version and license approval are correct:
 
 ```sh
 # Replace these with the actual existing tag and its package.json version.
-VERSION=0.1.0-rc.3
+VERSION=0.1.0-rc.4
 TAG="v$VERSION"
 git rev-parse --verify "refs/tags/$TAG"
 ARCH_VERSION="$(node --input-type=module -e \

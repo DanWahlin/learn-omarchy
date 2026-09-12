@@ -1,4 +1,4 @@
-# Learn Omarchy 0.1.0-rc.3
+# Learn Omarchy 0.1.0-rc.4
 
 **Release candidate for testing, not a stable release.**
 
@@ -19,7 +19,7 @@ Once the release is published and accessible, download the package and
 `SHA256SUMS` from this release, then verify the exact package before installing:
 
 ```sh
-PACKAGE=learn-omarchy-0.1.0rc3-1-any.pkg.tar.zst
+PACKAGE=learn-omarchy-0.1.0rc4-1-any.pkg.tar.zst
 awk -v file="$PACKAGE" '$2 == file {print}' SHA256SUMS | sha256sum --check --strict &&
   sudo pacman -U "./$PACKAGE"
 /usr/bin/learn-omarchy
@@ -54,7 +54,7 @@ only the package directly through pacman can leave the user integration behind.
 ## Candidate highlights
 
 This candidate includes the lesson, presentation, and printable-reference fixes
-made after rc.2. All attached assets are built from the rc.3 tag, not reused
+made after rc.3. All attached assets are built from the rc.4 tag, not reused
 from an earlier candidate.
 
 - Clear goals throughout shortcut Practice mode; hints reveal instructions and keycaps.
@@ -72,6 +72,12 @@ from an earlier candidate.
   previous Keys state when you return.
 - A committed-checkout packaging command for collaborators testing directly from GitHub.
 - Ollie's welcome has short, fading background birdsong.
+- Progress reset now proves both state files were saved and reports failures.
+- Ollie speaks 10% faster while preserving synchronized word timings.
+- Captions reveal as the coach speaks instead of appearing all at once.
+- Every activity was re-audited against Omarchy 4.0.3; Power availability,
+  focused-monitor capture wording, and optional Compose behavior now match the
+  actual platform.
 - Code uses MIT; original artwork/course content uses CC BY 4.0. Separately
   licensed birdsong and example assets retain CC0.
 
