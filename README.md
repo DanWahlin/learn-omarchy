@@ -8,6 +8,9 @@ each activity.
 [Visit the website](https://danwahlin.github.io/learn-omarchy/) for a visual
 overview, lesson list, and installation walkthrough.
 
+Shortcut Arcade adds three safe, replayable games for building keyboard muscle
+memory. See [the prototype guide](docs/arcade-prototypes.md).
+
 ![Learn Omarchy with Ohm-1 and Ollie](docs/images/learn-omarchy-poster.webp)
 
 ## What you will learn

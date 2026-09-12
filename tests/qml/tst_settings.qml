@@ -531,6 +531,8 @@ Item {
         var tooltip = root.descendants(button, function(item) { return item.objectName === "buttonTooltip" })[0]
         button.forceActiveFocus(Qt.TabFocusReason)
         tryCompare(tooltip, "visible", true)
+        compare(tooltip.color.a, 1)
+        verify(button.z > 0)
         keyClick(Qt.Key_Tab)
         mouseMove(fixture, 10, root.height - 10)
         tryCompare(tooltip, "visible", false)

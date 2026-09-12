@@ -12,3 +12,4 @@ InteractionAudio 1.0 InteractionAudio.qml
 WordRevealText 1.0 WordRevealText.qml
 CaptionReveal 1.0 CaptionReveal.qml
 AppSearchSession 1.0 AppSearchSession.qml
+ArcadePanel 1.0 ArcadePanel.qml

@@ -8,6 +8,7 @@ import Quickshell.Wayland
 import "TeachingLayout.js" as TeachingLayout
 import "WindowOutcomes.js" as WindowOutcomes
 import "Retention.js" as Retention
+import "ArcadeLogic.js" as ArcadeLogic
 
 ShellRoot {
   id: root
@@ -19,6 +20,7 @@ ShellRoot {
   readonly property string courseDir: Quickshell.env("LEARN_OMARCHY_COURSE_DIR") || (appRoot + "/courses")
   readonly property string characterOverride: String(Quickshell.env("LEARN_OMARCHY_CHARACTER") || "").toLowerCase()
   readonly property string settingsPath: stateHome + "/learn-omarchy/settings.json"
+  readonly property string arcadePath: stateHome + "/learn-omarchy/arcade.json"
   property string requestedCharacter: characterOverride
   readonly property var resolvedPack: characterStore.selectedPack
   readonly property string characterName: resolvedPack ? resolvedPack.id : ""
@@ -49,11 +51,52 @@ ShellRoot {
       retentionNotice = "Complete at least two practice-ready modules to unlock mixed practice."
       return false
     }
+
     retentionNotice = ""
     mixedLessonIds = plan
     mixedLessonPosition = 0
     startLesson(Retention.lessonIndex(course, plan[0]), true, false, true)
     return true
+  }
+
+  function openArcade() {
+    if (!course) return
+    resetLessonRuntime()
+    stopAudio()
+    lessonIndex = -1
+    stepIndex = 0
+    activeKeys = ({})
+    pressedPhysicalKeys = ({})
+    phase = "arcade"
+    setCharacterState("hidden", "")
+    renewKeyboardCapture()
+  }
+
+  function saveArcadeStats(value) {
+    arcadeStats = ArcadeLogic.mergeStats(value)
+    arcadeFile.setText(JSON.stringify(arcadeStats, null, 2) + "\n")
+  }
+
+  function loadArcadeStats(text) {
+    try {
+      arcadeStats = ArcadeLogic.mergeStats(JSON.parse(text))
+    } catch (error) {
+      console.warn("learn-omarchy: arcade scores could not be parsed:", error)
+      arcadeStats = ArcadeLogic.defaultStats()
+    }
+  }
+
+  FileView {
+    id: arcadeFile
+    path: root.arcadePath
+    atomicWrites: true
+    blockWrites: true
+    printErrors: false
+    onLoaded: root.loadArcadeStats(text())
+    onLoadFailed: root.arcadeStats = ArcadeLogic.defaultStats()
+    onSaveFailed: function(error) {
+      console.warn("learn-omarchy: arcade scores could not be saved:", root.arcadePath, error)
+    }
   }
 
   function nextMixedLesson() {
@@ -484,6 +527,7 @@ ShellRoot {
   }
 
   readonly property string progressPath: stateHome + "/learn-omarchy/progress.json"
+  property var arcadeStats: ArcadeLogic.defaultStats()
   property bool motionReduced: false
   readonly property bool reducedMotion: motionReduced ||
     Quickshell.env("LEARN_OMARCHY_REDUCED_MOTION") === "1"
@@ -544,6 +588,7 @@ ShellRoot {
   property int practiceSessionGeneration: -1
   property string practiceSessionMode: ""
   property Item practiceHost: null
+  property Item arcadeHost: null
   property bool exitAfterPractice: false
   readonly property bool embeddedPracticeRunning: exerciseRunning && practiceSessionActive
   property bool exerciseRestoreCapture: false
@@ -1050,6 +1095,7 @@ ShellRoot {
     readonly property bool primary: kind === "primary"
     readonly property bool danger: kind === "danger"
     readonly property bool ghost: kind === "ghost"
+    z: hovered || activeFocus ? 200 : 0
     readonly property real windowX: {
       var position = x
       for (var ancestor = parent; ancestor; ancestor = ancestor.parent) position += ancestor.x
@@ -1123,7 +1169,8 @@ ShellRoot {
       width: Math.min(320 * root.textScale, hintText.implicitWidth + 20)
       height: hintText.implicitHeight + 14
       radius: 6
-      color: root.background
+      color: root.panelColor
+      opacity: 1
       border.color: root.muted
       Text {
         id: hintText
@@ -1961,8 +2008,9 @@ ShellRoot {
     var scan = Number(event.nativeScanCode) || 0
     var physical = Object.assign({}, pressedPhysicalKeys)
     var direct = scan > 0 && physical[scan] ? physical[scan] : keyName(event.key)
-    if (currentStepKeys.indexOf("MINUS") !== -1 && scan === 20) direct = "MINUS"
-    if (currentStepKeys.indexOf("EQUAL") !== -1 && scan === 21) direct = "EQUAL"
+    var expectedKeys = phase === "arcade" && arcadeHost ? arcadeHost.expectedKeys : currentStepKeys
+    if (expectedKeys.indexOf("MINUS") !== -1 && scan === 20) direct = "MINUS"
+    if (expectedKeys.indexOf("EQUAL") !== -1 && scan === 21) direct = "EQUAL"
     // Wayland exposes XKB scan codes: the number row is 10-19. Shift
     // changes Qt's logical key (for example 2 becomes @), not the keycap.
     if (!direct && (event.modifiers & Qt.ShiftModifier) && scan >= 10 && scan <= 19)
@@ -1981,6 +2029,10 @@ ShellRoot {
     }
     activeKeys = next
     if (pressed) {
+      if (phase === "arcade") {
+        if (!event.isAutoRepeat && arcadeHost) arcadeHost.handleKeyPress(direct, Object.keys(next))
+        return
+      }
       armShortcutDetection(next)
       if (!event.isAutoRepeat) reactToKey(direct)
       checkExpectedCombo()
@@ -3835,7 +3887,6 @@ ShellRoot {
   }
 
   function handleKeyPressed(event) {
-    if (handleSystemVolumeKey(event)) return
     var plain = event.modifiers === Qt.NoModifier
     if (referenceBrowsing) {
       if (isPlainEscape(event) || (plain && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)))
@@ -3843,6 +3894,23 @@ ShellRoot {
       event.accepted = true
       return
     }
+    if (phase === "arcade") {
+      if (isPlainEscape(event)) {
+        returnToMenu()
+      } else if (plain && event.key === Qt.Key_H) {
+        if (arcadeHost) arcadeHost.showHint()
+      } else if (plain && arcadeHost &&
+          (event.key === Qt.Key_1 || event.key === Qt.Key_2 || event.key === Qt.Key_3 ||
+           event.key === Qt.Key_R || event.key === Qt.Key_Return ||
+           event.key === Qt.Key_Enter || event.key === Qt.Key_Space)) {
+        arcadeHost.handleControlKey(keyName(event.key))
+      } else {
+        updateActiveKeys(event, true)
+      }
+      event.accepted = true
+      return
+    }
+    if (handleSystemVolumeKey(event)) return
     if (phase === "welcome" && plain) {
       if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)
         advanceWelcome(introGeneration, welcomeStage)
@@ -3878,6 +3946,7 @@ ShellRoot {
       else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) moveMenuSelection(1)
       else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) startLesson(selectedLessonIndex)
       else if (event.key === Qt.Key_P) startLesson(selectedLessonIndex, true, false)
+      else if (event.key === Qt.Key_A) openArcade()
       else if (isPlainEscape(event)) Qt.quit()
       else return
       event.accepted = true
@@ -5130,7 +5199,8 @@ ShellRoot {
         }
         IdleInhibitor {
           window: overlay
-          enabled: overlay.shouldShow && (root.phase === "waiting" || root.phase === "highlight") &&
+          enabled: overlay.shouldShow && (root.phase === "waiting" || root.phase === "highlight" ||
+            root.phase === "arcade") &&
             !(root.embeddedPracticeRunning && root.practiceSessionMode === "screen-lock")
         }
         mask: Region {
@@ -5144,6 +5214,7 @@ ShellRoot {
           Region { item: errorPanel }
           Region { item: pausePanel }
           Region { item: welcomeControls }
+          Region { item: arcadePanel }
         }
 
         // Omarchy's Apps menu shows a "Launching…" OSD two seconds after a
@@ -5196,7 +5267,7 @@ ShellRoot {
           Keys.priority: Keys.BeforeItem
           Keys.onPressed: function(event) { root.handleKeyPressed(event) }
           Keys.onReleased: function(event) {
-            if (root.phase === "waiting") {
+            if (root.phase === "waiting" || root.phase === "arcade") {
               root.updateActiveKeys(event, false)
               event.accepted = false
             }
@@ -5738,6 +5809,34 @@ ShellRoot {
           }
         }
 
+        ArcadePanel {
+          id: arcadePanel
+          anchors.fill: parent
+          z: 30
+          visible: !root.referenceBrowsing && root.phase === "arcade" && overlay.shouldShow
+          active: visible
+          course: root.course
+          stats: root.arcadeStats
+          backgroundColor: root.background
+          foregroundColor: root.foreground
+          accentColor: root.accent
+          mutedColor: root.muted
+          urgentColor: root.urgent
+          textScale: root.textScale
+          reducedMotion: root.reducedMotion
+          onActiveHostChanged: function(isActive) {
+            if (isActive) root.arcadeHost = arcadePanel
+            else if (root.arcadeHost === arcadePanel) root.arcadeHost = null
+          }
+          onCloseRequested: root.returnToMenu()
+          onStatsCommitted: function(value) { root.saveArcadeStats(value) }
+          onEffectRequested: function(name) {
+            if (name === "success") root.playSound("interaction-correct.wav")
+            else if (name === "finish") root.playSound("interaction-module-complete.wav")
+            else root.playSound("interaction-step-complete.wav")
+          }
+        }
+
         UiPanel {
           id: topicPanel
           visible: !root.referenceBrowsing && root.phase === "menu" && root.course
@@ -6038,8 +6137,9 @@ ShellRoot {
             }
 
             GridLayout {
+              z: 20
               Layout.alignment: Qt.AlignHCenter
-              columns: topicPanel.width < 640 ? 1 : 2
+              columns: topicPanel.width < 760 ? 1 : 3
               UiButton {
                 label: "MIXED PRACTICE"
                 enabled: root.mixedEligibleCount >= 2
@@ -6050,6 +6150,11 @@ ShellRoot {
                 description: "Open the shortcut sheet in your browser, move the course aside, and release keys for printing"
                 enabled: !cheatSheetProcess.running
                 onClicked: root.openCheatSheet()
+              }
+              UiButton {
+                label: "SHORTCUT ARCADE"
+                description: "Play three safe shortcut games and chase your personal bests"
+                onClicked: root.openArcade()
               }
             }
             Text {
@@ -6072,7 +6177,7 @@ ShellRoot {
                 model: root.course && root.course.lessons[root.selectedLessonIndex] &&
                   root.course.lessons[root.selectedLessonIndex].kind === "welcome"
                   ? [["↑ ↓", "CHOOSE"], ["⏎", root.welcomeSeen ? "REPLAY WELCOME" : "START WELCOME"], ["ESC", "CLOSE"]]
-                  : [["↑ ↓", "CHOOSE"], ["⏎", "START / RESUME"], ["P", "PRACTICE"], ["ESC", "CLOSE"]]
+                  : [["↑ ↓", "CHOOSE"], ["⏎", "START / RESUME"], ["P", "PRACTICE"], ["A", "ARCADE"], ["ESC", "CLOSE"]]
 
                 RowLayout {
                   required property var modelData
