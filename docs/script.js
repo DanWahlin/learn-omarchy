@@ -70,7 +70,7 @@
     'lumon':       { name: 'Lumon',        bg: '#16242d', fg: '#d6e2ee', accent: '#8bc9eb', red: '#4d86b0', yellow: '#6fa4c9', orange: '#8bc9eb', green: '#5e95bc', cyan: '#b4e4f6', blue: '#6fb8e3', magenta: '#8bc9eb' }
   };
   const THEME_IDS = Object.keys(THEMES);
-  const DEFAULT_THEME = 'catppuccin';
+  const DEFAULT_THEME = 'ethereal';
 
   function hexToRgb(h) { h = h.replace('#', ''); return [0, 2, 4].map(function (i) { return parseInt(h.slice(i, i + 2), 16); }); }
   function rgbToHex(c) { return '#' + c.map(function (v) { return Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0'); }).join(''); }

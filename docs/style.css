@@ -2,34 +2,34 @@
 *::before,
 *::after { box-sizing: border-box; }
 
-/* Catppuccin Mocha, one of Omarchy's bundled themes */
+/* Ethereal, the default Omarchy theme for this site */
 :root {
-  --bg: #1e1e2e;
-  --bg-deep: #181825;
-  --crust: #11111b;
-  --surface: #232336;
-  --surface-2: #313244;
-  --line: #313244;
-  --line-2: #45475a;
-  --ink: #f4f5ff;
-  --ink-2: #cdd6f4;
-  --muted: #a6adc8;
-  --dim: #7f849c;
+  --bg: #060b1e;
+  --bg-deep: #050919;
+  --crust: #040714;
+  --surface: #0d1225;
+  --surface-2: #1c2132;
+  --line: #1f2334;
+  --line-2: #383c4b;
+  --ink: #ffebde;
+  --ink-2: #ffcead;
+  --muted: #b19180;
+  --dim: #9e8276;
   --white: #ffffff;
-  --brand: #cba6f7;      /* mauve */
-  --pink: #f5c2e7;
-  --cyan: #94e2d5;       /* teal */
-  --sky: #89dceb;
-  --blue: #89b4fa;
-  --orange: #fab387;     /* peach */
-  --green: #a6e3a1;
-  --magenta: #cba6f7;
-  --red: #f38ba8;
-  --yellow: #f9e2af;
-  --lavender: #b4befe;
-  --brand-ink: #11111b;
-  --bg-rgb: 30, 30, 46; --bg-deep-rgb: 24, 24, 37; --crust-rgb: 17, 17, 27;
-  --brand-rgb: 203, 166, 247; --pink-rgb: 245, 194, 231; --cyan-rgb: 148, 226, 213; --sky-rgb: 137, 220, 235; --red-rgb: 243, 139, 168;
+  --brand: #7d82d9;
+  --pink: #c89dc1;
+  --cyan: #a3bfd1;
+  --sky: #bacfdc;
+  --blue: #7d82d9;
+  --orange: #eb8b54;
+  --green: #92a593;
+  --magenta: #c89dc1;
+  --red: #ed5b5a;
+  --yellow: #e9bb4f;
+  --lavender: #a4a8e4;
+  --brand-ink: #040714;
+  --bg-rgb: 6, 11, 30; --bg-deep-rgb: 5, 9, 25; --crust-rgb: 4, 7, 20;
+  --brand-rgb: 125, 130, 217; --pink-rgb: 200, 157, 193; --cyan-rgb: 163, 191, 209; --sky-rgb: 186, 207, 220; --red-rgb: 237, 91, 90;
   --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
   --container: 1080px;
 }
