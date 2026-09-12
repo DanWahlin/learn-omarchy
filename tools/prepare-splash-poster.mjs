@@ -55,7 +55,7 @@ export function recolorPoster(original) {
 }
 
 export function preparePoster() {
-  const pixels = recolorPoster(decodePoster(fileURLToPath(new URL(poster.source, assets))));
+  const pixels = decodePoster(fileURLToPath(new URL(poster.source, assets)));
   return ffmpeg(["-f", "rawvideo", "-pixel_format", "rgb24",
     "-video_size", `${poster.width}x${poster.height}`, "-i", "pipe:0",
     "-frames:v", "1", "-f", "image2pipe", "-c:v", "png", "pipe:1"], pixels);
@@ -70,7 +70,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     license: "CC-BY-4.0",
     generator: "tools/prepare-splash-poster.mjs",
     sourceProvenance: "provenance.json",
-    operation: "Local hue correction of the original illustrated splash. Ohm's red accents and Ollie's scarf become magenta; orange boot flames become magenta with the original cyan exhaust retained. Composition, lettering, shading and desktop artwork are unchanged.",
+    operation: "Deterministic RGB normalization of the approved splash master, preserving its exact composition, Neon Aurora wordmark, character artwork and local glow treatment.",
     ...poster,
     sourceSha256: createHash("sha256").update(readFileSync(new URL(poster.source, assets))).digest("hex"),
     outputSha256: createHash("sha256").update(image).digest("hex"),

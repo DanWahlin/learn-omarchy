@@ -14,7 +14,7 @@
     "assets/characters/ohm-1/sprites/ohm-1-idle.png (first frame)",
     "assets/characters/owl/sprites/owl-idle.png (first frame)"
   ],
-  "postprocessing": "Rebalanced the illustration with a smaller corner-perched owl and a lower desktop. Equalized both right panes to 435x179 pixels. Moved both title lines down 30 pixels. Replaced the subtitle locally with 'YOUR DESKTOP. YOUR WAY.' in cyan JetBrains Mono lettering, leaving the lower illustration unchanged.",
+  "postprocessing": "Rebalanced the illustration with a smaller corner-perched owl and a lower desktop. Equalized both right panes to 435x179 pixels. Moved both title lines down 30 pixels. Replaced the subtitle locally with 'YOUR DESKTOP. YOUR WAY.' in cyan JetBrains Mono lettering. Preserved the exact Ohm-1 and Ollie artwork, added a restrained cyan glow around Ohm-1, and rebuilt 'LEARN OMARCHY' with the website's custom 5x7 block glyphs in the approved Neon Aurora palette.",
   "license": {
     "status": "declared",
     "identifier": "CC-BY-4.0",
