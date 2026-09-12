@@ -108,7 +108,7 @@ Item {
       var next = caption.beginPlayback()
       ignoreWarning(/learn-omarchy: caption timing unavailable.*/)
       timing(next, "One two three four.")
-      compare(caption.revealEnd, -1)
+      verify(caption.revealEnd >= 0)
     }
     function test_mismatchAndFallbackLatch() {
       var token = caption.beginPlayback()
@@ -116,11 +116,12 @@ Item {
       ignoreWarning(/learn-omarchy: caption timing unavailable.*/)
       timing(token)
       verify(caption.failed)
-      compare(caption.revealEnd, -1)
+      var fallbackEnd = caption.revealEnd
+      verify(fallbackEnd >= 0 && fallbackEnd < caption.formattedText.length)
       caption.displayText = caption.sourceText
       timing(token)
       position(token, 100)
-      compare(caption.revealEnd, -1)
+      verify(caption.revealEnd >= fallbackEnd)
     }
     function test_deadlineNeedsBothTimingAndPosition() {
       caption.deadlineMs = 80
@@ -128,7 +129,7 @@ Item {
       position(token, 100)
       ignoreWarning(/learn-omarchy: caption timing unavailable.*/)
       tryCompare(caption, "failed", true)
-      compare(caption.revealEnd, -1)
+      verify(caption.revealEnd >= 0 && caption.revealEnd < caption.formattedText.length)
       verify(caption.playing, "deadline never ends speech or advances a lesson")
     }
     function test_pausingPendingPlaybackAlsoPausesTheDeadline() {
@@ -160,7 +161,7 @@ Item {
       caption.narrationEnabled = false
       verify(caption.revealEnd >= 0, "muted silent packs still use reading speed")
     }
-    function test_errorShowsCompleteTextAndLatePacketsCannotHideIt() {
+    function test_playbackErrorShowsCompleteTextAndLatePacketsCannotHideIt() {
       var token = caption.beginPlayback()
       ignoreWarning(/learn-omarchy: caption timing unavailable.*/)
       caption.finish(token, 2)

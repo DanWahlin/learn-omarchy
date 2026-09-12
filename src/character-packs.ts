@@ -51,7 +51,7 @@ export type CharacterManifest = {
   motion: { tourFlight: "upright" | "sprite" };
   blink?: { periodMs: number; startMs: number; durationMs: number };
   intro?: { sequence: string };
-  narration: { mode: "own"; audioSet: string; voices?: { azure?: string; edge?: string } }
+  narration: { mode: "own"; audioSet: string; playbackRate?: number; voices?: { azure?: string; edge?: string } }
     | { mode: "borrowed"; audioSet: "ohm-1" | "owl" } | { mode: "silent" };
 };
 export type ResolvedPack = {
@@ -212,9 +212,10 @@ export function validateCharacterManifest(value: unknown): asserts value is Char
   // Intro errors are deliberately handled separately, so graphics-only packs remain usable.
   const narration = value.narration; record(narration, "narration");
   if (!["own", "borrowed", "silent"].includes(narration.mode)) fail("Unknown narration.mode");
-  keys(narration, narration.mode === "own" ? ["mode", "audioSet", "voices"] : narration.mode === "borrowed" ? ["mode", "audioSet"] : ["mode"], "narration");
+  keys(narration, narration.mode === "own" ? ["mode", "audioSet", "voices", "playbackRate"] : narration.mode === "borrowed" ? ["mode", "audioSet"] : ["mode"], "narration");
   if (narration.mode === "own") {
     if (narration.audioSet !== value.id) fail("Own narration.audioSet must equal pack id");
+    if (narration.playbackRate !== undefined) number(narration.playbackRate, "narration.playbackRate", 0.5, 2);
     if (narration.voices !== undefined) {
       record(narration.voices, "narration.voices"); keys(narration.voices, ["azure", "edge"], "narration.voices");
       for (const [name, voice] of Object.entries(narration.voices)) text(voice, `narration.voices.${name}`, 200);

@@ -38,23 +38,53 @@ behavior after fixes. Never mark a gate passed based on an older package.
 
 ## Current evidence and limitations
 
-The development desktop is Omarchy 4.0.3-1 with Quickshell 0.3.1 and Qt 6.11.2.
-Prior live testing covered both coaches, native actions, safe practice exercises,
-and the scaled laptop display. The reported installation-status, welcome
-audio-toggle, and practice-goal defects have regression coverage. Subsequent
-live checks reached all 101 activities; physical lock/unlock and spoken dictation
-still need attended acceptance. The printable reference is checked against the
-official 4.0.3 source and rendered PDF; this does not certify customized physical
-key bindings. Customized bars can still lack precise workspace-pill geometry.
+The latest development acceptance run was performed on 2026-09-11 against base
+commit `ff079ca` plus the current uncommitted reset, narration, caption, course,
+and test changes. This is evidence for the working tree, not a releasable tagged
+artifact. The desktop used Omarchy 4.0.3-1, omarchy-settings 4.0.3-1, Hyprland
+0.56.2-2, Quickshell 0.3.1-1, Qt 6.11.2-3, and MPV 0.41.0-6 on one 3072x1920
+display at 1.6 scale.
+
+The fresh isolated-state live run persisted outcomes for all 101 activities and
+all 17 lessons across an app restart: 72 practiced, 24 introduced with live
+narration and target presentation, and 5 explicitly skipped. Sixty-two
+shortcut-driven activities completed through real input and reported a verified
+result. Ninety-nine sampled lesson states had matching word timings, advancing
+playback positions, and progressive caption offsets. The run retained the exact
+three personal windows present before testing and left no additional window.
+Detailed screenshots, event logs, and final state remain outside the repository
+in the private session artifacts.
+
+The five skips were the split and split-restore activities on the tester's
+non-dwindle custom layout, Compose on a keyboard where Caps Lock is not Compose,
+screen lock, and microphone dictation. The course now treats Compose as optional
+when mappings differ, and treats the Power panel as optional on battery-less
+systems. Physical lock/unlock and spoken dictation still require an attended
+tester. Split behavior remains covered by automated owned-window tests but was
+not physically exercised on this custom layout.
+
+An activity-by-activity source audit compared all 101 activities and all 66
+explicit course chords with installed Omarchy 4.0.3 and upstream tag `v4.0.3`.
+All 66 chords matched. The audit found and corrected two content issues: Power
+is unavailable without a battery, and screenshot Control+Enter captures the
+focused monitor rather than the entire multi-monitor desktop. The printable
+reference was regenerated from those corrections. Customized bars can still
+lack precise workspace-pill geometry.
+
+Final working-tree checks passed: 478 Node tests, 258 QML tests with 4
+platform-dependent skips, course validation for 17 lessons and 101 activities,
+both bundled character packs, all 400 narration recordings and word timings,
+printable-reference freshness, and release licensing metadata.
 
 The clean Arch CI environment verifies builds, isolated lifecycle tests, QML
 offscreen rendering, and extracted package contents. It does **not** run a clean
 graphical Omarchy desktop. Mocked integration commands prove installer control
 flow, not compatibility with a real shell.
 
-A clean graphical Omarchy installation, attended lock/microphone validation,
-and physical multi-monitor acceptance remain outstanding. The draft candidate
-must not be promoted to stable on the basis of automated checks alone.
+A clean graphical package installation without the repository, offline use,
+upgrade/removal, attended lock/microphone validation, a dwindle-layout split
+run, and physical multi-monitor acceptance remain outstanding. The draft
+candidate must not be promoted to stable on the basis of this working-tree run.
 
 No private screenshots, learner state, recordings, or developer credentials
 belong in release assets. Keep detailed private QA evidence outside the source

@@ -13,7 +13,7 @@ test("expanded curriculum remains valid with unique activity IDs", () => {
   assert.equal(new Set(ids).size, ids.length);
 });
 
-test("Compose and recording are real core exercises rather than narrated mentions", () => {
+test("Compose and recording remain real exercises rather than narrated mentions", () => {
   assert.ok(course);
   for (const mode of ["compose", "screen-recording"]) {
     const lesson = course.lessons.find(item => item.steps.some(step => step.practice === mode));
@@ -22,7 +22,12 @@ test("Compose and recording are real core exercises rather than narrated mention
     const step = lesson.steps.find(item => item.practice === mode)!;
     assert.equal(step.kind, "practice");
     assert.equal(step.completion.type, "practice-result");
-    assert.notEqual(step.optional, true);
+    if (mode === "compose") {
+      assert.equal(step.optional, true);
+      assert.match(`${step.note} ${step.detail}`, /skip/i);
+    } else {
+      assert.notEqual(step.optional, true);
+    }
     assert.deepEqual(step.keys, [], "Sequential typing and recording controls aren't held course chords");
   }
 });

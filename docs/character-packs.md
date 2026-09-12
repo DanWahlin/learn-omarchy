@@ -235,7 +235,13 @@ The loader never trims, regenerates or copies official artwork.
 * Own: `{ "mode": "own", "audioSet": "your-pack-id" }`. The audio set must match
   the pack ID. Optional `voices: { "azure": "...", "edge": "..." }` carries
   authoring voice identifiers, not commands. Existing official voice strings
-  are preserved here.
+  are preserved here. Optional `playbackRate` (0.5 to 2, default 1) multiplies
+  the learner's speech-speed setting for all of this coach's narration.
+  Ollie uses 1.1 for 10% faster speech; other bundled coaches retain their pace.
+  Playback uses the original media timestamps, so word timings stay synchronized
+  without regenerating recordings. If the media clock or timing sidecar is
+  unavailable, captions continue at reading speed adjusted by the same effective
+  playback rate instead of jumping to the complete paragraph.
 * Borrowed: `{ "mode": "borrowed", "audioSet": "ohm-1" }` or `"owl"`.
   Only these bundled audio sets are supported. The runtime deliberately
   presents text only for borrowed clips whose source text identifies HEXON, Ohm, or

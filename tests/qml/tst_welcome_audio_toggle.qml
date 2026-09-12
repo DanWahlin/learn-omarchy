@@ -28,6 +28,7 @@ Item {
         + 'property bool welcomeSpeechStopping: false; property bool introActive: false\n'
         + 'property bool currentStepIsTour: false; property int introGeneration: 1\n'
         + 'property int readingWordsPerMinute: 200; property int narrationRestMs: 900\n'
+        + 'property real narrationPlaybackRate: 1\n'
         + 'property var welcomeNarration: ({})\n'
         + 'property string welcomeText: "These are the Learn Omarchy controls: Settings, keyboard capture, mute narration, and Exit."\n'
         + 'property alias welcomeReadingStartOffset: welcomeReveal.readingStartOffset\n'

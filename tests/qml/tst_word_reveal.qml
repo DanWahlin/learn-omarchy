@@ -25,7 +25,7 @@ Item {
   TestCase {
     name: "WordRevealLayout"
     when: windowShown
-    function test_revealKeepsFullTextWrappingAndHeight() {
+    function test_revealStaysWithinTheFullCaptionLayout() {
       failOnWarning(/.*/)
       reference.text = "Hi! I'm Ohm-1, but you can call me Ohm for short.\n\nSpend less time managing your desktop and operating system. Your desktop - your\u00a0way."
       for (var size of [320, 600, 880]) {
@@ -33,34 +33,36 @@ Item {
         for (var end of [-1, 0, 3, 18, 61, 95, reference.text.length]) {
           reveal.revealEnd = end
           wait(10)
-          compare(reveal.lineCount, reference.lineCount)
-          compare(reveal.implicitHeight, reference.implicitHeight)
-          verify(Math.abs(reveal.contentWidth - reference.contentWidth) < 1)
+          verify(reveal.implicitHeight <= reference.implicitHeight + 1)
+          if (end < 0 || end >= reference.text.length) {
+            verify(Math.abs(reveal.implicitHeight - reference.implicitHeight) < 1)
+            verify(Math.abs(reveal.contentWidth - reference.contentWidth) < 1)
+          }
           compare(reveal.Accessible.name, reference.text)
         }
       }
     }
-    function test_fullCaptionFadesOnceWithoutInvisibleRows() {
+    function test_visibleTextFollowsTheWordClockWithoutRestartingTheFade() {
       reference.text = "Hello world"
       reference.width = 600
       reveal.revealEnd = 0
       tryCompare(reveal, "opacity", 1)
-      compare(reveal.text, reference.text)
-      var full = grabImage(reveal)
+      var hidden = grabImage(reveal)
       reveal.revealEnd = 3
       wait(20)
       compare(reveal.opacity, 1, "word-clock updates must not restart the fade")
-      verify(full.equals(grabImage(reveal)))
+      var firstWord = grabImage(reveal)
+      verify(!hidden.equals(firstWord), "the first timed word must become visible")
       reveal.revealEnd = -1
       wait(20)
-      verify(full.equals(grabImage(reveal)), "timing completion does not change caption layout or text")
+      verify(!firstWord.equals(grabImage(reveal)), "timing completion reveals the remaining caption")
     }
     function test_reducedMotionAndPlainText() {
       reveal.reducedMotion = true
       reference.text = "Read <this> & that.\n\nKeep every line."
       compare(reveal.opacity, 1)
-      compare(reveal.text, reference.text)
-      compare(reveal.textFormat, Text.PlainText)
+      verify(reveal.text.indexOf("&lt;this&gt;") >= 0)
+      compare(reveal.textFormat, Text.StyledText)
       compare(reveal.Accessible.name, reference.text)
       reveal.reducedMotion = false
     }

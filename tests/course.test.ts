@@ -479,6 +479,7 @@ test("hands-on tasks are verified exercises and optional activities don't block 
     assert.equal(step.help, undefined);
   }
   assert.equal(practices.find(step => step.practice === "screen-lock")?.optional, true);
+  assert.equal(practices.find(step => step.practice === "compose")?.optional, true);
   assert.equal(course.lessons.find(lesson => lesson.id === "bar-panels")?.optional, true);
   assert.equal(course.lessons.find(lesson => lesson.id === "productivity-extras")?.optional, true);
 });

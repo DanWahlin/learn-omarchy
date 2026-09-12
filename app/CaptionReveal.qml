@@ -29,7 +29,8 @@ Item {
   property alias deadline: timingDeadline
   readonly property int revealEnd: !typeText || reducedMotion ? -1
     : !narrationEnabled ? CaptionTiming.readingOffset(formattedText, readingElapsed, wordsPerMinute, readingStartOffset)
-    : finished || failed || !audioAvailable ? -1
+    : finished || !audioAvailable ? -1
+    : failed ? CaptionTiming.readingOffset(formattedText, readingElapsed, wordsPerMinute, readingStartOffset)
     : positionMs < 0 || !words.length ? 0
     : CaptionTiming.revealOffset(timingText, displayText, formattedText, words, positionMs)
 
@@ -74,8 +75,10 @@ Item {
 
   function fallback(reason) {
     timingDeadline.stop()
+    readingStartOffset = lastVoicedEnd < 0 ? formattedText.length : lastVoicedEnd
+    readingElapsed = 0
     failed = true
-    console.warn("learn-omarchy: caption timing unavailable; showing full text:", reason)
+    console.warn("learn-omarchy: caption timing unavailable; using reading-speed reveal:", reason)
   }
 
   function cancel() {
@@ -127,7 +130,7 @@ Item {
   Timer {
     interval: 50
     repeat: true
-    running: root.active && !root.paused && !root.narrationEnabled && root.typeText && !root.reducedMotion
+    running: root.active && !root.paused && (!root.narrationEnabled || root.failed) && root.typeText && !root.reducedMotion
       && root.revealEnd < root.formattedText.length
     onTriggered: root.readingElapsed += interval
   }

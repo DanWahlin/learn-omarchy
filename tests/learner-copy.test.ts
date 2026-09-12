@@ -134,6 +134,16 @@ test("essential cautions and keyboard alternatives are in the spoken instruction
     assert.doesNotMatch(detail(id), /choose Skip/);
 });
 
+test("hardware-dependent and multi-monitor guidance is explicit", () => {
+  const power = course.lessons.flatMap(lesson => lesson.steps).find(step => step.id === "power-panel");
+  const capture = course.lessons.flatMap(lesson => lesson.steps).find(step => step.id === "capture-native-workflow");
+  assert.ok(power);
+  assert.equal(power.optional, true);
+  assert.match(`${power.detail} ${power.note}`, /without a battery/i);
+  assert.ok(capture);
+  assert.match(capture.detail, /focused monitor, not the entire multi-monitor desktop/i);
+});
+
 test("secondary notes are concise and keep important cautions visible", () => {
   for (const step of steps.values()) {
     if (step.note) {

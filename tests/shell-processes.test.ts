@@ -2,10 +2,38 @@ import assert from "node:assert/strict";
 import { mkdtemp, mkdir, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const project = fileURLToPath(new URL("../", import.meta.url));
+
+function offscreenShell(source: string, body: string) {
+  // Only replace compositor-owned windows and inhibitors, not application state or file I/O.
+  source = source
+    .replace(/\bPanelWindow \{/g, "TestPanel {")
+    .replace(/\b(ShortcutInhibitor|IdleInhibitor) \{/g, "TestInhibitor {")
+    .replace(/^\s*anchors \{\s*top: true[;\s]*bottom: true[;\s]*left: true[;\s]*right: true\s*\}/gm, "")
+    .replace(/^\s*exclusionMode:.*$/gm, "")
+    .replace(/^\s*WlrLayershell\.\w+:.*(?:\n\s*\? WlrKeyboardFocus.*)?$/gm, "");
+  return source.slice(0, source.lastIndexOf("}")) + `
+  component TestPanel: Item {
+    property var screen
+    property color color
+    property var mask
+    property Item contentItem: this
+    width: 1200
+    height: 800
+  }
+  component TestInhibitor: QtObject {
+    property var window
+    property bool enabled: false
+    property bool active: false
+    signal cancelled()
+  }
+${body}
+}`;
+}
 
 test("all narration processes load with real Quickshell types and the reusable caption component", async () => {
   const source = await readFile(new URL("../app/shell.qml", import.meta.url), "utf8");
@@ -61,30 +89,9 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
     for (const name of await readdir(app)) {
       if (name !== "shell.qml") await symlink(join(app, name), join(directory, name));
     }
-    // Layer-shell windows require a compositor backend. Substitute only that
-    // boundary; instantiate all production bindings, views and speech state.
-    const source = (await readFile(join(app, "shell.qml"), "utf8"))
-      .replace(/\bPanelWindow \{/g, "TestPanel {")
-      .replace(/\b(ShortcutInhibitor|IdleInhibitor) \{/g, "TestInhibitor {")
-      .replace(/^\s*anchors \{\s*top: true[;\s]*bottom: true[;\s]*left: true[;\s]*right: true\s*\}/gm, "")
-      .replace(/^\s*exclusionMode:.*$/gm, "")
-      .replace(/^\s*WlrLayershell\.\w+:.*(?:\n\s*\? WlrKeyboardFocus.*)?$/gm, "");
+    const source = await readFile(join(app, "shell.qml"), "utf8");
     const path = join(directory, "shell.qml");
-    await writeFile(path, source.slice(0, source.lastIndexOf("}")) + `
-  component TestPanel: Item {
-    property var screen
-    property color color
-    property var mask
-    property Item contentItem: this
-    width: 1200
-    height: 800
-  }
-  component TestInhibitor: QtObject {
-    property var window
-    property bool enabled: false
-    property bool active: false
-    signal cancelled()
-  }
+    await writeFile(path, offscreenShell(source, `
   Timer {
     interval: 300
     running: true
@@ -94,7 +101,7 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
       Qt.quit()
     }
   }
-}`);
+`));
     const env = {
       ...process.env, QT_QPA_PLATFORM: "offscreen", QT_QUICK_BACKEND: "software",
       QT_QPA_PLATFORMTHEME: "generic", QT_QUICK_CONTROLS_STYLE: "Basic",
@@ -117,6 +124,133 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
     assert.match(output, /INTEGRATION_NOTICE.*Some highlights may be approximate on this desktop/);
     assert.doesNotMatch(output, /INTEGRATION_NOTICE.*Mock desktop integration unavailable/);
     assert.doesNotMatch(output, /ReferenceError|TypeError|Cannot assign|is not a type|Binding loop|Failed to load configuration/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("Settings reset clears real saved progress and remains cleared after Quickshell restarts", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "learn-reset-"));
+  try {
+    const runtime = join(directory, "runtime");
+    const stateDirectory = join(directory, "state", "learn-omarchy");
+    await mkdir(runtime, { mode: 0o700 });
+    await mkdir(stateDirectory, { recursive: true });
+    const app = join(project, "app");
+    for (const name of await readdir(app)) {
+      if (name !== "shell.qml") await symlink(join(app, name), join(directory, name));
+    }
+    const course = JSON.parse(await readFile(join(project, "courses/omarchy-basics.json"), "utf8"));
+    const completed = ["omarchy-tour", "workspaces"];
+    const steps = Object.fromEntries(course.lessons
+      .filter((lesson: { id: string }) => completed.includes(lesson.id))
+      .flatMap((lesson: { steps: Array<{ id: string }> }) => lesson.steps.map(step => [step.id, "introduced"])));
+    const progressPath = join(stateDirectory, "progress.json");
+    const settingsPath = join(stateDirectory, "settings.json");
+    await writeFile(progressPath, JSON.stringify({
+      schemaVersion: 2, courses: { [course.id]: completed },
+      details: { [course.id]: { steps, credits: Object.fromEntries(Object.keys(steps).map(id => [id, true])),
+        bookmarks: { workspaces: "workspaces-home" } } },
+    }));
+    await writeFile(settingsPath, JSON.stringify({
+      character: "ohm-1", welcomeSeen: true, tourSeen: true, audioEnabled: false, motionReduced: true,
+    }));
+    const initialProgress = await readFile(progressPath);
+    const initialSettings = await readFile(settingsPath);
+    const source = await readFile(join(app, "shell.qml"), "utf8");
+    const path = join(directory, "shell.qml");
+    const env = {
+      ...process.env, QT_QPA_PLATFORM: "offscreen", QT_QUICK_BACKEND: "software",
+      QT_QPA_PLATFORMTHEME: "generic", QT_QUICK_CONTROLS_STYLE: "Basic",
+      XDG_RUNTIME_DIR: runtime, HOME: directory,
+      XDG_CONFIG_HOME: join(directory, "config"), XDG_CACHE_HOME: join(directory, "cache"),
+      XDG_STATE_HOME: join(directory, "state"), XDG_DATA_HOME: join(directory, "data"),
+      LEARN_OMARCHY_ROOT: project, LEARN_OMARCHY_COURSE: join(project, "courses/omarchy-basics.json"),
+      LEARN_OMARCHY_COURSE_DIR: join(project, "courses"), LEARN_OMARCHY_CHARACTER: "",
+      LEARN_OMARCHY_REDUCED_MOTION: "1", LEARN_OMARCHY_INTEGRATION_ERROR: "",
+      DBUS_SESSION_BUS_ADDRESS: `unix:path=${directory}/no-bus`,
+    };
+    delete env.WAYLAND_DISPLAY;
+    delete env.DISPLAY;
+    delete env.HYPRLAND_INSTANCE_SIGNATURE;
+    for (const mode of ["reset", "restart", "failure-progress", "failure-settings"]) {
+      const reset = mode !== "restart";
+      const failure = mode.startsWith("failure-") ? mode.slice("failure-".length) : "";
+      if (failure) {
+        await writeFile(progressPath, initialProgress);
+        await writeFile(settingsPath, initialSettings);
+      }
+      await writeFile(path, offscreenShell(source, `
+  property int testStage: 0
+  Timer {
+    interval: 200
+    running: true
+    repeat: true
+    onTriggered: {
+      if (!root.course || !root.settingsResolved || !root.progressResolved || !characterStore.ready) return
+      if (root.testStage === 0) {
+        console.log("BEFORE_RESET", JSON.stringify(root.completedLessons))
+        ${failure ? `${failure}File.path = ${JSON.stringify(stateDirectory)}` : ""}
+        ${reset ? `root.openSettings("settings")
+        root.requestResetProgress()
+        root.requestResetProgress()` : ""}
+        console.log("RESET_RETURN", JSON.stringify({
+          resetJustDone: root.resetJustDone, progressError: root.progressSaveError, settingsError: root.settingsSaveError
+        }))
+        ${failure ? `root.requestResetProgress()
+        root.requestResetProgress()
+        console.log("RETRY_RETURN", JSON.stringify({
+          resetJustDone: root.resetJustDone, progressError: root.progressSaveError, settingsError: root.settingsSaveError
+        }))
+        ${failure}File.path = root.${failure}Path
+        root.requestResetProgress()
+        root.requestResetProgress()
+        console.log("RECOVER_RETURN", JSON.stringify({
+          resetJustDone: root.resetJustDone, progressError: root.progressSaveError, settingsError: root.settingsSaveError
+        }))` : ""}
+        root.testStage++
+      } else {
+        console.log("AFTER_RESET", JSON.stringify({
+          completed: root.completedLessons, steps: root.stepResults, credits: root.stepCredits,
+          bookmarks: root.lessonBookmarks, welcomeSeen: root.welcomeSeen, savedCharacter: root.savedCharacter
+        }))
+        Qt.quit()
+      }
+    }
+  }
+`));
+      const result = spawnSync("qs", ["--no-color", "--path", path], { env, encoding: "utf8", timeout: 15000 });
+      const output = result.stdout + result.stderr;
+      assert.equal(result.error, undefined, output + String(result.error));
+      assert.equal(result.status, 0, output);
+      assert.doesNotMatch(output, /ReferenceError|TypeError|Cannot assign|is not a type|Binding loop|Failed to load configuration/);
+      const after = output.match(/AFTER_RESET (\{[^\n]+\})/);
+      assert.ok(after, output);
+      const returned = output.match(/RESET_RETURN (\{[^\n]+\})/);
+      assert.ok(returned, output);
+      const confirmation = JSON.parse(returned[1]);
+      assert.equal(confirmation.resetJustDone, reset && !failure, output);
+      if (failure) {
+        assert.match(confirmation[failure + "Error"], /could not be saved/, output);
+        const retry = output.match(/RETRY_RETURN (\{[^\n]+\})/);
+        assert.ok(retry, output);
+        assert.equal(JSON.parse(retry[1]).resetJustDone, false, output);
+        const recovered = output.match(/RECOVER_RETURN (\{[^\n]+\})/);
+        assert.ok(recovered, output);
+        assert.deepEqual(JSON.parse(recovered[1]), { resetJustDone: true, progressError: "", settingsError: "" }, output);
+      }
+      const state = JSON.parse(after[1]);
+      for (const id of completed) assert.notEqual(state.completed[id], true, output);
+      assert.deepEqual(state.steps, {}, output);
+      assert.deepEqual(state.credits, {}, output);
+      assert.deepEqual(state.bookmarks, {}, output);
+      assert.equal(state.welcomeSeen, false, output);
+      assert.equal(state.savedCharacter, "", output);
+      const progress = JSON.parse(await readFile(progressPath, "utf8"));
+      assert.deepEqual(progress.courses[course.id], [], "the reset must reach the real file, not only memory");
+      assert.deepEqual(progress.details[course.id], { steps: {}, credits: {}, bookmarks: {} });
+      assert.equal(JSON.parse(await readFile(settingsPath, "utf8")).welcomeSeen, false);
+    }
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

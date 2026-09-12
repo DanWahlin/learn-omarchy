@@ -1,4 +1,5 @@
 import QtQuick
+import "CaptionTiming.js" as CaptionTiming
 
 Text {
   id: root
@@ -6,10 +7,8 @@ Text {
   property int revealEnd: -1
   property bool reducedMotion: false
   property int fadeDuration: 160
-  // Keep the timing input for existing narration/reading clocks. Presentation
-  // fades the whole caption once, rather than reserving rows of invisible words.
-  text: fullText
-  textFormat: Text.PlainText
+  text: CaptionTiming.styledText(fullText, reducedMotion ? -1 : revealEnd)
+  textFormat: Text.StyledText
   wrapMode: Text.Wrap
   horizontalAlignment: Text.AlignLeft
   lineHeight: 1.2

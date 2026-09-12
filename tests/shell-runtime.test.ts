@@ -157,8 +157,11 @@ function runtime(stepId: string, reducedMotion = true) {
     stepResults: {},
     stepCredits: {},
     lessonBookmarks: {},
-    settingsFile: { setText() {} },
-    progressFile: { setText() {} },
+    settingsSaveError: "",
+    progressSaveError: "",
+    stateSaveRetry: "",
+    settingsFile: { setText() {}, reload() {}, waitForJob() {} },
+    progressFile: { setText() {}, reload() {}, waitForJob() {} },
     lessonIndex,
     stepIndex: course.lessons[lessonIndex].steps.findIndex((step) => step.id === stepId),
     phase: "waiting",
@@ -270,6 +273,9 @@ function runtime(stepId: string, reducedMotion = true) {
     embeddedPracticeRunning: { get: () => context.exerciseRunning && context.practiceSessionActive },
     narrationEnabled: { get: () => context.audioEnabled && context.speechEnabled && context.speechVolume > 0 },
     characterName: { get: () => context.characterStore.selectedPack?.id || "" },
+    characterConfig: { get: () => context.characterStore.selectedPack?.manifest || {} },
+    narrationPlaybackRate: { get: () => context.speechRate * context.boundedNumber(
+      (context.characterStore.selectedPack?.manifest.narration || {}).playbackRate, 1, 0.5, 2) },
     characterIndex: { get: () => context.characterStore.packs },
     characterNotice: { get: () => context.characterStore.notice },
     characterDisplayName: { get: () => context.characterStore.selectedPack?.manifest.displayName || "Coach" },
@@ -418,10 +424,11 @@ test("cancelled, mismatched, and stale lesson packets safely leave the active ca
   assert.equal(state.lessonReveal.failed, false);
   state.receiveLessonPlayback(timingPacket("Unrelated narration."), token, step, "instruction");
   assert.equal(state.lessonReveal.failed, true);
-  assert.equal(state.lessonReveal.revealEnd, -1);
+  const fallbackEnd = state.lessonReveal.revealEnd;
+  assert.ok(fallbackEnd >= 0);
   state.receiveLessonPlayback(timingPacket(state.currentStep.instruction), token, step, "instruction");
   state.receiveLessonPlayback('{"type":"position","positionMs":100}', token, step, "instruction");
-  assert.equal(state.lessonReveal.revealEnd, -1);
+  assert.ok(state.lessonReveal.revealEnd >= fallbackEnd);
   state.stopAudio();
   state.receiveLessonPlayback(timingPacket(state.currentStep.instruction), token, step, "instruction");
   assert.equal(state.lessonReveal.playing, false);
@@ -2990,6 +2997,48 @@ test("an explicit reset flag overrides legacy use and a character override skips
   assert.equal(state.welcomeStage, "scene");
 });
 
+test("reset reports success only after both state writes succeed and a failed save can be retried", () => {
+  for (const kind of ["progress", "settings"]) {
+    const state = runtime("tour-welcome");
+    state.phase = "menu";
+    state.lessonIndex = -1;
+    state.settingsPath = "/isolated/settings.json";
+    state.progressPath = "/isolated/progress.json";
+    const file = kind === "progress" ? state.progressFile : state.settingsFile;
+    file.setText = () => state.reportStateSaveFailure(kind, "synthetic write failure");
+    state.openSettings("settings");
+    state.requestResetProgress();
+    state.requestResetProgress();
+    assert.equal(state.resetJustDone, false);
+    assert.equal(state.resetDoneTimer.running, false);
+    assert.match(state[kind + "SaveError"], /could not be saved/);
+    file.setText = () => { state[kind + "SaveError"] = ""; };
+    state.requestResetProgress();
+    state.requestResetProgress();
+    assert.equal(state.resetJustDone, true);
+    assert.equal(state.resetDoneTimer.running, true);
+    assert.equal(state.progressSaveError, "");
+    assert.equal(state.settingsSaveError, "");
+  }
+});
+
+test("Ollie speaks exactly 10 percent faster while preserving the learner's speed and other coaches", async () => {
+  const state = runtime("tour-welcome");
+  for (const id of ["owl", "ohm-1", "owl"]) {
+    state.characterStore.requestedId = id;
+    state.characterStore.selectedPack.manifest = JSON.parse(
+      await readFile(new URL(`../assets/characters/${id}/character.json`, import.meta.url), "utf8"));
+    for (const speed of [0.75, 1, 1.25, 1.5]) {
+      state.speechRate = speed;
+      const command = state.timedSpeechCommand("/audio/clip.mp3");
+      assert.equal(Number(command[command.indexOf("--speed") + 1]), speed * (id === "owl" ? 1.1 : 1));
+      assert.equal(state.speechRate, speed);
+      assert.equal(command[command.indexOf("--audio") + 1], "/audio/clip.mp3");
+      assert.equal(Number(command[command.indexOf("--volume") + 1]), state.speechVolume);
+    }
+  }
+});
+
 test("welcome keyboard controls skip scenery, show lessons, or dismiss without starting a tour", () => {
   const { state } = introRuntime(true);
   Object.assign(state.Qt, { NoModifier: 0, Key_Return: 13, Key_Enter: 10, Key_Space: 32, Key_Escape: 27 });
@@ -3219,7 +3268,7 @@ test("welcome word reveal uses matching timing and playback position, with safe 
   assert.equal(state.welcomeWordTimings.length, 0);
 });
 
-test("welcome text stays concealed until timing resolves, and fallback never switches back to reveal", () => {
+test("welcome text stays concealed until timing resolves, then fallback reveals at reading speed", () => {
   for (const stage of ["welcome", "controls", "recommendation"]) {
     const state = runtime("tour-welcome", false);
     state.phase = stage === "recommendation" ? "menu" : "welcome";
@@ -3231,21 +3280,21 @@ test("welcome text stays concealed until timing resolves, and fallback never swi
     assert.equal(state.welcomeTimingDeadline.running, true);
     state.receiveWelcomePlayback(JSON.stringify({ type: "fallback", reason: "missing-timing" }),
       state.introGeneration, stage);
-    assert.equal(state.welcomeRevealEnd, -1);
+    assert.ok(state.welcomeRevealEnd >= 0 && state.welcomeRevealEnd < state.welcomeText.length);
     assert.equal(state.welcomeTimingDeadline.running, false);
     state.receiveWelcomePlayback(JSON.stringify({ type: "position", positionMs: 0 }), state.introGeneration, stage);
-    assert.equal(state.welcomeRevealEnd, -1, "late packets cannot clear text already shown as fallback");
+    assert.ok(state.welcomeRevealEnd >= 0, "late packets cannot clear the reading-speed fallback");
   }
 });
 
-test("timing timeout safely reveals full text and does not interrupt audio", () => {
+test("timing timeout safely uses reading-speed reveal and does not interrupt audio", () => {
   const state = runtime("tour-welcome", false);
   state.phase = "welcome";
   state.welcomeStage = "welcome";
   state.audioEnabled = true;
   state.welcomeCaptionShown();
   state.welcomeReveal.fallback("timing deadline");
-  assert.equal(state.welcomeRevealEnd, -1);
+  assert.ok(state.welcomeRevealEnd >= 0 && state.welcomeRevealEnd < state.welcomeText.length);
   assert.equal(state.welcomeSpeech.running, true);
 });
 
@@ -3286,7 +3335,7 @@ test("stale and mismatched welcome timing cannot hide a later caption", () => {
   assert.equal(state.welcomeTimingFailed, false);
   state.receiveWelcomePlayback(timing, generation, "controls");
   assert.equal(state.welcomeTimingFailed, true);
-  assert.equal(state.welcomeRevealEnd, -1);
+  assert.ok(state.welcomeRevealEnd >= 0 && state.welcomeRevealEnd < state.welcomeText.length);
   assert.equal(state.welcomeSpeech.running, true, "missing alignment must not silence the voice");
   state.stopWelcomeSpeech();
   assert.equal(state.welcomeWordTimings.length, 0);

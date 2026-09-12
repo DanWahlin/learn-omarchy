@@ -149,6 +149,9 @@ ShellRoot {
   property bool resetOptionsExpanded: false
   onResetConfirmPendingChanged: if (resetConfirmPending) resetOptionsExpanded = true
   property bool resetJustDone: false
+  property string settingsSaveError: ""
+  property string progressSaveError: ""
+  property string stateSaveRetry: ""
   readonly property string characterAssetRoot: resolvedPack ? resolvedPack.assetUrl : ""
   readonly property var characterConfig: resolvedPack ? resolvedPack.manifest : ({})
   readonly property string characterDisplayName: String(characterConfig.displayName || "Coach")
@@ -283,7 +286,7 @@ ShellRoot {
   }
 
   function persistSettings() {
-    settingsFile.setText(JSON.stringify({
+    return writeState(settingsFile, "settings", JSON.stringify({
       schemaVersion: 1,
       character: savedCharacter,
       tourSeen: tourSeen,
@@ -300,6 +303,33 @@ ShellRoot {
       autoAdvance: autoAdvance,
       textScale: textScale
     }, null, 2) + "\n")
+  }
+
+  function writeState(file, kind, text) {
+    var previousError = kind === "settings" ? settingsSaveError : progressSaveError
+    if (previousError !== "") {
+      // FileView caches failed writes too; reload before retrying identical data.
+      // Do not replace the learner's current choices with the old disk contents.
+      stateSaveRetry = kind
+      try {
+        file.reload()
+        file.waitForJob()
+      } finally {
+        stateSaveRetry = ""
+      }
+    }
+    file.setText(text)
+    return (kind === "settings" ? settingsSaveError : progressSaveError) === ""
+  }
+
+  function reportStateSaveFailure(kind, error) {
+    var message = kind === "settings"
+      ? "Settings could not be saved. Check that your state folder is writable, then try again."
+      : "Lesson progress could not be saved. Check that your state folder is writable, then try again."
+    if (kind === "settings") settingsSaveError = message
+    else progressSaveError = message
+    resetJustDone = false
+    console.warn("learn-omarchy:", message, kind === "settings" ? settingsPath : progressPath, error)
   }
 
   function maybeBeginWelcome() {
@@ -426,6 +456,8 @@ ShellRoot {
       return
     }
     resetConfirmPending = false
+    resetJustDone = false
+    resetDoneTimer.stop()
     completedLessons = ({})
     stepResults = ({})
     stepCredits = ({})
@@ -435,15 +467,15 @@ ShellRoot {
       resetLessonRuntime()
       lessonIndex = -1
     }
-    persistProgress()
+    var progressSaved = persistProgress()
     tourSeen = false
     welcomeSeen = false
     welcomeSettingPresent = true
     // Forget the coach as well, so the next open starts like a fresh install.
     savedCharacter = ""
-    persistSettings()
-    resetJustDone = true
-    resetDoneTimer.restart()
+    var settingsSaved = persistSettings()
+    resetJustDone = progressSaved && settingsSaved
+    if (resetJustDone) resetDoneTimer.restart()
   }
 
   function moveCharacterPick(delta) {
@@ -563,6 +595,8 @@ ShellRoot {
   property int effectsVolume: 45
   onEffectsVolumeChanged: if (effectsVolume <= 0) introAmbienceProcess.running = false
   property real speechRate: 1
+  readonly property real narrationPlaybackRate: speechRate *
+    boundedNumber((characterConfig.narration || {}).playbackRate, 1, 0.5, 2)
   property real textScale: 1
   property bool autoAdvance: true
   property bool tourDetailsExpanded: false
@@ -775,7 +809,7 @@ ShellRoot {
     audioAvailable: root.lessonCaptionStage === "completion" ? root.completionAudioPath() !== "" : root.currentAudioPath() !== ""
     active: root.lessonCaptionVisible && (root.phase === "waiting" || root.phase === "highlight") && !root.lessonTransitionRunning
     paused: root.phase === "paused" || root.phase === "settings" || root.audioPaused
-    wordsPerMinute: root.readingWordsPerMinute
+    wordsPerMinute: Math.round(root.readingWordsPerMinute * root.narrationPlaybackRate)
   }
   readonly property string lessonCaptionStage: phase === "highlight" ||
     ((phase === "paused" || phase === "settings") && pausedPhase === "highlight") ? "completion" : "instruction"
@@ -808,12 +842,12 @@ ShellRoot {
     audioAvailable: root.currentLessonWrapup() !== null &&
       characterStore.audioPath(root.currentLessonWrapup().audio, sourceText, root.courseDir) !== ""
     active: root.lessonWrapupReady && root.phase === "lesson-complete"
-    wordsPerMinute: root.readingWordsPerMinute
+    wordsPerMinute: Math.round(root.readingWordsPerMinute * root.narrationPlaybackRate)
   }
 
   function timedSpeechCommand(path) {
     return ["node", appRoot + "/tools/play-timed-speech.mjs", "--volume", String(speechVolume),
-      "--speed", String(speechRate), "--audio", path]
+      "--speed", String(narrationPlaybackRate), "--audio", path]
   }
 
   function currentLessonWrapup() {
@@ -1587,7 +1621,7 @@ ShellRoot {
     narrationEnabled: root.narrationEnabled && !root.welcomeReadingActive
     audioAvailable: root.welcomeAudioPath() !== ""
     active: root.welcomeReadingActive && root.welcomeCaptionVisible
-    wordsPerMinute: root.readingWordsPerMinute
+    wordsPerMinute: Math.round(root.readingWordsPerMinute * root.narrationPlaybackRate)
   }
 
   function welcomeAudioPath() {
@@ -2791,7 +2825,7 @@ ShellRoot {
     var nextDetails = Object.assign({}, progressDetails)
     if (course) nextDetails[course.id] = { steps: stepResults, credits: stepCredits, bookmarks: lessonBookmarks }
     progressDetails = nextDetails
-    progressFile.setText(JSON.stringify({
+    return writeState(progressFile, "progress", JSON.stringify({
       schemaVersion: 2,
       courses: nextByCourse,
       details: nextDetails
@@ -3931,9 +3965,13 @@ ShellRoot {
     id: settingsFile
     path: root.settingsPath
     atomicWrites: true
+    // These small state files must finish saving before reset or exit can succeed.
+    blockWrites: true
     printErrors: false
-    onLoaded: root.loadSettings(text())
-    onLoadFailed: root.loadSettings("{}")
+    onLoaded: if (root.stateSaveRetry !== "settings") root.loadSettings(text())
+    onLoadFailed: if (root.stateSaveRetry !== "settings") root.loadSettings("{}")
+    onSaved: root.settingsSaveError = ""
+    onSaveFailed: function(error) { root.reportStateSaveFailure("settings", error) }
   }
 
   FileView {
@@ -3941,10 +3979,13 @@ ShellRoot {
     path: root.progressPath
     watchChanges: true
     atomicWrites: true
+    blockWrites: true
     printErrors: false
-    onLoaded: root.loadProgress(text())
+    onLoaded: if (root.stateSaveRetry !== "progress") root.loadProgress(text())
     onFileChanged: reload()
-    onLoadFailed: root.loadProgress("{}")
+    onLoadFailed: if (root.stateSaveRetry !== "progress") root.loadProgress("{}")
+    onSaved: root.progressSaveError = ""
+    onSaveFailed: function(error) { root.reportStateSaveFailure("progress", error) }
   }
 
   Connections {
@@ -5320,7 +5361,7 @@ ShellRoot {
                 Text {
                   Layout.fillWidth: true
                   visible: text !== ""
-                  text: [root.characterNotice, root.introNotice, characterStore.narrationNotice, root.integrationNotice].filter(function(value) { return value }).join("\n")
+                  text: [root.settingsSaveError, root.progressSaveError, root.characterNotice, root.introNotice, characterStore.narrationNotice, root.integrationNotice].filter(function(value) { return value }).join("\n")
                   textFormat: Text.PlainText
                   color: root.instruction
                   wrapMode: Text.WordWrap
@@ -5564,8 +5605,8 @@ ShellRoot {
                   PreferenceSwitch {
                     objectName: "typeTextSwitch"
                     Layout.fillWidth: true
-                    text: "Fade captions"
-                    description: "Gently fade in complete captions; off shows them immediately."
+                    text: "Reveal captions as spoken"
+                    description: "Show words with the coach; off shows complete captions immediately."
                     checked: root.synchronizedWelcomeText
                     onToggled: { root.synchronizedWelcomeText = checked; root.persistSettings() }
                   }

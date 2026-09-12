@@ -211,6 +211,18 @@ test("paths reject traversal, absolute paths, encoded URLs and executable refere
   assert.doesNotThrow(() => validatePackPath("sprites/my-original_1.png", ".png"));
 });
 
+test("own narration accepts bounded playback rates and rejects invalid values", async () => {
+  const manifest = await example();
+  for (const playbackRate of [0.5, 1, 1.1, 2]) {
+    manifest.narration = { mode: "own", audioSet: manifest.id, playbackRate };
+    assert.doesNotThrow(() => validateCharacterManifest(manifest));
+  }
+  for (const playbackRate of [0, 0.49, 2.01, -1, Infinity, NaN, "1.1", null]) {
+    manifest.narration = { mode: "own", audioSet: manifest.id, playbackRate };
+    assert.throws(() => validateCharacterManifest(manifest), /narration.playbackRate/);
+  }
+});
+
 test("unreferenced executable files and excessive filesystem entries are rejected", async t => {
   const root = await fixture(t);
   await copyExample(root);

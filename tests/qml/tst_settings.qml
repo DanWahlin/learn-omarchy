@@ -29,6 +29,8 @@ Item {
   property real effectsVolume: 45
   property real speechRate: 1
   property bool resetJustDone: false
+  property string settingsSaveError: ""
+  property string progressSaveError: ""
   property bool resetConfirmPending: false
   property bool resetOptionsExpanded: false
   onResetConfirmPendingChanged: if (resetConfirmPending) resetOptionsExpanded = true
@@ -169,7 +171,7 @@ Item {
       var speech = root.speechEnabled
       var control = findChild(root.fixture, "typeTextSwitch")
       verify(control !== null)
-      compare(control.text, "Fade captions")
+      compare(control.text, "Reveal captions as spoken")
       compare(control.checked, true)
       var saves = root.savedCount
       control.checked = false
@@ -341,6 +343,23 @@ Item {
       verify(!root.resetConfirmPending)
       verify(root.button("RESET PROGRESS").visible)
       compare(root.completedCount, 1)
+    }
+
+    function test_failedSavesAreVisibleInSettings() {
+      root.progressSaveError = "Lesson progress could not be saved. Check that your state folder is writable, then try again."
+      wait(30)
+      var notices = root.descendants(fixture.panel, function(item) {
+        return "text" in item && item.text.indexOf(root.progressSaveError) !== -1
+      })
+      verify(notices.length > 0 && notices[0].visible)
+      root.progressSaveError = ""
+      root.settingsSaveError = "Settings could not be saved. Check that your state folder is writable, then try again."
+      wait(30)
+      notices = root.descendants(fixture.panel, function(item) {
+        return "text" in item && item.text.indexOf(root.settingsSaveError) !== -1
+      })
+      verify(notices.length > 0 && notices[0].visible)
+      root.settingsSaveError = ""
     }
 
     function test_regionsStaySeparated_data() {

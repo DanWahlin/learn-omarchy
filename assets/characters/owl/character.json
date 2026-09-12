@@ -55,6 +55,7 @@
   },
   "narration": {
     "mode": "own", "audioSet": "owl",
+    "playbackRate": 1.1,
     "voices": { "azure": "en-GB-Ada:DragonHDLatestNeural", "edge": "en-GB-SoniaNeural" }
   }
 }

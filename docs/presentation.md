@@ -53,15 +53,15 @@ flames to magenta while retaining cyan exhaust. The original shading, desktop,
 lettering and composition remain intact. `poster.provenance.json` records
 source/output hashes, the operation and the original CC BY 4.0 attribution.
 
-`WordRevealText` keeps its existing `fullText` and `revealEnd` inputs, but presents
-the entire plain-text caption with one 160 ms fade. Bind `reducedMotion` to the
-application preference. Its full-text accessible name, wrapping, width and height
-remain stable. Word timing still drives `CaptionReveal` and narration/reading
-completion, but no longer hides the remaining words or leaves apparently empty
-rows. Welcome, tour, instruction, completion and wrap-up use the same component.
-The **Fade captions** preference controls this entrance; turning it off shows
-complete captions immediately. Reduced-motion mode also bypasses the fade.
-The existing `typeText` settings key is retained for preference compatibility.
+`WordRevealText` uses `revealEnd` to make each spoken word visible while retaining
+the complete caption for wrapping, stable dimensions and accessibility. The
+unrevealed suffix is transparent styled text, so welcome, tour, instruction,
+completion and wrap-up captions all follow the same narration clock without
+reflowing the panel. If that clock is unavailable, `CaptionReveal` continues at
+reading speed instead of flashing the whole paragraph. The **Reveal captions as
+spoken** preference controls this behavior; turning it off shows complete captions
+immediately. Reduced-motion mode also shows complete captions. The existing
+`typeText` settings key is retained for preference compatibility.
 
 ## Intro artwork
 
