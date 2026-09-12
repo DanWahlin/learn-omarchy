@@ -28,6 +28,11 @@
   --yellow: #e9bb4f;
   --lavender: #a4a8e4;
   --brand-ink: #040714;
+  --wordmark-top: #ffffff;
+  --wordmark-blush: #ffd3f2;
+  --wordmark-pink: #ff6bcf;
+  --wordmark-violet: #be70ff;
+  --wordmark-cyan: #66dcff;
   --bg-rgb: 6, 11, 30; --bg-deep-rgb: 5, 9, 25; --crust-rgb: 4, 7, 20;
   --brand-rgb: 125, 130, 217; --pink-rgb: 200, 157, 193; --cyan-rgb: 163, 191, 209; --sky-rgb: 186, 207, 220; --red-rgb: 237, 91, 90;
   --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -113,21 +118,15 @@ pre { margin: 0; font-family: var(--mono); }
 .hero { padding: 72px 0 32px; text-align: center; }
 
 .wordmark {
-  display: inline-block;
+  display: block;
+  width: min(100%, 980px);
   margin: 0 auto 26px;
-  font-size: clamp(6px, 1.45vw, 15px);
-  line-height: 0.92;
-  letter-spacing: 0;
-  text-align: left;
-  white-space: pre;
-  color: var(--brand);
-  background: linear-gradient(180deg, var(--white) 0%, var(--pink) 32%, var(--brand) 62%, var(--blue) 84%, var(--line-2) 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 22px rgba(var(--pink-rgb), 0.45)) drop-shadow(0 2px 0 rgba(0, 0, 0, 0.6));
-  max-width: 100%;
-  overflow: hidden;
+  font-size: clamp(18px, 5vw, 48px);
+  line-height: 1;
+  color: var(--wordmark-top);
+  filter: drop-shadow(0 0 18px rgba(var(--pink-rgb), 0.25));
 }
+.wordmark svg { display: block; width: 100%; height: auto; shape-rendering: crispEdges; }
 
 h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 .hero-lead { max-width: 62ch; margin: 0 auto; font-size: 1.15rem; color: var(--ink); }
@@ -225,7 +224,7 @@ h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0
 .url { color: var(--ink-2); }
 .mini-wordmark {
   font-size: 0.42em; line-height: 0.92; white-space: pre; margin-bottom: 0.8em;
-  background: linear-gradient(180deg, var(--white) 0%, var(--pink) 45%, var(--line-2) 100%);
+  background: linear-gradient(180deg, var(--wordmark-top) 0%, var(--wordmark-blush) 28%, var(--wordmark-pink) 56%, var(--wordmark-violet) 78%, var(--wordmark-cyan) 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
 
@@ -583,6 +582,12 @@ footer { border-top: 1px solid var(--line); padding: 32px 0; background: var(--b
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .coach.settled, .flame, .outline, .cursor { animation: none; }
+}
+
+@media (forced-colors: active) {
+  .wordmark { filter: none; color: CanvasText; }
+  .wordmark-pixels { fill: CanvasText; }
+  .mini-wordmark { background: none; -webkit-text-fill-color: CanvasText; }
 }
 
 .optional-verify { margin-top: 14px; padding: 2px 14px; border: 1px dashed var(--line-2); border-radius: 6px; }

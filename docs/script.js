@@ -106,6 +106,24 @@
     return best;
   }
 
+  function vividWordmarkColor(hex) {
+    const rgb = hexToRgb(hex).map(function (value) { return value / 255; });
+    const high = Math.max.apply(null, rgb), low = Math.min.apply(null, rgb);
+    const delta = high - low;
+    if (!delta) return mix(hex, '#ffffff', 0.4);
+    const originalLightness = (high + low) / 2;
+    const hue = ((high === rgb[0] ? (rgb[1] - rgb[2]) / delta
+      : high === rgb[1] ? (rgb[2] - rgb[0]) / delta + 2
+      : (rgb[0] - rgb[1]) / delta + 4) + 6) % 6;
+    const saturation = Math.min(0.95, delta / (1 - Math.abs(2 * originalLightness - 1)) * 1.7 + 0.15);
+    const lightness = Math.max(0.67, Math.min(0.74, originalLightness));
+    const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+    const x = chroma * (1 - Math.abs(hue % 2 - 1));
+    const channels = [[chroma, x, 0], [x, chroma, 0], [0, chroma, x],
+      [0, x, chroma], [x, 0, chroma], [chroma, 0, x]][Math.floor(hue)];
+    return rgbToHex(channels.map(function (value) { return (value + lightness - chroma / 2) * 255; }));
+  }
+
   function tokensFor(t) {
     const bg = t.bg;
     const white = '#ffffff';
@@ -118,7 +136,22 @@
     const pink = t.magenta.toLowerCase() === t.accent.toLowerCase() ? t.orange : t.magenta;
     const cyan = t.cyan.toLowerCase() === t.fg.toLowerCase() ? t.blue : t.cyan;
     const sky = mix(cyan, white, 0.25);
+    const wordmarkPink = vividWordmarkColor(pink);
+    const wordmarkColors = [
+      mix(t.fg, white, 0.92),
+      mix(wordmarkPink, white, 0.65),
+      wordmarkPink,
+      vividWordmarkColor(mix(pink, t.accent, 0.6)),
+      vividWordmarkColor(cyan)
+    ].map(function (color) {
+      return accessibleTextMix(white, color, 1, [bg, bgDeep], 5.5);
+    });
     return {
+      '--wordmark-top': wordmarkColors[0],
+      '--wordmark-blush': wordmarkColors[1],
+      '--wordmark-pink': wordmarkColors[2],
+      '--wordmark-violet': wordmarkColors[3],
+      '--wordmark-cyan': wordmarkColors[4],
       '--bg': bg,
       '--bg-deep': bgDeep,
       '--crust': crust,
@@ -309,7 +342,7 @@
 
   })();
 
-  /* ---------- Block-glyph wordmark (5x7 pixel font rendered as █) ---------- */
+  /* ---------- Shared 5x7 glyphs: crisp SVG hero and compact text previews ---------- */
 
   const FONT = {
     A: ['.███.', '█...█', '█...█', '█████', '█...█', '█...█', '█...█'],
@@ -329,8 +362,55 @@
     ' ': ['...', '...', '...', '...', '...', '...', '...']
   };
 
-  document.querySelectorAll('[data-pixel-text]').forEach(function (el) {
+  function pixelWordmark(text) {
+    let cursor = 0;
+    const pixels = [];
+    for (const character of text.toUpperCase()) {
+      const glyph = FONT[character] || FONT[' '];
+      glyph.forEach(function (row, y) {
+        for (let x = 0; x < row.length; x++) {
+          if (row[x] !== '.') pixels.push('M' + (cursor + x + 0.04) + ' ' + (y + 0.04) + 'h.92v.92h-.92z');
+        }
+      });
+      cursor += glyph[0].length + 1;
+    }
+    return { width: Math.max(1, cursor - 1), height: 7, path: pixels.join('') };
+  }
+
+  document.querySelectorAll('[data-pixel-text]').forEach(function (el, index) {
     const text = el.getAttribute('data-pixel-text').toUpperCase();
+    if (el.classList.contains('wordmark')) {
+      const geometry = pixelWordmark(text);
+      const namespace = 'http://www.w3.org/2000/svg';
+      const svg = document.createElementNS(namespace, 'svg');
+      svg.setAttribute('viewBox', '0 0 ' + geometry.width + ' ' + geometry.height);
+      svg.setAttribute('width', geometry.width);
+      svg.setAttribute('height', geometry.height);
+      svg.setAttribute('aria-hidden', 'true');
+      svg.setAttribute('focusable', 'false');
+      const defs = document.createElementNS(namespace, 'defs');
+      const gradient = document.createElementNS(namespace, 'linearGradient');
+      const gradientId = 'wordmark-gradient-' + index;
+      gradient.setAttribute('id', gradientId);
+      gradient.setAttribute('x1', '0%');
+      gradient.setAttribute('y1', '0%');
+      gradient.setAttribute('x2', '0%');
+      gradient.setAttribute('y2', '100%');
+      ['top', 'blush', 'pink', 'violet', 'cyan'].forEach(function (name, stopIndex) {
+        const stop = document.createElementNS(namespace, 'stop');
+        stop.setAttribute('offset', [0, 28, 56, 78, 100][stopIndex] + '%');
+        stop.style.stopColor = 'var(--wordmark-' + name + ')';
+        gradient.appendChild(stop);
+      });
+      defs.appendChild(gradient);
+      const path = document.createElementNS(namespace, 'path');
+      path.setAttribute('class', 'wordmark-pixels');
+      path.setAttribute('d', geometry.path);
+      path.setAttribute('fill', 'url(#' + gradientId + ')');
+      svg.append(defs, path);
+      el.replaceChildren(svg);
+      return;
+    }
     const rows = [];
     for (let r = 0; r < 7; r++) {
       let line = '';
