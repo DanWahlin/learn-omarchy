@@ -5,6 +5,9 @@ teaches real shortcuts and system surfaces in short modules, responds as each
 expected key is pressed, performs an action on request, plays available coach
 narration, and highlights the result on screen.
 
+Visit the [Learn Omarchy website](https://danwahlin.github.io/learn-omarchy/)
+for a visual course overview and guided installation walkthrough.
+
 The bundled course includes a welcome, core modules, optional extensions, and
 an explicitly opt-in lock-screen exercise. Optional modules appear after the
 complete core sequence. All bundled activities have current coach narration,

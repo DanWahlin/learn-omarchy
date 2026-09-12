@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Learn Omarchy | Learn by doing</title>
+  <meta name="description" content="An interactive, narrated desktop course that teaches Omarchy shortcuts through guided practice with Ohm-1 and Ollie.">
+  <meta name="theme-color" content="#181825">
+  <meta name="color-scheme" content="dark">
+  <meta property="og:title" content="Learn Omarchy">
+  <meta property="og:description" content="Learn Omarchy by doing. Real shortcuts, on-screen guides, and hands-on practice on your actual desktop.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://danwahlin.github.io/learn-omarchy/">
+  <meta property="og:image" content="https://danwahlin.github.io/learn-omarchy/images/learn-omarchy-poster.webp">
+  <meta property="og:image:type" content="image/webp">
+  <meta property="og:image:width" content="1536">
+  <meta property="og:image:height" content="1024">
+  <link rel="icon" href="images/icon.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <canvas id="pixel-rain" aria-hidden="true"></canvas>
+
+  <div class="theme-overlay" id="theme-panel" hidden role="dialog" aria-modal="true" aria-label="Choose a theme">
+    <button class="theme-close" id="theme-close" type="button" aria-label="Close theme picker">✕</button>
+    <p class="theme-overlay-title">Pick a theme, change everything</p>
+    <div class="theme-stage" id="theme-list" aria-label="Themes"></div>
+    <p class="theme-name" id="theme-name" aria-live="polite"></p>
+    <p class="theme-keys"><kbd>←</kbd> <kbd>→</kbd> browse &nbsp;·&nbsp; <kbd>Enter</kbd> keep &nbsp;·&nbsp; <kbd>Esc</kbd> close</p>
+  </div>
+
+  <nav class="navbar" aria-label="Primary navigation">
+    <div class="container navbar-inner">
+      <a class="brand" href="#top">
+        <svg class="brand-mark" viewBox="0 0 1200 1200" width="24" height="24" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="m1200 1200h-480v-80h400v-1040h-479.996v160h-400v720h720v-720h-80v-80h159.996v880h-400v160h-640v-1200h1200zm-1120-80h480v-80h-400l.004-400h-80.004zm0-560h80.004v-400h400v-80h-480.004z"/></svg>
+        <span>Learn Omarchy</span>
+      </a>
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-links">
+        <span class="sr-only">Toggle navigation</span>
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="#guides">Guides</a>
+        <a href="#features">Features</a>
+        <a href="#curriculum">Lessons</a>
+        <button class="theme-btn nav-icon" id="theme-toggle" type="button" aria-label="Change theme" aria-expanded="false" aria-controls="theme-panel">
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 0 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.4A4.6 4.6 0 0 0 22 10c0-3.9-4.5-7-10-7z"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/></svg>
+          <span class="mobile-label">Theme</span>
+        </button>
+        <a class="button button-primary button-small" href="#install">Install</a>
+        <a href="https://github.com/DanWahlin/learn-omarchy" class="nav-icon" target="_blank" rel="noopener noreferrer" aria-label="GitHub repository">
+          <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+          <span class="mobile-label">GitHub</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="container">
+      <pre class="wordmark" data-pixel-text="LEARN OMARCHY" aria-hidden="true"></pre>
+      <h1>Learn Omarchy by doing.</h1>
+      <p class="hero-lead">An interactive course that teaches Omarchy directly on your desktop. Press each shortcut, hear it explained, and watch a pixel guide point out what just happened.</p>
+      <div class="hero-actions">
+        <a class="button button-primary" href="#install">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7.25 1a.75.75 0 0 1 1.5 0v7.19l2.22-2.22a.75.75 0 1 1 1.06 1.06l-3.5 3.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 0 1 1.06-1.06l2.22 2.22V1ZM2 11.75a.75.75 0 0 1 1.5 0v1.5h9v-1.5a.75.75 0 0 1 1.5 0v1.5A1.5 1.5 0 0 1 12.5 15h-9A1.5 1.5 0 0 1 2 13.5v-1.75Z"/></svg>
+          Get Learn Omarchy
+        </a>
+      </div>
+    </div>
+
+    <div class="container demo-wrap" id="demo">
+      <div class="desktop" id="desktop" role="img" aria-label="An animated Learn Omarchy lesson: Ohm-1 flies to the desktop bar, explains workspaces, then the learner presses Super and 2 and the workspace changes">
+        <div class="bar">
+          <div class="bar-left">
+            <span class="bar-logo" id="t-menu" aria-hidden="true"><svg viewBox="0 0 1200 1200" width="12" height="12"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="m1200 1200h-480v-80h400v-1040h-479.996v160h-400v720h720v-720h-80v-80h159.996v880h-400v160h-640v-1200h1200zm-1120-80h480v-80h-400l.004-400h-80.004zm0-560h80.004v-400h400v-80h-480.004z"/></svg></span>
+            <span class="ws-pills" id="t-pills">
+              <span class="ws active" data-ws="1">1</span>
+              <span class="ws" data-ws="2">2</span>
+              <span class="ws" data-ws="3">3</span>
+              <span class="ws" data-ws="4">4</span>
+              <span class="ws" data-ws="5">5</span>
+            </span>
+          </div>
+          <div class="bar-center" id="t-clock">Thursday 9:41 AM</div>
+          <div class="bar-right" id="t-status" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M7 7l10 10-5 5V2l5 5L7 17"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M2 8.5a15 15 0 0 1 20 0M5.5 12a10 10 0 0 1 13 0M9 15.5a5 5 0 0 1 6 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg>
+            <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg>
+            <span class="bar-batt">96%</span>
+            <svg viewBox="0 0 24 24"><rect x="2" y="7" width="17" height="10" rx="1.5"/><path d="M22 10v4M5 10v4M8 10v4M11 10v4"/></svg>
+          </div>
+        </div>
+
+        <div class="ws-scene" id="scene-1">
+          <div class="win win-term">
+            <div class="win-title">ghostty</div>
+            <pre class="term-body"><b class="c-green">dan@omarchy</b> <b class="c-blue">~</b> <b class="c-dim">❯</b> fastfetch
+<b class="c-blue">      ▟█▙      </b>  <b class="c-cyan">dan</b>@<b class="c-cyan">omarchy</b>
+<b class="c-blue">     ▟███▙     </b>  ───────────────
+<b class="c-blue">    ▟█████▙    </b>  <b class="c-mag">OS</b>: Omarchy 4 x86_64
+<b class="c-blue">   ▟███████▙   </b>  <b class="c-mag">WM</b>: Hyprland (Wayland)
+<b class="c-blue">  ▟███▛ ▜███▙  </b>  <b class="c-mag">Shell</b>: fish
+<b class="c-blue"> ▟███▛   ▜███▙ </b>  <b class="c-mag">Terminal</b>: ghostty
+<b class="c-blue">▟██▛       ▜██▙</b>  <b class="c-mag">Theme</b>: <span class="theme-line">Catppuccin</span>
+<b class="c-green">dan@omarchy</b> <b class="c-blue">~</b> <b class="c-dim">❯</b> <i class="cursor"></i></pre>
+          </div>
+          <div class="win win-editor">
+            <div class="win-title">nvim · shell.qml</div>
+            <pre class="code-body"><b class="c-dim"> 12 </b><b class="c-mag">import</b> Quickshell
+<b class="c-dim"> 13 </b><b class="c-mag">import</b> QtQuick
+<b class="c-dim"> 14 </b>
+<b class="c-dim"> 15 </b><b class="c-blue">PanelWindow</b> {
+<b class="c-dim"> 16 </b>  anchors.<b class="c-cyan">top</b>: <b class="c-orange">true</b>
+<b class="c-dim"> 17 </b>  <b class="c-cyan">color</b>: <b class="c-green">"transparent"</b>
+<b class="c-dim"> 18 </b>  <b class="c-blue">Text</b> { text: <b class="c-green">"Super + Space"</b> }
+<b class="c-dim"> 19 </b>}</pre>
+          </div>
+          <div class="win win-files">
+            <div class="win-title">Files · ~/Work</div>
+            <div class="files-body"><span>▸ courses</span><span>▸ assets</span><span>▸ docs</span><span>  README.md</span><span>  Makefile</span><span>  package.json</span></div>
+          </div>
+        </div>
+        <div class="ws-scene hidden" id="scene-2">
+          <div class="win win-browser">
+            <div class="win-title"><span class="url">omarchy.org/manual</span></div>
+            <div class="browser-body">
+              <pre class="mini-wordmark" data-pixel-text="OMARCHY"></pre>
+              <p class="c-dim">MANUAL</p>
+              <p><b>Welcome to Omarchy!</b></p>
+              <p>Omarchy is an omakase Linux distribution based on Arch, the tiling window manager Hyprland, and the desktop construction-kit Quickshell.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="omenu hidden" id="omenu" aria-hidden="true">
+          <b>Omarchy</b>
+          <span>Apps</span><span>Learn</span><span>Capture</span><span>Share</span><span>Style</span><span>Setup</span><span>Install</span><span>Update</span><span>System</span>
+        </div>
+
+        <div class="outline" id="outline" aria-hidden="true"><small id="outline-label"></small></div>
+
+        <div class="coach" id="coach" aria-hidden="true">
+          <img class="sprite" data-pose="idle" src="images/ohm-1-idle.png" alt="" width="192" height="192">
+          <img class="sprite" data-pose="flight" src="images/ohm-1-flight.png" alt="" width="256" height="192">
+          <img class="sprite" data-pose="point" src="images/ohm-1-point.png" alt="" width="224" height="192">
+          <img class="sprite" data-pose="point-up" src="images/ohm-1-point-up.png" alt="" width="224" height="192">
+          <span class="flame flame-a"></span>
+          <span class="flame flame-b"></span>
+          <span class="reticle"></span>
+        </div>
+
+        <div class="caption hidden" id="caption" aria-hidden="true"><span id="caption-text"></span></div>
+
+        <div class="lesson-card hidden" id="lesson" aria-hidden="true">
+          <div class="lesson-top">
+            <span class="lesson-btn">← Topics</span>
+            <span class="lesson-meta"><b>Omarchy tour</b><i id="lesson-step">Step 3 of 8</i></span>
+            <span class="lesson-btn">Details</span>
+          </div>
+          <p class="lesson-instruction" id="lesson-instruction"></p>
+          <div class="keycaps" id="keycaps"></div>
+          <p class="lesson-note" id="lesson-note"></p>
+        </div>
+        <button class="replay" id="replay" type="button" hidden>↻ Replay</button>
+      </div>
+      <p class="demo-caption">A short emulation of a real lesson. In the course, Hyprland confirms each result before moving on.</p>
+    </div>
+
+    <div class="container hero-stats" aria-label="Course summary">
+      <div><strong>17</strong><span>lessons</span></div>
+      <div><strong>101</strong><span>activities</span></div>
+      <div><strong>2</strong><span>guides</span></div>
+      <div><strong>0</strong><span>config changes</span></div>
+    </div>
+  </header>
+
+
+  <main id="main">
+    <section class="section coaches" id="guides">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Meet your guides</h2>
+          <p>They fly to the menu, workspace, or panel being discussed, narrate every step, and react as you press each key. Pick one on first launch. Switch anytime.</p>
+        </div>
+        <div class="coach-grid">
+          <article class="coach-card ohm">
+            <div class="coach-art">
+              <img class="coach-sprite" src="images/ohm-1.png" alt="Ohm-1, a pixel robot with a CRT head and boot flames">
+            </div>
+            <div class="coach-copy">
+              <p class="coach-tag">rocket-powered</p>
+              <h3>Ohm-1</h3>
+              <p>Precise, upbeat, and always pointing the way. Lands by rocket, hovers beside the keycaps, and celebrates every shortcut. Call him Ohm for short.</p>
+            </div>
+          </article>
+          <article class="coach-card ollie">
+            <div class="coach-art">
+              <img class="coach-sprite" src="images/ollie.png" alt="Ollie, a pixel owl with a pink scarf">
+            </div>
+            <div class="coach-copy">
+              <p class="coach-tag">calm and patient</p>
+              <h3>Ollie</h3>
+              <p>A wise little owl who glides between stops and explains things gently. Her hints make the next keypress feel obvious instead of mysterious.</p>
+            </div>
+          </article>
+        </div>
+        <div class="guide-steps">
+          <ol class="steps">
+            <li><span>01</span><div><h3>Choose a guide</h3><p>Start with Ohm-1 or Ollie, then tune narration, captions, text size, and motion.</p></div></li>
+            <li><span>02</span><div><h3>Follow along</h3><p>See the exact desktop area being discussed and open Details when you want more context.</p></div></li>
+            <li><span>03</span><div><h3>Press the keys</h3><p>Use the real shortcut, complete guided exercises, and lock it in with mixed practice.</p></div></li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Practice directly on your desktop</h2>
+          <p>No flashcards. No fake keyboard. Learn Omarchy watches what you press and highlights what happens next.</p>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg></div>
+            <h3>Real shortcuts</h3>
+            <p>Press the actual Omarchy combinations. Each keycap lights up as you hold it, and Hyprland verifies the result before the lesson moves on.</p>
+            <div class="key-row"><kbd>Super</kbd><span>+</span><kbd>Return</kbd></div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 6-7 2-2 7z"/></svg></div>
+            <h3>On-screen pointing</h3>
+            <p>Your guide flies to the exact bar button, workspace, window, or panel while each idea is introduced. Highlights track the real surface.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></div>
+            <h3>Narrated captions</h3>
+            <p>Spoken guidance with captions that reveal word by word as they are said. Larger text, reduced motion, and mute are one switch away.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></div>
+            <h3>Hints and replay</h3>
+            <p>Skip, hint, Help, or replay any lesson. Practice mode hides the keycaps and quizzes you. Earned progress stays even if you try again later.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5M3 16.5L12 21l9-4.5"/></svg></div>
+            <h3>Safe by design</h3>
+            <p>Help runs the same semantic commands as Omarchy's own bindings. Nothing edits your config, and nothing is installed without asking.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></div>
+            <h3>Printable cheatsheet</h3>
+            <p>Open a complete shortcut reference from inside the course, then print it or save it as a PDF for the desk.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section curriculum" id="curriculum">
+      <div class="container">
+        <div class="section-heading">
+          <h2>From first launch to daily flow</h2>
+          <p>Seventeen focused lessons. Start with the essentials, then explore optional tools when you are ready. Optional activities never block core completion.</p>
+        </div>
+        <div class="curriculum-layout">
+          <div class="lesson-column">
+            <h3><span>01</span> Core foundations</h3>
+            <ul>
+              <li><b>Omarchy tour</b><span>Bar, workspaces, and the Omarchy menu</span></li>
+              <li><b>Menus and apps</b><span>Find, launch, search, and close applications</span></li>
+              <li><b>Everyday apps</b><span>Terminal, browser, and file manager</span></li>
+              <li><b>Windows</b><span>Focus, resize, float, swap, and fullscreen</span></li>
+              <li><b>Workspaces</b><span>Move windows and use the scratchpad</span></li>
+            </ul>
+          </div>
+          <div class="lesson-column">
+            <h3><span>02</span> Productive workflows</h3>
+            <ul>
+              <li><b>Clipboard and Compose</b><span>History and sequential character input</span></li>
+              <li><b>Capture</b><span>Screenshots, previews, and screen recording</span></li>
+              <li><b>Apps and upkeep</b><span>Application discovery and maintenance</span></li>
+              <li><b>Setup and system</b><span>Hardware, display, system, and lock</span></li>
+              <li><b>Your first real session</b><span>Put the essential shortcuts together</span></li>
+            </ul>
+          </div>
+          <div class="lesson-column">
+            <h3><span>03</span> Optional deep dives</h3>
+            <ul>
+              <li><b>Window controls</b><span>Grouping, pinning, layouts, and gestures</span></li>
+              <li><b>Desktop controls</b><span>Audio, network, calendar, themes, and more</span></li>
+              <li><b>Productivity extras</b><span>Emoji, reminders, and local dictation</span></li>
+              <li><b>Useful tools</b><span>Activity, calculations, and disk usage</span></li>
+              <li><b>Create and share</b><span>Local media and sharing workflows</span></li>
+            </ul>
+          </div>
+        </div>
+        <p class="curriculum-note">The welcome and notifications lessons complete the seventeen.</p>
+      </div>
+    </section>
+
+    <section class="section install" id="install">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Install</h2>
+          <p>One package. Both guides, all narration, and the desktop integration are included. Requires an up-to-date Omarchy desktop.</p>
+        </div>
+
+        <div class="install-grid">
+          <ol class="install-steps">
+            <li class="install-step">
+              <span class="step-num">01</span>
+              <div>
+                <h3>Download the package</h3>
+                <p>From the latest GitHub release, grab the <code>.pkg.tar.zst</code> package. <code>SHA256SUMS</code> is there too if you want to verify.</p>
+                <a class="button button-primary button-small" href="https://github.com/DanWahlin/learn-omarchy/releases" target="_blank" rel="noopener noreferrer">Open Releases →</a>
+              </div>
+            </li>
+            <li class="install-step">
+              <span class="step-num">02</span>
+              <div>
+                <h3>Install with pacman</h3>
+                <p>Install the package and its dependencies.</p>
+                <div class="terminal">
+                  <div class="terminal-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><small>install</small><button class="copy" type="button" data-copy="sudo pacman -U ./learn-omarchy-*.pkg.tar.zst">Copy</button></div>
+                  <pre><code><span>$</span> sudo pacman -U ./learn-omarchy-*.pkg.tar.zst</code></pre>
+                </div>
+                <details class="optional-verify">
+                  <summary>Optional: verify the checksum first</summary>
+                  <p>Confirms the download matches the release before installing.</p>
+                  <div class="terminal">
+                    <div class="terminal-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><small>verify</small><button class="copy" type="button" data-copy="sha256sum --check --ignore-missing SHA256SUMS">Copy</button></div>
+                    <pre><code><span>$</span> sha256sum --check --ignore-missing SHA256SUMS</code></pre>
+                  </div>
+                </details>
+              </div>
+            </li>
+            <li class="install-step">
+              <span class="step-num">03</span>
+              <div>
+                <h3>Launch Learn Omarchy</h3>
+                <p>Open it from the Apps menu, or run it from a terminal. Choose Ohm-1 or Ollie and start the welcome lesson.</p>
+                <div class="terminal">
+                  <div class="terminal-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><small>launch</small><button class="copy" type="button" data-copy="learn-omarchy">Copy</button></div>
+                  <pre><code><span>$</span> learn-omarchy</code></pre>
+                </div>
+              </div>
+            </li>
+          </ol>
+          <aside class="install-side">
+            <dl class="install-facts">
+              <div><dt>Update</dt><dd>Download the next release and run <code>sudo pacman -U</code> again.</dd></div>
+              <div><dt>Remove</dt><dd><code>learn-omarchy --uninstall</code> removes the package and its managed integration. Progress is kept.</dd></div>
+            </dl>
+          </aside>
+        </div>
+
+        <details class="source-build">
+          <summary>Build from a GitHub checkout instead</summary>
+          <p>Use this only if you cannot download the package and have a trusted checkout.</p>
+          <div class="terminal">
+            <div class="terminal-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><small>from source</small></div>
+            <pre><code><span>$</span> sudo pacman -S --needed base-devel git nodejs
+<span>$</span> git clone https://github.com/DanWahlin/learn-omarchy.git
+<span>$</span> cd learn-omarchy
+<span>$</span> node tools/prepare-checkout-package.mjs --output release-work/local
+<span>$</span> cd release-work/local
+<span>$</span> makepkg --syncdeps --install</code></pre>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="section final-cta">
+      <div class="container">
+        <div class="cta-faces" aria-hidden="true">
+          <img src="images/ohm-1.png" alt="" width="72" height="88">
+          <img src="images/ollie.png" alt="" width="80" height="88">
+        </div>
+        <h2>Make learning Omarchy fun!</h2>
+        <p>Try the course, share what confused you, and help shape a fun on-ramp for the Omarchy community.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#install">Get Learn Omarchy</a>
+          <a class="button button-secondary" href="https://github.com/DanWahlin/learn-omarchy/issues" target="_blank" rel="noopener noreferrer">Share feedback</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>
+        <a class="brand" href="#top">
+          <svg class="brand-mark" viewBox="0 0 1200 1200" width="20" height="20" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" clip-rule="evenodd" d="m1200 1200h-480v-80h400v-1040h-479.996v160h-400v720h720v-720h-80v-80h159.996v880h-400v160h-640v-1200h1200zm-1120-80h480v-80h-400l.004-400h-80.004zm0-560h80.004v-400h400v-80h-480.004z"/></svg>
+          <span>Learn Omarchy</span>
+        </a>
+        <p>Built by Dan Wahlin. An independent project for the <a href="https://omarchy.org" target="_blank" rel="noopener noreferrer">Omarchy</a> community.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/DanWahlin/learn-omarchy" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://github.com/DanWahlin/learn-omarchy/releases" target="_blank" rel="noopener noreferrer">Releases</a>
+        <a href="https://github.com/DanWahlin/learn-omarchy/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License</a>
+        <a href="https://omarchy.org" target="_blank" rel="noopener noreferrer">omarchy.org</a>
+      </div>
+      <p class="copyright">&copy; <span id="year">2026</span> Dan Wahlin</p>
+    </div>
+  </footer>
+
+  <script src="script.js?v=4"></script>
+</body>
+</html>
