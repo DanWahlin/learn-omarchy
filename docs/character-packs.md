@@ -1,355 +1,387 @@
-# Data-only character packs
+# Character packs
 
-A pack is a directory containing `character.json` and PNG assets. Characters are
-discovered by data, not by adding a renderer branch or a compiled-in ID. The tour,
-chooser and character lab use the same resolver:
+Character packs let you add a new Learn Omarchy guide without changing the
+application. A pack is a folder containing a validated `character.json` file
+and PNG sprite sheets.
 
-```sh
-npm run packs:list
+Packs are data, not plugins. They cannot run code, execute commands, alter
+lessons, or access the network.
+
+Use [Spark](../examples/characters/spark/) as the starter example.
+
+## Quick start
+
+From a Learn Omarchy repository checkout:
+
+```bash
 npm run packs:validate -- examples/characters/spark
-node --experimental-strip-types tools/character-packs.ts discover \
-  --bundled-root assets/characters --user-root examples/characters
+CHARACTER_LAB_ROOT="$PWD/examples/characters" ./bin/hexon-lab spark
 ```
 
-`discover` writes JSON only, with `version`, `packs`, `diagnostics`, `fallbackId`
-and `invalidBundledIds`. Every resolved pack includes its stable `id`, absolute
-real filesystem `root`, directory `assetUrl` (a file URL without a trailing slash),
-validated `manifest`, validated `intro` or `null`, `runtimeFiles`, and diagnostics.
-`validate PATH` reports errors with a nonzero exit status. Missing or invalid
-optional intros produce warnings, not a failed graphic pack.
-`check-bundled [--bundled-root PATH]` prints human-readable diagnostics and
-fails when a bundled pack/catalog is invalid or no valid packs remain.
-Unresolved licensing and optional-intro warnings alone are nonfatal. This
-command never scans user packs and is suitable for developer/package checks.
+The first command validates the pack. The second opens it in the character lab
+so you can inspect every pose, animation, direction, and optional introduction.
 
-## Install and discover
+To install a copy for your user account:
 
-Bundled IDs are reserved by `assets/characters/index.json`:
-
-```json
-{ "formatVersion": 1, "characters": [{ "id": "ohm-1" }, { "id": "owl" }] }
-```
-
-The manifests, not catalog display text, are authoritative. User packs live at
-`${XDG_DATA_HOME:-$HOME/.local/share}/learn-omarchy/characters/<id>/character.json`.
-Only absolute `XDG_DATA_HOME` values are honored; relative or empty values use
-an absolute `HOME`, falling back to the operating-system home directory.
-The shared `defaultUserPackRoot(env = process.env)` export implements this
-policy, and the CLI uses it whenever `--user-root` is not explicitly supplied.
-They need **no user index**. IDs start with a lowercase letter and contain lowercase
-letters, digits, and single hyphens between segments (maximum 64 characters).
-The manifest ID must equal its directory name. Keep it stable after publishing:
-saved preferences refer to the ID, not a display name or list position.
-
-Discovery sorts IDs, skips invalid packs with diagnostics, and never allows user
-packs to override any reserved bundled ID, even when the bundled pack is broken.
-When the bundled catalog is malformed, safe directory IDs under the bounded
-bundled root are reserved too. If that reservation scan cannot complete within
-its limit, user discovery is disabled rather than permitting impersonation.
-The fallback is valid `ohm-1`, otherwise the first valid sorted pack, otherwise
-`null` with a diagnostic. A missing user directory is normal.
-
-To try the original starter without touching official artwork:
-
-```sh
+```bash
 pack_root="$(node --experimental-strip-types --input-type=module -e \
   'import { defaultUserPackRoot } from "./src/character-packs.ts"; console.log(defaultUserPackRoot())')"
-npm run packs:validate -- examples/characters/spark &&
-mkdir -p "$pack_root" &&
-if mkdir "$pack_root/spark"; then
-  cp -R examples/characters/spark/. "$pack_root/spark/" &&
-  npm run packs:validate -- "$pack_root/spark"
-else
-  printf '%s\n' 'Spark was not installed: destination exists or cannot be created.'
-fi
+(
+  set -e
+  mkdir -p "$pack_root"
+  test ! -e "$pack_root/spark"
+  cp -R examples/characters/spark "$pack_root/spark"
+)
+npm run packs:validate -- "$pack_root/spark"
 ```
 
-Run this from the repository root. Creating the destination with `mkdir`
-refuses an existing directory or symlink; rerunning cannot overwrite the pack
-or accidentally nest another `spark` directory inside it. If copying fails,
-inspect the incomplete destination before retrying rather than merging files.
+The destination check prevents an existing pack from being overwritten. Restart
+Learn Omarchy after installing or updating a pack. The character lab also has a
+**Refresh** action.
 
-Use **Refresh** in the character lab, or restart the application, after changing
-installed files. No
-network requests, executable files, package installation or asset generation are
-part of discovery.
-The lab's **Preview fallback** button also exercises the same brief static entrance
-used by the welcome when an optional intro is missing or invalid. Moving the lab to
-another screen cancels an active intro; replay it on the new screen.
+## Pack structure
 
-### Update one installed pack
-
-1. Extract the new version into a separate staging directory **outside** the
-   discovered `characters/` directory. Inspect its files and run
-   `npm run packs:validate -- /path/to/staged/spark`. Confirm the manifest still
-   has `id: "spark"` and review license or narration changes.
-2. Close the tour while replacing its files. Move only the existing
-   `"$pack_root/spark"` directory to a clearly named backup **outside**
-   `"$pack_root"`; do not move or replace the whole `characters` directory.
-   Keep the backup until the replacement is verified.
-3. Create a fresh `"$pack_root/spark"` directory, then copy the staged folder's
-   **contents** into it, as in the non-overwriting installation example above.
-   Do not copy over an existing version: that can retain obsolete files.
-4. Validate the installed path again. If validation fails, move the failed
-   replacement out of discovery and restore the backup to the original
-   `"$pack_root/spark"` path.
-5. Select **Refresh** in the lab and check preview, speech, pointing, flight and
-   intro. Restart the application to reload the updated pack. Keeping the ID
-   unchanged preserves the saved character selection.
-
-### Remove or disable one user pack
-
-Close the tour, then move only `"$pack_root/spark"` to a backup location outside
-the discovery root. Moving is reversible; delete that chosen pack only when
-you no longer need it. Never remove the parent `characters/` directory or edit
-bundled assets to uninstall a user pack.
-
-Refresh the lab or restart the application. If the removed ID was selected,
-the application reports that it is unavailable and uses the valid fallback:
-Ohm (stable ID `ohm-1`), otherwise the first valid sorted pack. With no valid packs, discovery
-returns `fallbackId: null` and diagnostics rather than silently choosing a
-missing character. Select an available character to update your preference.
-
-## Manifest v1
-
-Use `examples/characters/spark/character.json` as a complete starting point.
-Required fields:
-
-| Field | Contract |
-| --- | --- |
-| `formatVersion` | Exactly `1` |
-| `id`, `displayName`, `description` | Stable safe ID, human name, concise description |
-| `spokenName` (optional) | Name used in generated speech instead of `displayName`; nonempty text, maximum 80 characters |
-| `author` | `{ "name": "Your name", "status": "declared" }`, or `name: null`, `status: "unresolved"`; optional `note` |
-| `license` | `{ "status": "declared", "identifier": "CC0-1.0" }`, or `status: "unresolved"`; optional `note` |
-| `preview` | `{ "sprite": "idle", "frame": 0 }`; no duplicate preview PNG |
-| `sprites` | Explicit semantic sprite roles and strip geometry |
-| `renderer` | Fixed canvas and pose registration described below |
-| `effects` | `{ "thrusters": true }` or `false` |
-| `motion` | `{ "tourFlight": "upright" }` or `"sprite"` (requires flight) |
-| `narration` | Explicit own, borrowed or silent policy |
-
-Unsupported manifest fields are rejected rather than silently interpreted.
-Old `prefix`, `flames`, `voice`, `edgeVoice`, `flightFrames` and `intro.kind`
-fields are replaced by the explicit contract, not another supported format.
-
-### Format stability and compatibility
-
-The documented v1 contract is fixed. Replacing artwork, correcting registration
-or changing supported metadata values does not change `formatVersion`; keep the
-stable pack ID across those updates. Do not invent additional v1 fields or
-reuse existing fields with different meanings: unknown fields are rejected.
-
-A breaking schema or renderer interpretation requires a new format version and
-explicit application support/migration. This loader accepts only
-`formatVersion: 1`; it does not promise forward compatibility with future
-versions or automatically migrate legacy prefix-based manifests. The optional
-intro grammar has its own version, described in
-[Character intros](character-intros.md). An unsupported intro is disabled with
-a diagnostic; an unsupported character manifest rejects the pack.
-
-### Sprite strips and animation
-
-Required roles: `idle`, `talk`, `point`, `point-up`. Optional roles: `flight`,
-`point-blink`, `point-up-blink`, and `speech`.
-Each descriptor has a pack-relative PNG `path`, positive integer `frameWidth`,
-`frameHeight`, and `frames`. Pose strips have `frameHeight: 192`; the optional
-`speech` patch can have a smaller height (OLLIE's existing strip is 22×30 pixels
-per frame). PNG width must equal `frameWidth * frames` exactly.
-
-One-frame artwork is supported. Animated strips choose either `fps` (0.1–60) or
-a nonempty `timeline` of `{ "frame": 0, "durationMs": 3000 }` entries. Frame
-indices are zero-based and must exist. Durations are 16–60,000 milliseconds,
-with at most 256 entries and at most 60 seconds total. No implicit 16-frame
-requirement exists. Official idle pacing remains:
-
-```json
-[
-  { "frame": 0, "durationMs": 3000 },
-  { "frame": 11, "durationMs": 50 },
-  { "frame": 12, "durationMs": 100 },
-  { "frame": 13, "durationMs": 50 }
-]
-```
-
-`talk` shares the `idle` pose registration, so their frame widths must match.
-The talking silhouette must use the same body centre and baseline as idle.
-
-Optional `blink` defines `periodMs`, `startMs`, and `durationMs` for pointing
-blink variants. The blink must finish within its period. Ollie uses
-`3200`, `3050`, and `100`; Ohm-1 uses `5400`, `5250`, and `100`. Omit blink roles when
-the artwork does not need them.
-
-### Registration, not resizing guesses
-
-`renderer.canvas` is `{ "width": 224, "height": 192 }` in v1.
-`renderer.baseline` and `renderer.bodyAnchorX` establish shared canvas anchors.
-`renderer.poses` requires `idle`, `point`, `point-up`, plus `flight` when supplied.
-Each pose declares `frameWidth`, `scale`, and `offset: {x,y}`. All non-flight
-poses also declare a source `baseline` and `bodyAnchorX`; these must transform
-to the canvas anchors within 0.05 pixels:
+A basic pack looks like this:
 
 ```text
-source baseline * scale + offset.y = renderer.baseline
-source bodyAnchorX * scale + offset.x = renderer.bodyAnchorX
+spark/
+├── character.json
+└── sprites/
+    ├── spark-idle.png
+    ├── spark-talk.png
+    ├── spark-point.png
+    └── spark-point-up.png
 ```
 
-Pointing poses require a source-frame `tip: {x,y}` that transforms inside the
-canvas. Optional `flameSockets` are source-frame points. Optional `speech`
-declares `source` and `destination` rectangles (`x`, `y`, `width`, `height`),
-with an optional `sprite: "speech"` instead of the default `"talk"` and optional
-matching `frameWidth`. Source crops must fit the referenced sprite frame, and
-destination crops must fit the pose frame. Registration coordinates must be
-finite, scales 0.1–4, and transformed frames bounded and intersecting the canvas.
-Use `registrationNote` to explain the anatomical anchors.
+An optional introduction adds:
 
-Speech patches also work on the idle pose. When declared there, the idle
-body animation supplies natural blinking on a clock independent of speech.
-Optional `restFrame` is a valid frame index displayed while not talking;
-without it, the patch is hidden between speech. Reduced motion holds speaking
-patches on frame zero. Existing packs without idle speech keep their talk-strip
-behavior.
+```text
+spark/
+└── intro/
+    └── sequence.json
+```
 
-Ohm-1 keeps his original cyan eyes and uses a warm glow in his existing chest
-panel while speaking. The resting frame is transparent, leaving the original
-panel visible. The glow indicates speech
-activity, not measured audio amplitude or phoneme synchronization. Regenerate
-this data-only sprite with `node tools/prepare-ohm-chest-light.mjs`. Each frame
-contains separate native-size patches for the idle and pointing chest lenses.
-No speech animation covers or moves the eyes.
+The directory name and manifest `id` must match. IDs:
 
-Ohm-1's upward pose uses the original sideways-pointing arm rotated 45 degrees
-around its shoulder, without flipping or stretching the hand. Both eye variants
-use the same `point_up_mode="rotate"` recipe in `sprites.conf`; `derive_up_joint_keep`
-retains the original elbow pixels beneath the raised sleeve to avoid a gap.
-`derive_up_trim` removes only the small remnants below that joint, without
-applying a global alpha cutoff or altering the hand. The fingertip
-registration is `(149, 54)`; the renderer mirrors the complete pose for the
-other direction.
+- Start with a lowercase letter
+- Use lowercase letters, numbers, and single hyphens
+- Contain at most 64 characters
+- Stay unchanged after publication
 
-The official registered geometry and original PNG filenames are unchanged.
-The loader never trims, regenerates or copies official artwork.
+Saved guide preferences use the ID, not the display name.
 
-### Narration is a separate choice
+## Manifest overview
 
-* Own: `{ "mode": "own", "audioSet": "your-pack-id" }`. The audio set must match
-  the pack ID. Optional `voices: { "azure": "...", "edge": "..." }` carries
-  authoring voice identifiers, not commands. Existing official voice strings
-  are preserved here. Optional `playbackRate` (0.5 to 2, default 1) multiplies
-  the learner's speech-speed setting for all of this coach's narration.
-  Ollie uses 1.1 for 10% faster speech; other bundled coaches retain their pace.
-  Playback uses the original media timestamps, so word timings stay synchronized
-  without regenerating recordings. If the media clock or timing sidecar is
-  unavailable, captions continue at reading speed adjusted by the same effective
-  playback rate instead of jumping to the complete paragraph.
-* Borrowed: `{ "mode": "borrowed", "audioSet": "ohm-1" }` or `"owl"`.
-  Only these bundled audio sets are supported. The runtime deliberately
-  presents text only for borrowed clips whose source text identifies HEXON, Ohm, or
-  OLLIE, regardless of which voice set is borrowed, so Spark does not introduce
-  itself as either bundled coach.
-* Silent: `{ "mode": "silent" }`. Display course text without recorded narration.
+`character.json` uses format version 1:
 
-Graphics-only community packs do not have to supply audio. A character pack
-cannot override course text, launch a generator, or request arbitrary audio URLs.
-Own audio is produced through the project's separate trusted course-audio workflow.
+```json
+{
+  "formatVersion": 1,
+  "id": "spark",
+  "displayName": "Spark",
+  "description": "A geometric lantern guide.",
+  "author": {
+    "name": "Your name",
+    "status": "declared"
+  },
+  "license": {
+    "identifier": "CC0-1.0",
+    "status": "declared"
+  },
+  "preview": {
+    "sprite": "idle",
+    "frame": 0
+  },
+  "sprites": {},
+  "renderer": {},
+  "effects": {
+    "thrusters": false
+  },
+  "motion": {
+    "tourFlight": "upright"
+  },
+  "narration": {
+    "mode": "silent"
+  }
+}
+```
 
-### Optional introductions
+The complete working manifest is
+[`examples/characters/spark/character.json`](../examples/characters/spark/character.json).
+Copy it and replace one section at a time.
 
-`"intro": { "sequence": "intro/sequence.json" }` refers to a declarative
-sequence. See [Character intros](character-intros.md) for the shared grammar.
-The course app plays it during one-time onboarding after coach selection, not
-when a tour lesson starts. The app owns the subsequent central greeting,
-menu flight, and tour recommendation; packs need no lesson-specific logic.
-Lab previews still replay the sequence on demand.
-The same path-containment and PNG validation applies to every intro asset.
-Missing, unsafe or invalid intro data disables the intro with a diagnostic,
-leaving the character usable with a safe handoff to the ordinary tour.
-Official intro PNGs remain in `sprites/`; asset relocation is unnecessary.
+### Identity and attribution
 
-## Safety and limits
+| Field | Purpose |
+|---|---|
+| `id` | Stable machine-readable identifier |
+| `displayName` | Name shown in the interface |
+| `spokenName` | Optional shorter name used during narration generation |
+| `description` | Concise description shown to learners |
+| `author` | Creator name and declaration status |
+| `license` | Artwork license and declaration status |
 
-Only JSON and PNG references are accepted. Paths must be relative, with no
-absolute paths, `.`/`..` segments, backslashes, URL schemes, percent escapes,
-query strings, fragments or empty segments. The real path of every referenced
-file must stay within its pack; discovered pack directories must stay within
-their discovery root. Symlinks escaping these roots are rejected. Files must
-be regular files, and their size is checked before bounded reads and parsing.
+`author.status` and `license.status` can be `declared` or `unresolved`. An
+unresolved value is allowed for private local testing, but it is not permission
+to redistribute artwork. Published packs need accurate attribution and a
+license that permits redistribution.
 
-Limits: manifest/catalog 256 KiB, intro sequence 64 KiB, PNG 16 MiB, PNG side
-16,384 pixels, 32 million decoded pixels per image **and cumulatively per pack**
-(at most 128 MiB of RGBA pixels), 64 referenced runtime files,
-128 MiB referenced runtime bytes, 256 filesystem entries per pack, 512
-catalog/user-directory entries, and at most 64 user-pack directories per discovery.
-Discovery caps serialized pack data below 8 MiB, reserving room for diagnostics.
-Strips allow 1–256 frames, each at most 2,048 pixels wide. PNGs must be
-noninterlaced, 8-bit grayscale, grayscale-alpha, RGB or RGBA; export indexed
-artwork as RGBA. PNG signatures, dimensions, chunk boundaries/checksums,
-compressed scanline sizes and filter types are checked without extra dependencies.
-All ordinary pack files also count toward a 128 MiB filesystem budget.
-Bundled `concepts/` and `sprites.conf` are explicitly excluded from this
-filesystem inspection as trusted development material. Only referenced files
-are loaded or installed by the runtime installer.
+## Artwork requirements
 
-Packs are **data, never plugins**. QML, JavaScript, shell files and SVG are not
-runtime assets, and executable extensions are rejected even when unreferenced.
-A repository `sprites.conf` is trusted authoring input to the
-existing preparation scripts, not a pack manifest: discovery ignores it and
-never sources it. Never run a stranger's preparation script or `sprites.conf`
-just to try their character. Generate sprites in your own trusted authoring
-environment, inspect the resulting JSON/PNGs, then validate the data-only pack.
+All referenced character and introduction artwork must be PNG. Sprite sheets
+use horizontal frames:
 
-`make install` includes the shared QML module (including its `qmldir` type
-registration), timeline grammar, resolver, lab entrypoint, format documentation,
-and validated official runtime assets. It installs only the discovery, course
-validation, capture-practice, and window-ownership helper tools. Sprite
-preparation, audio generation and other authoring tools remain checkout-only.
-The idle frame-zero preview reuses each pack's installed idle PNG.
+```text
+image width = frameWidth × frames
+image height = frameHeight
+```
 
-## Attribution and publishing
+Required sprite roles:
 
-Declared metadata records the publisher's claim; validation does not determine
-copyright ownership. Unresolved author/license status warns rather than blocking
-local use. Dan Wahlin is the declared author of Ohm-1 and Ollie. Their artwork
-is licensed under CC BY 4.0, separately from the MIT-licensed application code.
-See [LICENSE-ASSETS.md](../LICENSE-ASSETS.md) for scope, attribution, and the
-separately licensed CC0 material. Publishing a new pack still requires its own
-accurate rights and attribution metadata.
+| Role | Purpose |
+|---|---|
+| `idle` | Resting pose and chooser preview |
+| `talk` | Speech animation source |
+| `point` | Sideways pointing pose |
+| `point-up` | Upward pointing pose |
 
-Spark's four simple geometric placeholder PNGs are original example
-project-generated shapes, explicitly CC0-1.0. This declaration applies only to
-that example, not existing artwork. Replace the example images with your own
-properly licensed work, update metadata and registration, validate the folder,
-preview it in the lab, then share only the intended pack files.
+Optional roles:
 
-### Propose a bundled character through a pull request
+| Role | Purpose |
+|---|---|
+| `flight` | Custom travel animation |
+| `point-blink` | Blink replacement for `point` |
+| `point-up-blink` | Blink replacement for `point-up` |
+| `speech` | Small speech patch used instead of the full `talk` frame |
 
-Bundling is a repository contribution, not something a user pack can request
-at runtime. Open a PR with this checklist:
+Every pose except a small `speech` patch is 192 pixels high. Frames can have
+different widths, but `talk.frameWidth` must match `idle.frameWidth`.
 
-- [ ] Choose a unique, stable ID and provide accurate author attribution and
-      a declared asset license permitting redistribution. Include any required
-      attribution and license terms in the review. Unresolved metadata is not
-      permission to redistribute artwork.
-- [ ] Add `assets/characters/<id>/character.json` and its referenced PNG assets.
-      Include a validated intro sequence and its assets if the character has
-      one; otherwise confirm that the graphics-only fallback is intentional.
-      Set the narration policy explicitly.
-- [ ] Add the ID to `assets/characters/index.json`. The manifest remains the
-      authority for its display name and behavior.
-- [ ] Run `npm run packs:validate -- assets/characters/<id>`, `npm run check`,
-      and `npm test`. Run `npm run test:ui` in the supported Qt environment;
-      preserve existing-art regression coverage rather than regenerating
-      official assets to satisfy tests.
-- [ ] Preview the pack in the character lab: idle/talk timing, pointing tips,
-      speech overlay, facing, motion, optional effects, and intro
-      play/skip/replay. Check chooser selection and the selected narration mode
-      in the main application.
-- [ ] Keep the contribution data-only. Do not add character-ID branches to the
-      application, renderer or lab. Do not include executable pack scripts,
-      generated concept-art collections, or `sprites.conf` as runtime assets.
-      A new pack must use the existing contract without bespoke application
-      registration.
-- [ ] Verify the installation whitelist includes the manifest, referenced PNGs,
-      and valid intro files, but excludes authoring material and unrelated
-      files. Describe any compatibility implications in the PR; schema changes
-      need separate versioned application support.
+A one-frame sprite needs no timing. Multi-frame sprites use either `fps`:
+
+```json
+{
+  "path": "sprites/spark-idle.png",
+  "frameWidth": 224,
+  "frameHeight": 192,
+  "frames": 8,
+  "fps": 8
+}
+```
+
+Or a timeline:
+
+```json
+{
+  "path": "sprites/spark-idle.png",
+  "frameWidth": 224,
+  "frameHeight": 192,
+  "frames": 4,
+  "timeline": [
+    { "frame": 0, "durationMs": 3000 },
+    { "frame": 1, "durationMs": 50 },
+    { "frame": 2, "durationMs": 100 },
+    { "frame": 3, "durationMs": 50 }
+  ]
+}
+```
+
+Do not set both `fps` and `timeline`.
+
+## Register poses to one canvas
+
+Format version 1 renders every guide in a 224 by 192 canvas. Registration keeps
+the body from jumping when its pose changes.
+
+The renderer defines a shared baseline and horizontal body anchor:
+
+```json
+{
+  "canvas": { "width": 224, "height": 192 },
+  "baseline": 176,
+  "bodyAnchorX": 112,
+  "poses": {}
+}
+```
+
+Each non-flight pose supplies the source image's baseline and body anchor,
+plus a scale and offset:
+
+```text
+source baseline × scale + offset.y = renderer baseline
+source bodyAnchorX × scale + offset.x = renderer bodyAnchorX
+```
+
+Pointing poses also provide `tip`, the fingertip location in the source frame.
+The application transforms it with the rest of the pose so highlights and
+guide placement remain accurate.
+
+Start with full-canvas 224 by 192 artwork, as Spark does, whenever possible.
+That makes each pose use scale `1`, offset `{ "x": 0, "y": 0 }`, and the same
+anchors.
+
+## Movement and effects
+
+`motion.tourFlight` controls travel:
+
+- `upright` keeps the regular guide pose while moving.
+- `sprite` uses the `flight` sprite and requires a registered flight pose.
+
+`effects.thrusters` enables the application's travel thruster effect. Set it to
+`false` for guides that fly using wings or another visual style.
+
+Optional blink timing applies to the `point-blink` and `point-up-blink` roles:
+
+```json
+{
+  "blink": {
+    "periodMs": 3200,
+    "startMs": 3050,
+    "durationMs": 100
+  }
+}
+```
+
+## Narration
+
+Choose one narration policy:
+
+```json
+{ "mode": "silent" }
+```
+
+Displays captions without recorded speech. This is the simplest choice for a
+community pack.
+
+```json
+{ "mode": "borrowed", "audioSet": "ohm-1" }
+```
+
+Uses the bundled `ohm-1` or `owl` narration set. Lines that identify the
+original guide are intentionally shown as text instead of playing mismatched
+audio.
+
+```json
+{
+  "mode": "own",
+  "audioSet": "your-pack-id",
+  "playbackRate": 1
+}
+```
+
+Own narration is intended for bundled contributions whose matching audio set
+is added through the repository's trusted narration workflow. A user pack
+cannot download or execute an audio generator.
+
+## Optional introduction
+
+Add an intro reference to the manifest:
+
+```json
+{
+  "intro": {
+    "sequence": "intro/sequence.json"
+  }
+}
+```
+
+Introductions are bounded JSON choreography. They can animate the guide,
+trusted PNG scenery, text, fixed effects, and allowlisted sounds. They cannot
+run scripts or affect lesson progress.
+
+See [Character introductions](character-intros.md) for the format. A missing or
+invalid intro does not reject an otherwise valid pack. Learn Omarchy uses a
+short static entrance and reports the intro diagnostic.
+
+## Validate and preview
+
+Run these checks while authoring:
+
+```bash
+npm run packs:validate -- /path/to/your-pack
+CHARACTER_LAB_ROOT=/path/to/characters ./bin/hexon-lab your-pack-id
+```
+
+Before proposing a bundled guide:
+
+```bash
+npm run packs:validate -- assets/characters/your-pack-id
+npm run check
+npm test
+npm run test:ui
+```
+
+In the lab, verify:
+
+- Idle and talking animation
+- Pointing tips in both directions
+- Upward pointing
+- Flight and effects
+- Speech patches and blink timing
+- Introduction playback, skipping, and reduced motion
+
+## Install, update, and remove
+
+User packs live under:
+
+```text
+${XDG_DATA_HOME:-$HOME/.local/share}/learn-omarchy/characters/<id>/
+```
+
+`XDG_DATA_HOME` must be an absolute path. Packs need no catalog or index.
+
+To update a pack safely:
+
+1. Validate the new version in a staging directory.
+2. Close Learn Omarchy.
+3. Move the installed pack outside the `characters/` directory as a backup.
+4. Copy the replacement into a new directory with the same ID.
+5. Validate the installed copy and restart Learn Omarchy.
+
+Do not merge a replacement over an existing directory. Old files can remain
+and make the installed pack differ from the version you tested.
+
+To remove a user pack, close Learn Omarchy and move that pack's directory out
+of the discovery root. If it was selected, the application reports that it is
+unavailable and chooses a valid fallback.
+
+## Safety limits
+
+Validation enforces path containment, file type, dimensions, decoded image
+size, total files, and total bytes. Key limits include:
+
+- 64 referenced runtime files
+- 128 MiB of referenced runtime data
+- 16 MiB per PNG
+- 32 million decoded pixels across the pack
+- 256 filesystem entries
+- 64 discovered user-pack directories
+
+Only JSON and PNG runtime files are accepted. Executable files, QML,
+JavaScript, shell files, URLs, absolute paths, escaping symlinks, and unsafe
+relative paths are rejected.
+
+Authoring files and scripts should stay outside the installed pack. Never run a
+stranger's build script or `sprites.conf` to try a guide. Inspect and validate
+the finished JSON and PNG files instead.
+
+## Publish or contribute a guide
+
+Before sharing a pack:
+
+- Use a unique, stable ID.
+- Include accurate author and license declarations.
+- Share only the manifest and referenced runtime assets.
+- Validate the final directory you plan to distribute.
+- Test every pose and the optional introduction.
+
+Bundled guides also need an entry in `assets/characters/index.json` and a pull
+request that includes the full automated test results. A bundled contribution
+must use the existing data contract without guide-specific branches in the
+application.
+
+Ohm-1 and Ollie are original Learn Omarchy artwork licensed under CC BY 4.0.
+Their license does not apply to new artwork. Spark's geometric example artwork
+is CC0-1.0 and can be replaced with properly licensed artwork of your own.
+
+See [LICENSE-ASSETS.md](../LICENSE-ASSETS.md) for project asset licensing.
