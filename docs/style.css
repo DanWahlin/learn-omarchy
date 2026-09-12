@@ -456,7 +456,6 @@ h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0
 
 /* ---------- Install ---------- */
 
-.install { padding-bottom: 40px; }
 .install-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 22px; align-items: start; }
 .install-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .install-step { display: grid; grid-template-columns: 44px 1fr; gap: 16px; padding: 20px; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
@@ -489,20 +488,26 @@ h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0
 .source-build p { color: var(--ink-2); margin-bottom: 12px; font-size: 0.9rem; }
 .source-build .terminal { margin-bottom: 16px; }
 
-/* ---------- CTA and footer ---------- */
-
-.final-cta { padding-top: 40px; text-align: center; }
-.cta-faces { display: flex; justify-content: center; align-items: flex-end; gap: 28px; margin-bottom: 22px; }
-.cta-faces img { width: auto; height: 88px; image-rendering: pixelated; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.5)); }
-.final-cta h2 { font-size: clamp(1.35rem, 2.6vw, 1.8rem); max-width: 26ch; margin: 0 auto 12px; }
-.final-cta > .container > p { max-width: 54ch; margin: 0 auto; color: var(--ink-2); }
+/* ---------- Footer ---------- */
 
 footer { border-top: 1px solid var(--line); padding: 32px 0; background: var(--bg-deep); }
-.footer-inner { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 20px; font-size: 0.85rem; }
+.footer-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "about links"
+    "about copyright";
+  align-items: start;
+  column-gap: 48px;
+  row-gap: 12px;
+  font-size: 0.85rem;
+}
+.footer-about { grid-area: about; }
 .footer-inner p { color: var(--dim); margin-top: 10px; }
 .footer-inner p a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
-.footer-links { display: flex; flex-wrap: wrap; gap: 20px; color: var(--ink-2); }
+.footer-links { grid-area: links; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 20px; color: var(--ink-2); }
 .footer-links a:hover { color: var(--pink); }
+.copyright { grid-area: copyright; justify-self: end; margin: 0; }
 
 /* ---------- Responsive ---------- */
 
@@ -563,8 +568,16 @@ footer { border-top: 1px solid var(--line); padding: 32px 0; background: var(--b
   .lesson-card { width: 92%; }
   .coach { width: 30%; }
   .section { padding: 48px 0; }
-  .install { padding-bottom: 28px; }
-  .final-cta { padding-top: 28px; }
+  .footer-inner {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "about"
+      "links"
+      "copyright";
+    gap: 18px;
+  }
+  .footer-links { justify-content: flex-start; gap: 12px 20px; }
+  .copyright { justify-self: start; }
 }
 
 @media (prefers-reduced-motion: reduce) {
