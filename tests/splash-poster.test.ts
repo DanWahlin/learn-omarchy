@@ -82,7 +82,7 @@ ShellRoot {
   }
 });
 
-test("illustrated splash is reproducible, attributed, and retains its original composition", () => {
+test("illustrated splash is reproducible, attributed, and matches its approved master", () => {
   const source = readFileSync(new URL(poster.source, assets));
   const output = readFileSync(new URL(poster.output, assets));
   const provenance = JSON.parse(readFileSync(new URL("poster.provenance.json", assets), "utf8"));
@@ -94,17 +94,7 @@ test("illustrated splash is reproducible, attributed, and retains its original c
   const prepared = decodePoster(output);
   assert.deepEqual(prepared, decodePoster(preparePoster()));
   assert.equal(prepared.length, poster.width * poster.height * 3);
-  let changed = 0;
-  for (let i = 0; i < original.length; i += 3) {
-    if (original.subarray(i, i + 3).equals(prepared.subarray(i, i + 3))) continue;
-    const x = (i / 3) % poster.width, y = Math.floor(i / 3 / poster.width);
-    assert.ok((x >= 196 && x < 520 && y >= 330 && y < 860) ||
-      (x >= 1250 && x < 1370 && y >= 402 && y < 462),
-    "lettering, desktop and background remain pixel-identical");
-    assert.equal(Math.max(...original.subarray(i, i + 3)), Math.max(...prepared.subarray(i, i + 3)));
-    changed++;
-  }
-  assert.ok(changed > 1000 && changed < poster.width * poster.height * 0.05);
+  assert.deepEqual(prepared, original);
 });
 
 test("warm boot flames become magenta without recoloring cyan exhaust or Ollie's feathers", () => {

@@ -4,13 +4,13 @@
   "license": "CC-BY-4.0",
   "generator": "tools/prepare-splash-poster.mjs",
   "sourceProvenance": "provenance.json",
-  "operation": "Local hue correction of the original illustrated splash. Ohm's red accents and Ollie's scarf become magenta; orange boot flames become magenta with the original cyan exhaust retained. Composition, lettering, shading and desktop artwork are unchanged.",
+  "operation": "Deterministic RGB normalization of the approved splash master, preserving its exact composition, Neon Aurora wordmark, character artwork and local glow treatment.",
   "width": 1536,
   "height": 1024,
   "source": "learn-omarchy.png",
   "output": "learn-omarchy-poster.png",
   "accentHue": 318,
   "flameHue": 300,
-  "sourceSha256": "45397a03a42ee248a4a328e55b5799efcfeec772644b9be1b9005088879900a0",
-  "outputSha256": "d46a709e39ead2b53abadf15edbf20bd4bceaba6d3a2fc3e32b02568931ca464"
+  "sourceSha256": "cd2d8a8be74546697ea667df664fc0d53f9bd957c48f3c22b1dbe9520ac07924",
+  "outputSha256": "d8a317b331c7e14108a034ea905819848949032cbe4c071b9c0c5171c81a6263"
 }
