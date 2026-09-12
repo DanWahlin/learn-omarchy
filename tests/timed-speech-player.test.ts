@@ -195,6 +195,18 @@ async function waitForFile(path: string) {
   throw new Error(`Timed out waiting for fixture ${path}`);
 }
 
+async function waitForJsonFile(path: string) {
+  for (let attempt = 0; attempt < 200; attempt++) {
+    try {
+      return JSON.parse(await readFile(path, "utf8"));
+    } catch (error) {
+      if (error.code !== "ENOENT" && !(error instanceof SyntaxError)) throw error;
+      await delay(10);
+    }
+  }
+  throw new Error(`Timed out waiting for complete JSON fixture ${path}`);
+}
+
 async function assertClean(directory: string) {
   assert.deepEqual((await readdir(directory)).filter((name) => name.startsWith("learn-speech-")), []);
 }
@@ -261,7 +273,7 @@ test("normal media EOF does not report a timing failure before the player exits"
 test("read-only caller cwd is untouched while a private runtime directory supports timing", async () => {
   const f = await startPlayer("cancel", metadata, 0, { readOnlyCwd: true });
   try {
-    const started = JSON.parse(await waitForFile(join(f.directory, "started.json")));
+    const started = await waitForJsonFile(join(f.directory, "started.json"));
     await waitForFile(join(f.directory, "observed.json"));
     assert.ok(started.socket.startsWith(`${f.runtime}/learn-speech-`));
     assert.equal((await stat(resolve(started.socket, ".."))).mode & 0o777, 0o700);
@@ -318,7 +330,7 @@ test("SIGINT/SIGTERM cancel only the owned player and clean private IPC director
   ] as const) {
     const f = await startPlayer(mode, timing);
     try {
-      const started = JSON.parse(await waitForFile(join(f.directory, "started.json")));
+      const started = await waitForJsonFile(join(f.directory, "started.json"));
       if (timing) {
         await waitForFile(join(f.directory, "observed.json"));
         const socketDirectory = resolve(f.directory, started.socket, "..");
@@ -411,7 +423,7 @@ test("cancelling a paused player resumes it for termination and escalates only t
   for (const mode of ["heartbeat", "ignore-term"]) {
     const f = await startPlayer(mode, metadata, 0, { controls: true });
     try {
-      const started = JSON.parse(await waitForFile(join(f.directory, "started.json")));
+      const started = await waitForJsonFile(join(f.directory, "started.json"));
       await waitForFile(join(f.directory, "heartbeat"));
       f.child.stdin!.write('{"command":"pause"}\n');
       await delay(100);

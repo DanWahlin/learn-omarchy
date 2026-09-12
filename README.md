@@ -387,7 +387,7 @@ and exit codes. It reports playback, not merely that an MP3 exists.
 
 ## Install
 
-The current testing candidate is **0.1.0-rc.4**, not a stable release.
+The current testing candidate is **0.1.0-rc.5**, not a stable release.
 See [candidate notes](packaging/RELEASE-NOTES.md) for
 compatibility and [release acceptance](packaging/ACCEPTANCE.md) for remaining
 desktop/hardware checks. Download availability follows repository access:
@@ -441,11 +441,11 @@ package-repository updates until Learn Omarchy is accepted into a repository.
 
 When a testing prerelease is published and you have access, download these two
 assets from the **same release** on the [Releases page](https://github.com/DanWahlin/learn-omarchy/releases):
-`learn-omarchy-0.1.0rc4-1-any.pkg.tar.zst` and `SHA256SUMS`.
+`learn-omarchy-0.1.0rc5-1-any.pkg.tar.zst` and `SHA256SUMS`.
 Do not use GitHub's automatic "Source code" downloads as binary packages.
 
 ```bash
-PACKAGE=learn-omarchy-0.1.0rc4-1-any.pkg.tar.zst
+PACKAGE=learn-omarchy-0.1.0rc5-1-any.pkg.tar.zst
 awk -v file="$PACKAGE" '$2 == file {print}' SHA256SUMS | sha256sum --check --strict &&
   sudo pacman -U "./$PACKAGE"
 ```

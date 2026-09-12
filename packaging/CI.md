@@ -100,11 +100,11 @@ approval. Draft creation is not acceptance or approval. Stable promotion require
 all stable gates and its own approved exact-source evidence; do not treat a
 green workflow or a version tag as that evidence.
 
-## Preparing rc.4 without publishing
+## Preparing rc.5 without publishing
 
 Commit the readiness changes and ensure `package.json` and the lockfile both
-say `0.1.0-rc.4`. Run the full checks, push the commit, then create and push the
-new `v0.1.0-rc.4` tag on that exact commit. Never move an older candidate tag.
+say `0.1.0-rc.5`. Run the full checks, push the commit, then create and push the
+new `v0.1.0-rc.5` tag on that exact commit. Never move an older candidate tag.
 The tag workflow builds fresh assets and creates a new draft; keep it a draft
 and keep the repository private under the current distribution approval.
 
@@ -118,4 +118,4 @@ that submission, not a recipe pointing at a private draft.
 The [Omarchy submission kit](omarchy-pkgs/README.md) supplies release-tracking
 metadata, a PR description template, and a generator that verifies an anonymously
 accessible stable release before producing `pkgbuilds/learn-omarchy/`. Omarchy's
-GitHub tracker excludes prereleases, so publishing rc.4 alone is not sufficient.
+GitHub tracker excludes prereleases, so publishing rc.5 alone is not sufficient.
