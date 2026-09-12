@@ -1,39 +1,35 @@
-# Learn Omarchy 0.1.0-rc.5
+# Learn Omarchy 0.1.0
 
-**Release candidate for testing, not a stable release.**
+First public release. Still early: expect rough edges, and please report what
+confuses you.
 
-Learn Omarchy includes 17 lessons and 101 activities, Ohm-1 and Ollie, and local
-recorded narration with validated timing metadata. One package contains the app and its read-only
-desktop integration. No separate plugin setup or speech-service account is
-needed.
+Learn Omarchy includes 17 lessons and 101 activities, the guides Ohm-1 and
+Ollie, and local recorded narration with validated timing metadata. One package
+contains the app and its read-only desktop integration. No separate plugin
+setup or speech-service account is needed.
 
 ## Install
 
-Requires an updated **Omarchy 4.0.3 or newer** desktop. This candidate remains
-an unpublished draft until the owner explicitly approves distribution.
-A private repository/draft is not a public download. Collaborators can also
-build the committed checkout with `tools/prepare-checkout-package.mjs`;
-see the README's direct-from-GitHub instructions.
+Requires an updated **Omarchy 4.0.3 or newer** desktop.
 
-Once the release is published and accessible, download the package and
-`SHA256SUMS` from this release, then verify the exact package before installing:
+Download the package from this release, then install it with pacman:
 
 ```sh
-PACKAGE=learn-omarchy-0.1.0rc5-1-any.pkg.tar.zst
-awk -v file="$PACKAGE" '$2 == file {print}' SHA256SUMS | sha256sum --check --strict &&
-  sudo pacman -U "./$PACKAGE"
-/usr/bin/learn-omarchy
+sudo pacman -U ./learn-omarchy-0.1.0-1-any.pkg.tar.zst
+learn-omarchy
 ```
 
-Confirm that the package filename reports `OK` before installing. Checksums
-verify downloaded bytes; they aren't a signing-key authenticity guarantee.
-Pacman resolves required dependencies. The launcher prepares the bundled
-integration for your account automatically. Audio is bundled for offline use.
+To verify the download first, fetch `SHA256SUMS` from this release and run
+`sha256sum --check --ignore-missing SHA256SUMS` in the same directory.
+Checksums verify downloaded bytes; they aren't a signing-key authenticity
+guarantee. Pacman resolves required dependencies. The launcher prepares the
+bundled integration for your account automatically. Audio is bundled for
+offline use.
 
 For an isolated first-run trial:
 
 ```sh
-XDG_STATE_HOME="$(mktemp -d /tmp/learn-omarchy-trial.XXXXXX)" /usr/bin/learn-omarchy
+XDG_STATE_HOME="$(mktemp -d /tmp/learn-omarchy-trial.XXXXXX)" learn-omarchy
 ```
 
 This isolates learning preferences and progress, not the desktop integration.
@@ -51,11 +47,9 @@ Package removal requests permission and confirmation. Managed integration
 cleanup preserves progress, settings, backups, and user-edited files. Removing
 only the package directly through pacman can leave the user integration behind.
 
-## Candidate highlights
+## Highlights
 
-This candidate includes the lesson, presentation, and printable-reference fixes
-made after rc.4. All attached assets are built from the rc.5 tag, not reused
-from an earlier candidate.
+All attached assets are built from the v0.1.0 tag.
 
 - Clear goals throughout shortcut Practice mode; hints reveal instructions and keycaps.
 - Welcome mute/unmute no longer replays the current line.
@@ -74,12 +68,12 @@ from an earlier candidate.
 - Ollie's welcome has short, fading background birdsong.
 - Progress reset now proves both state files were saved and reports failures.
 - Ollie speaks 10% faster while preserving synchronized word timings.
-- Captions reveal as the coach speaks instead of appearing all at once.
+- Captions reveal as the guide speaks instead of appearing all at once.
 - Every activity was re-audited against Omarchy 4.0.3; Power availability,
   focused-monitor capture wording, and optional Compose behavior now match the
   actual platform.
 - Release validation waits for complete JSON fixture output, eliminating a
-  cancellation-test race exposed by the rc.4 Arch workflow.
+  cancellation-test race in the Arch packaging workflow.
 - Code uses MIT; original artwork/course content uses CC BY 4.0. Separately
   licensed birdsong and example assets retain CC0.
 
@@ -100,7 +94,7 @@ explicit choice; save work and know your password before trying lock practice.
 Clean graphical Omarchy installation, attended lock/microphone testing, and
 physical multi-monitor acceptance are still pending. Customized bars may still
 use approximate workspace highlights when individual pill geometry is unavailable.
-These limits remain disclosed for candidate testing, not waived for stable release. See
-`packaging/ACCEPTANCE.md` in the source archive. Report issues with the candidate
+These limits are disclosed, not resolved, in this early release. See
+`packaging/ACCEPTANCE.md` in the source archive. Report issues with the release
 version, lesson/step, environment, and reproduction steps; redact private
 desktop content from screenshots.

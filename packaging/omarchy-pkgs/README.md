@@ -3,8 +3,8 @@
 This is the preparation kit for a future `omacom/omarchy-pkgs` PR, modeled on
 [agent-arcade-bin #310](https://github.com/omacom/omarchy-pkgs/pull/310).
 **It does not authorize or perform submission, publication, or a visibility change.**
-The current repository is private and `v0.1.0-rc.5` is an unpublished candidate.
-There is intentionally no checked-in PKGBUILD pointing at that inaccessible release.
+The repository is public and `v0.1.0` is the first stable release. There is
+intentionally no checked-in PKGBUILD pointing at a release until submission is approved.
 
 ## Package design
 
@@ -30,8 +30,8 @@ local LICENSE source would break that one-source/one-checksum mapping.
 The GitHub provider ignores drafts and prereleases, even if their tags are public.
 The first eligible release must therefore be an explicitly approved **stable
 `vX.Y.Z` release**, at least 24 hours old. This also avoids incompatible mappings
-between SemVer `0.1.0-rc.5` and Arch `0.1.0rc5`. Do not relabel rc.5 as stable,
-move an existing tag, bypass the quarantine, or publish just to satisfy this tool.
+between SemVer candidates such as `0.1.0-rc.5` and Arch `0.1.0rc5`. Do not relabel a
+candidate as stable, move an existing tag, bypass the quarantine, or publish just to satisfy this tool.
 
 These choices were checked against `omacom/omarchy-pkgs` commit
 `f711dbb1111ac10e68236b487cd1f29403dd4655`:

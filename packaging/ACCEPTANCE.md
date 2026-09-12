@@ -1,12 +1,11 @@
 # Release acceptance
 
-The current candidate is **0.1.0-rc.5** (Arch version **0.1.0rc5**).
-It is not a stable release. CI and packaging checks do not establish that every
+The current release is **0.1.0** (Arch version **0.1.0**), an early public
+release. CI and packaging checks do not establish that every
 desktop, hardware device, or installed Omarchy version behaves correctly.
 
 ## Testing-prerelease distribution gates
 
-Keep rc.5 private and unpublished until the owner approves distribution.
 Before publishing a **testing prerelease**, require green exact-tag CI,
 license/audio checks, verified package contents, downloadable assets with
 matching checksums, current installation/removal instructions, and explicit

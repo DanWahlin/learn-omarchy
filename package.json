@@ -1,6 +1,6 @@
 {
   "name": "learn-omarchy",
-  "version": "0.1.0-rc.5",
+  "version": "0.1.0",
   "private": true,
   "license": "MIT AND CC-BY-4.0 AND CC0-1.0",
   "type": "module",
