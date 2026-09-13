@@ -126,12 +126,23 @@ test("essential cautions and keyboard alternatives are in the spoken instruction
   assert.match(instruction("upkeep-defaults"), /keep your current settings/);
   assert.match(instruction("upkeep-updates"), /not running an update/);
   assert.match(instruction("upkeep-recovery"), /don't restart anything/);
-  assert.match(completion("open-root-menu"), /Release Keys before typing/);
+  assert.match(completion("open-root-menu"), /course will close it when you continue/);
+  assert.doesNotMatch(completion("open-root-menu"), /Release Keys|Capture Keys/);
   assert.match(instruction("clipboard-practice"), /Shift and Enter to copy it without pasting/);
   assert.match(detail("clipboard-history"), /normally pastes/);
   assert.doesNotMatch(completion("apps-search-practice"), /found a terminal through search/);
   for (const id of ["tour-workspaces", "tour-clock", "tour-status"])
     assert.doesNotMatch(detail(id), /choose Skip/);
+});
+
+test("lesson content stays focused on Omarchy instead of keyboard-capture mechanics", () => {
+  for (const step of steps.values()) {
+    for (const field of ["instruction", "detail", "note", "completionMessage", "practicePrompt"] as const) {
+      const text = step[field];
+      if (typeof text !== "string") continue;
+      assert.doesNotMatch(text, /Release Keys|Capture Keys|keyboard capture/i, `${step.id}.${field}`);
+    }
+  }
 });
 
 test("hardware-dependent and multi-monitor guidance is explicit", () => {
@@ -176,12 +187,12 @@ test("hardware orientation describes Trigger controls and warns before opening",
 });
 
 test("the shortcut guide prominently warns that results execute commands", () => {
-  assert.match(instruction("open-keybindings"), /Search and read only/);
+  assert.match(instruction("open-keybindings"), /Read only for this lesson/);
   assert.match(instruction("open-keybindings"), /Enter or clicking a result runs that shortcut/);
   assert.match(instruction("open-keybindings"), /close windows or lock your screen/);
   assert.match(steps.get("open-keybindings")!.note!, /Read only.*Enter or clicking a result runs the shortcut/);
   assert.match(detail("open-keybindings"), /without activating a result/);
-  assert.match(completion("open-keybindings"), /without running a shortcut/);
+  assert.match(completion("open-keybindings"), /Looking is enough for this lesson/);
 });
 
 test("native recordings describe combined inputs using the actual menu labels", () => {
@@ -197,19 +208,14 @@ test("native recordings describe combined inputs using the actual menu labels", 
 });
 
 test("native search cancellation clears entered text before closing", () => {
-  assert.match(completion("open-root-menu"), /Escape clears typed text; press it again to close/);
-  assert.match(completion("open-root-menu"), /With no text, one press closes/);
   const cancellationCopy = [
-    detail("open-apps"), completion("open-keybindings"), detail("clipboard-history"),
-    detail("upkeep-install"), detail("upkeep-defaults"), detail("helpers-reminder"),
+    detail("clipboard-history"), detail("upkeep-defaults"), detail("helpers-reminder"),
     completion("helpers-reminder"), steps.get("helpers-reminder")!.note!, detail("share-menu")
   ];
   for (const text of cancellationCopy) {
     assert.match(text, /Escape clears typed text; press (?:it )?again to close, or once if empty/);
     assert.doesNotMatch(text, /Escape cancels|Escape to leave without scheduling/);
   }
-  assert.match(detail("open-apps"), /Then choose Capture Keys/);
-  assert.match(detail("open-keybindings"), /choose Capture Keys to continue/);
 });
 
 test("dictation replacements use the installed configuration, not a nonexistent setup menu", () => {

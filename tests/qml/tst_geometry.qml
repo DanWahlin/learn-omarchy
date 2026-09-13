@@ -28,6 +28,7 @@ Item {
         "import QtQuick\nItem { id: root; width: 1920; height: 1200\n"
         + "property var course: ({})\nproperty var targetWindowGeometry: null\n"
         + "property var targetMonitorGeometry: null\nproperty bool currentStepHasNoVisibleTarget: false\n"
+        + "property bool stepOwnsCleanupSurface: false\nproperty string targetLayerNamespace:''\n"
         + "property string phase:'waiting'\nproperty bool currentStepIsTour:true\nproperty bool currentTourTalks:false\n"
         + "property string characterState:'tour-point'\nproperty real lessonContentOpacity:1\nproperty bool reducedMotion:true\n"
         + "property real textScale:1\nproperty color accent:'blue'\nproperty color instruction:'yellow'\n"
@@ -54,6 +55,8 @@ Item {
       fixture.targetWindowGeometry = null
       fixture.targetMonitorGeometry = null
       fixture.currentStepHasNoVisibleTarget = false
+      fixture.stepOwnsCleanupSurface = false
+      fixture.targetLayerNamespace = ""
       fixture.currentStep = {completion:{type:"hyprland-layer-open"},
         highlight:{target:"panel",shape:"rectangle",anchor:"center",x:0,y:0,width:340,height:760}}
     }
@@ -110,6 +113,12 @@ Item {
       fixture.widgetRect = {x:100,y:0,width:28,height:30,estimated:true}
       compare(fixture.overlay.targetIsEstimated, true)
       compare(fixture.overlay.hasReliableCompletionTarget, false)
+      compare(fixture.overlay.hasCoachCompletionTarget, true, "the coach can point at an inferred workspace button")
+      fixture.currentStepHasNoVisibleTarget = true
+      compare(fixture.overlay.hasCoachCompletionTarget, false)
+      fixture.currentStepHasNoVisibleTarget = false
+      fixture.widgetRect = null
+      compare(fixture.overlay.hasCoachCompletionTarget, false, "do not guess a missing bar's position")
       fixture.widgetRect = {x:100,y:0,width:28,height:30}
       compare(fixture.overlay.targetIsEstimated, false)
       compare(fixture.overlay.hasReliableCompletionTarget, true)
@@ -119,6 +128,13 @@ Item {
       fixture.widgetRect = {x:1847,y:0,width:64,height:30}
       compare(fixture.overlay.targetIsEstimated, false)
       compare(fixture.overlay.hasReliableCompletionTarget, false)
+      compare(fixture.overlay.hasCoachCompletionTarget, false)
+      fixture.stepOwnsCleanupSurface = true
+      fixture.targetLayerNamespace = "omarchy-menu"
+      compare(fixture.overlay.hasCoachCompletionTarget, true,
+        "an opened full-screen layer may guide the coach to the course's fitted panel estimate")
+      compare(fixture.overlay.hasReliableCompletionTarget, false,
+        "estimated popup guidance must not become an exact marker")
       fixture.widgetRect = {x:1470,y:38,width:440,height:264,panel:true}
       compare(fixture.overlay.hasReliableCompletionTarget, true)
     }

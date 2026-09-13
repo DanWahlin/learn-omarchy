@@ -82,7 +82,20 @@ character manifests. Optional reference activities remain introductions even
 though their instructions are narrated: listening never counts as performing
 grouping, pinning, mouse dragging, or notification actions.
 
-## Mixed practice
+## Review modules
+
+**Review modules** revisits up to three completed eligible modules in random
+order, retaining their practical workflows. Arcade instead provides quick
+shortcut-recall games and simulated actions. The review button is a secondary
+action beside course progress in the lessons dialog.
+Internal `mixedPractice` identifiers are unchanged.
+
+Module completion shows a compact checkmark, one complete/explored heading,
+the unchanged spoken recap, and one primary continuation action. Replay, Practice,
+eligible module review, and printable shortcuts stay in the lessons dialog,
+without duplicate actions or a result-count breakdown on the completion screen.
+Active module review keeps Next review module/Finish review
+as the primary action.
 
 `app/Retention.js` provides:
 
@@ -119,16 +132,19 @@ mixedPracticeActive = true
 startLesson(Retention.lessonIndex(course, plan[0]), true, false)
 ```
 
-The lesson-complete screen can offer **Next mixed lesson**, which shifts the
+The lesson-complete screen offers **Next review module**, which shifts the
 next ID and calls the same `startLesson(index, true, false)`. Resolve IDs each
 time, not stored numeric indexes. Finish or cancel the queue when returning
 to the menu, selecting a normal lesson, or completing its last block.
 Do not reset the queue inside `resetLessonRuntime()`, because `startLesson()`
 uses that function between blocks. Do not auto-dispatch exercises.
 
-The shell's themed `UiButton` controls expose mixed practice and printable
-shortcuts in the menu and lesson-complete screens. They include disabled-state
-guidance, explicit printable-generation errors, and Enter-key continuation.
+The shell's themed `UiButton` controls expose module review and printable
+shortcuts in the lessons dialog. They include disabled-state guidance and
+explicit printable-generation errors. Review modules stays hidden until
+at least two modules are eligible. Once available, its tooltip explains the
+review workflow; no unlock announcement is shown. The lesson-complete screen
+only offers the continuation action, including next/finish during active review.
 The shell generates the printable reference for the active course before
 opening the local HTML in a browser; no separate retention UI component is
 shipped.

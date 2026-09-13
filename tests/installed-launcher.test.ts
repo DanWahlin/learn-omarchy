@@ -53,8 +53,9 @@ if (name === "qs") {
   console.log(JSON.stringify(fs.existsSync(home + "/discovered") && fs.existsSync(target) ?
     [{id:"learn-omarchy.geometry", kinds:["service"], firstParty:false, enabled, active:false}] : []));
 } else if (args.join(" ") === "learnGeometry capabilities") {
-  console.log(JSON.stringify({shellAvailable:true, barAvailable:true, manifestId:"",
-    slotsAvailable:false, windowMappingAvailable:false}));
+  const limited = fs.existsSync(home + "/limited");
+  console.log(JSON.stringify({shellAvailable:true, barAvailable:true, manifestId:limited ? "" : "omarchy.bar",
+    slotsAvailable:!limited, windowMappingAvailable:!limited}));
 } else if (args.join(" ") === "plugin --help") {
   console.log("omarchy plugin enable\\nomarchy plugin list");
 } else if (args[0] === "plugin" && args[1] === "validate") {
@@ -105,6 +106,19 @@ if (name === "qs") {
       [["omarchy", "plugin", "list"], ["omarchy-shell", "learnGeometry", "capabilities"],
         ["qs", "--no-duplicate", "--path"]],
       "normal reopening doesn't reinstall, reload, or re-enable the service");
+
+    await writeFile(join(home, "limited"), "yes");
+    const beforeLimited = (await calls()).length;
+    const limited = launch();
+    assert.equal(limited.status, 0, "restricted host APIs do not block the application");
+    assert.match(JSON.parse(await readFile(started, "utf8")).error, /does not expose detailed widget geometry/);
+    assert.deepEqual((await calls()).slice(beforeLimited).map(call => call.slice(0, 3)),
+      [["omarchy", "plugin", "list"], ["omarchy-shell", "learnGeometry", "capabilities"],
+        ["qs", "--no-duplicate", "--path"]],
+      "an incompatible unchanged host does not trigger desktop reconfiguration");
+    await rm(join(home, "limited"));
+    assert.equal(launch().status, 0);
+    assert.equal(JSON.parse(await readFile(started, "utf8")).error, "", "restored capabilities clear the diagnostic");
 
     const bundled = join(root, "integrations/omarchy/learn-omarchy.geometry/Geometry.js");
     await writeFile(bundled, await readFile(bundled, "utf8") + "\n// Installed package update.\n");

@@ -265,7 +265,7 @@
           "id": "tour-omarchy-menu",
           "practicePrompt": "Open the Omarchy menu.",
           "instruction": "Let's try another shortcut. Hold Super and tap Space to open the Omarchy menu.",
-          "detail": "The Omarchy menu brings together apps, settings, and system tools. In guided activities, the course captures your shortcut keys; Release Keys lets you interact with the opened menu.",
+          "detail": "The Omarchy menu brings together apps, settings, and system tools. Super and Space opens it whenever you need it.",
           "keys": [
             "SUPER",
             "+",
@@ -392,14 +392,14 @@
               "omarchy.menu"
             ]
           },
-          "completionMessage": "The menu is open. Choose Release Keys before typing or browsing here. Escape clears typed text; press it again to close. With no text, one press closes. Then choose Capture Keys to return to the course.",
+          "completionMessage": "The Omarchy menu is open. It brings together apps, settings, and system tools. The course will close it when you continue.",
           "completionAudio": "audio/open-root-menu-done.mp3"
         },
         {
           "id": "open-apps",
           "practicePrompt": "Open the Apps menu.",
           "instruction": "Now for your apps. Alt is the Option key on a Mac keyboard. Hold Super and Alt, then tap Space to open the Apps menu.",
-          "detail": "The Apps menu lists launchable apps, not every installed package. Choose Release Keys to search it. Escape clears typed text; press it again to close, or once if empty. Then choose Capture Keys to return to the course.",
+          "detail": "The Apps menu lists launchable apps, not every installed package. The next exercise gives you control so you can search for and launch an app yourself.",
           "keys": [
             "SUPER",
             "+",
@@ -473,8 +473,8 @@
         {
           "id": "open-keybindings",
           "practicePrompt": "Open the shortcut guide. Read only: pressing Enter or clicking a result runs that shortcut.",
-          "instruction": "Need to look up a shortcut? Press Super and K to open the shortcut guide. Search and read only for this lesson: pressing Enter or clicking a result runs that shortcut, which could close windows or lock your screen.",
-          "detail": "Choose Release Keys to type a filter. Read the matching key combinations without activating a result, then close the guide and choose Capture Keys to continue.",
+          "instruction": "Need to look up a shortcut? Press Super and K to open the shortcut guide. Read only for this lesson: pressing Enter or clicking a result runs that shortcut, which could close windows or lock your screen.",
+          "detail": "The guide can filter shortcuts as you type. For now, read the visible key combinations without activating a result.",
           "note": "Read only: Enter or clicking a result runs the shortcut, not a help page.",
           "keys": [
             "SUPER",
@@ -511,7 +511,7 @@
             "durationMs": 2200,
             "target": "panel"
           },
-          "completionMessage": "The shortcut guide is open. To leave without running a shortcut, Escape clears typed text; press it again to close, or once if empty.",
+          "completionMessage": "The shortcut guide is open. It lists Omarchy shortcuts and can filter them as you type. Looking is enough for this lesson.",
           "completionAudio": "audio/open-keybindings-done.mp3"
         }
       ]
@@ -574,7 +574,7 @@
           "note": "Only the terminal opened for this activity will close.",
           "windowFromStep": "launch-terminal",
           "instruction": "Now let's tidy up. Press Super and W to close that terminal.",
-          "detail": "Outside the course, this closes the active window: the one receiving your input. Here, the guided action targets only the terminal opened for this activity.",
+          "detail": "Super and W closes the active window: the one receiving your input. Here it closes only the terminal you just opened.",
           "keys": [
             "SUPER",
             "+",
@@ -697,7 +697,7 @@
           "note": "Your other windows stay open.",
           "windowFromStep": "launch-files",
           "instruction": "Same move again. Press Super and W to close the file manager.",
-          "detail": "The guided action closes the course's file-manager window, not another window you had open.",
+          "detail": "This closes only the Files window you just opened, not another window on your desktop.",
           "keys": [
             "SUPER",
             "+",
@@ -846,7 +846,7 @@
           "practicePrompt": "Change the split between the two tiled practice terminals.",
           "note": "Split changes require the dwindle layout and two tiled practice windows.",
           "instruction": "Press Super and J to change how the two practice terminals share their space. A split is the dividing line between tiles: this shortcut changes its direction.",
-          "detail": "This activity checks that the same two practice windows change from side by side to stacked, or the reverse. It does not count focus or a successful command as a split. If your workspace uses scrolling or a custom layout, skip this activity rather than changing your workspace settings.",
+          "detail": "Watch the same two terminals change from side by side to stacked, or the reverse. This requires Omarchy's dwindle layout. If you use scrolling or another custom layout, choose Skip instead of changing your workspace settings.",
           "audio": "audio/windows-split.mp3",
           "completionAudio": "audio/windows-split-done.mp3",
           "keys": ["SUPER", "+", "J"],
@@ -871,7 +871,7 @@
           "practicePrompt": "Toggle the practice terminals' split direction once more.",
           "note": "This changes the split again, not the workspace's layout setting.",
           "instruction": "Press Super and J again to toggle the dividing line back. Both terminals should stay tiled.",
-          "detail": "The same shortcut toggles in both directions. We check the two owned practice windows again; unrelated window movement does not finish the activity.",
+          "detail": "The same shortcut toggles in both directions. Only the two terminals from this lesson are used.",
           "audio": "audio/windows-split-restore.mp3",
           "completionAudio": "audio/windows-split-restore-done.mp3",
           "keys": ["SUPER", "+", "J"],
@@ -986,7 +986,7 @@
           "practicePrompt": "Change the width of the floating practice terminal.",
           "note": "Use the key immediately left of Backspace, normally = on a US keyboard.",
           "instruction": "With the practice terminal floating, hold Super and press the key immediately left of Backspace. On a US keyboard it is equals. This changes the window's width; you do not need Shift.",
-          "detail": "Omarchy binds the physical key position, code 21, rather than the printed equals character. The guided action resizes only the owned terminal by 100 logical pixels. We verify its size changed, not just that the shortcut ran. Window size limits may prevent a change; use Skip if your terminal cannot resize.",
+          "detail": "Omarchy uses the key's physical position rather than its printed symbol. This widens only the floating terminal. Window size limits may prevent a change; choose Skip if the terminal cannot resize.",
           "audio": "audio/windows-resize.mp3",
           "completionAudio": "audio/windows-resize-done.mp3",
           "keys": ["SUPER", "+", "EQUAL"],
@@ -1174,7 +1174,7 @@
           "windowFromStep": "windows-open-second",
           "directionFromStep": "windows-open-first",
           "instruction": "Super and an arrow focuses a neighboring window. Use the highlighted arrow to focus your other practice terminal.",
-          "detail": "The arrow follows your terminals' actual positions. This guided action doesn't change any of your existing windows.",
+          "detail": "The arrow follows the terminals' actual positions. Your existing windows are left unchanged.",
           "keys": [
             "SUPER",
             "+",
@@ -1223,7 +1223,7 @@
           "note": "Only our two practice terminals will change positions.",
           "windowFromStep": "windows-open-second",
           "instruction": "Add Shift to swap window positions. Hold Super and Shift, then press the highlighted arrow.",
-          "detail": "Outside the course this swaps with the neighboring window. Here we safely exchange only our two practice terminals.",
+          "detail": "This normally swaps the active window with its neighbor. Here it exchanges only the two practice terminals.",
           "keys": [
             "SUPER",
             "+",
@@ -1899,7 +1899,7 @@
           "practicePrompt": "Close the practice terminal, leaving your other windows alone.",
           "windowFromStep": "workspaces-open-terminal",
           "instruction": "Let's leave the desktop tidy. Press Super and W to close our practice terminal.",
-          "detail": "This guided action closes only the terminal from this lesson. Your other work stays open.",
+          "detail": "This closes only the terminal from this lesson. Your other work stays open.",
           "keys": [
             "SUPER",
             "+",
@@ -1969,7 +1969,7 @@
           "keys": [],
           "note": "Reference only. No grouping action is run or marked as practiced.",
           "instruction": "A window group holds several windows in one tile, with tabs along the top. Super and G toggles grouping. Super, Alt, and an arrow moves a window into an adjacent group; Super, Alt, and Tab cycles the group. This is a read-only introduction.",
-          "detail": "Super, Alt, and G removes the active window from its group. These commands affect the focused window, so try them later only with disposable practice windows. Reading this reference is recorded as introduced, not as a verified grouping exercise.",
+          "detail": "Super, Alt, and G removes the active window from its group. These commands affect the focused window, so try them later only with disposable practice windows.",
           "completion": { "type": "narration-complete", "delayMs": 900 },
           "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
         },
@@ -2003,7 +2003,7 @@
           "pose": "talk",
           "audio": "audio/advanced-window-mouse.mp3",
           "keys": [],
-          "note": "Reference only. Mouse gestures are not verified by the keyboard exercise runner.",
+          "note": "Reference only. Try these mouse gestures later with disposable windows.",
           "instruction": "The mouse works with Super too. Hold Super and drag with the left mouse button to move a window; hold Super and drag with the right button to resize it. Release the mouse button and Super when you are done.",
           "detail": "Try these later on a disposable floating terminal, where movement is easiest to see. On a tiled window, the layout decides how dragging changes the tiles. This reference does not capture a mouse gesture or claim you performed one.",
           "completion": { "type": "narration-complete", "delayMs": 900 },
@@ -2078,7 +2078,7 @@
           "practicePrompt": "Open the Audio panel.",
           "note": "Output is where sound plays; input is your microphone.",
           "instruction": "Hold Super and Control, then press A to open the Audio panel.",
-          "detail": "Output is where sound plays; input is your microphone. Release Keys to explore the panel, Escape to close it, then Capture Keys to return. No volume changes are required.",
+          "detail": "Output is where sound plays; input is your microphone. No volume changes are required.",
           "keys": [
             "SUPER",
             "+",
@@ -2129,7 +2129,7 @@
           "practicePrompt": "Open the Network panel.",
           "note": "Check the connection without disconnecting or changing networks.",
           "instruction": "Hold Super and Control, then press W to open the Network panel.",
-          "detail": "Read the connection status without disconnecting. Release Keys to use the panel, Escape to close it, and Capture Keys to return.",
+          "detail": "Read the connection status without disconnecting or changing networks.",
           "keys": [
             "SUPER",
             "+",
@@ -2232,7 +2232,7 @@
           "practicePrompt": "Open the calendar.",
           "note": "Clicking the clock opens the same calendar.",
           "instruction": "What's the date? Hold Super, Control, and Alt, then press D to open the calendar.",
-          "detail": "Clicking the clock is a useful alternative to this longer shortcut. Explore with Release Keys; Escape closes the panel.",
+          "detail": "Clicking the clock is a useful alternative to this longer shortcut.",
           "keys": [
             "SUPER",
             "+",
@@ -2285,7 +2285,7 @@
           "practicePrompt": "Open the Background switcher. Look without selecting a different background.",
           "note": "Choosing a background changes your desktop immediately.",
           "instruction": "Fancy a new look? Hold Super and Control, then press Space to open the Background switcher.",
-          "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
+          "detail": "Opening this preview doesn't apply anything. Selecting a background changes your desktop immediately, so looking is enough for this lesson.",
           "keys": [
             "SUPER",
             "+",
@@ -2325,7 +2325,7 @@
             "durationMs": 2000,
             "target": "panel"
           },
-          "completionMessage": "Pick a background you like, or press Escape to keep the one you have.",
+          "completionMessage": "The Background switcher is open. It previews available choices without changing your desktop. Looking is enough for this lesson.",
           "completionAudio": "audio/background-menu-done.mp3"
         },
         {
@@ -2333,7 +2333,7 @@
           "practicePrompt": "Open the Theme menu. Look without changing your theme.",
           "note": "Choosing a theme applies it immediately; no change is required.",
           "instruction": "Hold Super, Shift, and Control, then press Space to open the Theme menu.",
-          "detail": "Opening this preview doesn't apply anything. Release Keys to browse; Escape cancels. Applying a selection is optional and changes your desktop immediately. Remember your current choice so you can return to it.",
+          "detail": "Opening this preview doesn't apply anything. Selecting a theme changes your desktop immediately, so looking is enough for this lesson.",
           "keys": [
             "SUPER",
             "+",
@@ -2375,7 +2375,7 @@
             "durationMs": 2000,
             "target": "panel"
           },
-          "completionMessage": "Themes coordinate the desktop's appearance. Selecting one applies a change; close the menu without choosing to keep your current theme.",
+          "completionMessage": "The Theme menu is open. Themes coordinate the desktop's appearance, but no change is required for this lesson.",
           "completionAudio": "audio/theme-menu-done.mp3"
         },
         {
@@ -2785,7 +2785,7 @@
           "practice": "ocr",
           "optional": true,
           "instruction": "An image can contain useful text. Select the sample text on the practice card, extract it, and paste the result.",
-          "detail": "OCR means optical character recognition. Outside the course, Super+Ctrl+Print opens text capture. Recognition can make mistakes, so compare the pasted words with the original. This optional exercise uses only a harmless sample.",
+          "detail": "OCR means optical character recognition. Super+Ctrl+Print opens text capture. Recognition can make mistakes, so compare the pasted words with the original. This optional exercise uses only a harmless sample.",
           "keys": [],
           "actionLabel": "Start exercise",
           "audio": "audio/ocr-practice.mp3",
@@ -2851,8 +2851,8 @@
           "id": "upkeep-install",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Search Install in the Omarchy menu. Just note the location; don't install anything for this lesson. A package is installable software. Prefer official packages. Community packages from the Arch User Repository, or AUR, need closer review.",
-          "detail": "This is an introduction, not an installation task. Use Release Keys if you'd like to locate Install. Escape clears typed text; press it again to close, or once if empty. Then choose Capture Keys to return. Installing software can request your password and change the system. No installation is required for completion.",
+          "instruction": "Install is available from the Omarchy menu. Just note the location; don't install anything for this lesson. A package is installable software. Prefer official packages. Community packages from the Arch User Repository, or AUR, need closer review.",
+          "detail": "This is an introduction, not an installation task. Installing software can request your password and change the system. No installation is required for completion.",
           "keys": [],
           "audio": "audio/upkeep-install.mp3",
           "completion": {
@@ -3056,7 +3056,7 @@
           "practicePrompt": "Open the Display panel. Leave its controls unchanged; changes apply immediately.",
           "note": "Display changes apply immediately; leave the controls unchanged.",
           "instruction": "Hold Super and Control, then press D to open the Display panel. Just look for now: changes apply immediately, so leave the controls unchanged.",
-          "detail": "The panel offers text size and scale, brightness where supported, and display enable/disable controls when multiple displays are available. Release Keys to explore; Escape closes it. Resolution is configured separately under Setup > Monitors.",
+          "detail": "The panel offers text size and scale, brightness where supported, and display enable/disable controls when multiple displays are available. Resolution is configured separately under Setup > Monitors.",
           "keys": [
             "SUPER",
             "+",
@@ -3366,7 +3366,7 @@
           "windowSize": { "width": 1200, "height": 640 },
           "note": "Inspect resource use without stopping any programs.",
           "instruction": "Wondering what's using your computer? Press Super, Control, and T to open the activity monitor.",
-          "detail": "The activity monitor shows processor use, memory, storage, and running programs. Release Keys to explore, then Capture Keys to return. Don't stop any programs for this lesson.",
+          "detail": "The activity monitor shows processor use, memory, storage, and running programs. Don't stop any programs for this lesson.",
           "keys": [
             "SUPER",
             "+",
@@ -3408,7 +3408,7 @@
           "practicePrompt": "Close the activity-monitor window opened by this lesson.",
           "windowFromStep": "tools-monitor-open",
           "instruction": "Press Super and W to close our activity monitor.",
-          "detail": "The course closes only the window it opened, never an existing tool window.",
+          "detail": "This closes only the activity monitor opened here. Existing tool windows stay open.",
           "keys": [
             "SUPER",
             "+",
@@ -3450,7 +3450,7 @@
           "practicePrompt": "Open Omarchy's calculator.",
           "note": "The lesson checks that the calculator opens, not your calculation.",
           "instruction": "For a quick calculation, press Super, Control, and Q. The calculator is built right in.",
-          "detail": "Release Keys and try 5 + 5, then Capture Keys to return. This activity checks that the calculator opened, not the calculation. An existing calculator window won't be closed by the course.",
+          "detail": "The calculator accepts expressions such as 5 + 5. This activity only asks you to open it, and an existing calculator window won't be closed.",
           "keys": [
             "SUPER",
             "+",
@@ -3480,7 +3480,7 @@
             "durationMs": 1800,
             "target": "window"
           },
-          "completionMessage": "The calculator is open. You can try a calculation before returning to the lesson.",
+          "completionMessage": "The calculator is open and ready whenever you need a quick calculation.",
           "completionAudio": "audio/tools-calculator-open-done.mp3"
         },
         {
@@ -3488,7 +3488,7 @@
           "practicePrompt": "Close the calculator opened by this lesson.",
           "windowFromStep": "tools-calculator-open",
           "instruction": "Press Super and W to close our calculator.",
-          "detail": "The course closes only the window it opened, never an existing tool window.",
+          "detail": "This closes only the calculator opened here. Existing calculator windows stay open.",
           "keys": [
             "SUPER",
             "+",

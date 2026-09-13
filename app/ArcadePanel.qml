@@ -1,12 +1,13 @@
 pragma ComponentBehavior: Bound
 
 import QtQuick
+import QtQuick.Controls
 import QtQuick.Layouts
 import "ArcadeLogic.js" as ArcadeLogic
+import "ThemeColors.js" as ThemeColors
 
 Item {
   id: root
-
   required property var course
   required property var stats
   required property color backgroundColor
@@ -15,1470 +16,868 @@ Item {
   required property color mutedColor
   required property color urgentColor
   required property real textScale
+  readonly property real fontScale: textScale * 1.25
   required property bool reducedMotion
   property bool active: false
+  property var pressedKeys: []
+  property string storageNotice: ""
+  property string guideName: "Ohm1"
+  property url guideSource: ""
+  property var guidePack: null
+  property string appRoot: ""
+  property url wallpaperSource: ""
+  property string wallpaperNotice: ""
+  property bool keyboardCaptureAvailable: true
 
   signal closeRequested()
   signal statsCommitted(var value)
   signal effectRequested(string name)
   signal activeHostChanged(bool isActive)
+  signal clearInputRequested()
+  signal keyfallMissed()
+
+  Keys.onEscapePressed: event => {
+    root.handleEscape()
+    event.accepted = true
+  }
 
   property string screen: "hub"
   property string mode: ""
   property var challenges: []
+  property var workingStats: ArcadeLogic.mergeStats(stats)
   property var deck: []
+  property var queue: []
   property int challengeIndex: 0
+  property int answeredCount: 0
   property int score: 0
   property int streak: 0
   property int bestRunStreak: 0
   property int cleanAnswers: 0
+  property int wrongAttempts: 0
+  property int lastAwardedPoints: 0
+  property string lastRescueReaction: ""
+  property bool challengeEngaged: false
   property bool hinted: false
+  property bool hintVisible: false
+  property string assistanceReason: ""
+  property bool competitive: true
+  property bool targeted: false
   property string feedback: ""
-  property real gameStartedAt: 0
-  property real challengeStartedAt: 0
-  property int remainingMs: 0
-  property int keyfallRetries: 0
+  property string selectedCategory: "all"
+  property string selectedPace: "standard"
+  property string runPace: "standard"
+  property string runDeckKey: ""
+  property string sessionId: ""
+  property var previousBest: ({ bestScore: 0, plays: 0, splits: [] })
+  property var splits: []
+  property var weakRunIds: []
+  property var retriedIds: []
+  property var regainedIds: []
+  property real elapsedMs: 0
+  property real challengeElapsedMs: 0
+  property real lastTickAt: 0
+  property real responseRemainingMs: 0
+  property bool responsePending: false
+  property int remainingMs: 60000
   property real keyfallProgress: 0
+  property int rescueCompleted: 0
+  property var rescueMission: null
+  property string lastRescueMissionId: ""
   property int finalScore: 0
   property int finalStreak: 0
   property int finalClean: 0
   property int finalElapsedMs: 0
   property bool newBest: false
-  property int feedbackPulse: 0
-  property int celebrationPulse: 0
-  property int wrongPulse: 0
-  property int lastPoints: 0
-  property string celebrationMessage: ""
-  property int entrancePulse: 0
-  readonly property var currentChallenge: deck.length > 0
-    ? deck[challengeIndex % deck.length] : null
-  readonly property var expectedKeys: currentChallenge ? currentChallenge.keys : []
+  property bool newBestPace: false
+  property int navigationIndex: 0
+  readonly property int arrivalDwellMs: 1400
+  readonly property bool rescueArrivalPending: mode === "rescue" && responsePending
+    && runTarget > 0 && rescueCompleted >= runTarget
+  readonly property int responseDwellMs: mode === "rescue"
+    ? rescueArrivalPending ? 1200 : 850 : 700
+  readonly property int fallDurationMs: runPace === "relaxed" ? 11000 : runPace === "fast" ? 5000 : 7500
   readonly property bool running: screen === "sprint" || screen === "rescue" || screen === "keyfall"
-  readonly property int runTarget: mode === "rescue" ? 6 : mode === "keyfall" ? 12 : 0
-  readonly property int elapsedMs: gameStartedAt > 0 ? Math.max(0, Date.now() - gameStartedAt) : 0
-  readonly property color modeAccent: mode === "keyfall" ? urgentColor
-    : mode === "rescue" ? Qt.lighter(accentColor, 1.35) : accentColor
-  readonly property bool frenzy: mode === "sprint" && streak >= 5
-  readonly property string resultRank: finalScore >= 4000 ? "S"
-    : finalScore >= 2500 ? "A" : finalScore >= 1400 ? "B"
-    : finalScore >= 600 ? "C" : "D"
-
-  function modeStats(id) {
-    var safe = ArcadeLogic.mergeStats(stats)
-    return safe.modes ? safe.modes[id] : safe[id]
+  readonly property var currentEntry: mode === "sprint"
+    ? (deck.length ? { challenge: deck[challengeIndex % deck.length], retry: false } : null)
+    : (queue[challengeIndex] || null)
+  readonly property var currentChallenge: currentEntry ? currentEntry.challenge : null
+  readonly property var currentRescueStep: mode === "rescue" && rescueMission
+    && Array.isArray(rescueMission.steps) ? (rescueMission.steps[challengeIndex] || null) : null
+  readonly property string currentPrompt: currentRescueStep ? currentRescueStep.prompt
+    : currentChallenge ? currentChallenge.prompt : ""
+  readonly property string currentDetail: currentChallenge ? currentChallenge.detail : ""
+  readonly property var expectedKeys: currentChallenge ? currentChallenge.keys : []
+  readonly property bool isRetry: !!(currentEntry && currentEntry.retry)
+  readonly property int runTarget: mode === "sprint" ? 0 : queue.length
+  readonly property int regainedRecall: regainedIds.length
+  readonly property var mastery: ArcadeLogic.masterySummary(workingStats, challenges)
+  readonly property var learningMilestones: {
+    var practiced = mastery.practiced > 0
+    var independent = mastery.independent + mastery.mastered > 0
+    var retained = mastery.mastered > 0
+    var skills = workingStats.skills || ({})
+    Object.keys(skills).forEach(function(signature) {
+      var skill = skills[signature]
+      practiced = practiced || skill.attempts > 0
+      independent = independent || skill.firstTry > 0
+      var sessions = skill.successfulSessions || []
+      if (sessions.length >= 2 && sessions[sessions.length - 1].at - sessions[0].at >= 86400000)
+        retained = true
+    })
+    return [
+      { id: "first-practice", label: "First practice", earned: practiced },
+      { id: "independent-recall", label: "Independent recall", earned: independent },
+      { id: "retained-days", label: "Retained across days", earned: retained }
+    ]
   }
-
+  readonly property var recommendation: ArcadeLogic.recommendedPractice(challenges, workingStats)
+  readonly property var categories: ["all"].concat(mastery.byCategory.map(function(item) { return item.category }))
+  readonly property color surfaceColor: {
+    var base = Qt.rgba(backgroundColor.r, backgroundColor.g, backgroundColor.b, 1)
+    var candidate = Qt.tint(base, Qt.rgba(foregroundColor.r, foregroundColor.g, foregroundColor.b, 0.035))
+    return ThemeColors.contrast(String(foregroundColor), String(candidate)) >= 4.5 &&
+      ThemeColors.contrast(String(mutedColor), String(candidate)) >= 4.5 &&
+      ThemeColors.contrast(String(urgentColor), String(candidate)) >= 4.5 ? candidate : base
+  }
+  readonly property color raisedColor: Qt.tint(surfaceColor, Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.09))
+  readonly property color lineColor: Qt.tint(surfaceColor, Qt.rgba(foregroundColor.r, foregroundColor.g, foregroundColor.b, 0.22))
+  readonly property color inkAccent: backgroundColor.hslLightness > 0.6 ? Qt.darker(accentColor, 1.8) : accentColor
+  readonly property color buttonInk: accentColor.hslLightness > 0.6 ? "#131820" : "#ffffff"
+  readonly property color modeAccent: screen === "hub" ? accentColor : colorForMode(mode)
+  readonly property color modeInk: inkForColor(modeAccent)
+  readonly property color modeButtonInk: modeAccent.hslLightness > 0.6 ? "#131820" : "#ffffff"
+  readonly property real playViewportHeight: scroller.availableHeight
+  readonly property bool compactLayout: width < 900 || height < 700
+  readonly property real dialogMargin: width < 900 ? 12 : 32
+  readonly property real contentMargin: width < 900 ? 20 : 32
+  readonly property real nonPlayWidth: 1180 * textScale
+  readonly property real completionWidth: 820 * textScale
+  readonly property var currentPage: screen === "hub" ? hubPageLoader.item
+    : screen === "paused" ? pausedPageLoader.item
+    : screen === "complete" ? completePageLoader.item
+    : screen === "results" ? resultsPageLoader.item : playPageLoader.item
+  readonly property var navigationControls: currentPage ? currentPage.controls.concat([backButton]) : [backButton]
+  readonly property var selectedControl: navigationControls[navigationIndex] || null
+  readonly property string resultTitle: ArcadeLogic.resultLabel(mode, finalClean, answeredCount)
+  readonly property string paceLabel: {
+    if (!competitive) return "Practice pace · assisted runs never overwrite a challenge record."
+    if (!previousBest.plays) return "First race on this deck. Your completed answers will set its pace."
+    var past = 0
+    for (var i = 0; i < previousBest.splits.length; i++) {
+      if (previousBest.splits[i] <= elapsedMs) past++
+    }
+    return "Best-score run pace: " + past + " answers by now · you " + (answeredCount >= past ? "+" : "") + (answeredCount - past)
+  }
   function modeName(id) {
-    if (id === "sprint") return "SHORTCUT SPRINT"
-    if (id === "rescue") return "WINDOW RESCUE"
-    return "KEYFALL"
+    return id === "sprint" ? "Shortcut Sprint" : id === "rescue" ? "Window Rescue" : "Keyfall"
   }
-
+  function arcadeAssetUrl(name) {
+    if (!appRoot) return Qt.resolvedUrl("../assets/arcade/" + name)
+    return "file://" + (appRoot + "/assets/arcade/" + name)
+      .split("/").map(encodeURIComponent).join("/")
+  }
+  function colorForMode(id) {
+    if (id !== "rescue" && id !== "keyfall") return accentColor
+    var hue = Math.max(0, accentColor.hslHue)
+    var shift = id === "rescue" ? -0.12 : 0.12
+    return Qt.hsla((hue + shift + 1) % 1, Math.max(0.45, accentColor.hslSaturation),
+      backgroundColor.hslLightness > 0.6 ? 0.36 : 0.7, 1)
+  }
+  function inkForColor(value) {
+    return ThemeColors.readable(String(value), String(surfaceColor))
+  }
+  function textOnColor(value) { return ThemeColors.onColor(String(value)) }
+  function modeStats(id) { return ArcadeLogic.mergeStats(workingStats)[id] }
+  function categoryLabel(value) { return value === "all" ? "All topics" : value.charAt(0).toUpperCase() + value.slice(1) }
   function formatTime(ms) {
-    var seconds = Math.max(0, Math.ceil(Number(ms) / 1000))
-    var minutes = Math.floor(seconds / 60)
-    var remainder = seconds % 60
-    return minutes > 0 ? minutes + ":" + (remainder < 10 ? "0" : "") + remainder : seconds + "s"
+    var seconds = Math.max(0, Math.ceil(ms / 1000))
+    return seconds >= 60 ? Math.floor(seconds / 60) + ":" + (seconds % 60 < 10 ? "0" : "") + seconds % 60 : seconds + "s"
   }
-
+  function rescueReactionForAction(action, finalStep) {
+    if (finalStep && rescueMission && rescueMission.arrival) return rescueMission.arrival
+    if (action === "launch-terminal") return "Terminal systems online."
+    if (action === "launch-browser") return "Browser link established."
+    if (action === "launch-files") return "Cargo files online."
+    if (action === "float") return "Window released from the grid."
+    if (action === "widen") return "Viewport expanded."
+    if (action === "narrow") return "Viewport tightened."
+    if (action === "fullscreen") return "Full-screen lock confirmed."
+    if (action === "send-workspace-2") return "Workspace jump complete."
+    if (action === "workspace-1" || action === "workspace-2"
+        || action === "last-workspace" || action === "next-workspace"
+        || action === "previous-workspace") return "Navigation vector confirmed."
+    if (action === "cycle-focus" || action === "focus-right") return "Focus lock confirmed."
+    if (action === "swap-right" || action === "toggle-split") return "Layout stabilized."
+    if (action === "stash-window" || action === "toggle-scratchpad") return "Recovery system confirmed."
+    if (action === "close-window") return "Window cleared safely."
+    return "Flight system confirmed."
+  }
+  function commit(value) {
+    workingStats = value
+    statsCommitted(value)
+  }
+  function cycleCategory() { selectedCategory = categories[(categories.indexOf(selectedCategory) + 1) % categories.length] }
+  function cyclePace() {
+    var paces = ["relaxed", "standard", "fast"]
+    selectedPace = paces[(paces.indexOf(selectedPace) + 1) % paces.length]
+  }
   function openHub() {
-    ticker.stop()
-    challenges = ArcadeLogic.buildChallenges(course)
+    if (screen === "hub" && currentPage && typeof currentPage.detailView === "string")
+      currentPage.detailView = ""
+    navigationIndex = 0
     screen = "hub"
-    mode = ""
+    challenges = ArcadeLogic.buildChallenges(course)
     feedback = ""
     hinted = false
-    keyfallProgress = 0
-    entrancePulse++
+    hintVisible = false
+    assistanceReason = ""
+    responsePending = false
+    clearInputRequested()
   }
-
   function startGame(id) {
-    if (challenges.length === 0) challenges = ArcadeLogic.buildChallenges(course)
-    if (challenges.length === 0) {
-      feedback = "No keyboard challenges are available in this course yet."
+    challenges = ArcadeLogic.buildChallenges(course)
+    var available = challenges.filter(function(item) { return selectedCategory === "all" || item.category === selectedCategory })
+    var missionData = id === "rescue"
+      ? ArcadeLogic.chooseRescueMission(challenges, Math.random, lastRescueMissionId) : null
+    var chosen = id === "rescue"
+      ? missionData ? missionData.steps.map(function(step) { return step.challenge; }) : []
+      : ArcadeLogic.shuffled(available, Math.random)
+    if (chosen.length === 0) {
+      feedback = id === "rescue" ? "This course does not include a complete simulated rescue mission. Try Sprint or Keyfall."
+        : "No shortcuts in this topic yet. Choose another topic."
       return
     }
+    if (id === "keyfall") {
+      var base = chosen.slice()
+      chosen = []
+      for (var i = 0; i < 12; i++) chosen.push(base[i % base.length])
+    }
+    if (missionData) lastRescueMissionId = missionData.id
+    prepareGame(id, chosen, false, selectedPace, missionData)
+  }
+  function prepareGame(id, chosen, isTargeted, pace, missionData) {
     mode = id
-    deck = ArcadeLogic.shuffled(challenges, Math.random)
+    deck = chosen.slice()
+    rescueMission = id === "rescue" ? missionData : null
+    targeted = isTargeted
+    runPace = id === "keyfall" ? pace : "standard"
+    runDeckKey = ArcadeLogic.deckKey(mode, deck, runPace)
+    previousBest = ArcadeLogic.bestForDeck(workingStats, runDeckKey)
+    queue = deck.map(function(item) { return { challenge: item, retry: false } })
     challengeIndex = 0
+    answeredCount = 0
     score = 0
     streak = 0
     bestRunStreak = 0
     cleanAnswers = 0
+    wrongAttempts = 0
+    lastAwardedPoints = 0
+    lastRescueReaction = ""
+    challengeEngaged = false
     hinted = false
-    feedback = "Press H whenever you want a hint."
-    gameStartedAt = Date.now()
-    challengeStartedAt = gameStartedAt
-    remainingMs = id === "sprint" ? 60000 : 0
-    keyfallRetries = 0
+    hintVisible = false
+    assistanceReason = ""
+    competitive = !isTargeted
+    responsePending = false
+    elapsedMs = 0
+    challengeElapsedMs = 0
+    remainingMs = 60000
     keyfallProgress = 0
-    screen = id
-    entrancePulse++
-    ticker.restart()
+    rescueCompleted = 0
+    splits = []
+    weakRunIds = []
+    retriedIds = []
+    regainedIds = []
+    feedback = ""
+    sessionId = String(Date.now()) + "-" + String(Math.random()).slice(2)
+    lastTickAt = Date.now()
+    screen = mode
+    clearInputRequested()
   }
-
-  function handleControlKey(key) {
-    if (screen === "hub") {
-      if (key === "1") startGame("sprint")
-      else if (key === "2") startGame("rescue")
-      else if (key === "3") startGame("keyfall")
+  function raceDeck() { prepareGame(mode, deck, targeted, runPace, rescueMission) }
+  function showResults() {
+    if (screen === "complete") screen = "results"
+  }
+  function practiceThose(ids, requestedMode) {
+    var source = challenges.filter(function(item) { return ids.indexOf(item.id) >= 0 })
+    if (!source.length) return
+    var practiceMode = requestedMode || "keyfall"
+    if (practiceMode === "rescue" && rescueMission) {
+      prepareGame("rescue", deck, true, "standard", rescueMission)
       return
     }
-    if (screen === "results" && (key === "RETURN" || key === "SPACE" || key === "R")) {
-      startGame(mode)
+    var practiceDeck = ArcadeLogic.practiceDeck(source, workingStats, source.length, Math.random, "all")
+    prepareGame(practiceMode, practiceDeck, true, practiceMode === "keyfall" ? "relaxed" : runPace)
+  }
+  function updateClock(now) {
+    var delta = Math.max(0, now - lastTickAt)
+    lastTickAt = now
+    if (!running || !active) return
+    if (!hinted || mode === "sprint") {
+      elapsedMs += delta
+      if (!responsePending) challengeElapsedMs += delta
+    }
+    if (mode === "sprint") {
+      remainingMs = Math.max(0, 60000 - elapsedMs)
+      if (remainingMs <= 0) {
+        elapsedMs = 60000
+        finishGame()
+        return
+      }
+    }
+    if (responsePending) {
+      responseRemainingMs -= delta
+      if (responseRemainingMs <= 0) advanceChallenge()
+    } else if (mode === "keyfall" && !hinted) {
+      keyfallProgress = Math.max(0, Math.min(1, (challengeElapsedMs - arrivalDwellMs) / fallDurationMs))
+      if (keyfallProgress >= 1) {
+        assistanceReason = "timeout"
+        keyfallMissed()
+        showHint(true)
+      }
     }
   }
-
-  function showHint() {
-    if (!running || !currentChallenge || hinted) return
-    hinted = true
-    feedback = mode === "keyfall"
-      ? "Card frozen. Match the revealed keys to keep moving."
-      : "Hint revealed. Finish this one for practice, not points."
-    feedbackPulse++
-  }
-
-  function handleKeyPress(direct, keys) {
-    if (!running || !currentChallenge || !direct) return
-    if (["SUPER", "CTRL", "ALT", "SHIFT"].indexOf(direct) !== -1) return
-    var actual = ArcadeLogic.keySignature(keys)
-    if (actual === currentChallenge.signature) {
-      completeChallenge()
-      return
-    }
-    feedback = "Close. Nothing lost; try again or press H for the answer."
-    feedbackPulse++
-    wrongPulse++
-  }
-
-  function completeChallenge() {
-    var wasHinted = hinted
-    var answerTime = Math.max(0, Date.now() - challengeStartedAt)
-    var points = ArcadeLogic.scoreAnswer(mode, answerTime, streak, wasHinted)
-    lastPoints = points
-    score += points
-    if (!wasHinted) {
-      streak++
-      cleanAnswers++
-      bestRunStreak = Math.max(bestRunStreak, streak)
-    }
-    feedback = wasHinted ? "Locked in. That shortcut will come faster next time."
-      : points + " points · clean shortcut!"
-    celebrationMessage = wasHinted ? "MEMORY LOCKED"
-      : streak >= 7 ? "UNSTOPPABLE!" : streak >= 4 ? "ON FIRE!" : "NICE!"
-    celebrationPulse++
-    effectRequested(wasHinted ? "hint" : "success")
-    feedbackPulse++
-    challengeIndex++
-    hinted = false
-    challengeStartedAt = Date.now()
-    keyfallRetries = 0
-    keyfallProgress = 0
-
-    if (mode === "rescue" && challengeIndex >= runTarget) finishGame(true)
-    else if (mode === "keyfall" && challengeIndex >= runTarget) finishGame(true)
-  }
-
-  function finishGame(cleared) {
+  function pauseGame(forcePause) {
     if (!running) return
-    ticker.stop()
+    if (mode === "sprint" && forcePause !== true) return
+    updateClock(Date.now())
+    if (!running) return
+    competitive = false
+    screen = "paused"
+    clearInputRequested()
+  }
+  function resumeGame() {
+    if (screen !== "paused" || !active) return
+    lastTickAt = Date.now()
+    screen = mode
+    clearInputRequested()
+  }
+  function handleEscape() {
+    if (screen === "hub") {
+      if (currentPage && typeof currentPage.detailView === "string" && currentPage.detailView !== "") {
+        currentPage.detailView = ""
+        navigationIndex = 0
+        Qt.callLater(function() { if (root.selectedControl) root.ensureControlVisible(root.selectedControl) })
+      } else closeRequested()
+    }
+    else openHub()
+  }
+  function selectControl(delta) {
+    var controls = navigationControls
+    if (!controls.length) return
+    for (var tries = 0; tries < controls.length; tries++) {
+      navigationIndex = (navigationIndex + delta + controls.length) % controls.length
+      var item = controls[navigationIndex]
+      if (item && item.enabled && item.visible) {
+        item.forceActiveFocus(Qt.TabFocusReason)
+        ensureControlVisible(item)
+        return
+      }
+    }
+  }
+  function ensureControlVisible(item) {
+    if (!item || !body) return
+    var point = item.mapToItem(body, 0, 0)
+    var top = scrollContent.contentY
+    if (point.y < top) top = point.y - 8
+    else if (point.y + item.height > top + scroller.availableHeight)
+      top = point.y + item.height - scroller.availableHeight + 8
+    var maximum = Math.max(0, scrollContent.contentHeight - scroller.availableHeight)
+    scrollContent.contentY = Math.max(0, Math.min(maximum, top))
+  }
+  function focusNavigationControl(item) {
+    if (running) return
+    var index = navigationControls.indexOf(item)
+    if (index >= 0) {
+      navigationIndex = index
+      ensureControlVisible(item)
+    }
+  }
+  function handleControlKey(key) {
+    if (!active) return
+    key = String(key).toUpperCase()
+    if (key === "ESCAPE") { handleEscape(); return }
+    if (running) {
+      if (key === "H") showHint()
+      else if (key === "P" && mode !== "sprint") pauseGame()
+      return
+    }
+    if (screen === "paused" && key === "P") { resumeGame(); return }
+    if (screen === "hub" && ["1", "2", "3"].indexOf(key) >= 0) {
+      startGame(["sprint", "rescue", "keyfall"][Number(key) - 1])
+      return
+    }
+    if (["TAB", "RIGHT", "DOWN"].indexOf(key) >= 0) selectControl(1)
+    else if (["BACKTAB", "LEFT", "UP"].indexOf(key) >= 0) selectControl(-1)
+    else if (["RETURN", "ENTER", "SPACE"].indexOf(key) >= 0 && selectedControl && selectedControl.enabled)
+      selectedControl.clicked()
+  }
+  function showHint(clockUpdated) {
+    if (!running || !currentChallenge || responsePending) return
+    challengeEngaged = true
+    if (hinted) {
+      hintVisible = !hintVisible
+      feedback = hintVisible
+        ? mode === "keyfall" ? (wrongAttempts > 0
+          ? "Signal rebuilt in Practice. Match the revealed keys; no points are removed."
+          : "Hint opened in Practice. Match the revealed keys; no points are removed.")
+        : mode === "rescue" ? "Keys revealed. Complete this action for practice, not points."
+        : "Keys revealed. The Sprint timer keeps running; this answer earns practice, not points."
+        : "Hint hidden. This answer remains practice and earns no points."
+      clearInputRequested()
+      return
+    }
+    if (clockUpdated !== true) updateClock(Date.now())
+    if (!running || hinted) return
+    if (!assistanceReason) assistanceReason = "hint"
+    hinted = true
+    hintVisible = true
+    competitive = false
+    streak = 0
+    markWeak(currentChallenge.id)
+    feedback = mode === "keyfall" ? (assistanceReason === "timeout"
+      ? "Time to practice. Try the revealed keys; your points are safe."
+      : wrongAttempts > 0
+      ? "Signal missed. Try the revealed keys in Practice."
+      : "Hint opened in Practice. Match the revealed keys; no points are removed.")
+      : mode === "rescue" ? "Keys revealed. Complete this action for practice, not points."
+      : "Keys revealed. The Sprint timer keeps running; this answer earns practice, not points."
+    clearInputRequested()
+    effectRequested("hint")
+  }
+  function markWeak(id) {
+    if (weakRunIds.indexOf(id) < 0) weakRunIds = weakRunIds.concat([id])
+  }
+  function handleKeyPress(direct, keys) {
+    if (!running || !active || !currentChallenge || responsePending || !direct) return
+    if (["SUPER", "CTRL", "ALT", "SHIFT"].indexOf(direct) >= 0) return
+    challengeEngaged = true
+    updateClock(Date.now())
+    if (!running || responsePending) return
+    if (ArcadeLogic.keySignature(keys) === currentChallenge.signature) completeChallenge()
+    else {
+      wrongAttempts++
+      streak = 0
+      markWeak(currentChallenge.id)
+      feedback = "Not that combination yet. No points lost. Try again, or learn this with H."
+      if (mode === "keyfall") {
+        if (!hinted) {
+          assistanceReason = "miss"
+          keyfallMissed()
+          showHint()
+        } else {
+          hintVisible = true
+          feedback = "Match the revealed keys. No points lost."
+          clearInputRequested()
+        }
+      }
+    }
+  }
+  function scheduleRetry(challenge) {
+    if (retriedIds.indexOf(challenge.id) >= 0 || queue.length >= deck.length + 6) return
+    var next = queue.slice()
+    var at = challengeIndex + 1
+    var intervening = 0
+    while (at < next.length && intervening < 2) {
+      if (next[at].challenge.id !== challenge.id) intervening++
+      at++
+    }
+    if (intervening < 2) {
+      var fillers = challenges.filter(function(item) {
+        return item.id !== challenge.id &&
+          (selectedCategory === "all" || item.category === selectedCategory)
+      })
+      var fillerIndex = 0
+      while (intervening < 2 && fillers.length && next.length < deck.length + 5) {
+        var filler = fillers[fillerIndex % fillers.length]
+        next.push({ challenge: filler, retry: false })
+        intervening++
+        fillerIndex++
+        at++
+      }
+    }
+    if (intervening < 2 || next.length >= deck.length + 6) return
+    if (next[at] && next[at].challenge.id === challenge.id)
+      next[at] = { challenge: challenge, retry: true }
+    else next.splice(at, 0, { challenge: challenge, retry: true })
+    queue = next
+    retriedIds = retriedIds.concat([challenge.id])
+  }
+  function completeChallenge() {
+    if (!running || responsePending || !currentChallenge) return
+    var challenge = currentChallenge
+    var clean = !hinted && wrongAttempts === 0
+    var points = ArcadeLogic.scoreAnswer(mode, challengeElapsedMs, streak, hinted, wrongAttempts)
+    var finalRescueStep = mode === "rescue" && challengeIndex === queue.length - 1
+    score += points
+    if (clean) {
+      cleanAnswers++
+      streak++
+      bestRunStreak = Math.max(bestRunStreak, streak)
+      if (isRetry && regainedIds.indexOf(challenge.id) < 0) regainedIds = regainedIds.concat([challenge.id])
+    } else {
+      streak = 0
+      markWeak(challenge.id)
+      if (mode === "keyfall") scheduleRetry(challenge)
+    }
+    commit(ArcadeLogic.recordAttempt(workingStats, challenge, {
+      hinted: hinted, wrongAttempts: wrongAttempts, elapsedMs: Math.round(challengeElapsedMs), sessionId: sessionId
+    }, Date.now()))
+    answeredCount++
+    if (mode === "rescue") rescueCompleted++
+    lastAwardedPoints = points
+    lastRescueReaction = mode === "rescue"
+      ? rescueReactionForAction(currentRescueStep ? currentRescueStep.action : "", finalRescueStep) : ""
+    splits = splits.concat([Math.round(elapsedMs)])
+    feedback = mode === "rescue"
+      ? guideName + ": " + lastRescueReaction + (points > 0 ? " +" + points + " points." : " Practice logged.")
+      : clean ? (isRetry ? "Recalled independently on the retry. " : "First-try recall. ") + "+" + points + " points."
+      : hinted ? (mode === "keyfall" && wrongAttempts > 0
+        ? "Recovered after a miss. Practice saved."
+        : "Practiced with a hint. Learning saved; no score claimed.")
+      : "You found it. Learning saved; not a first-try answer."
+    responsePending = true
+    responseRemainingMs = responseDwellMs
+    effectRequested(clean ? "success" : "hint")
+    clearInputRequested()
+  }
+  function advanceChallenge() {
+    if (!running || !responsePending) return
+    responsePending = false
+    challengeIndex++
+    if (mode !== "sprint" && challengeIndex >= queue.length) { finishGame(); return }
+    hinted = false
+    hintVisible = false
+    assistanceReason = ""
+    wrongAttempts = 0
+    lastAwardedPoints = 0
+    lastRescueReaction = ""
+    challengeEngaged = false
+    challengeElapsedMs = 0
+    keyfallProgress = 0
+    feedback = ""
+    clearInputRequested()
+  }
+  function finishGame() {
+    if (!running) return
     finalScore = score
     finalStreak = bestRunStreak
     finalClean = cleanAnswers
-    finalElapsedMs = Math.max(0, Date.now() - gameStartedAt)
-    var before = modeStats(mode)
-    newBest = score > before.bestScore
-    var nextStats = ArcadeLogic.recordResult(stats, mode, score, bestRunStreak, cleared)
-    statsCommitted(nextStats)
-    screen = "results"
+    finalElapsedMs = Math.round(elapsedMs)
+    newBest = competitive && score > previousBest.bestScore
+    newBestPace = competitive && previousBest.plays && score === previousBest.bestScore &&
+      finalElapsedMs < previousBest.bestElapsedMs
+    commit(ArcadeLogic.recordRun(workingStats, {
+      mode: mode, score: score, streak: bestRunStreak, clean: cleanAnswers,
+      total: answeredCount, elapsedMs: finalElapsedMs, deckKey: runDeckKey,
+      splits: splits, competitive: competitive
+    }, Date.now()))
+    responsePending = false
+    screen = "complete"
+    clearInputRequested()
     effectRequested("finish")
   }
 
+  onStatsChanged: workingStats = ArcadeLogic.mergeStats(stats)
+  onCourseChanged: if (screen === "hub") challenges = ArcadeLogic.buildChallenges(course)
   onActiveChanged: {
     activeHostChanged(active)
-    if (active) openHub()
-    else ticker.stop()
+    if (!active && running) pauseGame(true)
+    else if (active && challenges.length === 0) challenges = ArcadeLogic.buildChallenges(course)
   }
-  onCelebrationPulseChanged: if (celebrationPulse > 0) celebrationAnimation.restart()
-  onWrongPulseChanged: if (wrongPulse > 0) wrongFlashAnimation.restart()
+  onScreenChanged: {
+    navigationIndex = 0
+    scrollContent.contentY = 0
+  }
+  Component.onCompleted: challenges = ArcadeLogic.buildChallenges(course)
 
   Timer {
-    id: ticker
-    interval: 50
+    interval: 40
     repeat: true
-    onTriggered: {
-      if (root.screen === "sprint") {
-        root.remainingMs = Math.max(0, 60000 - (Date.now() - root.gameStartedAt))
-        if (root.remainingMs <= 0) root.finishGame(true)
-      } else if (root.screen === "keyfall" && !root.hinted) {
-        var fallDuration = 7000 + (root.keyfallRetries * 2500)
-        root.keyfallProgress = Math.min(1, (Date.now() - root.challengeStartedAt) / fallDuration)
-        if (root.keyfallProgress >= 1) {
-          root.keyfallRetries++
-          root.hinted = true
-          root.feedback = "Caught at the line. The answer is revealed; no life or points lost."
-          root.feedbackPulse++
-        }
-      }
+    running: root.active && root.running
+    onTriggered: root.updateClock(Date.now())
+  }
+  Rectangle { anchors.fill: parent; color: Qt.rgba(root.backgroundColor.r, root.backgroundColor.g, root.backgroundColor.b, 1) }
+  Image {
+    id: wallpaper
+    objectName: "arcadeWallpaper"
+    anchors.fill: parent
+    source: root.wallpaperSource
+    sourceSize: Qt.size(Math.max(1, Math.ceil(root.width * Screen.devicePixelRatio)),
+      Math.max(1, Math.ceil(root.height * Screen.devicePixelRatio)))
+    fillMode: Image.PreserveAspectCrop
+    asynchronous: true
+    cache: true
+    visible: status === Image.Ready
+    onStatusChanged: {
+      root.wallpaperNotice = status === Image.Error
+        ? "The theme wallpaper could not be loaded. Using the theme color instead." : ""
+      if (status === Image.Error) console.warn("learn-omarchy:", root.wallpaperNotice, source)
     }
   }
-
-  component ArcadeButton: Rectangle {
-    id: button
-    property string label: ""
-    property bool primary: false
-    signal clicked()
-    implicitWidth: Math.max(150, buttonText.implicitWidth + 34)
-    implicitHeight: 46 * root.textScale
-    radius: 8
-    color: mouse.pressed ? root.foregroundColor
-      : mouse.containsMouse ? root.accentColor
-      : primary ? root.accentColor : root.backgroundColor
-    border.width: 1
-    border.color: primary ? root.accentColor : root.mutedColor
-    scale: mouse.pressed ? 0.97 : mouse.containsMouse ? 1.04 : 1
-    Behavior on scale {
-      enabled: !root.reducedMotion
-      NumberAnimation { duration: 110; easing.type: Easing.OutCubic }
-    }
-    Text {
-      id: buttonText
-      anchors.centerIn: parent
-      text: button.label
-      color: (mouse.containsMouse || mouse.pressed || button.primary)
-        ? root.backgroundColor : root.foregroundColor
-      font.family: "monospace"
-      font.pixelSize: 12 * root.textScale
-      font.weight: Font.Bold
-      font.letterSpacing: 0.8
-    }
-    MouseArea {
-      id: mouse
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: button.clicked()
-    }
-  }
-
-  component KeyPill: Rectangle {
-    required property string keyLabel
-    implicitWidth: Math.max(42, keyText.implicitWidth + 22)
-    implicitHeight: 38 * root.textScale
-    radius: 7
-    color: root.modeAccent
-    border.width: 2
-    border.color: Qt.lighter(root.modeAccent, 1.35)
-    Text {
-      id: keyText
-      anchors.centerIn: parent
-      text: parent.keyLabel
-      color: root.backgroundColor
-      font.family: "monospace"
-      font.pixelSize: 13 * root.textScale
-      font.weight: Font.Bold
-    }
-  }
-
-  component StatChip: Rectangle {
-    id: statChip
-    property string label: ""
-    property string value: ""
-    property color chipColor: root.modeAccent
-    implicitWidth: chipRow.implicitWidth + 26
-    implicitHeight: 42 * root.textScale
-    radius: height / 2
-    color: Qt.rgba(chipColor.r, chipColor.g, chipColor.b, 0.13)
-    border.width: 1
-    border.color: Qt.rgba(chipColor.r, chipColor.g, chipColor.b, 0.55)
-    RowLayout {
-      id: chipRow
-      anchors.centerIn: parent
-      spacing: 8
-      Text {
-        text: statChip.label
-        color: root.mutedColor
-        font.family: "monospace"
-        font.pixelSize: 9 * root.textScale
-        font.weight: Font.Bold
-        font.letterSpacing: 0.8
-      }
-      Text {
-        text: statChip.value
-        color: statChip.chipColor
-        font.family: "monospace"
-        font.pixelSize: 15 * root.textScale
-        font.weight: Font.Black
-      }
-    }
-  }
-
   Rectangle {
     anchors.fill: parent
+    visible: wallpaper.status === Image.Ready
     color: root.backgroundColor
-    opacity: 0.96
+    opacity: root.running ? 0.32 : 0.16
   }
-
-  Repeater {
-    model: 28
-    Rectangle {
-      id: ambientDot
-      required property int index
-      readonly property real seedX: ((index * 47) % 101) / 100
-      readonly property real seedY: ((index * 71) % 97) / 96
-      x: seedX * root.width
-      y: seedY * root.height
-      width: index % 5 === 0 ? 4 : 2
-      height: width
-      radius: width / 2
-      color: index % 4 === 0 ? root.modeAccent : root.foregroundColor
-      opacity: 0.08 + (index % 5) * 0.035
-      SequentialAnimation on opacity {
-        running: root.active && !root.reducedMotion
-        loops: Animation.Infinite
-        NumberAnimation { to: 0.34; duration: 900 + ambientDot.index * 37 }
-        NumberAnimation { to: 0.07; duration: 1100 + ambientDot.index * 29 }
-      }
-    }
-  }
-
   Rectangle {
-    id: frame
+    objectName: "arcadeFrame"
+    width: Math.min(root.width - root.dialogMargin * 2,
+      root.running || root.screen === "hub" ? 1680
+        : root.screen === "complete" ? root.completionWidth : root.nonPlayWidth)
+    height: root.running ? root.height - root.dialogMargin * 2
+      : Math.min(root.height - root.dialogMargin * 2,
+        body.implicitHeight + headerRow.implicitHeight + frameLayout.spacing + root.contentMargin * 2)
     anchors.centerIn: parent
-    width: Math.min(parent.width - 64, 1120)
-    height: Math.min(parent.height - 64, 760)
-    radius: 18
-    color: Qt.rgba(root.backgroundColor.r, root.backgroundColor.g, root.backgroundColor.b, 0.98)
+    color: root.surfaceColor
+    radius: 2
+    border.color: root.modeInk
     border.width: 2
-    border.color: root.screen === "hub" ? root.accentColor : root.modeAccent
-    scale: root.active ? 1 : 0.96
-    Behavior on border.color { ColorAnimation { duration: 220 } }
-
-    Rectangle {
-      id: wrongFlash
+    ArcadeBezel {
+      objectName: "arcadeCabinetBezel"
       anchors.fill: parent
-      radius: parent.radius
-      color: "transparent"
-      border.width: 5
-      border.color: root.urgentColor
-      opacity: 0
-      z: 40
+      anchors.margins: -9
+      accent: root.modeAccent
+      marquee: true
     }
-    SequentialAnimation {
-      id: wrongFlashAnimation
-      NumberAnimation { target: wrongFlash; property: "opacity"; to: 0.75; duration: root.reducedMotion ? 0 : 70 }
-      NumberAnimation { target: wrongFlash; property: "opacity"; to: 0; duration: root.reducedMotion ? 0 : 320 }
-    }
-
-    Rectangle {
-      id: celebrationBanner
-      anchors.horizontalCenter: parent.horizontalCenter
-      y: 82
-      z: 50
-      width: Math.max(230, celebrationLabel.implicitWidth + 52)
-      height: 66
-      radius: 33
-      color: Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.94)
-      border.width: 3
-      border.color: Qt.lighter(root.modeAccent, 1.4)
-      opacity: 0
-      scale: 0.7
-      RowLayout {
-        anchors.centerIn: parent
-        spacing: 10
-        Text {
-          text: root.lastPoints > 0 ? "+" + root.lastPoints : "✓"
-          color: root.backgroundColor
-          font.family: "monospace"
-          font.pixelSize: 22 * root.textScale
-          font.weight: Font.Black
-        }
-        Text {
-          id: celebrationLabel
-          text: root.celebrationMessage
-          color: root.backgroundColor
-          font.family: "monospace"
-          font.pixelSize: 15 * root.textScale
-          font.weight: Font.Black
-          font.letterSpacing: 0.8
-        }
-      }
-    }
-    SequentialAnimation {
-      id: celebrationAnimation
-      ParallelAnimation {
-        NumberAnimation { target: celebrationBanner; property: "opacity"; to: 1; duration: root.reducedMotion ? 0 : 90 }
-        NumberAnimation { target: celebrationBanner; property: "scale"; to: 1.08; duration: root.reducedMotion ? 0 : 180; easing.type: Easing.OutBack }
-      }
-      PauseAnimation { duration: root.reducedMotion ? 0 : 330 }
-      ParallelAnimation {
-        NumberAnimation { target: celebrationBanner; property: "opacity"; to: 0; duration: root.reducedMotion ? 0 : 260 }
-        NumberAnimation { target: celebrationBanner; property: "scale"; to: 0.92; duration: root.reducedMotion ? 0 : 260 }
-      }
-    }
-
     ColumnLayout {
+      id: frameLayout
       anchors.fill: parent
-      anchors.margins: 28
-      spacing: 18
-
+      anchors.margins: root.contentMargin
+      spacing: root.compactLayout ? 16 : 24
       RowLayout {
+        id: headerRow
         Layout.fillWidth: true
-        spacing: 14
-        Rectangle {
-          Layout.preferredWidth: 48
-          Layout.preferredHeight: 48
-          radius: 13
-          color: Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.16)
-          border.width: 1
-          border.color: root.modeAccent
-          Text {
-            anchors.centerIn: parent
-            text: root.screen === "hub" ? "⌨" : root.mode === "sprint" ? "⚡"
-              : root.mode === "rescue" ? "▦" : "▼"
-            color: root.modeAccent
-            font.pixelSize: 24 * root.textScale
-            font.weight: Font.Black
+        Loader {
+          id: guidePortrait
+          objectName: "arcadeGuidePortrait"
+          Layout.preferredWidth: (root.compactLayout ? 76 : 96) * root.textScale
+          Layout.preferredHeight: (root.compactLayout ? 65 : 84) * root.textScale
+          visible: !!root.guidePack && root.screen === "hub"
+          active: visible
+          sourceComponent: Item {
+            Accessible.role: Accessible.Graphic
+            Accessible.name: root.guideName + ", your guide"
+            CharacterSprite {
+              objectName: "arcadeGuide"
+              anchors.centerIn: parent
+              pack: root.guidePack
+              animated: false
+              previewFrame: 0
+              reducedMotion: true
+              scale: Math.min(guidePortrait.width / 224, guidePortrait.height / 192)
+            }
           }
         }
         ColumnLayout {
           Layout.fillWidth: true
-          spacing: 1
-          Text {
-            text: root.screen === "hub" ? "SHORTCUT ARCADE"
-              : root.screen === "results" ? "RUN COMPLETE"
-              : root.modeName(root.mode)
-            color: root.foregroundColor
-            font.family: "monospace"
-            font.pixelSize: 25 * root.textScale
-            font.weight: Font.Black
-            font.letterSpacing: 1.2
+          spacing: 3
+          ArcadePixelText {
+            objectName: "arcadeTitle"
+            Layout.fillWidth: true
+            text: root.screen === "hub" ? "Learn Omarchy Arcade" : root.modeName(root.mode)
+            color: root.modeInk
+            font.pixelSize: (root.width < 700 ? 20 : 24) * root.fontScale
           }
           Text {
-            text: root.screen === "hub" ? "BUILD INSTINCT. CHASE YOUR BEST."
-              : root.screen === "results" ? "YOUR MUSCLE MEMORY JUST LEVELED UP"
-              : root.mode === "sprint" ? "SPEED + ACCURACY"
-              : root.mode === "rescue" ? "RESTORE THE DESKTOP"
-              : "BEAT THE RECALL LINE"
-            color: root.modeAccent
-            font.family: "monospace"
-            font.pixelSize: 9 * root.textScale
-            font.weight: Font.Bold
-            font.letterSpacing: 1.4
+            objectName: "arcadeSafetyLine"
+            Layout.fillWidth: true
+            visible: root.screen !== "complete" && root.screen !== "results"
+            text: root.running
+              ? root.mode === "sprint"
+                ? "Shortcuts affect only this game · H hint · timer keeps running"
+                : "Shortcuts affect only this game · H hint · P pause"
+              : "Shortcuts affect only this game"
+            color: root.mutedColor
+            font.pixelSize: 11 * root.fontScale
+            wrapMode: Text.WordWrap
           }
         }
-        Rectangle {
-          implicitWidth: headerKeys.implicitWidth + 22
-          implicitHeight: 34
-          radius: 17
-          color: Qt.rgba(root.foregroundColor.r, root.foregroundColor.g, root.foregroundColor.b, 0.07)
-          RowLayout {
-            id: headerKeys
-            anchors.centerIn: parent
+        ArcadeButton {
+          id: backButton
+          objectName: "arcadeCloseButton"
+          arcade: root
+          square: true
+          text: "×"
+          accessibleName: root.screen === "hub" ? "Close arcade" : "Return to arcade hub"
+          Accessible.description: root.running
+            ? "Leave this round and return to the arcade hub" : root.screen === "hub" ? "Return to the course menu" : "Close this game"
+          navigationSelected: !root.running && root.selectedControl === backButton
+          onClicked: {
+            if (root.running) root.openHub()
+            else if (root.screen === "hub") root.closeRequested()
+            else root.openHub()
+          }
+        }
+      }
+      ScrollView {
+        id: scroller
+        objectName: "arcadeScroll"
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        clip: true
+        contentWidth: availableWidth
+        ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+        Flickable {
+          id: scrollContent
+          contentHeight: body.implicitHeight
+          contentWidth: width
+          boundsBehavior: Flickable.StopAtBounds
+          ColumnLayout {
+            id: body
+            width: scroller.availableWidth
             spacing: 12
             Text {
-              text: root.running ? "H  HINT" : root.screen === "hub" ? "1  2  3  PLAY" : "R  REPLAY"
-              color: root.foregroundColor
-              font.family: "monospace"
-              font.pixelSize: 10 * root.textScale
-              font.weight: Font.Bold
+              objectName: "arcadeRuntimeNotice"
+              Layout.fillWidth: true
+              visible: !root.running && (root.storageNotice.length > 0 || root.wallpaperNotice.length > 0)
+              text: [root.storageNotice, root.wallpaperNotice].filter(function(text) { return text.length > 0 }).join("\n")
+              color: root.mutedColor
+              font.pixelSize: 12 * root.fontScale
+              wrapMode: Text.WordWrap
+            }
+            Item {
+              id: page
+              Layout.fillWidth: true
+              implicitHeight: root.currentPage ? root.currentPage.implicitHeight : 0
+
+              Loader {
+                id: hubPageLoader
+                objectName: "arcadeHubPageLoader"
+                anchors.left: parent.left
+                anchors.right: parent.right
+                active: true
+                visible: root.screen === "hub"
+                sourceComponent: hubPage
+              }
+              Loader {
+                id: playPageLoader
+                objectName: "arcadePlayPageLoader"
+                anchors.left: parent.left
+                anchors.right: parent.right
+                active: true
+                visible: ["rescue", "sprint", "keyfall"].indexOf(root.screen) >= 0
+                sourceComponent: playPage
+              }
+              Loader {
+                id: pausedPageLoader
+                objectName: "arcadePausedPageLoader"
+                anchors.left: parent.left
+                anchors.right: parent.right
+                active: true
+                visible: root.screen === "paused"
+                sourceComponent: pausedPage
+              }
+              Loader {
+                id: completePageLoader
+                objectName: "arcadeCompletePageLoader"
+                anchors.left: parent.left
+                anchors.right: parent.right
+                active: true
+                visible: root.screen === "complete"
+                sourceComponent: completePage
+              }
+              Loader {
+                id: resultsPageLoader
+                objectName: "arcadeResultsPageLoader"
+                anchors.left: parent.left
+                anchors.right: parent.right
+                active: true
+                visible: root.screen === "results"
+                sourceComponent: resultsPage
+              }
             }
             Text {
-              text: "ESC  BACK"
+              objectName: "arcadeNavigationHint"
+              Layout.fillWidth: true
+              Layout.topMargin: root.compactLayout ? 0 : 4
+              visible: !root.running && root.screen !== "results"
+              text: root.screen === "complete" ? "Enter to see results · Esc to return to the arcade hub"
+                : root.screen === "paused" ? (root.keyboardCaptureAvailable
+                  ? "Tab or arrow keys to choose · Enter to confirm · P to resume"
+                  : "Click Resume to restore keyboard capture")
+                : "Tab or arrow keys to choose · Enter to confirm · Esc to go back"
               color: root.mutedColor
-              font.family: "monospace"
-              font.pixelSize: 10 * root.textScale
-              font.weight: Font.Bold
+              font.pixelSize: 11 * root.fontScale
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
             }
           }
         }
       }
-
-      Item {
+      ArcadeRescueJourney {
+        objectName: "arcadeRescueFlight"
         Layout.fillWidth: true
-        Layout.fillHeight: true
-
-        ColumnLayout {
-          anchors.fill: parent
-          spacing: 20
-          visible: root.screen === "hub"
-          opacity: visible ? 1 : 0
-          scale: visible ? 1 : 0.97
-          Behavior on opacity { NumberAnimation { duration: root.reducedMotion ? 0 : 220 } }
-          Behavior on scale { NumberAnimation { duration: root.reducedMotion ? 0 : 260; easing.type: Easing.OutCubic } }
-
-          Text {
-            Layout.fillWidth: true
-            text: "Three ways to turn Omarchy shortcuts into muscle memory. Hints keep every run moving and never take away points."
-            color: root.mutedColor
-            wrapMode: Text.WordWrap
-            font.pixelSize: 15 * root.textScale
-          }
-
-          RowLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: 16
-
-            Repeater {
-              model: [
-                { id: "sprint", number: "01", icon: "⚡", name: "SHORTCUT SPRINT", detail: "60 seconds of rapid recall. Speed and clean streaks build the score.", tag: "QUICK · 60 SEC" },
-                { id: "rescue", number: "02", icon: "▦", name: "WINDOW RESCUE", detail: "Repair a simulated desktop one shortcut at a time. No countdown.", tag: "CALM · 6 TASKS" },
-                { id: "keyfall", number: "03", icon: "▼", name: "KEYFALL", detail: "Clear falling prompts before the line. Misses turn into guided retries.", tag: "FLOW · 12 CARDS" }
-              ]
-
-              Rectangle {
-                id: gameCard
-                required property var modelData
-                readonly property color cardAccent: modelData.id === "keyfall" ? root.urgentColor
-                  : modelData.id === "rescue" ? Qt.lighter(root.accentColor, 1.35) : root.accentColor
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.minimumWidth: 0
-                radius: 14
-                color: cardMouse.containsMouse
-                  ? Qt.rgba(cardAccent.r, cardAccent.g, cardAccent.b, 0.16)
-                  : Qt.rgba(root.foregroundColor.r, root.foregroundColor.g, root.foregroundColor.b, 0.035)
-                border.width: cardMouse.containsMouse ? 2 : 1
-                border.color: cardMouse.containsMouse ? cardAccent
-                  : Qt.rgba(cardAccent.r, cardAccent.g, cardAccent.b, 0.45)
-                scale: cardMouse.containsMouse ? 1.025 : 1
-                Behavior on scale {
-                  enabled: !root.reducedMotion
-                  NumberAnimation { duration: 160; easing.type: Easing.OutBack }
-                }
-
-                Rectangle {
-                  width: 5
-                  height: parent.height - 32
-                  anchors.left: parent.left
-                  anchors.leftMargin: 12
-                  anchors.verticalCenter: parent.verticalCenter
-                  radius: 3
-                  color: gameCard.cardAccent
-                  opacity: cardMouse.containsMouse ? 1 : 0.55
-                }
-
-                ColumnLayout {
-                  anchors.fill: parent
-                  anchors.leftMargin: 30
-                  anchors.rightMargin: 20
-                  anchors.topMargin: 18
-                  anchors.bottomMargin: 18
-                  spacing: 12
-
-                  Item {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 112
-
-                    Text {
-                      anchors.left: parent.left
-                      anchors.top: parent.top
-                      text: gameCard.modelData.number
-                      color: gameCard.cardAccent
-                      opacity: 0.7
-                      font.family: "monospace"
-                      font.pixelSize: 11 * root.textScale
-                      font.weight: Font.Black
-                    }
-
-                    Rectangle {
-                      anchors.centerIn: parent
-                      width: 92
-                      height: 92
-                      radius: 46
-                      color: Qt.rgba(gameCard.cardAccent.r, gameCard.cardAccent.g, gameCard.cardAccent.b, 0.1)
-                      border.width: 2
-                      border.color: Qt.rgba(gameCard.cardAccent.r, gameCard.cardAccent.g, gameCard.cardAccent.b, 0.65)
-                      visible: gameCard.modelData.id === "sprint"
-                      Text {
-                        anchors.centerIn: parent
-                        text: "60"
-                        color: gameCard.cardAccent
-                        font.family: "monospace"
-                        font.pixelSize: 30 * root.textScale
-                        font.weight: Font.Black
-                      }
-                      Rectangle {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        anchors.top: parent.top
-                        anchors.topMargin: 5
-                        width: 8
-                        height: 8
-                        radius: 4
-                        color: gameCard.cardAccent
-                      }
-                    }
-
-                    Item {
-                      anchors.centerIn: parent
-                      width: 150
-                      height: 92
-                      visible: gameCard.modelData.id === "rescue"
-                      Repeater {
-                        model: 3
-                        Rectangle {
-                          id: fallingPreview
-                          required property int index
-                          width: 82
-                          height: 48
-                          x: index * 28
-                          y: index * 18
-                          radius: 6
-                          color: root.backgroundColor
-                          border.width: 2
-                          border.color: gameCard.cardAccent
-                          Rectangle {
-                            width: parent.width
-                            height: 11
-                            radius: 5
-                            color: Qt.rgba(gameCard.cardAccent.r, gameCard.cardAccent.g, gameCard.cardAccent.b, 0.35)
-                          }
-                        }
-                      }
-                    }
-
-                    Item {
-                      anchors.centerIn: parent
-                      width: 150
-                      height: 100
-                      visible: gameCard.modelData.id === "keyfall"
-                      Rectangle {
-                        anchors.bottom: parent.bottom
-                        width: parent.width
-                        height: 3
-                        color: gameCard.cardAccent
-                      }
-                      Repeater {
-                        model: 3
-                        Rectangle {
-                          required property int index
-                          width: 34
-                          height: 22
-                          radius: 5
-                          x: 12 + index * 49
-                          y: 8 + index * 22
-                          color: Qt.rgba(gameCard.cardAccent.r, gameCard.cardAccent.g, gameCard.cardAccent.b, 0.24)
-                          border.width: 1
-                          border.color: gameCard.cardAccent
-                          SequentialAnimation on y {
-                            running: root.active && !root.reducedMotion
-                            loops: Animation.Infinite
-                            NumberAnimation { to: 72; duration: 1400 }
-                            PropertyAction { value: 4 }
-                          }
-                        }
-                      }
-                    }
-                  }
-                  Text {
-                    Layout.fillWidth: true
-                    text: gameCard.modelData.name
-                    color: root.foregroundColor
-                    wrapMode: Text.WordWrap
-                    font.family: "monospace"
-                    font.pixelSize: 18 * root.textScale
-                    font.weight: Font.Black
-                  }
-                  Text {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: gameCard.modelData.detail
-                    color: root.mutedColor
-                    wrapMode: Text.WordWrap
-                    font.pixelSize: 14 * root.textScale
-                  }
-                  Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 38
-                    radius: 8
-                    color: cardMouse.containsMouse ? gameCard.cardAccent
-                      : Qt.rgba(gameCard.cardAccent.r, gameCard.cardAccent.g, gameCard.cardAccent.b, 0.1)
-                    border.width: 1
-                    border.color: gameCard.cardAccent
-                    Text {
-                      anchors.centerIn: parent
-                      text: cardMouse.containsMouse ? "PLAY NOW  →" : "ENTER GAME"
-                      color: cardMouse.containsMouse ? root.backgroundColor : gameCard.cardAccent
-                      font.family: "monospace"
-                      font.pixelSize: 10 * root.textScale
-                      font.weight: Font.Black
-                      font.letterSpacing: 0.9
-                    }
-                  }
-                  Text {
-                    text: gameCard.modelData.tag
-                    color: gameCard.cardAccent
-                    font.family: "monospace"
-                    font.pixelSize: 10 * root.textScale
-                    font.weight: Font.Bold
-                    font.letterSpacing: 0.7
-                  }
-                  Text {
-                    text: "PERSONAL BEST  " + root.modeStats(gameCard.modelData.id).bestScore
-                    color: root.foregroundColor
-                    font.family: "monospace"
-                    font.pixelSize: 13 * root.textScale
-                    font.weight: Font.Bold
-                  }
-                }
-
-                MouseArea {
-                  id: cardMouse
-                  anchors.fill: parent
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
-                  onClicked: root.startGame(gameCard.modelData.id)
-                }
-              }
-            }
-          }
-
-          Text {
-            Layout.fillWidth: true
-            text: root.feedback || root.challenges.length + " course shortcuts ready to practice."
-            color: root.feedback ? root.urgentColor : root.mutedColor
-            horizontalAlignment: Text.AlignHCenter
-            font.pixelSize: 12 * root.textScale
-          }
-          Text {
-            Layout.fillWidth: true
-            text: "PRESS 1, 2, OR 3 TO LAUNCH"
-            color: root.accentColor
-            horizontalAlignment: Text.AlignHCenter
-            font.family: "monospace"
-            font.pixelSize: 10 * root.textScale
-            font.weight: Font.Bold
-            font.letterSpacing: 1.3
-          }
+        Layout.preferredHeight: root.height < 800 ? 66 : implicitHeight
+        visible: root.screen === "rescue"
+        arcade: root
+        showBurst: false
+        completedActions: root.rescueCompleted
+        totalSteps: root.runTarget
+      }
+    }
+  }
+  Component { id: hubPage; ArcadeHub { arcade: root } }
+  Component { id: playPage; ArcadePlayfield { arcade: root } }
+  Component { id: completePage; ArcadeRoundComplete { arcade: root } }
+  Component { id: resultsPage; ArcadeResults { arcade: root } }
+  Component {
+    id: pausedPage
+    ColumnLayout {
+      readonly property var controls: [resumeButton, quitButton]
+      spacing: 0
+      ColumnLayout {
+        objectName: "arcadePauseContent"
+        Layout.fillWidth: true
+        Layout.maximumWidth: 820 * root.textScale
+        Layout.alignment: Qt.AlignHCenter
+        spacing: 16 * root.textScale
+        Text {
+          Layout.fillWidth: true
+          text: "PAUSED"
+          color: root.modeInk
+          font.pixelSize: 11 * root.fontScale
+          font.weight: Font.Bold
+          font.letterSpacing: 1
         }
-
-        ColumnLayout {
-          anchors.fill: parent
-          spacing: 16
-          visible: root.running
-          opacity: visible ? 1 : 0
-          scale: visible ? 1 : 0.97
-          Behavior on opacity { NumberAnimation { duration: root.reducedMotion ? 0 : 220 } }
-          Behavior on scale { NumberAnimation { duration: root.reducedMotion ? 0 : 260; easing.type: Easing.OutCubic } }
-
-          RowLayout {
-            Layout.fillWidth: true
-            spacing: 10
-            StatChip { label: "SCORE"; value: String(root.score) }
-            StatChip {
-              label: root.frenzy ? "FRENZY" : "STREAK"
-              value: root.frenzy ? "×" + root.streak : String(root.streak)
-              chipColor: root.frenzy ? root.urgentColor : root.modeAccent
-            }
-            StatChip {
-              visible: root.mode !== "sprint"
-              label: "CLEAN"
-              value: String(root.cleanAnswers)
-            }
-            Item { Layout.fillWidth: true }
-            Rectangle {
-              implicitWidth: timerText.implicitWidth + 28
-              implicitHeight: 46 * root.textScale
-              radius: 12
-              color: root.mode === "sprint" && root.remainingMs < 10000
-                ? Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, 0.18)
-                : Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.1)
-              border.width: 2
-              border.color: root.mode === "sprint" && root.remainingMs < 10000
-                ? root.urgentColor : root.modeAccent
-              Text {
-                id: timerText
-                anchors.centerIn: parent
-                text: root.mode === "sprint" ? root.formatTime(root.remainingMs)
-                  : (Math.min(root.challengeIndex + 1, root.runTarget) + " / " + root.runTarget)
-                color: root.mode === "sprint" && root.remainingMs < 10000
-                  ? root.urgentColor : root.foregroundColor
-                font.family: "monospace"
-                font.pixelSize: 18 * root.textScale
-                font.weight: Font.Black
-              }
-            }
-          }
-
-          Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 8
-            radius: 4
-            color: Qt.rgba(root.foregroundColor.r, root.foregroundColor.g, root.foregroundColor.b, 0.12)
-            Rectangle {
-              height: parent.height
-              radius: parent.radius
-              color: root.modeAccent
-              width: root.mode === "sprint"
-                ? parent.width * (root.remainingMs / 60000)
-                : parent.width * Math.min(1, root.challengeIndex / root.runTarget)
-              Behavior on width {
-                enabled: !root.reducedMotion
-                NumberAnimation { duration: 160 }
-              }
-            }
-          }
-
-          Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-
-            Item {
-              anchors.fill: parent
-              visible: root.mode === "sprint"
-
-              Rectangle {
-                anchors.fill: parent
-                radius: 16
-                gradient: Gradient {
-                  GradientStop { position: 0; color: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.16) }
-                  GradientStop { position: 0.52; color: root.backgroundColor }
-                  GradientStop { position: 1; color: Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, root.frenzy ? 0.18 : 0.05) }
-                }
-                border.width: root.frenzy ? 2 : 1
-                border.color: root.frenzy ? root.urgentColor : Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.45)
-              }
-
-              Repeater {
-                model: 11
-                Rectangle {
-                  id: speedLine
-                  required property int index
-                  width: 44 + index * 11
-                  height: 3
-                  radius: 2
-                  x: index % 2 === 0 ? 24 : parent.width - width - 24
-                  y: 28 + index * (parent.height - 60) / 11
-                  color: root.frenzy ? root.urgentColor : root.accentColor
-                  opacity: 0.12 + index * 0.025
-                  SequentialAnimation on x {
-                    running: root.running && !root.reducedMotion
-                    loops: Animation.Infinite
-                    NumberAnimation {
-                      to: speedLine.index % 2 === 0 ? 54 : speedLine.parent.width - speedLine.width - 54
-                      duration: 700 + speedLine.index * 45
-                    }
-                    NumberAnimation {
-                      to: speedLine.index % 2 === 0 ? 24 : speedLine.parent.width - speedLine.width - 24
-                      duration: 700 + speedLine.index * 45
-                    }
-                  }
-                }
-              }
-
-              Canvas {
-                id: sprintDial
-                anchors.centerIn: parent
-                width: Math.min(parent.width * 0.58, parent.height * 0.9)
-                height: width
-                onPaint: {
-                  var ctx = getContext("2d")
-                  ctx.reset()
-                  var cx = width / 2
-                  var cy = height / 2
-                  var radius = width / 2 - 18
-                  ctx.lineWidth = 10
-                  ctx.lineCap = "round"
-                  ctx.strokeStyle = Qt.rgba(root.foregroundColor.r, root.foregroundColor.g, root.foregroundColor.b, 0.09)
-                  ctx.beginPath()
-                  ctx.arc(cx, cy, radius, 0, Math.PI * 2)
-                  ctx.stroke()
-                  ctx.strokeStyle = root.frenzy ? root.urgentColor : root.accentColor
-                  ctx.beginPath()
-                  ctx.arc(cx, cy, radius, -Math.PI / 2,
-                    -Math.PI / 2 + Math.PI * 2 * Math.max(0, root.remainingMs / 60000))
-                  ctx.stroke()
-                }
-                Connections {
-                  target: root
-                  function onRemainingMsChanged() { sprintDial.requestPaint() }
-                  function onFrenzyChanged() { sprintDial.requestPaint() }
-                }
-              }
-
-              Rectangle {
-                anchors.centerIn: parent
-                width: sprintDial.width - 58
-                height: width
-                radius: width / 2
-                color: Qt.rgba(root.backgroundColor.r, root.backgroundColor.g, root.backgroundColor.b, 0.92)
-                border.width: 1
-                border.color: Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.4)
-
-                ColumnLayout {
-                  anchors.centerIn: parent
-                  width: parent.width - 54
-                  spacing: 10
-                  Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: root.frenzy ? "FRENZY ×" + root.streak : "RECALL THIS"
-                    color: root.frenzy ? root.urgentColor : root.accentColor
-                    font.family: "monospace"
-                    font.pixelSize: 10 * root.textScale
-                    font.weight: Font.Black
-                    font.letterSpacing: 1.4
-                  }
-                  Text {
-                    Layout.fillWidth: true
-                    text: root.currentChallenge ? root.currentChallenge.prompt : ""
-                    color: root.foregroundColor
-                    wrapMode: Text.WordWrap
-                    horizontalAlignment: Text.AlignHCenter
-                    font.pixelSize: 20 * root.textScale
-                    font.weight: Font.DemiBold
-                  }
-                  Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: root.currentChallenge ? root.currentChallenge.category.toUpperCase() : ""
-                    color: root.mutedColor
-                    font.family: "monospace"
-                    font.pixelSize: 9 * root.textScale
-                    font.weight: Font.Bold
-                  }
-                }
-              }
-            }
-
-            Item {
-              anchors.fill: parent
-              visible: root.mode === "rescue"
-
-              Rectangle {
-                anchors.fill: parent
-                radius: 16
-                gradient: Gradient {
-                  GradientStop { position: 0; color: Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.2) }
-                  GradientStop { position: 0.45; color: root.backgroundColor }
-                  GradientStop { position: 1; color: Qt.rgba(root.foregroundColor.r, root.foregroundColor.g, root.foregroundColor.b, 0.06) }
-                }
-                border.width: 1
-                border.color: Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.55)
-              }
-
-              Rectangle {
-                anchors.top: parent.top
-                anchors.left: parent.left
-                anchors.right: parent.right
-                height: 38
-                radius: 16
-                color: Qt.rgba(root.backgroundColor.r, root.backgroundColor.g, root.backgroundColor.b, 0.88)
-                RowLayout {
-                  anchors.fill: parent
-                  anchors.leftMargin: 16
-                  anchors.rightMargin: 16
-                  Text {
-                    text: "OMARCHY RESCUE DESKTOP"
-                    color: root.modeAccent
-                    font.family: "monospace"
-                    font.pixelSize: 9 * root.textScale
-                    font.weight: Font.Black
-                    font.letterSpacing: 1.1
-                  }
-                  Item { Layout.fillWidth: true }
-                  Repeater {
-                    model: 6
-                    Rectangle {
-                      required property int index
-                      width: 10
-                      height: 10
-                      radius: 5
-                      color: index < root.challengeIndex ? root.modeAccent
-                        : index === root.challengeIndex ? root.foregroundColor : root.mutedColor
-                      opacity: index <= root.challengeIndex ? 1 : 0.28
-                    }
-                  }
-                }
-              }
-
-              Rectangle {
-                width: parent.width * 0.28
-                height: width
-                radius: width / 2
-                x: parent.width * 0.08
-                y: parent.height * 0.28
-                color: Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.08)
-              }
-              Rectangle {
-                width: parent.width * 0.2
-                height: width
-                radius: width / 2
-                x: parent.width * 0.7
-                y: parent.height * 0.5
-                color: Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, 0.06)
-              }
-
-              GridLayout {
-                anchors.centerIn: parent
-                anchors.verticalCenterOffset: 18
-                width: Math.min(parent.width - 70, 780)
-                columns: 3
-                rowSpacing: 16
-                columnSpacing: 16
-
-                Repeater {
-                  model: 6
-                  Rectangle {
-                    id: rescueTile
-                    required property int index
-                    readonly property bool rescued: index < root.challengeIndex
-                    readonly property bool activeTile: index === root.challengeIndex
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 118
-                    radius: 10
-                    color: rescued
-                      ? Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.19)
-                      : Qt.rgba(root.backgroundColor.r, root.backgroundColor.g, root.backgroundColor.b, 0.92)
-                    border.width: activeTile ? 3 : rescued ? 2 : 1
-                    border.color: rescued || activeTile ? root.modeAccent
-                      : Qt.rgba(root.foregroundColor.r, root.foregroundColor.g, root.foregroundColor.b, 0.18)
-                    scale: activeTile && !root.reducedMotion ? 1.035 : 1
-                    opacity: index > root.challengeIndex ? 0.64 : 1
-                    Behavior on scale {
-                      NumberAnimation { duration: 220; easing.type: Easing.OutBack }
-                    }
-
-                    SequentialAnimation on rotation {
-                      running: rescueTile.activeTile && !root.reducedMotion
-                      loops: Animation.Infinite
-                      NumberAnimation { to: -0.7; duration: 420 }
-                      NumberAnimation { to: 0.7; duration: 420 }
-                      NumberAnimation { to: 0; duration: 420 }
-                    }
-
-                    Rectangle {
-                      anchors.top: parent.top
-                      anchors.left: parent.left
-                      anchors.right: parent.right
-                      height: 24
-                      radius: 9
-                      color: rescueTile.rescued || rescueTile.activeTile
-                        ? Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.38)
-                        : Qt.rgba(root.foregroundColor.r, root.foregroundColor.g, root.foregroundColor.b, 0.07)
-                      Row {
-                        anchors.left: parent.left
-                        anchors.leftMargin: 9
-                        anchors.verticalCenter: parent.verticalCenter
-                        spacing: 4
-                        Repeater {
-                          model: 3
-                          Rectangle {
-                            required property int index
-                            width: 6
-                            height: 6
-                            radius: 3
-                            color: index === 0 ? root.urgentColor : root.mutedColor
-                            opacity: 0.75
-                          }
-                        }
-                      }
-                    }
-
-                    Column {
-                      anchors.centerIn: parent
-                      anchors.verticalCenterOffset: 11
-                      spacing: 7
-                      Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: rescueTile.rescued ? "✓" : rescueTile.activeTile ? "!"
-                          : String(rescueTile.index + 1)
-                        color: rescueTile.rescued || rescueTile.activeTile ? root.modeAccent : root.mutedColor
-                        font.pixelSize: 23 * root.textScale
-                        font.weight: Font.Black
-                      }
-                      Text {
-                        anchors.horizontalCenter: parent.horizontalCenter
-                        text: rescueTile.rescued ? "RESTORED"
-                          : rescueTile.activeTile ? "SIGNAL LOST" : "AWAITING SIGNAL"
-                        color: rescueTile.rescued || rescueTile.activeTile
-                          ? root.foregroundColor : root.mutedColor
-                        font.family: "monospace"
-                        font.pixelSize: 9 * root.textScale
-                        font.weight: Font.Bold
-                        font.letterSpacing: 0.7
-                      }
-                    }
-                  }
-                }
-              }
-
-              Text {
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 12
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: root.challengeIndex === 0 ? "DESKTOP DISTRESS SIGNAL DETECTED"
-                  : root.challengeIndex < 6 ? root.challengeIndex + " WINDOW" +
-                    (root.challengeIndex === 1 ? "" : "S") + " BACK ONLINE"
-                  : "DESKTOP STABLE"
-                color: root.modeAccent
-                font.family: "monospace"
-                font.pixelSize: 9 * root.textScale
-                font.weight: Font.Black
-                font.letterSpacing: 1.2
-              }
-            }
-
-            Rectangle {
-              id: fallLane
-              anchors.fill: parent
-              visible: root.mode === "keyfall"
-              radius: 14
-              gradient: Gradient {
-                GradientStop { position: 0; color: Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, 0.12) }
-                GradientStop { position: 0.45; color: root.backgroundColor }
-                GradientStop { position: 1; color: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.13) }
-              }
-              border.width: 1
-              border.color: Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, 0.55)
-
-              Repeater {
-                model: 18
-                Rectangle {
-                  required property int index
-                  x: ((index * 53) % 97) / 100 * fallLane.width
-                  y: ((index * 31) % 83) / 100 * fallLane.height
-                  width: index % 4 === 0 ? 3 : 2
-                  height: width
-                  radius: width / 2
-                  color: index % 3 === 0 ? root.urgentColor : root.foregroundColor
-                  opacity: 0.1 + (index % 4) * 0.07
-                }
-              }
-
-              Repeater {
-                model: 5
-                Rectangle {
-                  required property int index
-                  x: fallLane.width / 2 + (index - 2) * fallLane.width * 0.1
-                  y: fallLane.height * 0.18
-                  width: 1
-                  height: fallLane.height * 0.78
-                  transformOrigin: Item.Top
-                  rotation: (index - 2) * 12
-                  color: Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, 0.13)
-                }
-              }
-              Repeater {
-                model: 7
-                Rectangle {
-                  required property int index
-                  width: fallLane.width * (0.35 + index * 0.1)
-                  height: 1
-                  anchors.horizontalCenter: parent.horizontalCenter
-                  y: fallLane.height * (0.23 + index * 0.09)
-                  color: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.12 + index * 0.02)
-                }
-              }
-              Rectangle {
-                id: recallGlow
-                x: 24
-                width: parent.width - 48
-                height: 9
-                y: parent.height - 75
-                radius: 5
-                color: root.urgentColor
-                opacity: 0.18
-                SequentialAnimation on opacity {
-                  running: root.running && !root.reducedMotion
-                  loops: Animation.Infinite
-                  NumberAnimation { to: 0.4; duration: 500 }
-                  NumberAnimation { to: 0.12; duration: 500 }
-                }
-              }
-              Rectangle {
-                x: 24
-                width: parent.width - 48
-                height: 3
-                y: parent.height - 72
-                color: root.urgentColor
-              }
-              Text {
-                anchors.right: parent.right
-                anchors.rightMargin: 28
-                y: parent.height - 64
-                text: "RECALL LINE"
-                color: root.urgentColor
-                font.family: "monospace"
-                font.pixelSize: 9 * root.textScale
-                font.weight: Font.Bold
-              }
-              Repeater {
-                model: 3
-                Rectangle {
-                  required property int index
-                  width: challengeCard.width - 28 - index * 24
-                  height: challengeCard.height
-                  x: challengeCard.x + (challengeCard.width - width) / 2
-                  y: challengeCard.y - 12 - index * 13
-                  radius: 12
-                  color: Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, 0.045 + index * 0.02)
-                  border.width: 1
-                  border.color: Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, 0.12)
-                }
-              }
-              Rectangle {
-                id: challengeCard
-                width: Math.min(parent.width - 100, 570)
-                height: 142
-                x: (parent.width - width) / 2
-                y: root.hinted ? (parent.height - height) / 2
-                  : 22 + root.keyfallProgress * Math.max(0, parent.height - height - 100)
-                radius: 12
-                gradient: Gradient {
-                  GradientStop { position: 0; color: Qt.rgba(root.urgentColor.r, root.urgentColor.g, root.urgentColor.b, root.hinted ? 0.2 : 0.12) }
-                  GradientStop { position: 1; color: root.backgroundColor }
-                }
-                border.width: root.hinted ? 3 : 2
-                border.color: root.hinted ? root.accentColor : root.urgentColor
-                Behavior on y {
-                  enabled: !root.reducedMotion
-                  NumberAnimation { duration: 65 }
-                }
-                ColumnLayout {
-                  anchors.fill: parent
-                  anchors.margins: 18
-                  spacing: 5
-                  RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                      Layout.fillWidth: true
-                      text: root.hinted ? "CARD FROZEN · LEARN IT" : "INCOMING SHORTCUT"
-                      color: root.hinted ? root.accentColor : root.urgentColor
-                      font.family: "monospace"
-                      font.pixelSize: 9 * root.textScale
-                      font.weight: Font.Black
-                      font.letterSpacing: 1
-                    }
-                    Text {
-                      text: root.currentChallenge ? root.currentChallenge.category.toUpperCase() : ""
-                      color: root.mutedColor
-                      font.family: "monospace"
-                      font.pixelSize: 9 * root.textScale
-                      font.weight: Font.Bold
-                    }
-                  }
-                  Text {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    text: root.currentChallenge ? root.currentChallenge.prompt : ""
-                    color: root.foregroundColor
-                    wrapMode: Text.WordWrap
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    font.pixelSize: 18 * root.textScale
-                    font.weight: Font.DemiBold
-                  }
-                }
-              }
-            }
-          }
-
-          ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 10
-            Text {
-              Layout.fillWidth: true
-              text: root.currentChallenge
-                ? (root.mode === "rescue" ? "Rescue task: " : "") + root.currentChallenge.prompt
-                : ""
-              visible: root.mode === "rescue"
-              color: root.foregroundColor
-              wrapMode: Text.WordWrap
-              horizontalAlignment: Text.AlignHCenter
-              font.pixelSize: 20 * root.textScale
-              font.weight: Font.DemiBold
-            }
-
-            RowLayout {
-              Layout.alignment: Qt.AlignHCenter
-              spacing: 8
-              visible: root.hinted
-              Repeater {
-                model: root.expectedKeys
-                KeyPill { required property string modelData; keyLabel: modelData }
-              }
-            }
-
-            RowLayout {
-              Layout.fillWidth: true
-              Text {
-                Layout.fillWidth: true
-                text: root.feedback
-                color: root.hinted ? root.accentColor : root.mutedColor
-                wrapMode: Text.WordWrap
-                horizontalAlignment: Text.AlignHCenter
-                font.pixelSize: 13 * root.textScale
-              }
-              ArcadeButton {
-                label: root.hinted ? "HINT SHOWN" : "SHOW HINT  H"
-                primary: !root.hinted
-                enabled: !root.hinted
-                opacity: enabled ? 1 : 0.55
-                onClicked: root.showHint()
-              }
-            }
-          }
+        ArcadePixelText {
+          Layout.fillWidth: true
+          text: "Your round is paused"
+          color: root.foregroundColor
+          font.pixelSize: 22 * root.fontScale
         }
-
-        Repeater {
-          model: 30
-          Rectangle {
-            id: confetti
-            required property int index
-            visible: root.screen === "results"
-            width: 5 + index % 4
-            height: 12 + index % 5
-            radius: 2
-            x: ((index * 73) % 97) / 100 * parent.width
-            y: ((index * 41) % 89) / 100 * parent.height
-            rotation: index * 31
-            color: index % 3 === 0 ? root.modeAccent
-              : index % 3 === 1 ? root.urgentColor : root.foregroundColor
-            opacity: 0.35 + (index % 5) * 0.1
-            SequentialAnimation on y {
-              running: confetti.visible && !root.reducedMotion
-              loops: Animation.Infinite
-              NumberAnimation { to: confetti.parent.height + 20; duration: 2600 + confetti.index * 53 }
-              PropertyAction { value: -20 }
-            }
-            RotationAnimation on rotation {
-              running: confetti.visible && !root.reducedMotion
-              from: confetti.index * 31
-              to: confetti.index * 31 + 360
-              duration: 1800 + confetti.index * 29
-              loops: Animation.Infinite
-            }
-          }
+        Text {
+          Layout.fillWidth: true
+          text: root.keyboardCaptureAvailable
+            ? "Take a break. Your completed shortcuts are saved. Resume whenever you're ready."
+            : "Keyboard capture was interrupted. Click Resume to restore it and continue safely."
+          color: root.mutedColor
+          font.pixelSize: 16 * root.fontScale
+          wrapMode: Text.WordWrap
         }
-
-        ColumnLayout {
-          anchors.centerIn: parent
-          width: Math.min(parent.width, 760)
-          spacing: 20
-          visible: root.screen === "results"
-          opacity: visible ? 1 : 0
-          scale: visible ? 1 : 0.9
-          Behavior on opacity { NumberAnimation { duration: root.reducedMotion ? 0 : 220 } }
-          Behavior on scale { NumberAnimation { duration: root.reducedMotion ? 0 : 360; easing.type: Easing.OutBack } }
-
-          Text {
-            Layout.fillWidth: true
-            text: root.newBest ? "NEW PERSONAL BEST!" : root.modeName(root.mode) + " COMPLETE"
-            color: root.newBest ? root.accentColor : root.foregroundColor
-            horizontalAlignment: Text.AlignHCenter
-            font.family: "monospace"
-            font.pixelSize: 28 * root.textScale
-            font.weight: Font.Black
+        GridLayout {
+          Layout.fillWidth: true
+          columns: root.compactLayout ? 1 : 2
+          columnSpacing: 10
+          rowSpacing: 10
+          ArcadeButton {
+            id: resumeButton
+            objectName: "arcadeResumeButton"
+            Layout.fillWidth: root.compactLayout
+            arcade: root
+            text: root.keyboardCaptureAvailable ? "Resume practice · Enter / P" : "Resume and restore keys"
+            primary: true
+            navigationSelected: root.selectedControl === resumeButton
+            onClicked: root.resumeGame()
           }
-
-          Rectangle {
-            Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: 132
-            Layout.preferredHeight: 132
-            radius: 66
-            color: Qt.rgba(root.modeAccent.r, root.modeAccent.g, root.modeAccent.b, 0.16)
-            border.width: 4
-            border.color: root.modeAccent
-            scale: root.screen === "results" ? 1 : 0.5
-            Behavior on scale {
-              enabled: !root.reducedMotion
-              NumberAnimation { duration: 420; easing.type: Easing.OutBack }
-            }
-            Column {
-              anchors.centerIn: parent
-              spacing: -5
-              Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: root.resultRank
-                color: root.modeAccent
-                font.family: "monospace"
-                font.pixelSize: 58 * root.textScale
-                font.weight: Font.Black
-              }
-              Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: "RANK"
-                color: root.mutedColor
-                font.family: "monospace"
-                font.pixelSize: 9 * root.textScale
-                font.weight: Font.Bold
-                font.letterSpacing: 1.4
-              }
-            }
-          }
-
-          Text {
-            Layout.fillWidth: true
-            text: root.finalScore.toLocaleString()
-            color: root.foregroundColor
-            horizontalAlignment: Text.AlignHCenter
-            font.family: "monospace"
-            font.pixelSize: 42 * root.textScale
-            font.weight: Font.Black
-          }
-          Text {
-            Layout.fillWidth: true
-            text: "FINAL SCORE"
-            color: root.mutedColor
-            horizontalAlignment: Text.AlignHCenter
-            font.family: "monospace"
-            font.pixelSize: 10 * root.textScale
-            font.weight: Font.Bold
-            font.letterSpacing: 1.5
-          }
-
-          RowLayout {
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 44
-            Repeater {
-              model: [
-                ["CLEAN", root.finalClean],
-                ["BEST STREAK", root.finalStreak],
-                ["TIME", root.formatTime(root.finalElapsedMs)]
-              ]
-              ColumnLayout {
-                required property var modelData
-                Text {
-                  Layout.alignment: Qt.AlignHCenter
-                  text: parent.modelData[1]
-                  color: root.foregroundColor
-                  font.family: "monospace"
-                  font.pixelSize: 25 * root.textScale
-                  font.weight: Font.Black
-                }
-                Text {
-                  Layout.alignment: Qt.AlignHCenter
-                  text: parent.modelData[0]
-                  color: root.mutedColor
-                  font.family: "monospace"
-                  font.pixelSize: 10 * root.textScale
-                  font.weight: Font.Bold
-                }
-              }
-            }
-          }
-          Text {
-            Layout.fillWidth: true
-            text: root.finalClean === 0
-              ? "Hints kept the run moving. Replay it and see which answers arrive before you need them."
-              : "You recalled " + root.finalClean + " shortcut" + (root.finalClean === 1 ? "" : "s") + " cleanly."
-            color: root.mutedColor
-            wrapMode: Text.WordWrap
-            horizontalAlignment: Text.AlignHCenter
-            font.pixelSize: 15 * root.textScale
-          }
-          RowLayout {
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 14
-            ArcadeButton {
-              label: "PLAY AGAIN"
-              primary: true
-              onClicked: root.startGame(root.mode)
-            }
-            ArcadeButton {
-              label: "CHOOSE A GAME"
-              onClicked: root.openHub()
-            }
+          ArcadeButton {
+            id: quitButton
+            Layout.fillWidth: root.compactLayout
+            arcade: root
+            text: "Quit to hub"
+            navigationSelected: root.selectedControl === quitButton
+            onClicked: root.openHub()
           }
         }
       }

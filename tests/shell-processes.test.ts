@@ -98,6 +98,7 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
     onTriggered: {
       console.log("COMPLETE_SHELL_LOADED")
       console.log("INTEGRATION_NOTICE", root.integrationNotice)
+      console.log("GEOMETRY_PROVIDER_AVAILABLE", root.geometryProviderAvailable)
       Qt.quit()
     }
   }
@@ -121,8 +122,8 @@ test("the complete shell instantiates offscreen with isolated state and no deskt
     assert.equal(result.error, undefined, String(result.error));
     assert.equal(result.status, 0, output);
     assert.match(output, /COMPLETE_SHELL_LOADED/);
-    assert.match(output, /INTEGRATION_NOTICE.*Some highlights may be approximate on this desktop/);
-    assert.doesNotMatch(output, /INTEGRATION_NOTICE.*Mock desktop integration unavailable/);
+    assert.match(output, /INTEGRATION_NOTICE Mock desktop integration unavailable/);
+    assert.match(output, /GEOMETRY_PROVIDER_AVAILABLE false/);
     assert.doesNotMatch(output, /ReferenceError|TypeError|Cannot assign|is not a type|Binding loop|Failed to load configuration/);
   } finally {
     await rm(directory, { recursive: true, force: true });
@@ -141,7 +142,7 @@ test("Settings reset clears real saved progress and remains cleared after Quicks
       if (name !== "shell.qml") await symlink(join(app, name), join(directory, name));
     }
     const course = JSON.parse(await readFile(join(project, "courses/omarchy-basics.json"), "utf8"));
-    const completed = ["omarchy-tour", "workspaces"];
+    const completed = ["welcome", "omarchy-tour", "workspaces"];
     const steps = Object.fromEntries(course.lessons
       .filter((lesson: { id: string }) => completed.includes(lesson.id))
       .flatMap((lesson: { steps: Array<{ id: string }> }) => lesson.steps.map(step => [step.id, "introduced"])));
@@ -250,6 +251,49 @@ test("Settings reset clears real saved progress and remains cleared after Quicks
       assert.deepEqual(progress.courses[course.id], [], "the reset must reach the real file, not only memory");
       assert.deepEqual(progress.details[course.id], { steps: {}, credits: {}, bookmarks: {} });
       assert.equal(JSON.parse(await readFile(settingsPath, "utf8")).welcomeSeen, false);
+    }
+    for (const mode of ["start-and-skip", "restart"]) {
+      await writeFile(path, offscreenShell(source, `
+  property int testStage: 0
+  Timer {
+    interval: 200
+    running: true
+    repeat: true
+    onTriggered: {
+      if (!root.course || !root.settingsResolved || !root.progressResolved || !characterStore.ready) return
+      if (root.testStage === 0) {
+        root.finishSplash()
+        ${mode === "start-and-skip" ? `root.openSettings("first-run")
+        root.chooseCharacter("ohm-1")
+        console.log("WELCOME_STARTED", JSON.stringify({
+          phase: root.phase, completed: root.lessonCompleted(root.course.lessons[0]), seen: root.welcomeSeen
+        }))
+        root.finishWelcome()` : ""}
+        root.testStage++
+      } else {
+        console.log("WELCOME_AFTER_RESET", JSON.stringify({
+          completed: root.lessonCompleted(root.course.lessons[0]),
+          tourCompleted: root.lessonCompleted(root.course.lessons[1]), seen: root.welcomeSeen
+        }))
+        Qt.quit()
+      }
+    }
+  }
+`));
+      const result = spawnSync("qs", ["--no-color", "--path", path], { env, encoding: "utf8", timeout: 15000 });
+      const output = result.stdout + result.stderr;
+      assert.equal(result.error, undefined, output + String(result.error));
+      assert.equal(result.status, 0, output);
+      assert.doesNotMatch(output, /ReferenceError|TypeError|Cannot assign|is not a type|Binding loop|Failed to load configuration/);
+      if (mode === "start-and-skip") {
+        const started = output.match(/WELCOME_STARTED (\{[^\n]+\})/);
+        assert.ok(started, output);
+        assert.deepEqual(JSON.parse(started[1]), { phase: "welcome", completed: false, seen: true });
+      }
+      const after = output.match(/WELCOME_AFTER_RESET (\{[^\n]+\})/);
+      assert.ok(after, output);
+      assert.deepEqual(JSON.parse(after[1]), { completed: false, tourCompleted: false, seen: true });
+      assert.deepEqual(JSON.parse(await readFile(progressPath, "utf8")).courses[course.id], []);
     }
   } finally {
     await rm(directory, { recursive: true, force: true });

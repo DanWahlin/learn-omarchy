@@ -13,6 +13,14 @@ QtObject {
     property string diagnostic: ""
     property string loadedText: ""
     property int refreshRetries: 0
+    property bool wallpaperEnabled: false
+    property string wallpaperPath: stateHome + "/omarchy/current/background"
+    property int wallpaperRevision: 0
+    readonly property url wallpaperSource: wallpaperEnabled && wallpaperPath
+        ? "file://" + wallpaperPath.split("/").map(encodeURIComponent).join("/") + "?v=" + wallpaperRevision
+        : ""
+
+    onWallpaperEnabledChanged: if (wallpaperEnabled) wallpaperRevision++
 
     function apply(raw) {
         try {
@@ -63,6 +71,25 @@ QtObject {
         path: root.themeNamePath
         watchChanges: true
         printErrors: false
-        onFileChanged: { reload(); root.refresh() }
+        onFileChanged: { reload(); root.refresh(); root.wallpaperRevision++ }
+    }
+    property FileView wallpaperWatcher: FileView {
+        path: root.wallpaperEnabled ? root.wallpaperPath : ""
+        preload: false
+        watchChanges: true
+        printErrors: false
+        onFileChanged: root.wallpaperRevision++
+    }
+    property FileView wallpaperDirectoryWatcher: FileView {
+        path: root.wallpaperEnabled ? root.wallpaperPath.slice(0, root.wallpaperPath.lastIndexOf("/")) : ""
+        preload: false
+        watchChanges: true
+        printErrors: false
+        onFileChanged: {
+            // Replacing the symlink does not modify its previously watched target.
+            root.wallpaperWatcher.watchChanges = false
+            root.wallpaperWatcher.watchChanges = true
+            root.wallpaperRevision++
+        }
     }
 }

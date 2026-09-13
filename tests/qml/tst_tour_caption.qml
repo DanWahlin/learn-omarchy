@@ -38,6 +38,7 @@ Item {
         + "if (line.number === 0) root.lineWidths = []; root.lineWidths.push(line.implicitWidth)\n} }\n"
         + "property alias caption: tourCaption\nproperty alias movingX: coachTravelX.running\n"
         + "property alias movingY: coachTravelY.running\n"
+        + "property alias dragging: characterMouse.pressed\nproperty alias falling: fallAnimation.running\n"
         + "Item { id: overlay; width: root.width; height: root.height }\n"
         + "Item { id: hexonCoach; width: 224; height: 192; property real arcOffset: 0 }\n"
         + "QtObject { id: coachTravelX; property bool running: false }\n"
@@ -50,10 +51,15 @@ Item {
     function init() {
       failOnWarning(/.*/)
       fixture.reducedMotion = true
+      fixture.phase = "waiting"
+      fixture.currentStep = {instruction: "Welcome to the desktop. Follow the highlighted bar."}
       fixture.characterState = "tour-fly"
       fixture.introActive = false
       fixture.movingX = false
       fixture.movingY = false
+      fixture.dragging = false
+      fixture.falling = false
+      fixture.revealEnd = -1
       fixture.lessonContentOpacity = 1
       fixture.width = 1200
       fixture.height = 800
@@ -98,6 +104,41 @@ Item {
       fixture.introActive = true
       tryCompare(fixture.caption, "opacity", 0, 50)
       fixture.tourRestingState = "tour-talk"
+    }
+
+    function test_repositioningDoesNotInterruptAnArrivedCaption() {
+      fixture.revealEnd = 7
+      fixture.characterState = "tour-talk"
+      tryCompare(fixture.caption, "opacity", 1)
+      var height = fixture.caption.height
+      for (var end of [14, 21, 28]) {
+        fixture.movingX = true
+        fixture.movingY = true
+        fixture.revealEnd = end
+        wait(30)
+        compare(fixture.caption.opacity, 1, "A geometry refresh must not hide narration already being read")
+        verify(fixture.caption.ready)
+        compare(fixture.caption.height, height)
+        compare(fixture.revealEnd, end)
+        fixture.movingX = false
+        fixture.movingY = false
+        wait(30)
+        compare(fixture.caption.opacity, 1)
+      }
+      fixture.movingX = true
+      fixture.currentStep = {instruction: "A different tour step."}
+      tryCompare(fixture.caption, "opacity", 0, 50)
+      fixture.movingX = false
+      tryCompare(fixture.caption, "opacity", 1)
+      fixture.dragging = true
+      tryCompare(fixture.caption, "opacity", 0, 50)
+      fixture.falling = true
+      fixture.dragging = false
+      compare(fixture.caption.opacity, 0)
+      fixture.falling = false
+      tryCompare(fixture.caption, "opacity", 1)
+      fixture.phase = "menu"
+      tryCompare(fixture.caption, "opacity", 0, 50)
     }
 
     function test_captionUsesReadableWidthAlignmentAndTextScale() {

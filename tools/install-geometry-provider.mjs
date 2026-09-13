@@ -136,9 +136,18 @@ function serviceReadiness() {
       typeof capabilities.manifestId !== "string") {
     return { ready: false, reason: "Geometry service returned an unsupported capability response." };
   }
-  return capabilities.shellAvailable
-    ? { ready: true }
-    : { ready: false, reason: "Geometry service is waiting for its desktop shell connection." };
+  if (!capabilities.shellAvailable)
+    return { ready: false, reason: "Geometry service is waiting for its desktop shell connection." };
+  if (!capabilities.barAvailable)
+    return { ready: false, reason: "Geometry service is waiting for the desktop bar." };
+  if (!capabilities.slotsAvailable || !capabilities.windowMappingAvailable)
+    return { ready: false, incompatible: true,
+      reason: "This Omarchy shell does not expose detailed widget geometry to the integration. The app will try supported bar measurements instead." };
+  const barId = capabilities.activeBarId || capabilities.manifestId;
+  if (barId !== "omarchy.bar" || (capabilities.manifestId && capabilities.manifestId !== "omarchy.bar"))
+    return { ready: false, incompatible: true,
+      reason: "The integration cannot identify a supported stock bar. The app will try supported bar measurements instead." };
+  return { ready: true };
 }
 
 async function ownedPayload(target) {
@@ -187,9 +196,14 @@ async function install() {
   checkRegistration(registered, target);
   if (!existing && registered) throw new Error(`Plugin id ${id} is already registered elsewhere; refusing conflict`);
   const unchanged = installed && sameFingerprints(fingerprints(installed), sums);
-  if (unchanged && registered?.enabled === true && serviceReadiness().ready) {
-    report(`Integration ${id} is already ready.`);
-    return;
+  if (unchanged && registered?.enabled === true) {
+    const readiness = serviceReadiness();
+    if (readiness.ready) {
+      report(`Integration ${id} is already ready.`);
+      return;
+    }
+    // Reloading an unchanged service cannot expand the host's plugin API.
+    if (readiness.incompatible) throw new Error(readiness.reason);
   }
   const help = command("omarchy", ["plugin", "--help"]);
   if (!help.includes("omarchy plugin enable") || !help.includes("omarchy plugin list")) {
@@ -248,6 +262,7 @@ async function install() {
       report(`Installed and enabled ${id} at ${target}`);
       return;
     }
+    if (readiness.incompatible) throw new Error(readiness.reason);
     await setTimeout(100);
   }
   throw new Error(`The desktop integration isn't ready. ${readiness.reason}`);

@@ -1,63 +1,83 @@
 {
   "version": 1,
-  "audioHash": "f538d45f2bcffd3458e1572e68f40d9362ff96ec8a7e547a66ceb7fc43b516f4",
-  "text": "Pick a background you like, or press Escape to keep the one you have.",
+  "audioHash": "510c707c2e1971175c65017152d7ad7885e3c9c526c71911403a0dc685d84670",
+  "text": "The Background switcher is open. It previews available choices without changing your desktop. Looking is enough for this lesson.",
   "words": [
     {
       "startMs": 70,
-      "endOffset": 4
+      "endOffset": 3
     },
     {
-      "startMs": 230,
-      "endOffset": 6
+      "startMs": 190,
+      "endOffset": 14
     },
     {
-      "startMs": 310,
-      "endOffset": 17
+      "startMs": 830,
+      "endOffset": 23
     },
     {
-      "startMs": 870,
-      "endOffset": 21
+      "startMs": 1390,
+      "endOffset": 26
     },
     {
-      "startMs": 990,
-      "endOffset": 27
+      "startMs": 1590,
+      "endOffset": 32
     },
     {
-      "startMs": 1710,
-      "endOffset": 30
+      "startMs": 2590,
+      "endOffset": 35
     },
     {
-      "startMs": 1990,
-      "endOffset": 36
+      "startMs": 2949,
+      "endOffset": 44
     },
     {
-      "startMs": 2270,
-      "endOffset": 43
+      "startMs": 3550,
+      "endOffset": 54
     },
     {
-      "startMs": 2989,
-      "endOffset": 46
+      "startMs": 4070,
+      "endOffset": 62
     },
     {
-      "startMs": 3150,
-      "endOffset": 51
+      "startMs": 4750,
+      "endOffset": 70
     },
     {
-      "startMs": 3349,
-      "endOffset": 55
+      "startMs": 5190,
+      "endOffset": 79
     },
     {
-      "startMs": 3510,
-      "endOffset": 59
+      "startMs": 5630,
+      "endOffset": 84
     },
     {
-      "startMs": 3750,
-      "endOffset": 63
+      "startMs": 5790,
+      "endOffset": 93
     },
     {
-      "startMs": 3909,
-      "endOffset": 69
+      "startMs": 7350,
+      "endOffset": 101
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 104
+    },
+    {
+      "startMs": 8149,
+      "endOffset": 111
+    },
+    {
+      "startMs": 8469,
+      "endOffset": 115
+    },
+    {
+      "startMs": 8629,
+      "endOffset": 120
+    },
+    {
+      "startMs": 8870,
+      "endOffset": 128
     }
   ]
 }

@@ -1,151 +1,91 @@
 {
   "version": 1,
-  "audioHash": "c7447f0345538c409b5468536c0510096362d76ea3d5ee2dd14ddb60cb23ae41",
-  "text": "The menu is open. Choose Release Keys before typing or browsing here. Escape clears typed text; press it again to close. With no text, one press closes. Then choose Capture Keys to return to the course.",
+  "audioHash": "e258b90522296767fde2d730dc35b92a5679a7087b7a8a6d40eec34ad746885d",
+  "text": "The Omarchy menu is open. It brings together apps, settings, and system tools. The course will close it when you continue.",
   "words": [
     {
       "startMs": 70,
       "endOffset": 3
     },
     {
-      "startMs": 190,
-      "endOffset": 8
-    },
-    {
-      "startMs": 390,
+      "startMs": 230,
       "endOffset": 11
     },
     {
-      "startMs": 510,
-      "endOffset": 17
+      "startMs": 710,
+      "endOffset": 16
     },
     {
-      "startMs": 1270,
-      "endOffset": 24
+      "startMs": 1030,
+      "endOffset": 19
     },
     {
-      "startMs": 1670,
-      "endOffset": 32
+      "startMs": 1150,
+      "endOffset": 25
     },
     {
-      "startMs": 2029,
-      "endOffset": 37
+      "startMs": 1790,
+      "endOffset": 28
     },
     {
-      "startMs": 2389,
+      "startMs": 1990,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2230,
       "endOffset": 44
     },
     {
-      "startMs": 2789,
-      "endOffset": 51
+      "startMs": 2590,
+      "endOffset": 50
     },
     {
-      "startMs": 3230,
-      "endOffset": 54
+      "startMs": 3270,
+      "endOffset": 60
     },
     {
-      "startMs": 3349,
-      "endOffset": 63
+      "startMs": 3989,
+      "endOffset": 64
     },
     {
-      "startMs": 3789,
-      "endOffset": 69
+      "startMs": 4190,
+      "endOffset": 71
     },
     {
-      "startMs": 4750,
-      "endOffset": 76
+      "startMs": 4550,
+      "endOffset": 78
     },
     {
-      "startMs": 5230,
-      "endOffset": 83
+      "startMs": 5390,
+      "endOffset": 82
     },
     {
-      "startMs": 5590,
+      "startMs": 5550,
       "endOffset": 89
     },
     {
-      "startMs": 5870,
-      "endOffset": 95
+      "startMs": 5830,
+      "endOffset": 94
     },
     {
-      "startMs": 6710,
-      "endOffset": 101
+      "startMs": 5990,
+      "endOffset": 100
     },
     {
-      "startMs": 6950,
-      "endOffset": 104
+      "startMs": 6310,
+      "endOffset": 103
     },
     {
-      "startMs": 7030,
-      "endOffset": 110
+      "startMs": 6390,
+      "endOffset": 108
     },
     {
-      "startMs": 7270,
-      "endOffset": 113
+      "startMs": 6550,
+      "endOffset": 112
     },
     {
-      "startMs": 7350,
-      "endOffset": 120
-    },
-    {
-      "startMs": 8350,
-      "endOffset": 125
-    },
-    {
-      "startMs": 8629,
-      "endOffset": 128
-    },
-    {
-      "startMs": 8790,
-      "endOffset": 134
-    },
-    {
-      "startMs": 9469,
-      "endOffset": 138
-    },
-    {
-      "startMs": 9750,
-      "endOffset": 144
-    },
-    {
-      "startMs": 9990,
-      "endOffset": 152
-    },
-    {
-      "startMs": 10990,
-      "endOffset": 157
-    },
-    {
-      "startMs": 11309,
-      "endOffset": 164
-    },
-    {
-      "startMs": 11629,
-      "endOffset": 172
-    },
-    {
-      "startMs": 12069,
-      "endOffset": 177
-    },
-    {
-      "startMs": 12389,
-      "endOffset": 180
-    },
-    {
-      "startMs": 12469,
-      "endOffset": 187
-    },
-    {
-      "startMs": 12830,
-      "endOffset": 190
-    },
-    {
-      "startMs": 12910,
-      "endOffset": 194
-    },
-    {
-      "startMs": 13030,
-      "endOffset": 202
+      "startMs": 6670,
+      "endOffset": 122
     }
   ]
 }

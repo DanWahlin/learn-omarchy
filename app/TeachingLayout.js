@@ -33,7 +33,7 @@ function position(viewportWidth, viewportHeight, width, height, target) {
   return centered
 }
 
-function besideBar(viewportWidth, viewportHeight, width, height, target) {
+function besideBar(viewportWidth, viewportHeight, width, height, target, pointingTip) {
   var distances = [target.y, viewportHeight - target.y - target.height,
     target.x, viewportWidth - target.x - target.width]
   var knownEdge = ["top", "bottom", "left", "right"].indexOf(target.edge)
@@ -47,9 +47,16 @@ function besideBar(viewportWidth, viewportHeight, width, height, target) {
   else if (edge === 1) y = target.y - height - gap
   else if (edge === 2) x = target.x + target.width + gap
   else x = target.x - width - gap
+  var minimumY = 50
+  if (edge === 0 && pointingTip) {
+    // Use the registered fingertip, not the coach container's empty top margin.
+    x = target.x + target.width / 2 - pointingTip.x
+    y = target.y + target.height + 44 - pointingTip.y
+    minimumY = -pointingTip.canvasTop
+  }
   return {
     x: Math.max(18, Math.min(viewportWidth - width - 18, x)),
-    y: Math.max(50, Math.min(viewportHeight - height - 28, y)),
+    y: Math.max(minimumY, Math.min(viewportHeight - height - 28, y)),
     edge: ["top", "bottom", "left", "right"][edge]
   }
 }

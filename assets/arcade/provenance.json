@@ -1,0 +1,22 @@
+{
+  "assets": [
+    "rescue-ship.png",
+    "rescue-planet.png"
+  ],
+  "purpose": "Window Rescue flight-path spacecraft and destination planet artwork",
+  "generation": {
+    "provider": "Azure OpenAI",
+    "model": "gpt-image-2",
+    "operation": "image generation",
+    "size": "1536x1024",
+    "quality": "high",
+    "background": "transparent"
+  },
+  "references": [],
+  "postprocessing": "Split the generated transparent asset sheet into separate spacecraft and planet files, removed isolated alpha artifacts, trimmed transparent margins, resized with Lanczos filtering, and optimized PNG metadata.",
+  "license": {
+    "status": "declared",
+    "identifier": "CC-BY-4.0",
+    "note": "Original generated artwork created for Learn Omarchy. https://creativecommons.org/licenses/by/4.0/. Credit Learn Omarchy and indicate changes."
+  }
+}

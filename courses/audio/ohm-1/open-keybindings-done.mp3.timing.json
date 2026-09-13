@@ -1,103 +1,95 @@
 {
   "version": 1,
-  "audioHash": "50542fc3f5d10457a8e8f1a18ece7bf3df7e5d9330b0043ed13ac129ab178e18",
-  "text": "The shortcut guide is open. To leave without running a shortcut, Escape clears typed text; press it again to close, or once if empty.",
+  "audioHash": "9bd4845bef0d8b802d7307b76c78858197d41bd13a75456d1c6d89989ec0b3f3",
+  "text": "The shortcut guide is open. It lists Omarchy shortcuts and can filter them as you type. Looking is enough for this lesson.",
   "words": [
     {
       "startMs": 70,
       "endOffset": 3
     },
     {
-      "startMs": 190,
+      "startMs": 310,
       "endOffset": 12
     },
     {
-      "startMs": 510,
+      "startMs": 870,
       "endOffset": 18
     },
     {
-      "startMs": 750,
+      "startMs": 1590,
       "endOffset": 21
     },
     {
-      "startMs": 870,
+      "startMs": 2190,
       "endOffset": 27
     },
     {
-      "startMs": 1510,
+      "startMs": 2469,
       "endOffset": 30
     },
     {
-      "startMs": 1710,
+      "startMs": 2550,
       "endOffset": 36
     },
     {
-      "startMs": 1950,
+      "startMs": 2869,
       "endOffset": 44
     },
     {
-      "startMs": 2309,
-      "endOffset": 52
-    },
-    {
-      "startMs": 2590,
+      "startMs": 3270,
       "endOffset": 54
     },
     {
-      "startMs": 2630,
-      "endOffset": 64
+      "startMs": 3630,
+      "endOffset": 58
     },
     {
-      "startMs": 3429,
-      "endOffset": 71
+      "startMs": 3750,
+      "endOffset": 62
     },
     {
       "startMs": 3869,
-      "endOffset": 78
+      "endOffset": 69
     },
     {
-      "startMs": 4230,
-      "endOffset": 84
+      "startMs": 4110,
+      "endOffset": 74
     },
     {
-      "startMs": 4550,
-      "endOffset": 90
+      "startMs": 4310,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 81
+    },
+    {
+      "startMs": 4510,
+      "endOffset": 87
     },
     {
       "startMs": 5430,
-      "endOffset": 96
+      "endOffset": 95
     },
     {
-      "startMs": 5670,
-      "endOffset": 99
+      "startMs": 5790,
+      "endOffset": 98
     },
     {
-      "startMs": 5750,
+      "startMs": 5870,
       "endOffset": 105
     },
     {
-      "startMs": 5990,
-      "endOffset": 108
+      "startMs": 6110,
+      "endOffset": 109
     },
     {
-      "startMs": 6070,
-      "endOffset": 115
+      "startMs": 6230,
+      "endOffset": 114
     },
     {
-      "startMs": 6750,
-      "endOffset": 118
-    },
-    {
-      "startMs": 6950,
-      "endOffset": 123
-    },
-    {
-      "startMs": 7310,
-      "endOffset": 126
-    },
-    {
-      "startMs": 7470,
-      "endOffset": 133
+      "startMs": 6470,
+      "endOffset": 122
     }
   ]
 }
