@@ -23,6 +23,13 @@ not a sprite sheet. It fills the available screen above the loading hint without
 cropping either mascot or the title. The surrounding navy background is
 independent of the user's desktop theme.
 
+The website's hero wordmark uses the same 5x7 glyphs as crisp SVG pixels with
+small gaps between blocks. Its bright five-stop gradient echoes the splash,
+but derives its colors from the selected website theme rather than embedding
+the poster. Every theme's gradient is checked for at least 4.5:1 contrast
+against the hero backgrounds. The smaller desktop-preview wordmarks use the
+same theme colors.
+
 The shell supplies an absolute, URL-encoded `file://` source from `appRoot`.
 Do not use `Qt.resolvedUrl("../assets/...")` here: Quickshell's intercepted QML
 URLs cannot resolve assets outside the configuration directory and redirect
