@@ -30,12 +30,13 @@ test("CI pins actions and Arch image and restricts credentials and artifact uplo
   assert.match(ci, /github\.event_name == 'push'.*refs\/tags\/v/);
   assert.match(ci, /path: \.ci-release\/dist\//);
   assert.match(release, /needs: validate/);
-  assert.match(release, /--verify-tag --draft --prerelease/);
+  assert.match(release, /--verify-tag --latest/);
+  assert.doesNotMatch(release, /--draft|--prerelease/);
   assert.match(release, /--notes-file RELEASE-NOTES\.md/);
   assert.match(release, /PKGBUILD SRCINFO/);
   assert.ok(release.indexOf("gh release download") > release.indexOf("gh release create"),
     "check downloaded release assets, not just the files before upload");
-  assert.doesNotMatch(release, /gh release (edit|upload)|--latest/);
+  assert.doesNotMatch(release, /gh release (edit|upload)/);
   assert.ok(ci.indexOf("pacman -Syu") < ci.indexOf("runuser -u ci"));
 });
 

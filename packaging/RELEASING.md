@@ -37,11 +37,10 @@ Missing notices, unresolved metadata, or a blocked approval record still
 prevent preparation. All license files and asset provenance ship with the app.
 Notices are installed under `/usr/share/licenses/learn-omarchy` and at the
 application root so relative links from the installed documentation resolve.
-The [CI and draft-release workflows](CI.md) run this gate on exact tagged
-source before building or uploading. Branch CI runs the regression suites;
-version-tag CI produces only a draft prerelease. It never publishes or
-promotes a candidate to stable automatically. Complete the
-[acceptance gates](ACCEPTANCE.md) before approving publication.
+The [CI and release workflows](CI.md) run this gate on exact tagged source
+before building or uploading. Branch CI runs the regression suites;
+version-tag CI publishes the verified artifacts as the latest stable release.
+Complete the [acceptance gates](ACCEPTANCE.md) before pushing a version tag.
 
 For a future package-repository PR, follow the
 [Omarchy submission kit](omarchy-pkgs/README.md). It reuses the approved release
