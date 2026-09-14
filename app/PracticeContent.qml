@@ -130,6 +130,7 @@ Rectangle {
     destination.text = ""
     recipient.currentIndex = 0
     resolution.currentIndex = 0
+    scrollArea.contentItem.contentY = 0
   }
   onModeChanged: resetExercise()
 
@@ -139,6 +140,14 @@ Rectangle {
     error = ""
     status = ""
     taskRequested(action, options || {})
+  }
+
+  function focusAndReveal(control) {
+    Qt.callLater(function() {
+      if (!control || !control.visible || !control.enabled) return
+      control.forceActiveFocus()
+      Qt.callLater(function() { root.revealControl(control) })
+    })
   }
 
   function handleTaskResult(result) {
@@ -154,11 +163,29 @@ Rectangle {
       return
     }
     if (mode === "screen-recording") {
-      if (result.action === "select") { region = result.region; stage = 1 }
-      if (result.action === "start" && result.recording) { recording = true; stage = 2 }
-      if (result.action === "stop" && result.path) { recording = false; artifact = result.path; stage = 3; outputPlayed = false }
+      if (result.action === "select") {
+        region = result.region
+        stage = 1
+        focusAndReveal(startRecordingButton)
+      }
+      if (result.action === "start" && result.recording) {
+        recording = true
+        stage = 2
+        focusAndReveal(stopRecordingButton)
+      }
+      if (result.action === "stop" && result.path) {
+        recording = false
+        artifact = result.path
+        stage = 3
+        outputPlayed = false
+        focusAndReveal(playOutputButton)
+      }
     } else if (mode === "ocr" || mode === "qr") {
-      if (result.image) { qrImage = result.image; artifact = result.image }
+      if (result.image) {
+        qrImage = result.image
+        artifact = result.image
+        focusAndReveal(extractSampleButton)
+      }
       if (result.text === "OMARCHY SAFE SAMPLE") {
         extracted = result.text
         artifact = result.path || ""
@@ -166,24 +193,43 @@ Rectangle {
         verified = false
         exerciseInput.text = ""
         stage = 1
+        focusAndReveal(copyExtractedButton)
       }
     } else if (mode === "dictation" && result.available) {
       stage = 1
       status = "Voxtype is installed. Availability does not guarantee a configured microphone or running service."
+      focusAndReveal(consentDictationButton)
     } else if (mode === "web-app") {
-      if (result.action === "create" && result.path) { artifact = result.path; stage = 1 }
-      if (result.action === "open" && result.opened && stage === 1) stage = 2
+      if (result.action === "create" && result.path) {
+        artifact = result.path
+        stage = 1
+        focusAndReveal(openWebAppButton)
+      }
+      if (result.action === "open" && result.opened && stage === 1) {
+        stage = 2
+        focusAndReveal(removeWebAppButton)
+      }
       if (result.action === "remove" && result.removed && stage === 2) { stage = 3; verified = true }
     } else if (mode === "transcode") {
-      if (result.action === "prepare" && result.path) { original = result.path; originalBytes = result.bytes; stage = 1 }
+      if (result.action === "prepare" && result.path) {
+        original = result.path
+        originalBytes = result.bytes
+        stage = 1
+        focusAndReveal(playOriginalButton)
+      }
       if (result.action === "convert" && result.path && result.bytes < result.originalBytes) {
         artifact = result.path
         outputBytes = result.bytes
         stage = 2
         outputPlayed = false
         verified = false
+        focusAndReveal(playOutputButton)
       }
-    } else if (mode === "sharing" && result.path) { artifact = result.path; stage = 1 }
+    } else if (mode === "sharing" && result.path) {
+      artifact = result.path
+      stage = 1
+      focusAndReveal(recipient)
+    }
   }
 
   function observeExercisePaste(text) {
@@ -234,7 +280,9 @@ Rectangle {
       copiedSecond = true
       historyOpened = false
       verified = false
-      Qt.callLater(function() { root.revealControl(clipboardHistoryInstructions) })
+      Qt.callLater(function() {
+        Qt.callLater(function() { root.revealControl(clipboardHistoryInstructions) })
+      })
     }
   }
   function observeHistory() {
@@ -495,6 +543,7 @@ Rectangle {
           Accessible.name: "Recognized sample text"
         }
         PracticeButton {
+          id: copyExtractedButton
           objectName: "copyExtracted"
           visible: root.extracted !== ""
           text: "Copy recognized sample"
@@ -508,6 +557,7 @@ Rectangle {
           onClicked: root.requestTask("check")
         }
         PracticeButton {
+          id: consentDictationButton
           objectName: "consentDictation"
           visible: root.mode === "dictation" && root.stage >= 1
           enabled: !root.consent && !root.verified
@@ -558,6 +608,7 @@ Rectangle {
           font.pixelSize: 16 * root.textScale
         }
         PracticeButton {
+          id: startRecordingButton
           objectName: "startRecording"
           visible: root.mode === "screen-recording"
           enabled: !root.busy && root.stage === 1 && root.region !== ""
@@ -565,6 +616,7 @@ Rectangle {
           onClicked: root.requestTask("start")
         }
         PracticeButton {
+          id: stopRecordingButton
           objectName: "stopRecording"
           visible: root.mode === "screen-recording"
           enabled: !root.busy && root.recording
@@ -572,6 +624,7 @@ Rectangle {
           onClicked: root.requestTask("stop")
         }
         PracticeButton {
+          id: playOriginalButton
           objectName: "playOriginal"
           visible: root.mode === "transcode"
           enabled: root.original !== "" && !root.busy
@@ -605,6 +658,7 @@ Rectangle {
           Accessible.name: "Saved practice clip playback"
         }
         PracticeButton {
+          id: playOutputButton
           objectName: "playOutput"
           visible: ["screen-recording", "transcode"].indexOf(root.mode) !== -1
           enabled: root.artifact !== "" && !root.busy
@@ -634,6 +688,7 @@ Rectangle {
           onClicked: root.requestTask("create")
         }
         PracticeButton {
+          id: openWebAppButton
           objectName: "openWebApp"
           visible: root.mode === "web-app"
           enabled: root.stage === 1 && !root.busy
@@ -649,6 +704,7 @@ Rectangle {
           wrapMode: Text.WordWrap
         }
         PracticeButton {
+          id: removeWebAppButton
           objectName: "removeWebApp"
           visible: root.mode === "web-app"
           enabled: root.stage === 2 && !root.busy
@@ -818,7 +874,10 @@ Rectangle {
           source: root.screenshot ? "file://" + root.screenshot : ""
           fillMode: Image.PreserveAspectFit
           onStatusChanged: {
-            if (status === Image.Ready && sourceSize.width > 0 && sourceSize.height > 0) root.status = "Image loaded. Try the copy-path and preview annotation controls."
+            if (status === Image.Ready && sourceSize.width > 0 && sourceSize.height > 0) {
+              root.status = "Image loaded. Try the copy-path and preview annotation controls."
+              root.focusAndReveal(copyCaptureButton)
+            }
             if (status === Image.Error) {
               root.verified = false
               root.error = "The capture couldn't be opened. Select a region again."
@@ -847,6 +906,7 @@ Rectangle {
           text: root.screenshot
         }
         PracticeButton {
+          id: copyCaptureButton
           objectName: "copyCapture"
           visible: root.mode === "capture"
           enabled: preview.status === Image.Ready

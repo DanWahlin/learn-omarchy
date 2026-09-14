@@ -21,6 +21,10 @@ Item {
     }
     return null
   }
+  function isInPracticeViewport(item, scroll) {
+    var point = item.mapToItem(scroll, 0, 0)
+    return point.y >= -1 && point.y + item.height <= scroll.height + 1
+  }
   TestCase {
     name: "ClipboardPractice"
     when: windowShown
@@ -101,10 +105,16 @@ Item {
       practice.focusPractice()
       tryCompare(findChild(practice, "selectRegion"), "activeFocus", true)
     }
-    function test_clipboardProgressRevealsEachNextStep() {
-      root.width = 760
-      root.height = 480
-      practice.textScale = 1.25
+    function test_clipboardProgressRevealsEachNextStep_data() {
+      return [
+        { tag: "desktop", width: 760, height: 480, scale: 1.25 },
+        { tag: "narrow-large", width: 460, height: 320, scale: 1.3 }
+      ]
+    }
+    function test_clipboardProgressRevealsEachNextStep(data) {
+      root.width = data.width
+      root.height = data.height
+      practice.textScale = data.scale
       var scroll = findChild(practice, "practiceScroll")
       var first = findChild(practice, "firstNote")
       var second = findChild(practice, "secondNote")
@@ -127,6 +137,97 @@ Item {
       var historyPoint = history.mapToItem(scroll, 0, 0)
       verify(historyPoint.y >= 0 && historyPoint.y + history.height <= scroll.height,
         "History instructions must be fully visible after copying the second")
+    }
+    function test_progressiveResultsRevealNextAction_data() {
+      var scenarios = [
+        { tag: "recording-selected", mode: "screen-recording", next: "startRecording" },
+        { tag: "recording-started", mode: "screen-recording", next: "stopRecording" },
+        { tag: "recording-stopped", mode: "screen-recording", next: "playOutput" },
+        { tag: "ocr-extracted", mode: "ocr", next: "copyExtracted" },
+        { tag: "qr-prepared", mode: "qr", next: "extractSample" },
+        { tag: "dictation-available", mode: "dictation", next: "consentDictation" },
+        { tag: "web-app-created", mode: "web-app", next: "openWebApp" },
+        { tag: "web-app-opened", mode: "web-app", next: "removeWebApp" },
+        { tag: "transcode-prepared", mode: "transcode", next: "playOriginal" },
+        { tag: "transcode-finished", mode: "transcode", next: "playOutput" },
+        { tag: "sharing-prepared", mode: "sharing", next: "shareRecipient" }
+      ]
+      var rows = []
+      for (var scenario of scenarios) {
+        rows.push({
+          tag: scenario.tag + "-desktop",
+          transition: scenario.tag,
+          mode: scenario.mode,
+          next: scenario.next,
+          width: 760,
+          scale: 1
+        })
+        rows.push({
+          tag: scenario.tag + "-narrow-large",
+          transition: scenario.tag,
+          mode: scenario.mode,
+          next: scenario.next,
+          width: 460,
+          scale: 1.3
+        })
+      }
+      return rows
+    }
+    function test_progressiveResultsRevealNextAction(data) {
+      root.width = data.width
+      root.height = 320
+      practice.textScale = data.scale
+      practice.mode = data.mode
+      practice.resetExercise()
+
+      if (data.transition === "recording-started") {
+        practice.region = "0,0 100x100"
+        practice.stage = 1
+      } else if (data.transition === "recording-stopped") {
+        practice.region = "0,0 100x100"
+        practice.stage = 2
+        practice.recording = true
+      } else if (data.transition === "web-app-opened") {
+        practice.stage = 1
+      } else if (data.transition === "transcode-finished") {
+        practice.original = "/tmp/original.mp4"
+        practice.originalBytes = 200
+        practice.originalPlayed = true
+        practice.stage = 1
+        findChild(practice, "outputResolution").currentIndex = 1
+      }
+
+      if (data.transition === "recording-selected")
+        practice.handleTaskResult({ action: "select", region: "0,0 100x100" })
+      else if (data.transition === "recording-started")
+        practice.handleTaskResult({ action: "start", recording: true })
+      else if (data.transition === "recording-stopped")
+        practice.handleTaskResult({ action: "stop", path: "/tmp/output.mp4" })
+      else if (data.transition === "ocr-extracted")
+        practice.handleTaskResult({ action: "extract", text: "OMARCHY SAFE SAMPLE", path: "/tmp/ocr.txt" })
+      else if (data.transition === "qr-prepared")
+        practice.handleTaskResult({
+          action: "prepare",
+          image: Qt.resolvedUrl("../../assets/characters/owl/sprites/owl-idle.png").toString().replace("file://", "")
+        })
+      else if (data.transition === "dictation-available")
+        practice.handleTaskResult({ action: "check", available: true })
+      else if (data.transition === "web-app-created")
+        practice.handleTaskResult({ action: "create", path: "/tmp/demo.desktop" })
+      else if (data.transition === "web-app-opened")
+        practice.handleTaskResult({ action: "open", opened: true })
+      else if (data.transition === "transcode-prepared")
+        practice.handleTaskResult({ action: "prepare", path: "/tmp/original.mp4", bytes: 200 })
+      else if (data.transition === "transcode-finished")
+        practice.handleTaskResult({ action: "convert", path: "/tmp/output.mp4", bytes: 100, originalBytes: 200 })
+      else if (data.transition === "sharing-prepared")
+        practice.handleTaskResult({ action: "prepare", path: "/tmp/share-note.txt" })
+
+      var next = findChild(practice, data.next)
+      tryCompare(next, "activeFocus", true)
+      wait(30)
+      verify(isInPracticeViewport(next, findChild(practice, "practiceScroll")),
+        data.next + " must be fully visible after " + data.transition)
     }
     function test_tabFromScrollReturnsToTheNextEnabledExerciseControl() {
       practice.mode = "screen-recording"
@@ -319,11 +420,18 @@ Item {
       compare(cancelSpy.count, 1)
     }
     function test_captureRequiresImageCopyAndAnnotation() {
+      root.width = 460
+      root.height = 320
+      practice.textScale = 1.3
       practice.mode = "capture"
       verify(!practice.verified)
       practice.screenshot = Qt.resolvedUrl("../../assets/characters/owl/sprites/owl-idle.png").toString().replace("file://", "")
       var copy = findChild(practice, "copyCapture")
       tryCompare(copy, "enabled", true)
+      tryCompare(copy, "activeFocus", true)
+      wait(30)
+      verify(isInPracticeViewport(copy, findChild(practice, "practiceScroll")),
+        "Capture review controls must be revealed after selecting a region")
       verify(!practice.verified)
       copy.clicked()
       verify(!practice.verified)
@@ -399,6 +507,7 @@ Item {
       practice.handleTaskResult({ action: "extract", text: "wrong sample" })
       verify(!input.enabled)
       practice.handleTaskResult({ action: "extract", text: "OMARCHY SAFE SAMPLE" })
+      tryCompare(findChild(practice, "copyExtracted"), "activeFocus", true)
       input.text = "OMARCHY SAFE SAMPLE"
       verify(!review.enabled, "Typing does not count as a paste")
       findChild(practice, "copyExtracted").clicked()
