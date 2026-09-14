@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "774f702b06ba528cf2b6c41b5e93171091cd775dbfdb2015bc4072f8ba700d83",
-  "text": "Need to look up a shortcut? Press Super and K to open the shortcut guide. Search and read only for this lesson: pressing Enter or clicking a result runs that shortcut, which could close windows or lock your screen.",
+  "audioHash": "c7eca62cfc587aa9d304f86445315a5b301891aaa494535408c379a00515101f",
+  "text": "Need to look up a shortcut? Press Super and K to open the shortcut guide. Read only for this lesson: pressing Enter or clicking a result runs that shortcut, which could close windows or lock your screen.",
   "words": [
     {
       "startMs": 70,
@@ -16,148 +16,140 @@
       "endOffset": 12
     },
     {
-      "startMs": 550,
+      "startMs": 630,
       "endOffset": 15
     },
     {
-      "startMs": 670,
+      "startMs": 750,
       "endOffset": 17
     },
     {
-      "startMs": 710,
+      "startMs": 790,
       "endOffset": 27
     },
     {
-      "startMs": 1990,
+      "startMs": 2150,
       "endOffset": 33
     },
     {
-      "startMs": 2550,
+      "startMs": 2710,
       "endOffset": 39
     },
     {
-      "startMs": 2949,
+      "startMs": 3110,
       "endOffset": 43
     },
     {
-      "startMs": 3190,
+      "startMs": 3349,
       "endOffset": 45
     },
     {
-      "startMs": 3750,
+      "startMs": 3869,
       "endOffset": 48
     },
     {
-      "startMs": 3869,
+      "startMs": 4030,
       "endOffset": 53
     },
     {
-      "startMs": 4230,
+      "startMs": 4350,
       "endOffset": 57
     },
     {
-      "startMs": 4350,
+      "startMs": 4470,
       "endOffset": 66
     },
     {
-      "startMs": 4870,
+      "startMs": 5030,
       "endOffset": 73
     },
     {
       "startMs": 6270,
-      "endOffset": 80
+      "endOffset": 78
     },
     {
-      "startMs": 6750,
-      "endOffset": 84
+      "startMs": 6790,
+      "endOffset": 83
     },
     {
-      "startMs": 6870,
-      "endOffset": 89
+      "startMs": 7230,
+      "endOffset": 87
     },
     {
-      "startMs": 7270,
-      "endOffset": 94
+      "startMs": 7350,
+      "endOffset": 92
     },
     {
-      "startMs": 7670,
-      "endOffset": 98
+      "startMs": 7590,
+      "endOffset": 100
     },
     {
-      "startMs": 7830,
-      "endOffset": 103
+      "startMs": 8389,
+      "endOffset": 109
     },
     {
-      "startMs": 8069,
-      "endOffset": 111
+      "startMs": 8950,
+      "endOffset": 115
     },
     {
-      "startMs": 8990,
-      "endOffset": 120
+      "startMs": 9549,
+      "endOffset": 118
     },
     {
-      "startMs": 9510,
-      "endOffset": 126
+      "startMs": 9790,
+      "endOffset": 127
     },
     {
       "startMs": 10149,
       "endOffset": 129
     },
     {
-      "startMs": 10389,
-      "endOffset": 138
+      "startMs": 10190,
+      "endOffset": 136
     },
     {
-      "startMs": 10790,
-      "endOffset": 140
+      "startMs": 10709,
+      "endOffset": 141
     },
     {
-      "startMs": 10830,
-      "endOffset": 147
+      "startMs": 11069,
+      "endOffset": 146
     },
     {
-      "startMs": 11350,
-      "endOffset": 152
+      "startMs": 11309,
+      "endOffset": 156
     },
     {
-      "startMs": 11709,
-      "endOffset": 157
+      "startMs": 12229,
+      "endOffset": 162
     },
     {
-      "startMs": 11950,
-      "endOffset": 167
+      "startMs": 12510,
+      "endOffset": 168
     },
     {
-      "startMs": 12870,
-      "endOffset": 173
+      "startMs": 12790,
+      "endOffset": 174
     },
     {
-      "startMs": 13149,
-      "endOffset": 179
+      "startMs": 13069,
+      "endOffset": 182
     },
     {
-      "startMs": 13430,
+      "startMs": 13870,
       "endOffset": 185
     },
     {
-      "startMs": 13750,
-      "endOffset": 193
+      "startMs": 14030,
+      "endOffset": 190
     },
     {
-      "startMs": 14510,
-      "endOffset": 196
+      "startMs": 14309,
+      "endOffset": 195
     },
     {
-      "startMs": 14709,
-      "endOffset": 201
-    },
-    {
-      "startMs": 14990,
-      "endOffset": 206
-    },
-    {
-      "startMs": 15149,
-      "endOffset": 214
+      "startMs": 14469,
+      "endOffset": 203
     }
   ]
 }

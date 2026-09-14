@@ -8,6 +8,10 @@ each activity.
 [Visit the website](https://danwahlin.github.io/learn-omarchy/) for a visual
 overview, lesson list, and installation walkthrough.
 
+Arcade adds three safe games with targeted recall practice, repeatable
+score challenges, and a simulated desktop mission. Learning progress stays
+local and separate from lesson progress. See [the arcade guide](docs/arcade-prototypes.md).
+
 ![Learn Omarchy with Ohm-1 and Ollie](docs/images/learn-omarchy-poster.webp)
 
 ## What you will learn
@@ -35,6 +39,9 @@ can be explored at any time without blocking course completion.
 
 Narration, captions, text size, automatic advancement, and motion can all be
 adjusted in Settings.
+Resetting progress clears lesson completion, including Welcome. Starting or
+skipping the welcome does not complete it; finishing it does. The separate
+"welcome seen" preference only prevents repeated automatic introductions.
 
 ## Requirements
 
@@ -68,6 +75,25 @@ learn-omarchy
 
 The package includes the application, both guides, narration, course content,
 and the desktop integration used for precise pointing.
+
+On Omarchy versions that restrict plugin access to live widget geometry,
+the app uses supported bar measurements on single-monitor desktops instead.
+Individual workspace buttons and some popup positions may still be approximate.
+Only affected lesson targets show contextual guidance; persistent integration
+diagnostics are in Settings, not a banner over lessons or Arcade. Multi-monitor
+fallback does not guess which output contains a widget.
+Background measurements do not hide existing guidance or interrupt a tour
+caption after the guide has arrived.
+Top-bar pointing uses each guide's registered fingertip position to stay close
+to the target while keeping the character clear of the bar.
+After a workspace switch, the guide also points to inferred buttons within a
+measured bar; these remain estimates, without a falsely precise target marker.
+Bar and window/panel geometry refresh on relevant lesson, workspace, monitor,
+and panel/window events, not recurring timers. Overlapping requests are combined,
+and an unavailable detailed provider is not retried until the app restarts.
+Internal widget layout changes or window movement without a desktop event may
+wait until the next relevant event or lesson step to be measured again.
+Short, bounded retries while a newly launched window is appearing remain.
 
 ### Update
 

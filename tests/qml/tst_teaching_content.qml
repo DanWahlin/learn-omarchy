@@ -37,6 +37,8 @@ Item {
   property bool stepAssisted: false
   property string recoveryMessage: ""
   property string recoveryStepId: ""
+  property string integrationNotice: ""
+  property bool currentStepHasNoVisibleTarget: false
   property bool exerciseRunning: false
   property bool practiceSessionActive: false
   readonly property bool embeddedPracticeRunning: exerciseRunning && practiceSessionActive
@@ -77,9 +79,10 @@ Item {
   function cancelAction() { exerciseRunning = false; practiceSessionActive = false }
   function handleKeyPressed(event) {}
   function updateActiveKeys(event, pressed) {}
-  function openedToolKeyboardHint() { return fixture ? fixture.openedToolKeyboardHint() : "" }
+  function geometryGuidance(estimated) { return fixture ? fixture.geometryGuidance(estimated) : "" }
 
   QtObject { id: audioProcess; property bool running: false }
+  QtObject { id: barGeometryProcess; property bool running: false }
   Timer { id: tourAdvanceTimer; onTriggered: fixture.advanceTour() }
 
   Item {
@@ -89,6 +92,7 @@ Item {
     property bool isFocusedScreen: true
     property var measuredBarTarget: null
     property var measuredWindowTarget: null
+    property bool targetIsEstimated: false
   }
   QtObject { id: tourCaption; property bool ready: true }
 
@@ -113,7 +117,7 @@ Item {
       var end = source.indexOf("        Rectangle {\n          id: welcomeToolbarOutline", start)
       verify(start >= 0 && end > start)
       var runtimeFunctions = ["readingDuration", "tourAdvanceDelay", "canAutoAdvanceTour",
-        "updateTourDetails", "scheduleTourAdvance", "advanceTour", "openedToolKeyboardHint"]
+        "updateTourDetails", "scheduleTourAdvance", "advanceTour", "geometryGuidance"]
         .map(function(name) {
           return source.match(new RegExp("  function " + name + "\\([^\\n]*\\) \\{[\\s\\S]*?\\n  \\}"))[0]
         }).join("\n")
@@ -124,7 +128,6 @@ Item {
         + "property alias instructionText: teachingInstruction\n"
         + "property alias note: teachingNote\nproperty alias details: teachingDetails\n"
         + "property alias keycaps: instructionKeys\nproperty alias actionButton: stepActionButton\n"
-        + "property alias keyboardHint: openedToolKeyboardHint\n"
         + runtimeFunctions + components + source.slice(start, end) + "\n}", overlay)
     }
 
@@ -148,12 +151,34 @@ Item {
       root.audioStopped = false
       root.recoveryMessage = ""
       root.recoveryStepId = ""
+      root.integrationNotice = ""
+      root.currentStepHasNoVisibleTarget = false
+      overlay.targetIsEstimated = false
+      barGeometryProcess.running = false
       root.keyboardExclusive = true
       root.autoAdvance = true
       audioProcess.running = false
       root.tourDetailsExpanded = false
       tourAdvanceTimer.stop()
       wait(30)
+    }
+
+    function test_geometryGuidanceIsLocalToAnEstimatedLessonTarget() {
+      var notice = findChild(fixture, "teachingGeometryNotice")
+      verify(!notice.visible)
+      root.integrationNotice = "Bar measurements are available."
+      root.currentStep = { instruction: "Switch to workspace 2.", keys: ["SUPER", "2"],
+        highlight: { target: "workspace", workspaceId: 2 }, completion: { type: "hyprland-workspace" } }
+      overlay.targetIsEstimated = true
+      wait(30)
+      verify(notice.visible)
+      verify(notice.text.indexOf("workspace number") >= 0)
+      verify(notice.y + notice.height <= fixture.panel.height)
+      overlay.targetIsEstimated = false
+      tryCompare(notice, "visible", false)
+      overlay.targetIsEstimated = true
+      root.phase = "arcade"
+      tryCompare(notice, "visible", false)
     }
 
     function test_tallPanelKeepsItsWarningAndCoachingCardOutsideTheNativeMenu() {
@@ -169,6 +194,32 @@ Item {
       verify(fixture.panel.x + fixture.panel.width <= 484 ||
         fixture.panel.x >= 716, "The card must leave a gap beside the menu")
       verify(fixture.panel.y >= 12 && fixture.panel.y + fixture.panel.height <= root.height - 12)
+    }
+
+    function test_geometryPollingDoesNotResizeOrMoveTheTeachingPanel() {
+      root.currentStepIsTour = false
+      root.currentStep = { instruction: "Switch to workspace 2.", keys: ["SUPER", "2"],
+        highlight: { target: "workspace", workspaceId: 2 }, completion: { type: "hyprland-workspace" } }
+      root.integrationNotice = "Bar measurements are available."
+      overlay.targetIsEstimated = true
+      var notice = findChild(fixture, "teachingGeometryNotice")
+      for (var scale of [1, 1.3]) {
+        root.textScale = scale
+        wait(30)
+        var height = fixture.panel.height
+        var y = fixture.panel.y
+        for (var poll = 0; poll < 3; poll++) {
+          barGeometryProcess.running = true
+          wait(30)
+          verify(notice.visible, "Background measurements must not hide existing guidance")
+          compare(fixture.panel.height, height)
+          compare(fixture.panel.y, y)
+          barGeometryProcess.running = false
+          wait(30)
+          compare(fixture.panel.height, height)
+          compare(fixture.panel.y, y)
+        }
+      }
     }
 
     function test_embeddedPracticeKeepsNormalNavigationAndItsSafetyNote() {
@@ -269,22 +320,6 @@ Item {
       root.autoAdvance = false
       root.tourDetailsExpanded = false
       verify(!tourAdvanceTimer.running)
-    }
-
-    function test_layerKeyboardHintFollowsCaptureAndDoesNotRepeatInstruction() {
-      verify(!fixture.keyboardHint.visible)
-      root.phase = "highlight"
-      tryCompare(fixture.keyboardHint, "visible", true)
-      compare(fixture.keyboardHint.text, "Use Release Keys to interact with the opened tool.")
-      verify(root.keyboardExclusive)
-      root.keyboardExclusive = false
-      tryCompare(fixture.keyboardHint, "visible", false)
-      root.keyboardExclusive = true
-      root.currentStep = Object.assign({}, root.currentStep, {
-        completionMessage: "Choose Release Keys before typing or browsing here."
-      })
-      tryCompare(fixture.keyboardHint, "visible", false)
-      root.currentStep = Object.assign({}, root.currentStep, {completionMessage: "The menu is open."})
     }
 
     function test_actionAndCompletionInstructionsRemainAvailable() {
@@ -478,6 +513,65 @@ Item {
         }
       }
       verify(fixture.navigation.stacked)
+    }
+
+    function test_everyCourseStepFitsReadableLessonSurfaces() {
+      var xhr = new XMLHttpRequest()
+      xhr.open("GET", Qt.resolvedUrl("../../courses/omarchy-basics.json"), false)
+      xhr.send()
+      var course = JSON.parse(xhr.responseText)
+      var checked = 0
+      for (var display of [[1280, 720, 1], [1024, 720, 1.3], [640, 720, 1.3]]) {
+        root.width = display[0]
+        root.height = display[1]
+        root.textScale = display[2]
+        for (var lesson of course.lessons) {
+          if (!lesson.steps.length) continue
+          root.currentLesson = lesson
+          for (var index = 0; index < lesson.steps.length; index++) {
+            var step = lesson.steps[index]
+            root.stepIndex = index
+            root.currentStepIsTour = step.kind === "tour"
+            root.currentStep = step
+            root.phase = "waiting"
+            wait(20)
+            verify(fixture.panel.x >= 0 && fixture.panel.y >= 0, step.id)
+            verify(fixture.panel.x + fixture.panel.width <= root.width + 1, step.id)
+            verify(fixture.panel.y + fixture.panel.height <= root.height + 1, step.id)
+            for (var button of root.buttons(fixture)) {
+              var position = button.mapToItem(overlay, 0, 0)
+              verify(position.x >= -1 && position.x + button.width <= root.width + 1,
+                step.id + ": " + button.label + " at " + display.join("x") + " x=" + position.x + " width=" + button.width)
+              verify(position.y >= -1 && position.y + button.height <= root.height + 1,
+                step.id + ": " + button.label + " at " + display.join("x") + " y=" + position.y + " height=" + button.height)
+            }
+            if (root.currentStepIsTour) {
+              verify(!fixture.instructionText.visible, step.id)
+              if (step.detail) {
+                root.tourDetailsExpanded = true
+                wait(20)
+                compare(fixture.instructionText.text, step.detail, step.id)
+                verify(fixture.panel.y + fixture.panel.height <= root.height + 1, step.id + ": details")
+                root.tourDetailsExpanded = false
+              }
+            } else {
+              verify(fixture.instructionText.visible, step.id)
+              compare(fixture.instructionText.text, step.instruction, step.id)
+              verify(fixture.instructionText.contentWidth <= fixture.instructionText.width + 1, step.id)
+              if (step.note) verify(fixture.note.visible, step.id)
+            }
+            root.phase = "highlight"
+            wait(20)
+            if (!root.currentStepIsTour && step.completionMessage) {
+              compare(fixture.instructionText.text, step.completionMessage, step.id + ": completion")
+              verify(fixture.instructionText.contentWidth <= fixture.instructionText.width + 1, step.id + ": completion")
+            }
+            verify(fixture.panel.y + fixture.panel.height <= root.height + 1, step.id + ": highlight")
+            checked++
+          }
+        }
+      }
+      compare(checked, 303)
     }
 
     function test_recoveryIsNeverHiddenByCompactTour() {

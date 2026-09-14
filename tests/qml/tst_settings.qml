@@ -62,6 +62,8 @@ Item {
   property string outcomeAddress: ""
   property int savedCount: 0
   property int refreshCount: 0
+  property int mixedEligibleCount: 0
+  property int mixedPracticeStarts: 0
   property var fixture
 
   Item { id: sfxProcess; property bool running: false }
@@ -91,6 +93,7 @@ Item {
   function handleKeyPressed(event) {}
   function handleSystemVolumeKey(event) { return false }
   function updateActiveKeys(event, pressed) {}
+  function startMixedPractice() { mixedPracticeStarts++ }
 
   function readSource(path) {
     var xhr = new XMLHttpRequest()
@@ -124,6 +127,7 @@ Item {
       })
       var source = root.readSource("../../app/shell.qml")
       verify(source.length > 1000)
+      compare((source.match(/\n\s+MixedPracticeButton \{/g) || []).length, 1)
       var components = source.slice(source.indexOf("  component UiPanel:"), source.indexOf("  component Keycap:"))
       var start = source.indexOf("        UiPanel {\n          id: characterPanel")
       var panel = source.slice(start, source.indexOf("        UiPanel {\n          id: topicPanel", start))
@@ -136,6 +140,7 @@ Item {
         + "property alias panel: characterPanel\nproperty alias header: settingsHeader\n"
         + "property alias footer: settingsFooter\nproperty alias scroll: settingsScroll\n"
         + "property alias controls: controls\n"
+        + "Item { anchors.fill: parent; visible: root.phase === \"menu\"; MixedPracticeButton { id: mixedPractice; x: 40; y: root.height - 160 } }\n"
         + components + panel + controls + "\n}", overlay)
       wait(100)
     }
@@ -161,6 +166,10 @@ Item {
       verify(help !== null && help.visible && !help.enabled)
       compare(help.opacity, 1)
       compare(help.color.a, 1)
+      mouseMove(help, help.width / 2, help.height / 2)
+      var tooltip = help.tooltipItem
+      tryCompare(tooltip, "visible", false)
+      mouseMove(fixture, 10, root.height - 10)
       root.actionRunning = false
       root.currentStep = null
       root.phase = "settings"
@@ -528,9 +537,23 @@ Item {
         var images = root.descendants(button, function(item) { return "sourceSize" in item })
         compare(images.length, 1)
         tryCompare(images[0], "status", Image.Ready)
-        var tooltip = root.descendants(button, function(item) { return item.objectName === "buttonTooltip" })[0]
+        var tooltip = button.tooltipItem
         button.forceActiveFocus(Qt.TabFocusReason)
         tryCompare(tooltip, "visible", true)
+        compare(tooltip.color.a, 1)
+        compare(tooltip.parent, button.Window.window.contentItem)
+        verify(tooltip.z > 1000)
+        verify(button.z > 0)
+        var title = root.descendants(tooltip, function(item) { return item.objectName === "buttonTooltipTitle" })[0]
+        var body = root.descendants(tooltip, function(item) { return item.objectName === "buttonTooltipBody" })[0]
+        compare(title.text, button.label)
+        if (button.description !== "" && button.description !== button.label) {
+          verify(body.visible)
+          fuzzyCompare(body.y - title.y - title.height, 6 * root.textScale, 0.1)
+        } else {
+          verify(!body.visible)
+          fuzzyCompare(tooltip.height, title.height + 14, 0.1)
+        }
         keyClick(Qt.Key_Tab)
         mouseMove(fixture, 10, root.height - 10)
         tryCompare(tooltip, "visible", false)
@@ -538,6 +561,73 @@ Item {
         tryCompare(tooltip, "visible", true)
         mouseMove(fixture, 10, root.height - 10)
         tryCompare(tooltip, "visible", false)
+      }
+    }
+
+    function test_moduleReviewAppearsOnlyWhenEligible_data() {
+      return [{ tag: "locked-none", ready: 0 }, { tag: "locked-one", ready: 1 }, { tag: "unlocked", ready: 2 }]
+    }
+    function test_moduleReviewAppearsOnlyWhenEligible(data) {
+      root.phase = "menu"
+      root.mixedEligibleCount = data.ready
+      root.mixedPracticeStarts = 0
+      var mixed = root.button("REVIEW MODULES")
+      verify(mixed !== null)
+      compare(mixed.kind, "ghost")
+      compare(mixed.enabled, data.ready >= 2)
+      compare(mixed.visible, data.ready >= 2)
+      var tooltip = mixed.tooltipItem
+      if (data.ready < 2) {
+        mouseMove(mixed, mixed.width / 2, mixed.height / 2)
+        verify(!tooltip.visible)
+        mouseClick(mixed)
+        compare(root.mixedPracticeStarts, 0)
+        return
+      }
+      mouseMove(mixed, mixed.width / 2, mixed.height / 2)
+      tryCompare(tooltip, "visible", true)
+      compare(tooltip.color.a, 1)
+      var window = mixed.Window.window
+      var anchor = mixed.mapToItem(window.contentItem, 0, mixed.height)
+      var expectedX = Math.max(8, Math.min(anchor.x + mixed.width - tooltip.width,
+        window.contentItem.width - 8 - tooltip.width))
+      fuzzyCompare(tooltip.x, expectedX, 0.1)
+      fuzzyCompare(tooltip.y, anchor.y + 6, 0.1)
+      verify(mixed.z > 0)
+      verify(mixed.description.indexOf("up to 3 completed modules") >= 0)
+      verify(mixed.description.toLowerCase().indexOf("unlock") < 0)
+      var title = root.descendants(tooltip, function(item) { return item.objectName === "buttonTooltipTitle" })[0]
+      var body = root.descendants(tooltip, function(item) { return item.objectName === "buttonTooltipBody" })[0]
+      tryCompare(title, "lineCount", 1)
+      tryCompare(body, "lineCount", 1)
+      fuzzyCompare(body.y - title.y - title.height, 6 * root.textScale, 0.1)
+      verify(tooltip.width <= 420 * root.textScale)
+      compare(mixed.Accessible.description, mixed.description)
+      mouseClick(mixed)
+      compare(root.mixedPracticeStarts, data.ready >= 2 ? 1 : 0)
+      mouseMove(fixture, 10, root.height - 10)
+      tryCompare(tooltip, "visible", false)
+    }
+
+    function test_widerTooltipsFitNarrowWindows() {
+      root.phase = "menu"
+      root.mixedEligibleCount = 2
+      var window = fixture.Window.window
+      var originalWidth = window.width
+      try {
+        window.width = 340
+        tryCompare(window, "width", 340)
+        var mixed = root.button("REVIEW MODULES")
+        var tooltip = mixed.tooltipItem
+        mouseMove(mixed, mixed.width / 2, mixed.height / 2)
+        tryCompare(tooltip, "visible", true)
+        verify(tooltip.width <= window.width - 16)
+        var point = tooltip.mapToItem(window.contentItem, 0, 0)
+        verify(point.x >= 8)
+        verify(point.x + tooltip.width <= window.width - 8)
+      } finally {
+        mouseMove(fixture, 10, root.height - 10)
+        window.width = originalWidth
       }
     }
 
@@ -568,7 +658,7 @@ Item {
       wait(50)
       var capture = root.button("RELEASE KEYS")
       capture.forceActiveFocus(Qt.TabFocusReason)
-      var tooltip = root.descendants(capture, function(item) { return item.objectName === "buttonTooltip" })[0]
+      var tooltip = capture.tooltipItem
       tryCompare(tooltip, "visible", true)
       var position = tooltip.mapToItem(root, 0, 0)
       verify(position.x >= 0)

@@ -162,10 +162,10 @@
     "ohm-1/background-menu-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "4681a81cfa881ae6ad30c10f77804ee6294a01cb760362317a5ad7addbc47530",
+        "fingerprint": "5fff209f9f1348a1f53597e2d23ed18036aaa2d62608b72301efde81b336805e",
         "spec": {
-          "textHash": "26859555acb80fef1a2f7a21ac84b57dda24293d969df60cec61f186da50526e",
-          "preparedTextHash": "26859555acb80fef1a2f7a21ac84b57dda24293d969df60cec61f186da50526e",
+          "textHash": "30a945b91fcc8ff7df856651e474f3034010b0f2b1a3be9af46544e5972d0cd0",
+          "preparedTextHash": "30a945b91fcc8ff7df856651e474f3034010b0f2b1a3be9af46544e5972d0cd0",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -198,9 +198,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "469cd43c5a5fdb8052c167286ff4d5440337a61661394d869e1325ff92ea6abe",
-        "sourceHash": "5ba5afabde01038b44dc7c3bd709a7b87535077d48372792ff2a7770fbcff3d8",
-        "outputHash": "876a5a0841a6a6ddd485c80425652f8eaf2341a2edd6c09aa997cfe8882e8102",
+        "fingerprint": "b34fffbaab335621a9ea750065912dd8ca3f6e508dc192f81d29f4305898f8eb",
+        "sourceHash": "e0fb10049b324744de6044c30de4af9945f4acc1244a60b94dab118f3db41f6c",
+        "outputHash": "e8827e4fb4bad8a6f56f91e012f9ecfa4affccf472faab9a773059ecb50b70c0",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -217,21 +217,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -22.23,
-          "truePeakDbtp": -3.23,
-          "loudnessRangeLu": 2.2,
-          "thresholdLufs": -32.37,
-          "targetOffsetLu": 0.49
+          "integratedLufs": -22.22,
+          "truePeakDbtp": -5.1,
+          "loudnessRangeLu": 1.7,
+          "thresholdLufs": -32.65,
+          "targetOffsetLu": 0.19
         },
         "output": {
-          "integratedLufs": -21.06,
-          "truePeakDbtp": -2.08,
-          "loudnessRangeLu": 2.2,
-          "thresholdLufs": -31.2,
-          "targetOffsetLu": 0.49
+          "integratedLufs": -20.44,
+          "truePeakDbtp": -3.33,
+          "loudnessRangeLu": 1.7,
+          "thresholdLufs": -30.88,
+          "targetOffsetLu": 0.19
         },
         "probe": {
-          "durationSeconds": 3.55,
+          "durationSeconds": 6.666667,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -4112,10 +4112,10 @@
     "ohm-1/open-keybindings-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "29d6cc8df54f79c04b32c65ac7a42e45071248c5422e5c73ef371c5f246e0658",
+        "fingerprint": "3f9f7671e4d90b7e54d87fba91c0b8c6a644834b40da818cac5269fbf579701a",
         "spec": {
-          "textHash": "ef529e1c52701626ed068ff7e738b54fa4f80eef8a4eba3295447cb17e9b5d2f",
-          "preparedTextHash": "ef529e1c52701626ed068ff7e738b54fa4f80eef8a4eba3295447cb17e9b5d2f",
+          "textHash": "2c65af485da810b0fcb2da62bd2249c45e83fc3f106c18f3bc8114e761fa158c",
+          "preparedTextHash": "dc672db5a7fd897cd8856eac3f92361aff46ffb1b154068f0d332c6b1e56465b",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -4148,9 +4148,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "9d3253824b466f440d568dbf710ca1f3ffe40e8c518129af3cffe321f7e27a83",
-        "sourceHash": "45f93d7bdce7ad0be97f605624c36a5a5236003623d31b64958b81c480d801a9",
-        "outputHash": "50542fc3f5d10457a8e8f1a18ece7bf3df7e5d9330b0043ed13ac129ab178e18",
+        "fingerprint": "ad010cd14fc338591e838aef2b4121976eae18dc64bb7554ddddd0bf943ae2d4",
+        "sourceHash": "06c2f7d06fc42f1c892af6c862907110d64e289662af3089759790cf9bde7f1c",
+        "outputHash": "9bd4845bef0d8b802d7307b76c78858197d41bd13a75456d1c6d89989ec0b3f3",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -4167,21 +4167,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -23.27,
-          "truePeakDbtp": -4.46,
-          "loudnessRangeLu": 3,
-          "thresholdLufs": -33.81,
-          "targetOffsetLu": 0.69
+          "integratedLufs": -22.81,
+          "truePeakDbtp": -3.47,
+          "loudnessRangeLu": 0.9,
+          "thresholdLufs": -33.06,
+          "targetOffsetLu": -0.17
         },
         "output": {
-          "integratedLufs": -20.47,
-          "truePeakDbtp": -1.91,
-          "loudnessRangeLu": 2.9,
-          "thresholdLufs": -31.01,
-          "targetOffsetLu": 0.53
+          "integratedLufs": -20.35,
+          "truePeakDbtp": -1.94,
+          "loudnessRangeLu": 0.6,
+          "thresholdLufs": -30.7,
+          "targetOffsetLu": -0.46
         },
         "probe": {
-          "durationSeconds": 7.85,
+          "durationSeconds": 6.95,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -4191,10 +4191,10 @@
     "ohm-1/open-keybindings.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "771d8981fc9abb1c375cc8f623ee53fa427a9fb192a5b1e4792d636e09208421",
+        "fingerprint": "fcb0765df1cb11d07d23c9a0725d111e93db8d6adef1a618d8b355bec87b2f55",
         "spec": {
-          "textHash": "2523d3e622a66d68b91c5db31ac12f6970bd19e550ce9d8e7ef993526c75a822",
-          "preparedTextHash": "2523d3e622a66d68b91c5db31ac12f6970bd19e550ce9d8e7ef993526c75a822",
+          "textHash": "0132b8b8e9022a97c9a4fb90de99c97684d21b90fe300f450b6905a72cdc79d3",
+          "preparedTextHash": "0132b8b8e9022a97c9a4fb90de99c97684d21b90fe300f450b6905a72cdc79d3",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -4227,9 +4227,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "09c3ae72985cf7b56ad8a568c9c9d554ed3617625e077598ac8c61e5817c0548",
-        "sourceHash": "11ca4f8f974c24d64f12332b78edf7c7cf161dbce2a123e6e936a8fa2b4d253e",
-        "outputHash": "b19d185e59a1c883910ca7828bbf03c3a80df5cd871b1cd0ceb8b119396abc25",
+        "fingerprint": "37081ed91904792767b1f8e8d25c2a66e44c70ab5baf6ee3bffb334aca67b880",
+        "sourceHash": "6f3a8668be00127998dacf781f0160d63a70ce88d4a2c9148a294789d85e17bb",
+        "outputHash": "522413b98307bd964025c6c5d9247e06259cc556a43af6832b94172f10297df9",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -4246,21 +4246,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -22.21,
-          "truePeakDbtp": -4.4,
-          "loudnessRangeLu": 1.2,
-          "thresholdLufs": -32.57,
-          "targetOffsetLu": -0.06
+          "integratedLufs": -22.88,
+          "truePeakDbtp": -4.19,
+          "loudnessRangeLu": 1.4,
+          "thresholdLufs": -33.19,
+          "targetOffsetLu": 0.08
         },
         "output": {
-          "integratedLufs": -20.43,
-          "truePeakDbtp": -2.62,
+          "integratedLufs": -20.63,
+          "truePeakDbtp": -2.05,
           "loudnessRangeLu": 1.2,
-          "thresholdLufs": -30.8,
-          "targetOffsetLu": -0.05
+          "thresholdLufs": -30.94,
+          "targetOffsetLu": 0.07
         },
         "probe": {
-          "durationSeconds": 12.15,
+          "durationSeconds": 11.85,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -4270,10 +4270,10 @@
     "ohm-1/open-root-menu-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "ec9a45fdc7c3a92aecf8ae34997c246fdfda6ca280609cedca8dfabb82891861",
+        "fingerprint": "50fcd809505a69bb52cea5464efb6a1b76655435b85411c891321cd3e7aa105f",
         "spec": {
-          "textHash": "86b2759225760c49975ce5077362c22362e98c47c1a69fa94778da5165ab3baf",
-          "preparedTextHash": "86b2759225760c49975ce5077362c22362e98c47c1a69fa94778da5165ab3baf",
+          "textHash": "80c5ead33e4de97de06bc880fd2ae0d81a7851e9f4f2d8f306feb3c1dcfe9149",
+          "preparedTextHash": "c563bfcb950b3d900fe85276fcedc964091899254c0b8d1dfa669aa8d6196d50",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -4306,9 +4306,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "24fd63d839672de38d7cabb181d44c80b74e1ed689fb24137a97b2581562b929",
-        "sourceHash": "56fbadfa14dc26abc75f6bee2460ac5778133b5d8d2ae15eeae7935e07b488f7",
-        "outputHash": "c7447f0345538c409b5468536c0510096362d76ea3d5ee2dd14ddb60cb23ae41",
+        "fingerprint": "ceab19eeac81ab6e1392f17582ca448edbdde14e3a2055ad705a04e83413111d",
+        "sourceHash": "d4022035780b49d175b2be9b15ba562793644128058c34eb80ab4f010b2a6332",
+        "outputHash": "e258b90522296767fde2d730dc35b92a5679a7087b7a8a6d40eec34ad746885d",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -4325,21 +4325,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -22.44,
-          "truePeakDbtp": -3.32,
-          "loudnessRangeLu": 2.1,
-          "thresholdLufs": -32.82,
-          "targetOffsetLu": -0.01
+          "integratedLufs": -23.08,
+          "truePeakDbtp": -4.23,
+          "loudnessRangeLu": 2.9,
+          "thresholdLufs": -33.53,
+          "targetOffsetLu": 0.65
         },
         "output": {
-          "integratedLufs": -20.53,
-          "truePeakDbtp": -1.96,
-          "loudnessRangeLu": 1.9,
-          "thresholdLufs": -30.91,
-          "targetOffsetLu": 0.04
+          "integratedLufs": -20.65,
+          "truePeakDbtp": -1.93,
+          "loudnessRangeLu": 2.1,
+          "thresholdLufs": -31.01,
+          "targetOffsetLu": 0.34
         },
         "probe": {
-          "durationSeconds": 13.5,
+          "durationSeconds": 7.3,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -5060,10 +5060,10 @@
     "ohm-1/theme-menu-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "b9f481b1f4aebbdc230ea931404338eb315910e0275edf20bf18288bf957ca96",
+        "fingerprint": "b133b8a2409c88c8b481db88515a3b32db2af7af22c19dc223b7ea77ed4e377c",
         "spec": {
-          "textHash": "5475b37b606095f95f9f39d078f622482e46fa7ee3a2b46fa8c6d28b41e8b373",
-          "preparedTextHash": "5475b37b606095f95f9f39d078f622482e46fa7ee3a2b46fa8c6d28b41e8b373",
+          "textHash": "cb87c77a1ac0df63465541a0bc27d24bcef063ab45f63ee51ec200b7e17d4ce1",
+          "preparedTextHash": "cb87c77a1ac0df63465541a0bc27d24bcef063ab45f63ee51ec200b7e17d4ce1",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -5096,9 +5096,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "88606476970b3a1f519a641938a83122624de84279cd71e838b25d455fcf92ec",
-        "sourceHash": "a30813d591712baa313ef5da1671e0573bbf80eba41fa1873fe63843a2d9c61f",
-        "outputHash": "15d2228bd2d972d74861848a2d877cb681e1bfeec75c2914014e7333be96babb",
+        "fingerprint": "486f9243649dce3aa9bffeca03fe744aed1f3a362b3e5f4d617cf638e5ee6f7c",
+        "sourceHash": "e0c4f72519f6f7859cb1b6f725d90fc0a0cbdf62dc6f4cf27a12f6fda92927c2",
+        "outputHash": "95c74dc03fd4f4699fec313183f1892295074042e4669ab9b0ca579bfff9d95e",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -5115,21 +5115,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -22.26,
-          "truePeakDbtp": -2.06,
-          "loudnessRangeLu": 1.3,
-          "thresholdLufs": -32.58,
-          "targetOffsetLu": 0.53
+          "integratedLufs": -22.5,
+          "truePeakDbtp": -3.23,
+          "loudnessRangeLu": 2.3,
+          "thresholdLufs": -32.6,
+          "targetOffsetLu": 0.67
         },
         "output": {
-          "integratedLufs": -20.46,
+          "integratedLufs": -20.94,
           "truePeakDbtp": -1.92,
-          "loudnessRangeLu": 1,
-          "thresholdLufs": -30.78,
-          "targetOffsetLu": 0.29
+          "loudnessRangeLu": 2.2,
+          "thresholdLufs": -31.05,
+          "targetOffsetLu": 0.64
         },
         "probe": {
-          "durationSeconds": 7,
+          "durationSeconds": 5.8,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -8220,10 +8220,10 @@
     "owl/background-menu-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "94c1b0fbd2e1eccd703ed5694b75823a42a2b2b10bc1bbec0b39e76f770ef2d9",
+        "fingerprint": "a426baec4176e5f18d726390760000b26304d98ccdaca59bf624f0c17c21fbf2",
         "spec": {
-          "textHash": "26859555acb80fef1a2f7a21ac84b57dda24293d969df60cec61f186da50526e",
-          "preparedTextHash": "26859555acb80fef1a2f7a21ac84b57dda24293d969df60cec61f186da50526e",
+          "textHash": "30a945b91fcc8ff7df856651e474f3034010b0f2b1a3be9af46544e5972d0cd0",
+          "preparedTextHash": "30a945b91fcc8ff7df856651e474f3034010b0f2b1a3be9af46544e5972d0cd0",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -8256,9 +8256,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "37667f4a49822ffcaa1723d7ba3325b50100d025e7d7154bd84c5f5809cb9be1",
-        "sourceHash": "f519b5041175a820d9094000dbab7b7e2172f960577b572e968a12d31df7b16e",
-        "outputHash": "f538d45f2bcffd3458e1572e68f40d9362ff96ec8a7e547a66ceb7fc43b516f4",
+        "fingerprint": "ef7b4384df2f6ab54a2e71ecd67f35fb6e71d9fc543e00c777a4aaa366ee9003",
+        "sourceHash": "438d8d3edf54265eea74b9935f1890cb0d00ae0b8c1288669ea41dc1403e9766",
+        "outputHash": "510c707c2e1971175c65017152d7ad7885e3c9c526c71911403a0dc685d84670",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -8275,21 +8275,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -19.67,
-          "truePeakDbtp": -4.44,
-          "loudnessRangeLu": 0.2,
-          "thresholdLufs": -29.92,
-          "targetOffsetLu": -0.08
+          "integratedLufs": -18.75,
+          "truePeakDbtp": -1.09,
+          "loudnessRangeLu": 3.1,
+          "thresholdLufs": -29.39,
+          "targetOffsetLu": -0.41
         },
         "output": {
           "integratedLufs": -20.44,
-          "truePeakDbtp": -5.2,
-          "loudnessRangeLu": 0.3,
-          "thresholdLufs": -30.69,
-          "targetOffsetLu": -0.08
+          "truePeakDbtp": -2.61,
+          "loudnessRangeLu": 3.1,
+          "thresholdLufs": -31.09,
+          "targetOffsetLu": -0.41
         },
         "probe": {
-          "durationSeconds": 4.4,
+          "durationSeconds": 9.45,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -12170,10 +12170,10 @@
     "owl/open-keybindings-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "84eb60f784c3b9c52e3dfcb8fb3abc2086e79cf7c967666dc1a4be88eb1bd71b",
+        "fingerprint": "c4314e2173fefbac52acdb29990897f0d5cfd10b41de2f9e55a3ba075ab8bdff",
         "spec": {
-          "textHash": "ef529e1c52701626ed068ff7e738b54fa4f80eef8a4eba3295447cb17e9b5d2f",
-          "preparedTextHash": "ef529e1c52701626ed068ff7e738b54fa4f80eef8a4eba3295447cb17e9b5d2f",
+          "textHash": "2c65af485da810b0fcb2da62bd2249c45e83fc3f106c18f3bc8114e761fa158c",
+          "preparedTextHash": "dc672db5a7fd897cd8856eac3f92361aff46ffb1b154068f0d332c6b1e56465b",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -12206,9 +12206,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "b76f0b7d86ae07fd1c78b01bf933d85249b78036b7b76515cf92bbaf4c94e374",
-        "sourceHash": "95d66044321a8bb70edea1c5338100ba602ba548c1e134e47c60482a568ca1b1",
-        "outputHash": "c7aa2933fffec4b4f1a61fbe08ce28feaf056c9f61900a88842673c1a64c3b9d",
+        "fingerprint": "175f43a6bf2eb4637e3629b309d31c8f1e6e4579ed9e7735a398e7783f5ae184",
+        "sourceHash": "dfc89f2fbc5bbfdbb4fdf82809d631341ed404438898722425a8e86b70576e27",
+        "outputHash": "72774f4bc49a9ceeb5120fbabc881db3c84be1f0c1b8807ba7e432d71d767413",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -12225,21 +12225,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -19.5,
-          "truePeakDbtp": -2.67,
-          "loudnessRangeLu": 2.6,
-          "thresholdLufs": -29.75,
-          "targetOffsetLu": 0.06
+          "integratedLufs": -19.53,
+          "truePeakDbtp": 0.01,
+          "loudnessRangeLu": 1,
+          "thresholdLufs": -30.1,
+          "targetOffsetLu": -0.31
         },
         "output": {
-          "integratedLufs": -20.45,
-          "truePeakDbtp": -3.62,
-          "loudnessRangeLu": 2.6,
-          "thresholdLufs": -30.69,
-          "targetOffsetLu": 0.07
+          "integratedLufs": -20.35,
+          "truePeakDbtp": -1.94,
+          "loudnessRangeLu": 0.9,
+          "thresholdLufs": -30.92,
+          "targetOffsetLu": -0.2
         },
         "probe": {
-          "durationSeconds": 10,
+          "durationSeconds": 9.866667,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -12249,10 +12249,10 @@
     "owl/open-keybindings.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "6859bc242b8da3a38ad20e90aac253e15b5a379419ea48d3fa7cbb5ae351a5ef",
+        "fingerprint": "856a85edc4418959229b2cdf12c20205063c1c6c7f04802f5b6d58cc9f186b2c",
         "spec": {
-          "textHash": "2523d3e622a66d68b91c5db31ac12f6970bd19e550ce9d8e7ef993526c75a822",
-          "preparedTextHash": "2523d3e622a66d68b91c5db31ac12f6970bd19e550ce9d8e7ef993526c75a822",
+          "textHash": "0132b8b8e9022a97c9a4fb90de99c97684d21b90fe300f450b6905a72cdc79d3",
+          "preparedTextHash": "0132b8b8e9022a97c9a4fb90de99c97684d21b90fe300f450b6905a72cdc79d3",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -12285,9 +12285,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "591dd6dd455087a1ad8d99d82522ae7b896bf7c79d00d0a8f8b29ea1ab4e1c3c",
-        "sourceHash": "d27a24d72788d010f76b0a427949135ae2942df4d6c8ba8dd75d6e0cd2c4dc01",
-        "outputHash": "774f702b06ba528cf2b6c41b5e93171091cd775dbfdb2015bc4072f8ba700d83",
+        "fingerprint": "d486826f0c1c434329753fd91efa5c8ed4c6bf33a1223a68ca6224a2de08cd3f",
+        "sourceHash": "f4d4788e5418f4260d6492664d3ff9e3ac689b8dd67ecf5a491ea1ec3f2b1117",
+        "outputHash": "c7eca62cfc587aa9d304f86445315a5b301891aaa494535408c379a00515101f",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -12304,21 +12304,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -19.81,
-          "truePeakDbtp": -2.18,
-          "loudnessRangeLu": 1.6,
-          "thresholdLufs": -30.21,
-          "targetOffsetLu": -0.38
+          "integratedLufs": -19.99,
+          "truePeakDbtp": -3.42,
+          "loudnessRangeLu": 2.1,
+          "thresholdLufs": -30.45,
+          "targetOffsetLu": -0.32
         },
         "output": {
-          "integratedLufs": -20.43,
-          "truePeakDbtp": -2.81,
-          "loudnessRangeLu": 1.7,
-          "thresholdLufs": -30.85,
-          "targetOffsetLu": -0.36
+          "integratedLufs": -20.45,
+          "truePeakDbtp": -3.82,
+          "loudnessRangeLu": 2.2,
+          "thresholdLufs": -30.88,
+          "targetOffsetLu": -0.32
         },
         "probe": {
-          "durationSeconds": 15.8,
+          "durationSeconds": 15.15,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -12328,10 +12328,10 @@
     "owl/open-root-menu-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "80cea97a32e8e2a8af19bc0ca26c3041d57dcd82909188b417fb1accf0e230bb",
+        "fingerprint": "bb6c26052078a67f0bb1531e4d319bb14bf66bcfa5a6029a3f88d7b51f31ce08",
         "spec": {
-          "textHash": "86b2759225760c49975ce5077362c22362e98c47c1a69fa94778da5165ab3baf",
-          "preparedTextHash": "86b2759225760c49975ce5077362c22362e98c47c1a69fa94778da5165ab3baf",
+          "textHash": "80c5ead33e4de97de06bc880fd2ae0d81a7851e9f4f2d8f306feb3c1dcfe9149",
+          "preparedTextHash": "c563bfcb950b3d900fe85276fcedc964091899254c0b8d1dfa669aa8d6196d50",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -12364,9 +12364,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "657e7cebe4fc30a078ac793ae1cd22a76bdbd523dab24a59770235e151406eb3",
-        "sourceHash": "20b4610e0dc34a2bf4e1312eb7d615a5fe2575547c0ea6dfd2790ef7a0d36f27",
-        "outputHash": "271dd93cb988d2460b63c6351b03cf26ba929be722ecba7fc0b4abfc6844d58c",
+        "fingerprint": "0445e524247804b9217e970657343a5595917c26a7d048bea3fe36108a7a7800",
+        "sourceHash": "e9df1908265451e3d435e2ab289c8723fd3fdbfae53a21f6bc0ca56e0495d67e",
+        "outputHash": "325c5157ac1ed2ca439ba44a3798772f3ae93e733e297001468f14de43af1ffe",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -12383,21 +12383,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -19.28,
-          "truePeakDbtp": -2.34,
-          "loudnessRangeLu": 3.1,
-          "thresholdLufs": -29.85,
-          "targetOffsetLu": 0.66
+          "integratedLufs": -19.23,
+          "truePeakDbtp": -2.65,
+          "loudnessRangeLu": 2.3,
+          "thresholdLufs": -29.47,
+          "targetOffsetLu": 0.34
         },
         "output": {
-          "integratedLufs": -20.47,
-          "truePeakDbtp": -3.51,
-          "loudnessRangeLu": 3.1,
-          "thresholdLufs": -31.01,
-          "targetOffsetLu": 0.66
+          "integratedLufs": -20.46,
+          "truePeakDbtp": -3.87,
+          "loudnessRangeLu": 2.3,
+          "thresholdLufs": -30.69,
+          "targetOffsetLu": 0.33
         },
         "probe": {
-          "durationSeconds": 16.7,
+          "durationSeconds": 8.933333,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -13118,10 +13118,10 @@
     "owl/theme-menu-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "197f9de881beb272fea6ba205e56ce3fbf54beeda327a698989b9e20b3290c9f",
+        "fingerprint": "d19157016d7d2e8a58e1128478d578258402d575963cc84ddfa33e7d9e5d55ea",
         "spec": {
-          "textHash": "5475b37b606095f95f9f39d078f622482e46fa7ee3a2b46fa8c6d28b41e8b373",
-          "preparedTextHash": "5475b37b606095f95f9f39d078f622482e46fa7ee3a2b46fa8c6d28b41e8b373",
+          "textHash": "cb87c77a1ac0df63465541a0bc27d24bcef063ab45f63ee51ec200b7e17d4ce1",
+          "preparedTextHash": "cb87c77a1ac0df63465541a0bc27d24bcef063ab45f63ee51ec200b7e17d4ce1",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -13154,9 +13154,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "07c4dd34e2378c1c010eed2e4c6de300565697c4f864ceca69074a2a551bca03",
-        "sourceHash": "c8aedc07c47a4d69ff57e409bee8ed9b8adedf4164a33c4ffefe0dc759c1cc46",
-        "outputHash": "8a19862f26c5d0dbc5d2d350c18f7a7c9d34b2e5f127b6112e0ad64f4d326589",
+        "fingerprint": "6dc88eee234e4183e37dde7d1c3e35da01e5e4758161db1d99b6a494f957e658",
+        "sourceHash": "e7983d12a65df1d48f1add28c07768c04d2e2d8da61fe05559b9026250d37259",
+        "outputHash": "d3cbaa8da5ed366adac0ec02f08828b400ef22f8c88eb825d8e878c00a21788e",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -13173,21 +13173,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -19.57,
-          "truePeakDbtp": -3.38,
-          "loudnessRangeLu": 2.4,
-          "thresholdLufs": -29.72,
-          "targetOffsetLu": 0.24
+          "integratedLufs": -18.92,
+          "truePeakDbtp": -2.99,
+          "loudnessRangeLu": 3.4,
+          "thresholdLufs": -29.21,
+          "targetOffsetLu": 1.17
         },
         "output": {
-          "integratedLufs": -20.44,
-          "truePeakDbtp": -4.22,
-          "loudnessRangeLu": 2.5,
-          "thresholdLufs": -30.6,
-          "targetOffsetLu": 0.24
+          "integratedLufs": -20.46,
+          "truePeakDbtp": -4.53,
+          "loudnessRangeLu": 3.4,
+          "thresholdLufs": -30.75,
+          "targetOffsetLu": 1.17
         },
         "probe": {
-          "durationSeconds": 9.15,
+          "durationSeconds": 8.133333,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -19833,10 +19833,10 @@
     "ohm-1/upkeep-install.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "3163f8926e67d1f1ae3724200e6fdd8b77cd7e49cc8b50eb17c75912aacb7642",
+        "fingerprint": "960ce5b1734c9174d3832df218ff806b9c0228ab30f2f08900b76cc41a766a94",
         "spec": {
-          "textHash": "1c95f0237aac0745167f6f68122813d90613cdf87a5e9afecc0e0a30bf5f5518",
-          "preparedTextHash": "243bde3a2b23fb79630e98d54f794377540b2af8fc27b594c771d63f5ce88bc9",
+          "textHash": "8c878e4d141168f8536fd820c3d2b96849ec2d0cf2c5a56ff2b225e19d98ca85",
+          "preparedTextHash": "e85cf58dc9bd2534667091775b71fb1b2dc0289377e7804bd9b8bfaf0db99c7d",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -19869,9 +19869,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "e506051d897d974f75a9bcd86c3203ab5a24b7683e148d19a1834a0465f8e701",
-        "sourceHash": "1e7215644d90a9d9d397b683337a511cd5289b93e264907ccf3f89f754441d0b",
-        "outputHash": "a7195088802e38838ec6e571e788e3bdcfa818d3e6705f4cff1fde6368a66d89",
+        "fingerprint": "9aa27fd570b9f127c578aa588f744dd6849e33d653f45528b56ee69969c235c8",
+        "sourceHash": "aafe6818ff163ab4d32db6f84bd71bf2a5f67e0fcba271f4032d784b99675c8b",
+        "outputHash": "7b11b2b3f640691bd7a839c28936fede3da0f6b5596c8c056d7f569ecc5bc7ee",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -19888,21 +19888,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -22.43,
-          "truePeakDbtp": -3.53,
-          "loudnessRangeLu": 3.5,
-          "thresholdLufs": -33.04,
-          "targetOffsetLu": 0.77
+          "integratedLufs": -22.68,
+          "truePeakDbtp": -5.8,
+          "loudnessRangeLu": 1.3,
+          "thresholdLufs": -33.15,
+          "targetOffsetLu": 0.29
         },
         "output": {
-          "integratedLufs": -20.91,
-          "truePeakDbtp": -1.97,
-          "loudnessRangeLu": 3.2,
-          "thresholdLufs": -31.45,
-          "targetOffsetLu": 0.75
+          "integratedLufs": -20.44,
+          "truePeakDbtp": -3.61,
+          "loudnessRangeLu": 1.2,
+          "thresholdLufs": -30.91,
+          "targetOffsetLu": 0.3
         },
         "probe": {
-          "durationSeconds": 15.2,
+          "durationSeconds": 16.533333,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -20307,10 +20307,10 @@
     "owl/upkeep-install.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "4d52fc05ff6bcd3b32c90f352de04f9f48899d4712d676931cdb96680a3f3d1c",
+        "fingerprint": "eef519b3d2516ec8b1ee5ff22411c254f90ad187cce2daad798ee979b5ec6880",
         "spec": {
-          "textHash": "1c95f0237aac0745167f6f68122813d90613cdf87a5e9afecc0e0a30bf5f5518",
-          "preparedTextHash": "243bde3a2b23fb79630e98d54f794377540b2af8fc27b594c771d63f5ce88bc9",
+          "textHash": "8c878e4d141168f8536fd820c3d2b96849ec2d0cf2c5a56ff2b225e19d98ca85",
+          "preparedTextHash": "e85cf58dc9bd2534667091775b71fb1b2dc0289377e7804bd9b8bfaf0db99c7d",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -20343,9 +20343,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "02950787206d45b5de292ec967c5a7c734c69b9d5c957248305c12f40b39eb63",
-        "sourceHash": "c18d2326520d6c7dbe58b9fb091c0e084bc064d9f4f6309ed8564fa80393f7a3",
-        "outputHash": "c3c03a39b4a7938d8e902362499aab8d3ddc444ccce622d7f3423074ab591001",
+        "fingerprint": "5d05e2fae4a20e1604ed6422b7aab395bd36c4909009e48b63c7aceacc1a4740",
+        "sourceHash": "ca5e079bae8856ac809c706b1f285dbba5fb2f9f7e443cecab8e88884bebfc2a",
+        "outputHash": "ac42758a89e6caf2494fd9913855156257cfaf6bd42fa11bf69b4448ea38e9e8",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -20362,21 +20362,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -19.48,
-          "truePeakDbtp": -2.5,
-          "loudnessRangeLu": 2,
-          "thresholdLufs": -29.99,
-          "targetOffsetLu": 0.37
+          "integratedLufs": -19.09,
+          "truePeakDbtp": -1.93,
+          "loudnessRangeLu": 3.9,
+          "thresholdLufs": -29.46,
+          "targetOffsetLu": 0.13
         },
         "output": {
           "integratedLufs": -20.44,
-          "truePeakDbtp": -3.49,
-          "loudnessRangeLu": 2.1,
-          "thresholdLufs": -30.95,
-          "targetOffsetLu": 0.38
+          "truePeakDbtp": -3.33,
+          "loudnessRangeLu": 3.9,
+          "thresholdLufs": -30.81,
+          "targetOffsetLu": 0.13
         },
         "probe": {
-          "durationSeconds": 18.55,
+          "durationSeconds": 18.933333,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -20781,10 +20781,10 @@
     "ohm-1/tools-calculator-open-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "8805e22ad66607dd567975af79caf3b88c9ea02c6629c09257a8db3d0d45fb75",
+        "fingerprint": "7e5f0316229db141d780a86385bb8051c0a8d36f43edc6edd788a5c6f49fb56c",
         "spec": {
-          "textHash": "caf6b6fca42a17603838762db748a94b75c261be8d0a174ddf26b4851902d310",
-          "preparedTextHash": "caf6b6fca42a17603838762db748a94b75c261be8d0a174ddf26b4851902d310",
+          "textHash": "62ff2f0f1eff8d28d5e66fc4b7cc9da6e022b13ac60e089a8343b44f4d57425a",
+          "preparedTextHash": "62ff2f0f1eff8d28d5e66fc4b7cc9da6e022b13ac60e089a8343b44f4d57425a",
           "character": {
             "id": "ohm-1",
             "displayName": "Ohm-1"
@@ -20817,9 +20817,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "9a80f2a65e1a396275a9aa93222fd238d74e82870667d5b7b0ff973a6bfa22ad",
-        "sourceHash": "406f05b5dade94ebfd4144b480859dc91895c2571e06063395a228ccab27cb6e",
-        "outputHash": "7d9ac6b1d15b0e846773db1a85044631d678fc79f4eaa18e16319a1bd7e5e740",
+        "fingerprint": "6c34721c273a7f8fe02cf9e5988c2a3977b55a602cb93841735733c1c706c683",
+        "sourceHash": "1ee6b42702d13b700d229696767514468a74ead7faaf12bc5fda7d1c9ed7f942",
+        "outputHash": "12716f0bf333aea3acedea68d4fa03fb63d4da1fa9f28304d4e99f4b1238cf30",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -20836,21 +20836,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -22.61,
-          "truePeakDbtp": -5.68,
-          "loudnessRangeLu": 0.8,
-          "thresholdLufs": -33,
-          "targetOffsetLu": 0.06
+          "integratedLufs": -21.41,
+          "truePeakDbtp": -3.34,
+          "loudnessRangeLu": 1.1,
+          "thresholdLufs": -31.41,
+          "targetOffsetLu": 0.42
         },
         "output": {
-          "integratedLufs": -20.46,
-          "truePeakDbtp": -3.53,
-          "loudnessRangeLu": 0.9,
-          "thresholdLufs": -30.84,
-          "targetOffsetLu": 0.05
+          "integratedLufs": -20.45,
+          "truePeakDbtp": -2.39,
+          "loudnessRangeLu": 1.2,
+          "thresholdLufs": -30.45,
+          "targetOffsetLu": 0.41
         },
         "probe": {
-          "durationSeconds": 4.35,
+          "durationSeconds": 3.733333,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"
@@ -20939,10 +20939,10 @@
     "owl/tools-calculator-open-done.mp3": {
       "provenance": {
         "kind": "generated",
-        "fingerprint": "b50b795e861d19e2fde23cf8d6650a5c7dffe6df6c66c7385bd284e2ce954a03",
+        "fingerprint": "424e7314f43cc98828a3619d895cbf10d77bbada04489bf0d21401dac1978c7d",
         "spec": {
-          "textHash": "caf6b6fca42a17603838762db748a94b75c261be8d0a174ddf26b4851902d310",
-          "preparedTextHash": "caf6b6fca42a17603838762db748a94b75c261be8d0a174ddf26b4851902d310",
+          "textHash": "62ff2f0f1eff8d28d5e66fc4b7cc9da6e022b13ac60e089a8343b44f4d57425a",
+          "preparedTextHash": "62ff2f0f1eff8d28d5e66fc4b7cc9da6e022b13ac60e089a8343b44f4d57425a",
           "character": {
             "id": "owl",
             "displayName": "Ollie"
@@ -20975,9 +20975,9 @@
         }
       },
       "normalization": {
-        "fingerprint": "fbaf951eaf1204fc733e5d17a39f995f6ba3b3369675f61f688d9e6f8bfc8f1e",
-        "sourceHash": "53c0eea4fafd33e876112626535547223580472e23163cbb503ec33575772a95",
-        "outputHash": "193440e441060e2f19a7ad168a14ca0cdc7e1cf8dc196dc79e15c45940b23ade",
+        "fingerprint": "ce0cd56ea667debea354c55890ec8ec62c4417acffc2b7c9635d417c8c312201",
+        "sourceHash": "11b0bfd957570cd843d23f479ea771c5dc9be871afbb6f326c64c6655f07ee6d",
+        "outputHash": "bde7072af37931e6aaaf57f5bb6b6cb758ee566d6622a3c458021919f054c84d",
         "options": {
           "revision": 1,
           "integratedLufs": -20,
@@ -20994,21 +20994,21 @@
         "ffmpegVersion": "ffmpeg version n9.0.1 Copyright (c) 2000-2026 the FFmpeg developers",
         "method": "measured-two-pass",
         "source": {
-          "integratedLufs": -20.74,
-          "truePeakDbtp": -4.69,
-          "loudnessRangeLu": 0.9,
-          "thresholdLufs": -30.96,
-          "targetOffsetLu": 0.04
+          "integratedLufs": -18.58,
+          "truePeakDbtp": -4.54,
+          "loudnessRangeLu": 0.6,
+          "thresholdLufs": -28.58,
+          "targetOffsetLu": 0.76
         },
         "output": {
-          "integratedLufs": -20.45,
-          "truePeakDbtp": -4.35,
-          "loudnessRangeLu": 0.9,
-          "thresholdLufs": -30.67,
-          "targetOffsetLu": 0.05
+          "integratedLufs": -20.44,
+          "truePeakDbtp": -6.38,
+          "loudnessRangeLu": 0.6,
+          "thresholdLufs": -30.44,
+          "targetOffsetLu": 0.76
         },
         "probe": {
-          "durationSeconds": 5.4,
+          "durationSeconds": 4.4,
           "sampleRate": 24000,
           "channels": 1,
           "codec": "mp3"

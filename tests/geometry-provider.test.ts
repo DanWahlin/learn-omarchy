@@ -193,7 +193,10 @@ else if (args.join(' ') === 'learnGeometry capabilities') {
     console.error('No geometry IPC target'); process.exit(4);
   }
   console.log(JSON.stringify({shellAvailable:!fs.existsSync(process.env.HOME + '/disconnected'), barAvailable:true,
-    manifestId:'', slotsAvailable:false, windowMappingAvailable:false}));
+    manifestId:fs.existsSync(process.env.HOME + '/limited') ? '' : 'omarchy.bar',
+    activeBarId:fs.existsSync(process.env.HOME + '/custombar') ? 'custom.bar' : undefined,
+    slotsAvailable:!fs.existsSync(process.env.HOME + '/limited'),
+    windowMappingAvailable:!fs.existsSync(process.env.HOME + '/nomapping') && !fs.existsSync(process.env.HOME + '/limited')}));
 }
 else if (args.join(' ') === 'plugin enable learn-omarchy.geometry') {
   if (!fs.existsSync(process.env.HOME + '/discovered')) process.exit(2);
@@ -234,6 +237,22 @@ else if (args.join(' ') === 'plugin enable learn-omarchy.geometry') {
     ],
       "an already active, unchanged integration must not reload or re-enable the desktop service");
     assert.equal(run("--quiet").stdout, "");
+    for (const [marker, reason] of [
+      ["limited", /does not expose detailed widget geometry/],
+      ["nomapping", /does not expose detailed widget geometry/],
+      ["custombar", /cannot identify a supported stock bar/],
+    ] as const) {
+      await writeFile(join(home, marker), "yes");
+      const before = (await readFile(log, "utf8")).trim().split("\n").length;
+      const unavailable = run("--quiet");
+      assert.equal(unavailable.status, 1);
+      assert.match(unavailable.stderr, reason);
+      const attempted = (await readFile(log, "utf8")).trim().split("\n").slice(before).map(line => JSON.parse(line));
+      assert.deepEqual(attempted, [
+        ["omarchy", "plugin", "list", "--json"], ["omarchy-shell", "learnGeometry", "capabilities"],
+      ], "a restricted but connected host must not trigger reinstall, rescan, or activation loops");
+      await rm(join(home, marker));
+    }
     await rm(join(home, "enabled"));
     assert.equal(run("--quiet").status, 0, "normal startup repairs disabled integration without user setup");
     await writeFile(join(home, "inactive"), "yes");

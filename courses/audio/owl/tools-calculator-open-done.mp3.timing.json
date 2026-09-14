@@ -1,10 +1,10 @@
 {
   "version": 1,
-  "audioHash": "193440e441060e2f19a7ad168a14ca0cdc7e1cf8dc196dc79e15c45940b23ade",
-  "text": "The calculator is open. You can try a calculation before returning to the lesson.",
+  "audioHash": "bde7072af37931e6aaaf57f5bb6b6cb758ee566d6622a3c458021919f054c84d",
+  "text": "The calculator is open and ready whenever you need a quick calculation.",
   "words": [
     {
-      "startMs": 70,
+      "startMs": 30,
       "endOffset": 3
     },
     {
@@ -12,52 +12,44 @@
       "endOffset": 14
     },
     {
-      "startMs": 830,
+      "startMs": 950,
       "endOffset": 17
     },
     {
-      "startMs": 950,
-      "endOffset": 23
+      "startMs": 1150,
+      "endOffset": 22
     },
     {
-      "startMs": 1910,
-      "endOffset": 27
+      "startMs": 1470,
+      "endOffset": 26
     },
     {
-      "startMs": 2150,
-      "endOffset": 31
+      "startMs": 1710,
+      "endOffset": 32
     },
     {
-      "startMs": 2309,
-      "endOffset": 35
-    },
-    {
-      "startMs": 2630,
-      "endOffset": 37
+      "startMs": 2270,
+      "endOffset": 41
     },
     {
       "startMs": 2670,
-      "endOffset": 49
+      "endOffset": 45
     },
     {
-      "startMs": 3590,
-      "endOffset": 56
+      "startMs": 2829,
+      "endOffset": 50
     },
     {
-      "startMs": 4030,
-      "endOffset": 66
+      "startMs": 3030,
+      "endOffset": 52
     },
     {
-      "startMs": 4590,
-      "endOffset": 69
+      "startMs": 3110,
+      "endOffset": 58
     },
     {
-      "startMs": 4710,
-      "endOffset": 73
-    },
-    {
-      "startMs": 4830,
-      "endOffset": 81
+      "startMs": 3469,
+      "endOffset": 71
     }
   ]
 }

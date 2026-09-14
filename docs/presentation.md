@@ -10,6 +10,8 @@ opacity. Intro text prompts and capture practice cards follow the same rule.
 Decorative shadows, desktop highlights and deliberate transition fades retain
 their transparency. The surface regression renders the production components
 over changing backgrounds, including hovered and disabled controls.
+Titled button tooltips use a semibold heading and a 6-pixel, text-scaled gap
+before the description. Label-only tooltips do not reserve an empty body or gap.
 
 ## Splash and startup
 
@@ -34,12 +36,15 @@ URLs cannot resolve assets outside the configuration directory and redirect
 that request to `qrc:/qs-blackhole`. The startup regression runs under real
 Quickshell as well as the standalone QML component tests.
 
-Startup uses a two-stage dissolve through dark navy: 650 ms for the splash
-to fade out, then 750 ms for the destination to fade in, both with sine easing.
-The splash layer retains its navy background behind the fading poster. The
+Startup fades the splash out over 650 ms with sine easing. For a returning
+learner, the already-composed Lessons picker is revealed directly when that
+fade finishes instead of running a second entrance animation. Destinations that
+must wait for an intro or fallback frame still fade in over 750 ms.
+The splash layer retains its navy background behind the fading poster and stays
+mapped as a solid cover until the destination has finished appearing. The
 destination window starts with that same opaque background, then makes it
-transparent as its content appears; a bright desktop never flashes between
-scenes. The splash stays mapped until the exit animation finishes.
+transparent as its content appears; the compositor never exposes a desktop
+frame between the two layer surfaces.
 The UI window and separate coach/intro
 window share `startupOpacity`, so neither appears abruptly over the other.
 For entrances, the reveal waits for `IntroPlayer` to reach `playing` or
@@ -47,6 +52,15 @@ For entrances, the reveal waits for `IntroPlayer` to reach `playing` or
 reveal immediately after the splash exits. This runs only at startup, not
 when switching lessons or replaying Welcome. Reduced motion bypasses both
 stages, including when enabled partway through a transition.
+
+The Lessons picker reuses the already-watched current Omarchy wallpaper as an
+aspect-cropped backdrop beneath its opaque panel. A light theme-colored shade
+keeps the picker prominent without exposing distracting open windows. Starting
+a lesson fades the wallpaper away over 300 ms to reveal the real desktop needed
+for hands-on teaching; reduced motion removes that transition. Settings opened
+from the picker retain the backdrop, while settings opened during a lesson do
+not restore it. An opaque theme-color fallback remains behind the picker until
+the wallpaper is decoded, so image loading cannot introduce a desktop flash.
 
 Both mascots are app branding, not a preview or change of the selected coach.
 The selected pack still owns the entrance animation, lesson sprites and voice.

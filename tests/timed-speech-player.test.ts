@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { chmod, mkdir, mkdtemp, readFile, readdir, rm, stat, truncate, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { tmpdir } from "node:os";
 import { PassThrough } from "node:stream";
 import test from "node:test";
 import {
@@ -40,7 +41,7 @@ test("control parsing is bounded, allowlisted, chunk-safe, and releases input li
 });
 
 async function fixture() {
-  const directory = resolve(await mkdtemp(".timed-speech-test-"));
+  const directory = await mkdtemp(join(tmpdir(), "lo-speech-"));
   const audio = join(directory, "welcome clip.mp3");
   await writeFile(audio, audioBytes);
   return { directory, audio, cleanup: () => rm(directory, { recursive: true, force: true }) };

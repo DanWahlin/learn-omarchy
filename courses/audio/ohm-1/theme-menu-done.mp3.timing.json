@@ -1,87 +1,79 @@
 {
   "version": 1,
-  "audioHash": "15d2228bd2d972d74861848a2d877cb681e1bfeec75c2914014e7333be96babb",
-  "text": "Themes coordinate the desktop's appearance. Selecting one applies a change; close the menu without choosing to keep your current theme.",
+  "audioHash": "95c74dc03fd4f4699fec313183f1892295074042e4669ab9b0ca579bfff9d95e",
+  "text": "The Theme menu is open. Themes coordinate the desktop's appearance, but no change is required for this lesson.",
   "words": [
     {
       "startMs": 70,
-      "endOffset": 6
+      "endOffset": 3
     },
     {
-      "startMs": 350,
+      "startMs": 190,
+      "endOffset": 9
+    },
+    {
+      "startMs": 430,
+      "endOffset": 14
+    },
+    {
+      "startMs": 710,
       "endOffset": 17
     },
     {
       "startMs": 830,
-      "endOffset": 21
+      "endOffset": 23
     },
     {
-      "startMs": 950,
-      "endOffset": 31
+      "startMs": 1630,
+      "endOffset": 30
     },
     {
-      "startMs": 1430,
-      "endOffset": 43
+      "startMs": 2029,
+      "endOffset": 41
     },
     {
-      "startMs": 2270,
-      "endOffset": 53
+      "startMs": 2550,
+      "endOffset": 45
     },
     {
-      "startMs": 2829,
-      "endOffset": 57
+      "startMs": 2670,
+      "endOffset": 55
     },
     {
-      "startMs": 3110,
-      "endOffset": 65
-    },
-    {
-      "startMs": 3510,
+      "startMs": 3190,
       "endOffset": 67
     },
     {
-      "startMs": 3550,
-      "endOffset": 75
+      "startMs": 3829,
+      "endOffset": 71
     },
     {
-      "startMs": 4350,
+      "startMs": 3989,
+      "endOffset": 74
+    },
+    {
+      "startMs": 4190,
       "endOffset": 81
     },
     {
-      "startMs": 4710,
-      "endOffset": 85
+      "startMs": 4510,
+      "endOffset": 84
     },
     {
-      "startMs": 4830,
-      "endOffset": 90
+      "startMs": 4630,
+      "endOffset": 93
     },
     {
       "startMs": 5070,
-      "endOffset": 98
+      "endOffset": 97
     },
     {
-      "startMs": 5430,
-      "endOffset": 107
+      "startMs": 5190,
+      "endOffset": 102
     },
     {
-      "startMs": 5790,
+      "startMs": 5390,
       "endOffset": 110
-    },
-    {
-      "startMs": 5870,
-      "endOffset": 115
-    },
-    {
-      "startMs": 6070,
-      "endOffset": 120
-    },
-    {
-      "startMs": 6230,
-      "endOffset": 128
-    },
-    {
-      "startMs": 6550,
-      "endOffset": 135
     }
   ]
 }

@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { copyFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { decodePoster, poster, preparePoster, recolorPoster } from "../tools/prepare-splash-poster.mjs";
@@ -14,7 +15,7 @@ test("the shell's poster URL loads through real Quickshell outside its configura
   const shell = readFileSync(new URL("../app/shell.qml", import.meta.url), "utf8");
   const source = shell.match(/        SplashScreen \{[\s\S]*?\n          source: ([^\n]+)/)?.[1];
   assert.ok(source, "the shell must explicitly provide the poster's filesystem URL");
-  const directory = await mkdtemp(fileURLToPath(new URL("../.sp-", import.meta.url)));
+  const directory = await mkdtemp(join(tmpdir(), "lo-sp-"));
   try {
     const appRoot = join(directory, "asset root #1");
     const config = join(directory, "config");

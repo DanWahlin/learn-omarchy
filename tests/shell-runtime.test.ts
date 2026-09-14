@@ -5,6 +5,7 @@ import { createContext, runInContext } from "node:vm";
 import type { Course } from "../src/course.ts";
 
 const shell = await readFile(new URL("../app/shell.qml", import.meta.url), "utf8");
+const arcadePanelSource = await readFile(new URL("../app/ArcadePanel.qml", import.meta.url), "utf8");
 const revealSource = await readFile(new URL("../app/CaptionReveal.qml", import.meta.url), "utf8");
 const captionTiming = createContext({});
 runInContext(await readFile(new URL("../app/CaptionTiming.js", import.meta.url), "utf8"), captionTiming);
@@ -12,6 +13,8 @@ const windowOutcomes = createContext({});
 runInContext(await readFile(new URL("../app/WindowOutcomes.js", import.meta.url), "utf8"), windowOutcomes);
 const retention = createContext({});
 runInContext(await readFile(new URL("../app/Retention.js", import.meta.url), "utf8"), retention);
+const arcadeLogic = createContext({});
+runInContext(await readFile(new URL("../app/ArcadeLogic.js", import.meta.url), "utf8"), arcadeLogic);
 const welcomeSource = await readFile(new URL("../courses/welcome.json", import.meta.url), "utf8");
 const course: Course = JSON.parse(
   await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"),
@@ -65,6 +68,16 @@ function runtime(stepId: string, reducedMotion = true) {
     CaptionTiming: captionTiming,
     WindowOutcomes: windowOutcomes,
     Retention: retention,
+    ArcadeLogic: arcadeLogic,
+    arcadeStats: arcadeLogic.defaultStats(),
+    arcadeStatsReady: true,
+    arcadeWritesBlocked: false,
+    arcadeSaveRetry: false,
+    arcadeStorageNotice: "",
+    arcadePath: "/state/learn-omarchy/arcade.json",
+    arcadeFile: { setText() {}, reload() {}, waitForJob() {} },
+    arcadeHost: null,
+    FileViewError: { FileNotFound: 2, PermissionDenied: 3 },
     windowChangeBaseline: null,
     mixedLessonIds: [],
     mixedLessonPosition: 0,
@@ -92,7 +105,9 @@ function runtime(stepId: string, reducedMotion = true) {
     splashActive: false,
     startupOpacity: 1,
     startupRevealPending: false,
+    startupCoverHeld: false,
     startupFadeIn: timer(),
+    startupCoverRelease: timer(),
     welcomeNarration: JSON.parse(welcomeSource),
     welcomeNarrationStarted: false,
     welcomeNarrationFinished: false,
@@ -138,6 +153,7 @@ function runtime(stepId: string, reducedMotion = true) {
     speechRate: 1,
     textScale: 1,
     motionReduced: false,
+    externalLayerTick: 0,
     audioStopRequested: false,
     audioPaused: false,
     audioProcessPath: "",
@@ -173,6 +189,7 @@ function runtime(stepId: string, reducedMotion = true) {
     actionProcessGeneration: -1,
     actionRunning: false,
     actionStopping: false,
+    stepOwnsCleanupSurface: false,
     keyboardExclusive: true,
     keyboardCaptureResetting: false,
     shortcutInhibitionActive: false,
@@ -192,7 +209,9 @@ function runtime(stepId: string, reducedMotion = true) {
     barGeometryAvailable: true,
     barGeometryTopology: "",
     geometryProviderAvailable: true,
-    geometryProviderRetryAt: 0,
+    barGeometryRequested: false,
+    targetGeometryRequested: false,
+    windowGeometryRefreshing: false,
     barGeometryProcess: { running: false },
     requestKeyboardFocus() {},
     outcomeGeneration: 0,
@@ -670,6 +689,253 @@ test("direct media-key events work on layer surfaces before any lesson key handl
   state.shortcutInhibitionActive = false;
   assert.equal(state.handleSystemVolumeKey({ key: state.Qt.Key_VolumeDown, modifiers: 0 }), false);
   assert.equal(actions.length, count);
+});
+
+function arcadeRuntime() {
+  const state = runtime("launch-terminal");
+  Object.assign(state.Qt, {
+    NoModifier: 0, ShiftModifier: 1, ControlModifier: 2, AltModifier: 4, MetaModifier: 8,
+    Key_A: 65, Key_Z: 90, Key_H: 72, Key_P: 80,
+    Key_0: 48, Key_9: 57, Key_1: 49, Key_R: 82,
+    Key_Tab: 0x01000001, Key_Backtab: 0x01000002, Key_Escape: 0x01000000,
+    Key_Return: 0x01000004, Key_Enter: 0x01000005, Key_Space: 32,
+    Key_Meta: 0x01000022, Key_Control: 0x01000021, Key_Shift: 0x01000020,
+    Key_Alt: 0x01000023, Key_VolumeDown: 0x01000070,
+  });
+  state.phase = "arcade";
+  const received: { kind: string; keys: string[] }[] = [];
+  state.arcadeHost = {
+    running: true,
+    mode: "rescue",
+    expectedKeys: ["SUPER", "RETURN"],
+    handleEscape() { received.push({ kind: "back", keys: [] }); },
+    pauseGame() { received.push({ kind: "pause", keys: [] }); },
+    showHint() { received.push({ kind: "hint", keys: [] }); },
+    handleControlKey(key: string) { received.push({ kind: "control", keys: [key] }); },
+    handleKeyPress(direct: string, keys: string[]) {
+      received.push({ kind: direct, keys: Array.from(keys) });
+    },
+  };
+  return { state, received };
+}
+
+test("arcade owns real shortcut input and intercepts only plain hint and pause keys", () => {
+  const { state, received } = arcadeRuntime();
+  for (const [key, modifiers] of [[72, 8], [state.Qt.Key_Return, 8], [72, 0], [80, 0]]) {
+    const event = { key, modifiers, accepted: false, isAutoRepeat: false };
+    state.handleKeyPressed(event);
+    assert.equal(event.accepted, true);
+    state.updateActiveKeys(event, false);
+  }
+  assert.equal(received[0].kind, "H");
+  assert.deepEqual(received[0].keys, ["SUPER", "H"]);
+  assert.equal(received[1].kind, "RETURN");
+  assert.deepEqual(received[1].keys, ["SUPER", "RETURN"]);
+  assert.equal(received[2].kind, "hint");
+  assert.equal(received[3].kind, "pause");
+  assert.equal(state.phase, "arcade", "P pauses without leaving the arcade");
+});
+
+test("Sprint keeps plain P available and does not route it to pause", () => {
+  const { state, received } = arcadeRuntime();
+  state.arcadeHost.mode = "sprint";
+  const event = { key: 80, modifiers: 0, accepted: false, isAutoRepeat: false };
+  state.handleKeyPressed(event);
+  assert.equal(event.accepted, true);
+  assert.equal(received.some(item => item.kind === "pause"), false);
+});
+
+test("arcade navigation handles hub, pause and results keys without submitting answers", () => {
+  const { state, received } = arcadeRuntime();
+  state.arcadeHost.running = false;
+  for (const [key, modifiers] of [
+    [state.Qt.Key_1, 0], [state.Qt.Key_Tab, 0], [state.Qt.Key_Tab, 1],
+    [state.Qt.Key_Return, 0], [state.Qt.Key_Escape, 0],
+  ]) state.handleKeyPressed({ key, modifiers, isAutoRepeat: false, accepted: false });
+  assert.deepEqual(received.map(item => [item.kind, ...item.keys]), [
+    ["control", "1"], ["control", "TAB"], ["control", "BACKTAB"], ["control", "RETURN"],
+    ["back"],
+  ]);
+  state.handleKeyPressed({ key: state.Qt.Key_Return, modifiers: 0, isAutoRepeat: true });
+  assert.equal(received.length, 5, "held Enter must not launch or replay again");
+});
+
+test("arcade never routes media keys into real volume changes or desktop actions", () => {
+  const { state, received } = arcadeRuntime();
+  state.queueSystemVolume = () => assert.fail("Arcade must not adjust real system volume");
+  state.checkExpectedCombo = () => assert.fail("Arcade must not execute a lesson action");
+  const event = { key: state.Qt.Key_VolumeDown, modifiers: 0, isAutoRepeat: false, accepted: false };
+  state.handleKeyPressed(event);
+  assert.equal(event.accepted, true);
+  assert.equal(received.length, 1);
+  assert.ok(received[0].keys.some(key => key.startsWith("__KEY_")));
+  state.arcadeHost = null;
+  state.handleKeyPressed(event);
+  assert.equal(event.accepted, true, "input remains captured during host handoff");
+});
+
+test("custom arcade courses can use plain answer keys that only navigate outside play", () => {
+  const { state, received } = arcadeRuntime();
+  for (const [key, label] of [
+    [state.Qt.Key_Return, "RETURN"], [state.Qt.Key_Space, "SPACE"],
+    [state.Qt.Key_Tab, "TAB"], [state.Qt.Key_R, "R"], [state.Qt.Key_1, "1"],
+  ] as const) {
+    state.arcadeHost.expectedKeys = [label];
+    const event = { key, modifiers: 0, accepted: false, isAutoRepeat: false };
+    state.handleKeyPressed(event);
+    assert.equal(event.accepted, true);
+    assert.equal(received.at(-1)?.kind, label);
+    assert.deepEqual(received.at(-1)?.keys, [label]);
+    state.updateActiveKeys(event, false);
+  }
+});
+
+test("arcade transitions clear stale physical keys and preserve lesson progress", () => {
+  const { state } = arcadeRuntime();
+  state.completedLessons = { windows: true };
+  state.activeKeys = { SUPER: true, RETURN: true };
+  state.pressedPhysicalKeys = { 36: "RETURN" };
+  state.openArcade();
+  assert.equal(state.phase, "arcade");
+  assert.deepEqual(Object.keys(state.activeKeys), []);
+  assert.deepEqual(Object.keys(state.pressedPhysicalKeys), []);
+  assert.deepEqual(Object.keys(state.completedLessons), ["windows"]);
+  assert.match(shell, /pressedKeys: Object\.keys\(root\.activeKeys\)/);
+  assert.match(shell, /Keys\.forwardTo: \[keyCatcher\]/);
+  assert.match(shell, /onClearInputRequested: \{\s+root\.clearArcadeInput\(\)[\s\S]*?arcadePanel\.active && arcadePanel\.running && !root\.keyboardExclusive/);
+});
+
+test("arcade has no lesson toolbar and entering it always captures shortcuts", () => {
+  const { state, received } = arcadeRuntime();
+  state.keyboardExclusive = false;
+  state.openArcade();
+  assert.equal(state.keyboardExclusive, true);
+  state.setKeyboardExclusive(false);
+  assert.equal(received.at(-1)?.kind, "pause", "lost capture pauses the game");
+  const controls = shell.match(/id: controls\s+z: \d+\s+visible: ([^\n]+)/)?.[1];
+  assert.ok(controls);
+  assert.equal(runInContext(controls, state), false);
+  assert.match(shell, /component SystemVolumeShortcut:[\s\S]*?enabled: root\.phase !== "arcade"/);
+  assert.match(shell, /label: "ARCADE"\s+description:/);
+  assert.match(shell, /objectName: "lessonArcadeButton"[\s\S]*?arcadeStyle: true[\s\S]*?label: "ARCADE"/);
+  assert.doesNotMatch(shell, /label: "SHORTCUT ARCADE"/);
+});
+
+test("arcade wallpaper is preloaded and retained between visits", () => {
+  assert.match(shell, /OmarchyTheme \{ id: appTheme; wallpaperEnabled: true \}/);
+  assert.match(shell, /ArcadePanel \{[\s\S]*?appRoot: root\.appRoot/);
+  assert.match(arcadePanelSource, /function arcadeAssetUrl\(name\)[\s\S]*?"file:\/\/"/);
+  assert.match(arcadePanelSource, /source: root\.wallpaperSource/);
+  assert.match(arcadePanelSource, /asynchronous: true\s+cache: true/);
+  assert.doesNotMatch(arcadePanelSource, /source: root\.active \? root\.wallpaperSource : ""/);
+});
+
+test("lesson menu reuses the wallpaper and fades it away when teaching starts", () => {
+  assert.match(shell, /objectName: "lessonMenuBackdropFallback"[\s\S]*?visible: lessonMenuBackdrop\.requested[\s\S]*?color: root\.background/);
+  assert.match(shell, /id: lessonMenuBackdrop[\s\S]*?root\.phase === "menu"[\s\S]*?root\.phase === "settings" && !root\.settingsReturnToLesson/);
+  assert.match(shell, /id: lessonMenuBackdrop[\s\S]*?source: appTheme\.wallpaperSource[\s\S]*?fillMode: Image\.PreserveAspectCrop/);
+  assert.match(shell, /id: lessonMenuBackdrop[\s\S]*?asynchronous: true\s+cache: true/);
+  assert.match(shell, /opacity: requested && status === Image\.Ready \? 1 : 0[\s\S]*?NumberAnimation \{ duration: 300/);
+  assert.match(shell, /id: menuBackdropShade[\s\S]*?lessonMenuBackdrop\.requested && lessonMenuBackdrop\.status === Image\.Ready \? 0\.3 : 0\.72/);
+});
+
+test("arcade pages are preloaded instead of recreated during navigation", () => {
+  for (const page of ["Hub", "Play", "Paused", "Complete", "Results"]) {
+    assert.match(arcadePanelSource,
+      new RegExp(`objectName: "arcade${page}PageLoader"[\\s\\S]*?active: true`));
+  }
+  assert.doesNotMatch(arcadePanelSource, /arcadeReadyPageLoader|id: readyPage|function beginRound/);
+  assert.doesNotMatch(arcadePanelSource, /screen = "ready"/);
+  assert.doesNotMatch(arcadePanelSource, /id: page\s+Layout\.fillWidth: true\s+sourceComponent:/);
+});
+
+test("lesson menu footer prioritizes contextual actions and keeps tools secondary", () => {
+  assert.doesNotMatch(shell, /text: "SELECTED LESSON"/);
+  assert.doesNotMatch(shell, /text: "↑↓ Select  ·  Enter Start  ·  Esc Close"/);
+  assert.match(shell, /width: Math\.min\(1040, parent\.width - 64\)/);
+  assert.match(shell, /function lessonShortcutKeys\(lesson\) \{\s+if \(!lesson \|\| lesson\.kind === "welcome" \|\| !lesson\.steps\) return \[\]/);
+  assert.match(shell, /objectName: "lessonShortcutColumn"[\s\S]*?Layout\.preferredWidth: 180/);
+  assert.match(shell, /readonly property string selectedActionLabel:[\s\S]*?return "RESUME LESSON"/);
+  assert.match(shell, /kind: "primary"[\s\S]*?label: topicPanel\.selectedActionLabel/);
+  assert.match(shell, /label: "PRACTICE"\s+description: "Practice the selected lesson\. Press P\."/);
+  assert.match(shell, /MixedPracticeButton \{\s+compact: true/);
+  assert.match(shell, /label: "ARCADE"\s+description: "Play three safe shortcut games and chase your personal bests\. Press A\."/);
+  assert.match(shell, /objectName: "lessonFooterGrid"[\s\S]*?columns: singleRow \? 5 : 2/);
+  const progressHeader = shell.slice(shell.indexOf('objectName: "lessonProgressSummary"'), shell.indexOf("id: lessonList"));
+  assert.match(progressHeader, /MixedPracticeButton \{[\s\S]*?Layout\.alignment: Qt\.AlignRight/);
+  assert.doesNotMatch(shell.slice(shell.indexOf("id: lessonFooterGrid"), shell.indexOf("id: lessonFooterGrid") + 3000), /MixedPracticeButton/);
+  assert.match(shell, /label: "REVIEW MODULES"\s+description: "Revisit up to 3 completed modules in random order\."/);
+  assert.match(shell, /component MixedPracticeButton:[\s\S]*?enabled: root\.mixedEligibleCount >= 2\s+visible: enabled/);
+  const completion = shell.slice(shell.indexOf("id: completionPanel"), shell.indexOf("id: welcomeControls"));
+  assert.doesNotMatch(completion, /MixedPracticeButton|completionMore|RESULT DETAILS|PRINTABLE SHORTCUTS|REPLAY MODULE/);
+  assert.doesNotMatch(shell, /MIXED PRACTICE|Mixed practice:|mixed-practice session/);
+  assert.doesNotMatch(shell, /text: "TOOLS"/);
+  assert.doesNotMatch(shell, /function lessonShortcutLabel/);
+  assert.doesNotMatch(shell, /Complete two practice-ready modules to unlock a mixed review\./);
+  assert.doesNotMatch(shell, /\["P", "PRACTICE"\], \["A", "ARCADE"\]/);
+});
+
+test("course header adds breathing room without changing lesson-card density", () => {
+  const header = shell.slice(shell.indexOf("id: topicPanel"), shell.indexOf("id: lessonList"));
+  assert.match(header, /RowLayout \{\s+Layout\.fillWidth: true\s+Layout\.bottomMargin: 12/);
+  assert.match(header, /Layout\.maximumWidth: topicPanel\.width - 380\s+Layout\.topMargin: 6/);
+  assert.match(header, /MixedPracticeButton \{\s+compact: true\s+Layout\.alignment: Qt\.AlignRight\s+Layout\.topMargin: 8/);
+  assert.match(shell, /id: lessonColumn[\s\S]*?spacing: 8\s+readonly property int rowHeight: 76/);
+});
+
+test("lesson list uses a fixed draggable scrollbar", () => {
+  assert.match(shell, /Controls\.ScrollBar\.vertical: Controls\.ScrollBar \{\s+id: lessonScrollbar/);
+  assert.match(shell, /objectName: "lessonScrollbar"[\s\S]*?policy: Controls\.ScrollBar\.AlwaysOn/);
+  assert.match(shell, /visible: lessonList\.contentHeight > lessonList\.height/);
+  assert.match(shell, /width: lessonList\.width - \(lessonScrollbar\.visible \? 16 : 0\)/);
+  assert.doesNotMatch(shell, /y: lessonList\.height \* \(lessonList\.contentY/);
+});
+
+test("arcade preserves corrupt and newer-version files instead of overwriting them", () => {
+  for (const content of ["{bad", "[]", "null", '{"version":99}']) {
+    const { state } = arcadeRuntime();
+    state.arcadeFile.setText = () => assert.fail("Unreadable progress must not be overwritten");
+    state.loadArcadeStats(content);
+    assert.equal(state.arcadeWritesBlocked, true);
+    assert.equal(state.arcadeStatsReady, true);
+    assert.match(state.arcadeStorageNotice, /file is preserved/);
+    assert.equal(state.saveArcadeStats(arcadeLogic.defaultStats()), false);
+  }
+});
+
+test("arcade distinguishes first-run missing progress from inaccessible progress", () => {
+  const { state } = arcadeRuntime();
+  state.arcadeLoadFailed(state.FileViewError.FileNotFound);
+  assert.equal(state.arcadeWritesBlocked, false);
+  assert.equal(state.arcadeStorageNotice, "");
+  state.arcadeLoadFailed(state.FileViewError.PermissionDenied);
+  assert.equal(state.arcadeWritesBlocked, true);
+  assert.match(state.arcadeStorageNotice, /will not be saved/);
+  state.loadArcadeStats('{"version":1,"sprint":{"bestScore":200}}');
+  assert.equal(state.arcadeWritesBlocked, false);
+  assert.equal(state.arcadeStats.sprint.bestScore, 200);
+});
+
+test("arcade retries failed writes without replacing in-memory practice with stale disk data", () => {
+  const { state } = arcadeRuntime();
+  const next = arcadeLogic.defaultStats();
+  next.sprint.bestScore = 500;
+  let reloads = 0;
+  let saved = "";
+  state.arcadeFile.reload = () => {
+    reloads++;
+    state.loadArcadeStats('{"version":1,"sprint":{"bestScore":100}}');
+  };
+  state.arcadeFile.setText = (text: string) => {
+    saved = text;
+    state.arcadeStorageNotice = "";
+  };
+  state.arcadeSaveFailed(state.FileViewError.PermissionDenied);
+  assert.match(state.arcadeStorageNotice, /next completed shortcut will retry/);
+  assert.equal(state.saveArcadeStats(next), true);
+  assert.equal(reloads, 1);
+  assert.equal(JSON.parse(saved).sprint.bestScore, 500);
+  assert.equal(state.arcadeSaveRetry, false);
 });
 
 test("system volume failures notify the learner and clear pending repeats", () => {
@@ -2053,7 +2319,7 @@ test("Welcome lesson replays the selected coach without clearing existing progre
     state.welcomeSeen = true;
     state.stepResults = { "tour-workspaces": "introduced", "launch-terminal": "practiced" };
     state.stepCredits = { "tour-workspaces": true, "launch-terminal": true };
-    state.completedLessons = { "everyday-apps": true };
+    state.completedLessons = { welcome: true, "everyday-apps": true };
     state.lessonBookmarks = { windows: "windows-swap" };
     const progress = JSON.stringify([state.stepResults, state.stepCredits, state.completedLessons, state.lessonBookmarks]);
     state.startLesson(0);
@@ -2117,7 +2383,7 @@ test("transparent full-screen panel surfaces aren't treated as the visible menu 
     assert.equal(state.targetWindowGeometry, null);
     assert.equal(state.targetMonitorGeometry, null);
     assert.equal(state.targetScreenId, 0);
-    assert.equal(state.windowGeometryRefreshTimer.running, true);
+    assert.equal(state.targetGeometryRequested, false, "measurement does not start recurring panel refreshes");
   }
 });
 
@@ -2141,34 +2407,47 @@ test("unmeasured panels avoid falsely precise pointers and outlines", () => {
   assert.match(shell, /id: targetMarker[\s\S]*?visible: root\.phase === "highlight" &&\s+overlay\.hasReliableCompletionTarget/);
 });
 
-test("the coach follows measured popup bounds but not a popup's bar button", () => {
+test("the coach follows workspace estimates and measured popups, not unrelated bar buttons", () => {
   const estimated = shell.match(/readonly property bool targetIsEstimated: ([\s\S]*?)\n        readonly property bool hasReliableCompletionTarget/)?.[1];
-  const reliable = shell.match(/readonly property bool hasReliableCompletionTarget: ([\s\S]*?)\n        readonly property real fittedHighlightWidth/)?.[1];
+  const reliable = shell.match(/readonly property bool hasReliableCompletionTarget: ([\s\S]*?)\n        readonly property bool hasCoachCompletionTarget/)?.[1];
+  const coachTarget = shell.match(/readonly property bool hasCoachCompletionTarget: ([\s\S]*?)\n        readonly property real fittedHighlightWidth/)?.[1];
   const follows = shell.match(/readonly property bool targetsCompletion:\s*([\s\S]*?)\n          readonly property bool targetsTour/)?.[1];
-  assert.ok(estimated && reliable && follows);
-  for (const [target, windowMeasured, widgetMeasured, panelMeasured, expected] of [
+  assert.ok(estimated && reliable && coachTarget && follows);
+  for (const [target, windowMeasured, widgetMeasured, panelMeasured, expected, widgetEstimated = false,
+    surfaceOwned = false] of [
     ["panel", false, true, false, false],
+    ["panel", false, true, false, true, false, true],
     ["panel", false, true, true, true],
     ["panel", true, false, false, true],
     ["panel", false, false, false, false],
     ["window", true, false, false, true],
     ["window", false, true, false, false],
     ["workspace", false, true, false, true],
+    ["workspace", false, true, false, true, true],
+    ["workspace", false, false, false, false, true],
+    ["panel", false, true, true, false, true],
   ] as const) {
     for (const state of ["target-fly", "target-settle", "target-point"]) {
       const context = createContext({
-        root: { currentStepHasNoVisibleTarget: false, characterState: state },
+        root: { currentStepHasNoVisibleTarget: false, characterState: state,
+          stepOwnsCleanupSurface: surfaceOwned, targetLayerNamespace: surfaceOwned ? "omarchy-menu" : "" },
         highlight: { target },
         usesWindowTarget: windowMeasured,
-        measuredBarTarget: widgetMeasured ? { x: 100, y: 20, width: 40, height: 30, panel: panelMeasured } : null,
+        measuredBarTarget: widgetMeasured ? { x: 100, y: 20, width: 40, height: 30,
+          panel: panelMeasured, estimated: widgetEstimated } : null,
         targetIsEstimated: false,
-        overlay: { highlight: { target }, usesWindowTarget: windowMeasured, hasReliableCompletionTarget: false },
+        overlay: { highlight: { target }, usesWindowTarget: windowMeasured, hasReliableCompletionTarget: false,
+          hasCoachCompletionTarget: false },
       });
       context.targetIsEstimated = runInContext(estimated, context);
       context.overlay.hasReliableCompletionTarget = runInContext(reliable, context);
+      context.hasReliableCompletionTarget = context.overlay.hasReliableCompletionTarget;
+      context.overlay.hasCoachCompletionTarget = runInContext(coachTarget, context);
       assert.equal(runInContext(follows, context), expected, `${target}: ${state}, window=${windowMeasured}, widget=${widgetMeasured}`);
       context.root.currentStepHasNoVisibleTarget = true;
       context.overlay.hasReliableCompletionTarget = runInContext(reliable, context);
+      context.hasReliableCompletionTarget = context.overlay.hasReliableCompletionTarget;
+      context.overlay.hasCoachCompletionTarget = runInContext(coachTarget, context);
       assert.equal(runInContext(follows, context), false);
     }
   }
@@ -2467,14 +2746,186 @@ test("an unavailable provider falls back without guessing a multi-monitor associ
   state.finishBarGeometry(1, "", state.geometryScreens(), true);
   assert.equal(state.geometryProviderAvailable, false);
   state.requestBarGeometry();
+  state.flushGeometryRequests();
   assert.deepEqual(Array.from(state.barGeometryProcess.command), ["node", "/app/tools/bar-geometry.mjs"]);
   state.barGeometryProcess.running = false;
   state.Quickshell.screens.push({ name: "DP-1", x: 1920, y: 0, width: 1920, height: 1200 });
   state.requestBarGeometry();
+  state.flushGeometryRequests();
   assert.equal(state.barGeometryProcess.running, false);
-  state.geometryProviderRetryAt = 0;
+  state.handleGeometryEvent({ name: "configreloaded", data: "" });
+  state.flushGeometryRequests();
+  assert.equal(state.geometryProviderAvailable, false, "unsupported providers are not retried on a timer or event");
+  assert.equal(state.barGeometryProcess.running, false);
+  state.geometryProviderAvailable = true;
   state.requestBarGeometry();
+  state.flushGeometryRequests();
   assert.deepEqual(Array.from(state.barGeometryProcess.command), ["omarchy-shell", "learnGeometry", "snapshot"]);
+});
+
+test("geometry refreshes have no repeating timers or timed provider retries", () => {
+  assert.doesNotMatch(shell, /geometryProviderRetryAt|windowGeometryRefreshTimer/);
+  for (const [timer] of shell.matchAll(/^  Timer \{[\s\S]*?^  \}/gm)) {
+    if (/repeat: true/.test(timer))
+      assert.doesNotMatch(timer, /requestBarGeometry|requestPanelGeometry|queryWindowGeometry|flushGeometryRequests/);
+  }
+  assert.match(shell, /onPhaseChanged: \{[\s\S]*?requestBarGeometry\(\)/);
+  assert.match(shell, /onDesktopGeometryTopologyChanged: \{[\s\S]*?requestTargetGeometryRefresh\(\)/);
+  for (const process of ["barGeometryProcess", "clientGeometryProcess", "monitorGeometryProcess", "layerGeometryProcess"]) {
+    const block = shell.match(new RegExp("  Process \\{\\n    id: " + process + "[\\s\\S]*?\\n  \\}"))![0];
+    assert.match(block, process === "barGeometryProcess" ? /finishBarGeometry/ : /onExited: Qt.callLater\(root.flushGeometryRequests\)/);
+  }
+});
+
+test("event bursts coalesce and keep only one follow-up measurement in flight", () => {
+  const state = runtime("tour-clock");
+  state.geometryProviderAvailable = false;
+  const callbacks = new Set<() => void>();
+  state.Qt.callLater = (callback: () => void) => callbacks.add(callback);
+  const drain = () => {
+    const pending = [...callbacks];
+    callbacks.clear();
+    pending.forEach(callback => callback());
+  };
+  let running = false;
+  let starts = 0;
+  Object.defineProperty(state.barGeometryProcess, "running", {
+    get: () => running,
+    set: (value: boolean) => { if (value && !running) starts++; running = value; },
+  });
+  const screens = state.geometryScreens();
+  const raw = JSON.stringify({ version: 1, screens: [{ ...screens[0], widgets: [
+    { id: "omarchy.clock", x: 800, y: 0, width: 100, height: 30, visible: true, itemVisible: true },
+  ] }] });
+  for (let i = 0; i < 20; i++) state.handleGeometryEvent({ name: "workspacev2", data: "1,1" });
+  assert.equal(callbacks.size, 1);
+  assert.equal(starts, 0);
+  drain();
+  assert.equal(starts, 1);
+  for (let i = 0; i < 20; i++) state.requestBarGeometry();
+  drain();
+  assert.equal(starts, 1, "events never start parallel measurements");
+  state.barGeometryProcess.running = false;
+  state.finishBarGeometry(0, raw, screens, false);
+  drain();
+  assert.equal(starts, 2, "one follow-up covers all events received while busy");
+  state.barGeometryProcess.running = false;
+  state.finishBarGeometry(0, raw, screens, false);
+  drain();
+  assert.equal(starts, 2);
+  assert.equal(callbacks.size, 0, "an idle desktop schedules no more work");
+  assert.equal(state.barGeometryAvailable, true);
+});
+
+test("irrelevant events and inactive screens do not request geometry", () => {
+  const state = runtime("tour-clock");
+  for (const name of ["windowtitle", "windowtitlev2", "urgent", "submap"]) {
+    state.handleGeometryEvent({ name, data: "abc" });
+    assert.equal(state.barGeometryRequested, false, name);
+    assert.equal(state.targetGeometryRequested, false, name);
+  }
+  for (const data of ["learn-omarchy", "learn-omarchy-coach", "notifications"]) {
+    state.handleGeometryEvent({ name: "openlayer", data });
+    state.handleGeometryEvent({ name: "closelayer", data });
+    assert.equal(state.barGeometryRequested, false, data);
+  }
+  for (const phase of ["menu", "arcade", "paused", "settings", "lesson-complete"]) {
+    state.phase = phase;
+    state.barGeometryRequested = true;
+    state.targetGeometryRequested = true;
+    state.handleGeometryEvent({ name: "workspacev2", data: "2,2" });
+    state.flushGeometryRequests();
+    assert.equal(state.barGeometryProcess.running, false, phase);
+    assert.equal(state.barGeometryRequested, false, phase);
+    assert.equal(state.targetGeometryRequested, false, phase);
+  }
+  const windowStep = runtime("launch-terminal");
+  windowStep.handleGeometryEvent({ name: "workspacev2", data: "2,2" });
+  windowStep.flushGeometryRequests();
+  assert.equal(windowStep.barGeometryProcess.running, false, "window-only steps do not measure the bar");
+});
+
+test("failed geometry waits for a new event instead of retrying at idle", () => {
+  const state = runtime("tour-clock");
+  state.geometryProviderAvailable = false;
+  state.requestBarGeometry();
+  state.flushGeometryRequests();
+  state.barGeometryProcess.running = false;
+  state.finishBarGeometry(1, "", state.geometryScreens(), false);
+  for (let i = 0; i < 10; i++) state.flushGeometryRequests();
+  assert.equal(state.barGeometryProcess.running, false);
+  assert.equal(state.barGeometryRequested, false);
+  assert.match(state.integrationNotice, /could not be measured/);
+  state.handleGeometryEvent({ name: "openlayer", data: "omarchy-bar" });
+  state.flushGeometryRequests();
+  assert.equal(state.barGeometryProcess.running, true, "a relevant event allows a fresh attempt");
+});
+
+test("display changes invalidate cached geometry and remeasure after old requests finish", () => {
+  const state = runtime("tour-clock");
+  const screens = state.geometryScreens();
+  const raw = JSON.stringify([{ id: "omarchy.clock", x: 800, y: 0, width: 100, height: 30, visible: true, itemVisible: true }]);
+  state.parseBarGeometry(raw, screens);
+  state.requestBarGeometry();
+  state.flushGeometryRequests();
+  state.Quickshell.screens[0].width = 1280;
+  runInContext(shell.match(/^  onDesktopGeometryTopologyChanged: \{([\s\S]*?)^  \}/m)![1], state);
+  assert.equal(state.barGeometryAvailable, false);
+  assert.equal(state.barGeometry.length, 0);
+  state.flushGeometryRequests();
+  assert.equal(state.barGeometryRequested, true, "a changed display is queued behind the active request");
+  state.barGeometryProcess.running = false;
+  state.finishBarGeometry(0, raw, screens, true);
+  assert.equal(state.barGeometry.length, 0, "old output coordinates are not applied");
+  state.flushGeometryRequests();
+  assert.equal(state.barGeometryProcess.requestScreens[0].width, 1280);
+});
+
+test("panel events refresh only the affected panel and share the geometry queue", () => {
+  const state = runtime("open-root-menu");
+  state.requestPanelGeometry("omarchy-menu");
+  state.handleGeometryEvent({ name: "openlayer", data: "omarchy-menu" });
+  state.flushGeometryRequests();
+  assert.equal(state.layerGeometryProcess.running, true);
+  assert.equal(state.barGeometryProcess.running, true);
+  assert.equal(state.targetGeometryRequested, false);
+  state.handleGeometryEvent({ name: "openlayer", data: "notifications" });
+  assert.equal(state.targetGeometryRequested, false);
+  state.targetWindowGeometry = { at: [0, 0], size: [100, 100] };
+  state.handleGeometryEvent({ name: "closelayer", data: "omarchy-menu" });
+  assert.equal(state.targetWindowGeometry, null);
+  assert.equal(state.targetGeometryRequested, true, "closure waits behind an in-flight panel request");
+});
+
+test("window refreshes wait for monitor measurement and do not loop", () => {
+  const state = runtime("launch-terminal");
+  state.phase = "highlight";
+  state.targetWindowAddress = "0xabc";
+  state.handleGeometryEvent({ name: "fullscreen", data: "1" });
+  state.flushGeometryRequests();
+  assert.equal(state.clientGeometryProcess.running, true);
+  assert.equal(state.windowGeometryRefreshing, true);
+  state.handleGeometryEvent({ name: "movewindowv2", data: "abc,2,2" });
+  state.clientGeometryProcess.running = false;
+  state.parseClientGeometry(JSON.stringify([{ ...client("0xabc"), monitor: 0 }]), state.windowGeometryGeneration);
+  state.flushGeometryRequests();
+  assert.equal(state.monitorGeometryProcess.running, true);
+  assert.equal(state.clientGeometryProcess.running, false, "follow-up waits for the entire measurement");
+  state.monitorGeometryProcess.running = false;
+  state.flushGeometryRequests();
+  assert.equal(state.clientGeometryProcess.running, true);
+  assert.equal(state.targetGeometryRequested, false);
+  state.resetWindowTarget();
+  state.clientGeometryProcess.running = false;
+  state.flushGeometryRequests();
+  assert.equal(state.clientGeometryProcess.running, false, "leaving the target cancels queued refreshes");
+});
+
+test("stale window results cannot consume a current refresh request", () => {
+  const state = runtime("launch-terminal");
+  state.windowGeometryRefreshing = true;
+  state.parseClientGeometry("[]", state.windowGeometryGeneration - 1);
+  assert.equal(state.windowGeometryRefreshing, true);
 });
 
 test("unavailable bar measurements retain the configured geometry fallback", () => {
@@ -2548,7 +2999,7 @@ test("refreshing a window also refreshes an unchanged monitor's resolution and s
   const state = runtime("launch-terminal");
   state.targetWindowAddress = "0xabc";
   state.targetMonitorGeometry = { id: 0 };
-  state.windowGeometryRefreshTimer.refreshing = true;
+  state.windowGeometryRefreshing = true;
   state.parseClientGeometry(JSON.stringify([{ ...client("0xabc"), monitor: 0 }]), state.windowGeometryGeneration);
   assert.equal(state.monitorGeometryProcess.running, true);
 });
@@ -2759,24 +3210,6 @@ test("tour fallback survives stopped prior narration and the incoming transition
   assert.equal(state.pendingLessonTransition, "step");
 });
 
-test("detected layer results explain keyboard ownership without releasing or repeating instructions", () => {
-  const state = runtime("calendar-panel");
-  assert.equal(state.openedToolKeyboardHint(), "");
-  state.phase = "highlight";
-  assert.equal(state.openedToolKeyboardHint(), "Use Release Keys to interact with the opened tool.");
-  assert.equal(state.keyboardExclusive, true);
-  state.keyboardExclusive = false;
-  assert.equal(state.openedToolKeyboardHint(), "");
-  state.keyboardExclusive = true;
-  state.currentStep.completionMessage = "Choose Release Keys before typing or browsing here.";
-  assert.equal(state.openedToolKeyboardHint(), "");
-  state.currentStep.completionMessage = "After releasing the keys, select an entry.";
-  assert.equal(state.openedToolKeyboardHint(), "");
-  state.currentStep.completionMessage = "Done.";
-  state.currentStep.completion.type = "hyprland-event";
-  assert.equal(state.openedToolKeyboardHint(), "");
-});
-
 test("skipping the opening scene still travels to the standalone welcome", () => {
   const state = runtime("tour-welcome");
   state.characterState = "intro";
@@ -2978,6 +3411,50 @@ test("confirmed reset clears completed tour results and credits across a saved r
     assert.equal(restored.tourSeen, false);
     assert.equal(restored.welcomeSeen, false);
   }
+});
+
+test("reset stays cleared after choosing a coach, starting welcome, skipping and restarting", () => {
+  const { state } = introRuntime();
+  state.completedLessons = { welcome: true, "omarchy-tour": true };
+  state.openSettings("settings");
+  let savedProgress = "";
+  let savedSettings = "";
+  state.progressFile.setText = (text: string) => { savedProgress = text; };
+  state.settingsFile.setText = (text: string) => { savedSettings = text; };
+  state.requestResetProgress();
+  state.requestResetProgress();
+  state.closeSettings();
+  state.chooseCharacter("owl");
+  assert.equal(state.phase, "welcome");
+  assert.equal(state.welcomeSeen, true, "startup welcome is not forced repeatedly");
+  assert.equal(state.lessonCompleted(state.course.lessons[0]), false, "starting welcome is not completion");
+  state.finishWelcome();
+  assert.equal(state.lessonCompleted(state.course.lessons[0]), false, "skipping welcome is not completion");
+  assert.equal(state.lessonCompleted(state.course.lessons[1]), false);
+  for (const settingsFirst of [false, true]) {
+    const restored = runtime("tour-welcome");
+    restored.phase = "settings";
+    if (settingsFirst) {
+      restored.loadSettings(savedSettings);
+      restored.loadProgress(savedProgress);
+    } else {
+      restored.loadProgress(savedProgress);
+      restored.loadSettings(savedSettings);
+    }
+    assert.equal(restored.welcomeSeen, true);
+    assert.equal(restored.lessonCompleted(restored.course.lessons[0]), false);
+    assert.equal(restored.lessonFullyExplored(restored.course.lessons[0]), false);
+    assert.equal(restored.lessonCompleted(restored.course.lessons[1]), false);
+  }
+  state.startLesson(0);
+  state.welcomeStage = "recommendation";
+  state.advanceWelcome(state.introGeneration, "recommendation");
+  assert.equal(state.lessonCompleted(state.course.lessons[0]), true, "finishing welcome earns completion");
+  assert.equal(state.lessonCompleted(state.course.lessons[1]), false, "welcome never completes the desktop tour");
+  const restored = runtime("tour-welcome");
+  restored.phase = "settings";
+  restored.loadProgress(savedProgress);
+  assert.equal(restored.lessonCompleted(restored.course.lessons[0]), true, "earned welcome completion persists");
 });
 
 test("an explicit reset flag overrides legacy use and a character override skips only the picker", () => {
@@ -3379,7 +3856,7 @@ test("the startup splash defers the welcome and releases it only once", () => {
   state.finishSplash();
   assert.equal(state.introGeneration, generation);
 });
-test("startup reveals every destination once and waits for an intro's first frame", () => {
+test("startup hands the lesson menu off once and waits for an intro's first frame", () => {
   for (const phase of ["menu", "settings", "welcome", "error"]) {
     const state = runtime("open-root-menu", false);
     state.splashActive = true;
@@ -3390,19 +3867,23 @@ test("startup reveals every destination once and waits for an intro's first fram
     let reveals = 0;
     state.startupFadeIn.restart = () => { reveals++; };
     state.finishSplash();
-    assert.equal(state.startupOpacity, 0);
+    const directMenu = phase === "menu";
+    assert.equal(state.startupOpacity, directMenu ? 1 : 0);
     assert.equal(state.startupRevealPending, phase === "welcome");
-    assert.equal(reveals, phase === "welcome" ? 0 : 1);
+    assert.equal(reveals, phase === "welcome" || directMenu ? 0 : 1);
+    assert.equal(state.startupCoverRelease.running, directMenu);
     state.revealStartupScene();
-    assert.equal(reveals, 1);
+    assert.equal(reveals, directMenu ? 0 : 1);
     state.startupOpacity = 0.4;
     state.revealStartupScene();
     state.finishSplash();
-    assert.equal(reveals, 1);
+    assert.equal(reveals, directMenu ? 0 : 1);
     assert.equal(state.startupOpacity, 0.4);
   }
   assert.equal((shell.match(/contentItem\.opacity: root\.startupOpacity/g) || []).length, 2,
     "the UI and separately hosted coach/intro must reveal together");
+  assert.match(shell, /visible: \(root\.splashActive \|\| root\.startupCoverHeld\) && overlay\.isFocusedScreen/);
+  assert.match(shell, /id: startupFadeIn[\s\S]*?onFinished: startupCoverRelease\.restart\(\)/);
 });
 test("reduced-motion startup does not hide the destination or schedule a fade", () => {
   const state = runtime("open-root-menu", true);
@@ -3412,6 +3893,7 @@ test("reduced-motion startup does not hide the destination or schedule a fade", 
   assert.equal(state.startupOpacity, 1);
   assert.equal(state.startupRevealPending, false);
   assert.equal(state.startupFadeIn.running, false);
+  assert.equal(state.startupCoverRelease.running, true);
 });
 test("early lesson selection, Settings, coach changes and skip invalidate all welcome callbacks", () => {
   for (const stage of ["scene", "center-flight", "welcome", "menu-flight", "recommendation"]) {
@@ -3742,7 +4224,7 @@ test("pack names preserve Unicode, markup and replacement characters literally",
   state.characterStore.selectedPack.manifest.displayName = name;
   assert.equal(state.characterText("Meet HEXON. HEXON can help."), `Meet ${name}. ${name} can help.`);
   for (const expression of [
-    "button.label", 'button.description === button.label ? button.label : button.label + "\\n" + button.description', "characterCard.modelData.manifest.displayName",
+    "button.label", "button.description", "characterCard.modelData.manifest.displayName",
     'characterCard.modelData.manifest.description || ""',
     "root.characterText(lessonCard.modelData.description)",
     'coachArt.errorMessage + "\\nOpen Settings to choose another coach."',
@@ -3838,20 +4320,74 @@ test("welcome ambience rejects stale cues and respects effects, mute, and motion
   }
 });
 
-test("automatic integration failures stay visible until the companion returns valid geometry", () => {
+test("geometry status distinguishes working fallback from unavailable measurements", () => {
   const state = runtime("tour-workspaces");
   state.integrationNotice = "Precise pointing couldn't be prepared.";
   state.geometryScreens = () => [];
   state.parseBarGeometry = () => true;
   state.parseProviderGeometry = () => false;
   state.finishBarGeometry(0, "{}", [], false);
-  assert.notEqual(state.integrationNotice, "", "fallback geometry doesn't claim the integration is ready");
+  assert.match(state.integrationNotice, /Bar measurements are available/);
+  assert.equal(state.geometryProviderAvailable, false, "working fallback is not full provider capability");
+  state.parseBarGeometry = () => false;
+  state.finishBarGeometry(0, "{}", [], false);
+  assert.match(state.integrationNotice, /could not be measured/);
   state.finishBarGeometry(0, "{}", [], true);
   assert.notEqual(state.integrationNotice, "", "invalid provider output doesn't clear the warning");
   state.parseProviderGeometry = () => true;
   state.finishBarGeometry(0, "{}", [], true);
   assert.equal(state.integrationNotice, "");
   assert.equal(state.geometryProviderAvailable, true);
+  state.finishBarGeometry(1, "", [], false);
+  assert.match(state.integrationNotice, /could not be measured/);
+  assert.equal(state.geometryProviderAvailable, false);
+  assert.equal(state.barGeometryAvailable, false);
+});
+
+test("geometry diagnostics stay in Settings and guidance follows only the affected lesson", () => {
+  const noticePanel = shell.slice(shell.indexOf("id: packNoticePanel"), shell.indexOf("id: characterPanel"));
+  assert.doesNotMatch(noticePanel, /integrationNotice/);
+  assert.match(shell, /root\.settingsSaveError, root\.progressSaveError,[^\n]+root\.integrationNotice/);
+  assert.match(shell, /objectName: "teachingGeometryNotice"[\s\S]*?text: root\.geometryGuidance\(overlay\.targetIsEstimated\)/);
+  const state = runtime("tour-workspaces");
+  state.integrationNotice = "Bar measurements are available.";
+  state.barGeometryProcess.running = false;
+  state.phase = "waiting";
+  state.currentStep.highlight = { target: "workspace", workspaceId: 2 };
+  assert.match(state.geometryGuidance(true), /workspace number/);
+  assert.equal(state.geometryGuidance(false), "", "measured targets have no warning");
+  state.barGeometryProcess.running = true;
+  assert.match(state.geometryGuidance(true), /workspace number/,
+    "existing guidance stays stable while measurements refresh");
+  state.barGeometryProcess.running = false;
+  for (const phase of ["menu", "arcade", "paused", "settings", "lesson-complete"]) {
+    state.phase = phase;
+    assert.equal(state.geometryGuidance(true), "", phase);
+  }
+  state.phase = "highlight";
+  state.currentStep.highlight = { target: "panel" };
+  assert.match(state.geometryGuidance(true), /named panel/);
+  state.currentStep.highlight = { barWidgets: ["omarchy.clock"] };
+  assert.match(state.geometryGuidance(true), /named item in the bar/);
+  state.currentStep.highlight = { target: "window" };
+  assert.equal(state.geometryGuidance(true), "");
+  state.currentStep.highlight = null;
+  assert.equal(state.geometryGuidance(true), "");
+});
+
+test("empty geometry cannot be promoted to working precise measurements", () => {
+  const state = runtime("tour-workspaces");
+  const screens = state.geometryScreens();
+  for (const raw of [
+    JSON.stringify({ version: 1, screens: [] }),
+    JSON.stringify({ version: 1, screens: [{ ...screens[0], widgets: [] }] }),
+    "[]", "not-json"
+  ]) {
+    state.barGeometryAvailable = true;
+    assert.equal(state.parseBarGeometry(raw, screens), false);
+    assert.equal(state.barGeometryAvailable, false);
+    assert.equal(state.barGeometry.length, 0);
+  }
 });
 
 test("layer-offset fallback promotes widget groups but not inferred workspace pills", () => {
@@ -3881,4 +4417,35 @@ test("cleanup resolves owned targets and refuses a missing target", () => {
   state.forgetTutorialWindow("111");
   state.runCleanup();
   assert.equal(commands.length, 1);
+});
+
+test("desktop panels complete and clean up only after this activity opens them", () => {
+  const state = runtime("open-root-menu");
+  const commands: string[][] = [];
+  state.Quickshell.execDetached = (command: string[]) => commands.push(command);
+
+  state.handleHyprlandEvent({ name: "openlayer", data: state.currentStep.completion.namespace });
+  assert.equal(state.stepOwnsCleanupSurface, false);
+  assert.equal(state.comboTriggered, false);
+  state.runCleanup();
+  assert.equal(commands.length, 0, "a pre-existing panel is never closed by Skip or navigation");
+
+  state.shortcutArmedUntil = Date.now() + 1000;
+  state.handleHyprlandEvent({ name: "openlayer", data: state.currentStep.completion.namespace });
+  assert.equal(state.stepOwnsCleanupSurface, true);
+  assert.equal(state.comboTriggered, true);
+  state.runCleanup();
+  assert.equal(commands.length, 1);
+});
+
+test("the delayed Apps launch notice is dismissed once rather than polled", () => {
+  const timer = shell.slice(shell.indexOf("id: launchOsdTimer"), shell.indexOf("Item {", shell.indexOf("id: launchOsdTimer")));
+  assert.match(timer, /interval:\s*2300/);
+  assert.match(timer, /repeat:\s*false/);
+  assert.doesNotMatch(timer, /launchOsdAttempts/);
+});
+
+test("bottom bars use a neutral coach pose rather than pointing sideways", () => {
+  assert.match(shell, /readonly property bool canPointAtBar:\s*!barPosition \|\| barPosition\.edge !== "bottom"/);
+  assert.match(shell, /root\.characterState === "tour-point"\) && canPointAtBar/);
 });

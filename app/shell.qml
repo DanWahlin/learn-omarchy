@@ -8,6 +8,7 @@ import Quickshell.Wayland
 import "TeachingLayout.js" as TeachingLayout
 import "WindowOutcomes.js" as WindowOutcomes
 import "Retention.js" as Retention
+import "ArcadeLogic.js" as ArcadeLogic
 
 ShellRoot {
   id: root
@@ -19,6 +20,11 @@ ShellRoot {
   readonly property string courseDir: Quickshell.env("LEARN_OMARCHY_COURSE_DIR") || (appRoot + "/courses")
   readonly property string characterOverride: String(Quickshell.env("LEARN_OMARCHY_CHARACTER") || "").toLowerCase()
   readonly property string settingsPath: stateHome + "/learn-omarchy/settings.json"
+  readonly property string arcadePath: stateHome + "/learn-omarchy/arcade.json"
+  property string arcadeStorageNotice: ""
+  property bool arcadeWritesBlocked: false
+  property bool arcadeStatsReady: false
+  property bool arcadeSaveRetry: false
   property string requestedCharacter: characterOverride
   readonly property var resolvedPack: characterStore.selectedPack
   readonly property string characterName: resolvedPack ? resolvedPack.id : ""
@@ -32,6 +38,7 @@ ShellRoot {
   property bool splashActive: true
   property real startupOpacity: 1
   property bool startupRevealPending: false
+  property bool startupCoverHeld: true
   readonly property color startupBackground: "#020c1a"
   property var mixedLessonIds: []
   property int mixedLessonPosition: 0
@@ -46,14 +53,99 @@ ShellRoot {
   function startMixedPractice() {
     var plan = Retention.mixedPracticePlan(course, stepResults, stepCredits, 3)
     if (plan.length < 2) {
-      retentionNotice = "Complete at least two practice-ready modules to unlock mixed practice."
+      retentionNotice = "Complete at least two practice-ready modules to unlock module review."
       return false
     }
+
     retentionNotice = ""
     mixedLessonIds = plan
     mixedLessonPosition = 0
     startLesson(Retention.lessonIndex(course, plan[0]), true, false, true)
     return true
+  }
+
+  function openArcade() {
+    if (!course) return
+    if (!arcadeStatsReady) arcadeFile.waitForJob()
+    resetLessonRuntime()
+    stopAudio()
+    lessonIndex = -1
+    stepIndex = 0
+    clearArcadeInput()
+    phase = "arcade"
+    setCharacterState("hidden", "")
+    setKeyboardExclusive(true)
+  }
+
+  function saveArcadeStats(value) {
+    arcadeStats = ArcadeLogic.mergeStats(value)
+    if (arcadeWritesBlocked) return false
+    if (arcadeStorageNotice !== "") {
+      arcadeSaveRetry = true
+      try {
+        arcadeFile.reload()
+        arcadeFile.waitForJob()
+      } finally {
+        arcadeSaveRetry = false
+      }
+    }
+    arcadeFile.setText(JSON.stringify(arcadeStats, null, 2) + "\n")
+    return arcadeStorageNotice === ""
+  }
+
+  function loadArcadeStats(text) {
+    if (arcadeSaveRetry) return
+    arcadeStatsReady = true
+    try {
+      var parsed = JSON.parse(text)
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+        throw new Error("Arcade progress must be a JSON object.")
+      if (parsed.version !== undefined && parsed.version !== 1 && parsed.version !== 2)
+        throw new Error("Unsupported arcade progress version: " + parsed.version)
+      arcadeStats = ArcadeLogic.mergeStats(parsed)
+      arcadeWritesBlocked = false
+      arcadeStorageNotice = ""
+    } catch (error) {
+      console.warn("learn-omarchy: arcade scores could not be parsed:", error)
+      arcadeWritesBlocked = true
+      arcadeStorageNotice = "Saved arcade progress could not be read. Your file is preserved; this session will not be saved. Check " + arcadePath + " and reopen the arcade app."
+    }
+  }
+
+  function arcadeLoadFailed(error) {
+    if (arcadeSaveRetry) return
+    arcadeStatsReady = true
+    if (error === FileViewError.FileNotFound) {
+      arcadeStats = ArcadeLogic.defaultStats()
+      arcadeWritesBlocked = false
+      arcadeStorageNotice = ""
+      return
+    }
+    arcadeWritesBlocked = true
+    arcadeStorageNotice = "Arcade progress is unavailable. This session will not be saved. Check access to " + arcadePath + " and reopen the arcade app."
+    console.warn("learn-omarchy:", arcadeStorageNotice, error)
+  }
+
+  function arcadeSaveFailed(error) {
+    arcadeStorageNotice = "Arcade progress could not be saved. Check that " + arcadePath + " is writable. The next completed shortcut will retry."
+    console.warn("learn-omarchy:", arcadeStorageNotice, error)
+  }
+
+  function clearArcadeInput() {
+    activeKeys = ({})
+    pressedPhysicalKeys = ({})
+  }
+
+  FileView {
+    id: arcadeFile
+    path: root.arcadePath
+    atomicWrites: true
+    blockWrites: true
+    printErrors: false
+    onLoaded: root.loadArcadeStats(text())
+    onLoadFailed: function(error) { root.arcadeLoadFailed(error) }
+    onSaved: root.arcadeStorageNotice = ""
+    onSaveFailed: function(error) { root.arcadeSaveFailed(error) }
   }
 
   function nextMixedLesson() {
@@ -66,7 +158,7 @@ ShellRoot {
     var index = Retention.lessonIndex(course, mixedLessonIds[next])
     if (index < 0) {
       returnToMenu()
-      retentionNotice = "The course changed. Start a new mixed-practice session."
+      retentionNotice = "The course changed. Start a new module review."
       return
     }
     mixedLessonPosition = next
@@ -120,11 +212,13 @@ ShellRoot {
 
   function finishSplash() {
     if (!splashActive) return
-    startupRevealPending = !reducedMotion
-    startupOpacity = reducedMotion ? 1 : 0
     splashActive = false
     maybeBeginWelcome()
+    var directMenu = !introActive && phase === "menu" && welcomeSeen
+    startupRevealPending = !reducedMotion && !directMenu
+    startupOpacity = reducedMotion || directMenu ? 1 : 0
     if (!introActive) revealStartupScene()
+    if (reducedMotion || directMenu) startupCoverRelease.restart()
   }
   function revealStartupScene() {
     if (!startupRevealPending) return
@@ -140,6 +234,12 @@ ShellRoot {
     to: 1
     duration: 750
     easing.type: Easing.InOutSine
+    onFinished: startupCoverRelease.restart()
+  }
+  Timer {
+    id: startupCoverRelease
+    interval: 50
+    onTriggered: root.startupCoverHeld = false
   }
   readonly property var characterIndex: characterStore.packs
   property int characterPick: 0
@@ -157,8 +257,7 @@ ShellRoot {
   readonly property string characterDisplayName: String(characterConfig.displayName || "Coach")
   readonly property bool characterFlames: Boolean(characterConfig.effects && characterConfig.effects.thrusters)
   readonly property string characterNotice: characterStore.notice
-  property string integrationNotice: Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR")
-    ? "Some highlights may be approximate on this desktop." : ""
+  property string integrationNotice: Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR") || ""
   property string introNotice: ""
   Component.onDestruction: {
     interactionAudio.stop()
@@ -484,6 +583,7 @@ ShellRoot {
   }
 
   readonly property string progressPath: stateHome + "/learn-omarchy/progress.json"
+  property var arcadeStats: ArcadeLogic.defaultStats()
   property bool motionReduced: false
   readonly property bool reducedMotion: motionReduced ||
     Quickshell.env("LEARN_OMARCHY_REDUCED_MOTION") === "1"
@@ -500,6 +600,8 @@ ShellRoot {
   onPhaseChanged: {
     if (referenceBrowsing) returnFromReference()
     tourDetailsExpanded = false
+    requestBarGeometry()
+    requestTargetGeometryRefresh()
     if (phase === "menu") {
       menuWheelRemainder = 0
       menuPointerX = NaN
@@ -532,6 +634,7 @@ ShellRoot {
   property bool pendingStepAction: false
   property string pendingActionStepId: ""
   property int pendingActionGeneration: -1
+  property bool stepOwnsCleanupSurface: false
   property int actionGeneration: 0
   property int actionProcessGeneration: -1
   property bool keyboardFocused: false
@@ -544,6 +647,7 @@ ShellRoot {
   property int practiceSessionGeneration: -1
   property string practiceSessionMode: ""
   property Item practiceHost: null
+  property Item arcadeHost: null
   property bool exitAfterPractice: false
   readonly property bool embeddedPracticeRunning: exerciseRunning && practiceSessionActive
   property bool exerciseRestoreCapture: false
@@ -555,11 +659,22 @@ ShellRoot {
       ? directionalKey : key
   })
   property var barGeometry: []
-  property bool barGeometryAvailable: true
+  property bool barGeometryAvailable: false
   property string barGeometryTopology: ""
-  property bool geometryProviderAvailable: true
+  property bool geometryProviderAvailable: !Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR")
+  property bool barGeometryRequested: false
+  property bool targetGeometryRequested: false
+  property bool windowGeometryRefreshing: false
+  readonly property string desktopGeometryTopology: JSON.stringify(geometryScreens())
+  onDesktopGeometryTopologyChanged: {
+    barGeometry = []
+    barGeometryAvailable = false
+    targetMonitorGeometry = null
+    targetScreenId = -1
+    requestBarGeometry()
+    requestTargetGeometryRefresh()
+  }
   property var windowChangeBaseline: null
-  property real geometryProviderRetryAt: 0
   // The overlay holds the keyboard exclusively so shortcuts light up the
   // keycaps. The keyboard button (or IPC "keys") releases it to other
   // windows; the hint pill or the button takes it back.
@@ -572,6 +687,7 @@ ShellRoot {
     else {
       keyboardCaptureTimer.stop()
       keyboardCaptureResetting = false
+      if (phase === "arcade" && arcadeHost && arcadeHost.running) arcadeHost.pauseGame(true)
     }
   }
 
@@ -665,7 +781,7 @@ ShellRoot {
   readonly property color muted: appTheme.colors.muted
   readonly property color urgent: appTheme.colors.urgent
   readonly property color instruction: appTheme.colors.instruction
-  OmarchyTheme { id: appTheme }
+  OmarchyTheme { id: appTheme; wallpaperEnabled: true }
   property ThemePalette controlPalette: ThemePalette {
     backgroundColor: root.background
     foregroundColor: root.foreground
@@ -679,6 +795,7 @@ ShellRoot {
       startupFadeIn.stop()
       startupRevealPending = false
       startupOpacity = 1
+      if (!splashActive) startupCoverRelease.restart()
     }
   }
 
@@ -766,7 +883,7 @@ ShellRoot {
   }
 
   function lessonCompleted(lesson) {
-    return lesson && (lesson.kind === "welcome" ? welcomeSeen : completedLessons[lesson.id] === true)
+    return lesson && completedLessons[lesson.id] === true
   }
 
   function lessonResultSummary(lesson) {
@@ -782,7 +899,7 @@ ShellRoot {
 
   function lessonFullyExplored(lesson) {
     if (!lesson) return false
-    if (lesson.kind === "welcome") return welcomeSeen
+    if (lesson.kind === "welcome") return lessonCompleted(lesson)
     return lesson.steps.every(function(step) {
       return step.optional || stepCredits[step.id] === true ||
         ["introduced", "assisted", "practiced"].indexOf(stepResults[step.id]) !== -1
@@ -1017,7 +1134,9 @@ ShellRoot {
     property string kind: "secondary"
     property bool compact: false
     property string description: label
+    property bool tooltipWhenDisabled: false
     property string icon: ""
+    property bool arcadeStyle: false
     readonly property var iconPaths: ({
       settings: "M9 3H15L16 6L19 7L22 11L20 14L20 17L15 21L12 20L9 21L4 17L4 14L2 11L5 7L8 6Z M16 12A4 4 0 1 0 8 12A4 4 0 1 0 16 12",
       keyboard: "M3 5H21V19H3Z M6 9H7 M11 9H12 M16 9H17 M6 12H7 M11 12H12 M16 12H17 M7 16H17",
@@ -1046,28 +1165,40 @@ ShellRoot {
     Keys.onReleased: function(event) {
       if (root.phase === "waiting") root.updateActiveKeys(event, false)
     }
-    readonly property bool hovered: buttonMouse.containsMouse
+    readonly property bool hovered: buttonMouse.containsMouse || disabledHover.hovered
     readonly property bool primary: kind === "primary"
     readonly property bool danger: kind === "danger"
     readonly property bool ghost: kind === "ghost"
-    readonly property real windowX: {
+    readonly property alias tooltipItem: tooltip
+    readonly property real tooltipWindowX: {
       var position = x
       for (var ancestor = parent; ancestor; ancestor = ancestor.parent) position += ancestor.x
       return position
     }
+    readonly property real tooltipWindowY: {
+      var position = y
+      for (var ancestor = parent; ancestor; ancestor = ancestor.parent) position += ancestor.y
+      return position
+    }
+    z: hovered || activeFocus ? 200 : 0
 
-    implicitWidth: icon !== "" ? implicitHeight : buttonLabel.implicitWidth + (compact ? 24 : 32)
+    implicitWidth: icon !== "" ? implicitHeight : buttonLabel.implicitWidth
+      + (arcadeStyle ? 62 : compact ? 24 : 32)
     implicitHeight: icon !== "" ? 44 * root.textScale : compact ? 32 : 40
     radius: 9
-    color: !enabled ? root.subtleFill : primary
+    color: !enabled ? root.subtleFill : arcadeStyle
+      ? Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, hovered ? 0.42 : 0.26))
+      : primary
       ? (hovered ? Qt.lighter(root.accent, 1.18) : root.accent)
       : danger
         ? Qt.tint(root.panelColor, root.colorWithAlpha(root.urgent, hovered ? 0.34 : 0.14))
         : ghost
           ? Qt.tint(root.panelColor, root.colorWithAlpha(root.foreground, hovered ? 0.16 : 0.06))
           : Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, hovered ? 0.36 : 0.16))
-    border.width: activeFocus ? 3 : 1
-    border.color: !enabled ? root.panelBorder : primary
+    border.width: activeFocus ? 3 : arcadeStyle ? 2 : 1
+    border.color: !enabled ? root.panelBorder : arcadeStyle
+      ? root.colorWithAlpha(root.accent, hovered ? 1 : 0.78)
+      : primary
       ? root.accent
       : danger
         ? root.colorWithAlpha(root.urgent, 0.7)
@@ -1077,13 +1208,81 @@ ShellRoot {
 
     Behavior on color { ColorAnimation { duration: 110 } }
 
+    Rectangle {
+      visible: button.arcadeStyle
+      anchors.fill: parent
+      anchors.margins: 3
+      radius: Math.max(3, button.radius - 3)
+      color: "transparent"
+      border.color: root.colorWithAlpha(root.foreground, 0.2)
+      border.width: 1
+    }
+
+    Row {
+      visible: button.arcadeStyle && button.icon === ""
+      anchors.left: parent.left
+      anchors.leftMargin: 10
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 3
+      Repeater {
+        model: 3
+        Rectangle {
+          required property int index
+          width: index === 1 ? 5 : 3
+          height: width
+          radius: width / 2
+          color: index === 1 ? root.accent : root.foreground
+          opacity: index === 1 ? 1 : 0.45
+        }
+      }
+    }
+
+    Row {
+      visible: button.arcadeStyle && button.icon === ""
+      anchors.right: parent.right
+      anchors.rightMargin: 10
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 3
+      Repeater {
+        model: 3
+        Rectangle {
+          required property int index
+          width: index === 1 ? 5 : 3
+          height: width
+          radius: width / 2
+          color: index === 1 ? root.accent : root.foreground
+          opacity: index === 1 ? 1 : 0.45
+        }
+      }
+    }
+
+    Row {
+      visible: button.arcadeStyle
+      anchors.top: parent.top
+      anchors.topMargin: 2
+      anchors.horizontalCenter: parent.horizontalCenter
+      spacing: 3
+      Repeater {
+        model: 5
+        Rectangle {
+          required property int index
+          width: 10
+          height: 2
+          radius: 1
+          color: index % 2 === 0 ? root.accent : root.foreground
+          opacity: index % 2 === 0 ? 0.9 : 0.35
+        }
+      }
+    }
+
     Text {
       id: buttonLabel
       visible: button.icon === ""
       anchors.centerIn: parent
       text: button.label
       textFormat: Text.PlainText
-      color: !button.enabled ? root.muted : button.primary ? root.controlPalette.highlightedText : root.foreground
+      color: !button.enabled ? root.muted : button.primary
+        ? root.controlPalette.highlightedText : root.foreground
       font.family: "monospace"
       font.pixelSize: (button.compact ? 11 : 12) * root.textScale
       font.weight: Font.Bold
@@ -1112,30 +1311,67 @@ ShellRoot {
       onClicked: button.clicked()
     }
 
+    HoverHandler {
+      id: disabledHover
+      enabled: button.tooltipWhenDisabled
+    }
+
     Rectangle {
+      id: tooltip
       objectName: "buttonTooltip"
-      visible: button.enabled && (button.hovered || button.activeFocus)
+      readonly property var owner: button
+      readonly property bool hasDescription: button.description !== "" && button.description !== button.label
+      parent: button.Window.window ? button.Window.window.contentItem : button
+      visible: (button.enabled || button.tooltipWhenDisabled) && (button.hovered || button.activeFocus)
         && (button.icon !== "" || button.description !== button.label)
-      z: 100
-      anchors.top: parent.bottom
-      anchors.topMargin: 6
-      x: Math.max(8 - button.windowX, button.width - width)
-      width: Math.min(320 * root.textScale, hintText.implicitWidth + 20)
-      height: hintText.implicitHeight + 14
+      z: 1000000
+      x: Math.max(8, Math.min(button.tooltipWindowX + button.width - width, parent.width - 8 - width))
+      y: button.tooltipWindowY + button.height + 6
+      width: Math.min(420 * root.textScale, Math.max(0, parent.width - 16),
+        Math.max(tooltipTitle.implicitWidth, hasDescription ? tooltipBody.implicitWidth : 0) + 20)
+      height: tooltipContent.implicitHeight + 14
       radius: 6
-      color: root.background
+      color: root.panelColor
+      opacity: 1
       border.color: root.muted
-      Text {
-        id: hintText
+      Column {
+        id: tooltipContent
         anchors.centerIn: parent
-        width: parent.width - 20
-        text: button.description === button.label ? button.label : button.label + "\n" + button.description
-        textFormat: Text.PlainText
-        wrapMode: Text.WordWrap
-        color: root.foreground
-        font.pixelSize: 12 * root.textScale
+        width: Math.max(0, parent.width - 20)
+        spacing: 6 * root.textScale
+        Text {
+          id: tooltipTitle
+          objectName: "buttonTooltipTitle"
+          width: parent.width
+          text: button.label
+          textFormat: Text.PlainText
+          wrapMode: Text.WordWrap
+          color: root.foreground
+          font.pixelSize: 12 * root.textScale
+          font.weight: Font.DemiBold
+        }
+        Text {
+          id: tooltipBody
+          objectName: "buttonTooltipBody"
+          visible: tooltip.hasDescription
+          width: parent.width
+          text: button.description
+          textFormat: Text.PlainText
+          wrapMode: Text.WordWrap
+          color: root.foreground
+          font.pixelSize: 12 * root.textScale
+        }
       }
     }
+  }
+
+  component MixedPracticeButton: UiButton {
+    kind: "ghost"
+    label: "REVIEW MODULES"
+    description: "Revisit up to 3 completed modules in random order."
+    enabled: root.mixedEligibleCount >= 2
+    visible: enabled
+    onClicked: root.startMixedPractice()
   }
 
   component PreferenceSwitch: Controls.Switch {
@@ -1356,18 +1592,84 @@ ShellRoot {
       y: Math.max(0, Math.min(screenHeight - height, y)), width: width, height: height, estimated: true }
   }
 
-  function requestBarGeometry() {
-    if (barGeometryProcess.running || !currentStep) return
+  function needsBarGeometry() {
+    if ((phase !== "waiting" && phase !== "highlight") || !currentStep) return false
     var highlight = currentStep.highlight
-    if (!(highlight.target === "workspace" || highlight.target === "panel" || highlight.barWidgets)) return
-    var provider = geometryProviderAvailable || Date.now() >= geometryProviderRetryAt
-    if (!provider && Quickshell.screens.length !== 1) return
-    barGeometryProcess.requestScreens = geometryScreens()
-    barGeometryProcess.providerRequest = provider
-    barGeometryProcess.command = provider
-      ? ["omarchy-shell", "learnGeometry", "snapshot"]
-      : ["node", appRoot + "/tools/bar-geometry.mjs"]
-    barGeometryProcess.running = true
+    return Boolean(highlight && (highlight.target === "workspace" || highlight.target === "panel" || highlight.barWidgets))
+  }
+
+  function requestBarGeometry() {
+    barGeometryRequested = needsBarGeometry()
+    if (barGeometryRequested) Qt.callLater(flushGeometryRequests)
+  }
+
+  function needsTargetGeometryRefresh() {
+    return (phase === "highlight" && targetWindowAddress !== "") ||
+      ((phase === "waiting" || phase === "highlight") && targetLayerNamespace !== "")
+  }
+
+  function requestTargetGeometryRefresh() {
+    targetGeometryRequested = needsTargetGeometryRefresh()
+    if (targetGeometryRequested) Qt.callLater(flushGeometryRequests)
+  }
+
+  function flushGeometryRequests() {
+    if (!needsBarGeometry()) barGeometryRequested = false
+    if (!needsTargetGeometryRefresh()) targetGeometryRequested = false
+    if (barGeometryRequested && !barGeometryProcess.running) {
+      barGeometryRequested = false
+      if (!geometryProviderAvailable && Quickshell.screens.length !== 1) {
+        integrationNotice = "Detailed geometry is unavailable. The supported bar fallback requires a single monitor."
+      } else {
+        barGeometryProcess.requestScreens = geometryScreens()
+        barGeometryProcess.providerRequest = geometryProviderAvailable
+        barGeometryProcess.command = geometryProviderAvailable
+          ? ["omarchy-shell", "learnGeometry", "snapshot"]
+          : ["node", appRoot + "/tools/bar-geometry.mjs"]
+        barGeometryProcess.running = true
+      }
+    }
+    if (targetGeometryRequested && !windowGeometryPending && !clientGeometryProcess.running &&
+        !monitorGeometryProcess.running && !layerGeometryProcess.running) {
+      targetGeometryRequested = false
+      if (targetLayerNamespace !== "") {
+        layerGeometryProcess.requestGeneration = windowGeometryGeneration
+        layerGeometryProcess.running = true
+      } else if (targetWindowAddress !== "") {
+        windowGeometryRefreshing = true
+        clientGeometryProcess.requestGeneration = windowGeometryGeneration
+        clientGeometryProcess.running = true
+      }
+    }
+  }
+
+  function handleGeometryEvent(event) {
+    var name = String(event.name)
+    if (["monitoradded", "monitoraddedv2", "monitorremoved", "configreloaded",
+        "workspace", "workspacev2", "createworkspace", "createworkspacev2",
+        "destroyworkspace", "destroyworkspacev2", "moveworkspace", "moveworkspacev2",
+        "focusedmon", "focusedmonv2"].indexOf(name) !== -1) {
+      requestBarGeometry()
+      requestTargetGeometryRefresh()
+    } else if (name === "openlayer" || name === "closelayer") {
+      var namespace = String(event.data || "").trim()
+      if (namespace.indexOf("learn-omarchy") === 0) return
+      if (namespace === "omarchy-bar" || (currentStep && currentStep.highlight &&
+          currentStep.highlight.target === "panel" && currentStep.completion.namespace === namespace)) {
+        requestBarGeometry()
+      }
+      if (namespace !== "" && namespace === targetLayerNamespace) {
+        if (name === "closelayer") {
+          targetWindowGeometry = null
+          targetMonitorGeometry = null
+        }
+        requestTargetGeometryRefresh()
+      }
+    } else if (["openwindow", "closewindow", "movewindow", "movewindowv2",
+        "fullscreen", "changefloatingmode", "activewindowv2"].indexOf(name) !== -1 &&
+        targetLayerNamespace === "") {
+      requestTargetGeometryRefresh()
+    }
   }
 
   function geometryScreens() {
@@ -1377,7 +1679,11 @@ ShellRoot {
   }
 
   function finishBarGeometry(exitCode, raw, screens, provider) {
-    if (JSON.stringify(screens) !== JSON.stringify(geometryScreens())) return
+    Qt.callLater(flushGeometryRequests)
+    if (JSON.stringify(screens) !== JSON.stringify(geometryScreens())) {
+      requestBarGeometry()
+      return
+    }
     if (provider) {
       if (exitCode === 0 && parseProviderGeometry(raw, screens)) {
         geometryProviderAvailable = true
@@ -1385,17 +1691,35 @@ ShellRoot {
         return
       }
       geometryProviderAvailable = false
-      integrationNotice = "Some highlights may be approximate on this desktop."
-      geometryProviderRetryAt = Date.now() + 30000
-      barGeometry = []
-      Qt.callLater(requestBarGeometry)
-    } else if (exitCode === 0) {
-      parseBarGeometry(raw, screens)
-    } else {
+      integrationNotice = "Detailed desktop geometry is unavailable; trying supported bar measurements."
       barGeometry = []
       barGeometryAvailable = false
+      requestBarGeometry()
+    } else if (exitCode === 0) {
+      geometryProviderAvailable = false
+      if (parseBarGeometry(raw, screens)) {
+        integrationNotice = "Bar measurements are available. Individual workspace buttons and some popup positions may still be approximate."
+      } else {
+        integrationNotice = "Desktop target positions could not be measured. Some lesson highlights use estimates."
+      }
+    } else {
+      geometryProviderAvailable = false
+      barGeometry = []
+      barGeometryAvailable = false
+      integrationNotice = "Desktop target positions could not be measured. Some lesson highlights use estimates."
       console.warn("learn-omarchy: bar measurement request failed; showing estimates")
     }
+  }
+
+  function geometryGuidance(estimated) {
+    if (!estimated || !integrationNotice ||
+        (phase !== "waiting" && phase !== "highlight") || !currentStep || currentStepHasNoVisibleTarget) return ""
+    var highlight = currentStep.highlight
+    if (!highlight) return ""
+    if (highlight.target === "workspace") return "Look for the workspace number; its outline is approximate."
+    if (highlight.target === "panel") return "Look for the named panel; its exact position is unavailable."
+    if (highlight.barWidgets) return "Look for the named item in the bar; its outline is approximate."
+    return ""
   }
 
   function validMeasuredWidget(widget) {
@@ -1408,7 +1732,8 @@ ShellRoot {
   function parseProviderGeometry(raw, screens) {
     try {
       var snapshot = JSON.parse(raw)
-      if (!snapshot || snapshot.version !== 1 || !Array.isArray(snapshot.screens)) throw new Error("unsupported geometry snapshot")
+      if (!snapshot || snapshot.version !== 1 || !Array.isArray(snapshot.screens) ||
+          snapshot.screens.length === 0) throw new Error("unsupported geometry snapshot")
       var widgets = []
       var seen = {}
       for (var output of snapshot.screens) {
@@ -1424,12 +1749,14 @@ ShellRoot {
           widgets.push(Object.assign({}, widget, { screenName: output.name }))
         }
       }
+      if (widgets.length === 0) throw new Error("geometry snapshot contains no widgets")
       barGeometry = widgets
       barGeometryTopology = JSON.stringify(screens)
       barGeometryAvailable = true
       return true
     } catch (error) {
       barGeometry = []
+      barGeometryAvailable = false
       console.warn("learn-omarchy: monitor-aware geometry unavailable:", error)
       return false
     }
@@ -1441,13 +1768,14 @@ ShellRoot {
       if (widgets && widgets.version === 1) {
         if (!parseProviderGeometry(raw, requestScreens || geometryScreens()))
           throw new Error("bar layer measurement doesn't match this desktop")
-        return
+        return true
       }
-      if (!Array.isArray(widgets)) throw new Error("bar geometry wasn't a list")
+      if (!Array.isArray(widgets) || widgets.length === 0) throw new Error("bar geometry wasn't a nonempty list")
       var screens = requestScreens || geometryScreens()
       if (screens.length !== 1 || JSON.stringify(screens) !== JSON.stringify(geometryScreens())) {
         barGeometry = []
-        return
+        barGeometryAvailable = false
+        return false
       }
       for (var widget of widgets) {
         if (!validMeasuredWidget(widget)) throw new Error("invalid bar widget geometry")
@@ -1459,10 +1787,12 @@ ShellRoot {
       })
       barGeometryTopology = JSON.stringify(screens)
       barGeometryAvailable = true
+      return true
     } catch (error) {
       barGeometry = []
       barGeometryAvailable = false
       console.warn("learn-omarchy: measured bar geometry unavailable; using course estimates:", error)
+      return false
     }
   }
 
@@ -1561,18 +1891,17 @@ ShellRoot {
     return expected
   }
 
-  function lessonShortcutLabel(lesson) {
-    if (lesson && lesson.kind === "welcome") return "WELCOME"
-    if (!lesson || !lesson.steps) return "GUIDED ACTIONS"
+  function lessonShortcutKeys(lesson) {
+    if (!lesson || lesson.kind === "welcome" || !lesson.steps) return []
     for (var i = 0; i < lesson.steps.length; i++) {
       var keys = lesson.steps[i].keys
       if (keys && keys.length > 0) {
         var labels = []
         for (var keyIndex = 0; keyIndex < keys.length; keyIndex++) labels.push(keys[keyIndex])
-        return labels.join(" ")
+        return labels
       }
     }
-    return "GUIDED ACTIONS"
+    return []
   }
 
   function reactToKey(key) {
@@ -1820,11 +2149,20 @@ ShellRoot {
       selectedLessonIndex = course && course.lessons[0].kind === "welcome" && course.lessons.length > 1 ? 1 : 0
       phase = "menu"
       setCharacterState("menu-fly", "")
-    } else if (stage === "recommendation") finishWelcome()
+    } else if (stage === "recommendation") finishWelcome(true)
   }
 
-  function finishWelcome() {
+  function finishWelcome(completed) {
     if (welcomeStage === "") return
+    if (completed === true && welcomeStage === "recommendation") {
+      var lesson = course && course.lessons.find(function(entry) { return entry.kind === "welcome" })
+      if (lesson) {
+        var next = Object.assign({}, completedLessons)
+        next[lesson.id] = true
+        completedLessons = next
+        persistProgress()
+      }
+    }
     cancelIntro()
     phase = "menu"
     setCharacterState("menu-point", "CHOOSE A LESSON")
@@ -1906,13 +2244,6 @@ ShellRoot {
     if (canAutoAdvanceTour() && !lessonTransitionRunning) advance()
   }
 
-  function openedToolKeyboardHint() {
-    return phase === "highlight" && keyboardExclusive && currentStep &&
-      currentStep.completion.type === "hyprland-layer-open" &&
-      !/release keys|releasing (?:the )?keys/i.test(currentStep.completionMessage || "")
-      ? "Use Release Keys to interact with the opened tool." : ""
-  }
-
   function settleCharacter() {
     if (audioProcess.running && !audioStopRequested) {
       setCharacterState("talk", "LISTENING...")
@@ -1961,8 +2292,9 @@ ShellRoot {
     var scan = Number(event.nativeScanCode) || 0
     var physical = Object.assign({}, pressedPhysicalKeys)
     var direct = scan > 0 && physical[scan] ? physical[scan] : keyName(event.key)
-    if (currentStepKeys.indexOf("MINUS") !== -1 && scan === 20) direct = "MINUS"
-    if (currentStepKeys.indexOf("EQUAL") !== -1 && scan === 21) direct = "EQUAL"
+    var expectedKeys = phase === "arcade" && arcadeHost ? arcadeHost.expectedKeys : currentStepKeys
+    if (expectedKeys.indexOf("MINUS") !== -1 && scan === 20) direct = "MINUS"
+    if (expectedKeys.indexOf("EQUAL") !== -1 && scan === 21) direct = "EQUAL"
     // Wayland exposes XKB scan codes: the number row is 10-19. Shift
     // changes Qt's logical key (for example 2 becomes @), not the keycap.
     if (!direct && (event.modifiers & Qt.ShiftModifier) && scan >= 10 && scan <= 19)
@@ -1981,6 +2313,10 @@ ShellRoot {
     }
     activeKeys = next
     if (pressed) {
+      if (phase === "arcade") {
+        if (!event.isAutoRepeat && arcadeHost) arcadeHost.handleKeyPress(direct, Object.keys(next))
+        return
+      }
       armShortcutDetection(next)
       if (!event.isAutoRepeat) reactToKey(direct)
       checkExpectedCombo()
@@ -2003,6 +2339,7 @@ ShellRoot {
       currentStep &&
       currentStep.completion &&
       (currentStep.completion.type === "hyprland-window-activated" ||
+        currentStep.completion.type === "hyprland-layer-open" ||
         currentStep.completion.type === "hyprland-event")
     )
   }
@@ -2070,8 +2407,8 @@ ShellRoot {
     windowGeometryAttempts = 0
     windowGeometryPending = false
     windowGeometryRetryTimer.stop()
-    windowGeometryRefreshTimer.stop()
-    windowGeometryRefreshTimer.refreshing = false
+    targetGeometryRequested = false
+    windowGeometryRefreshing = false
     windowActivationHintTimer.stop()
     targetWindowGeometry = null
     targetMonitorGeometry = null
@@ -2086,9 +2423,7 @@ ShellRoot {
   function requestPanelGeometry(namespace) {
     targetLayerNamespace = namespace
     requestBarGeometry()
-    if (layerGeometryProcess.running) return
-    layerGeometryProcess.requestGeneration = windowGeometryGeneration
-    layerGeometryProcess.running = true
+    requestTargetGeometryRefresh()
   }
 
   function logicalMonitorSize(monitor) {
@@ -2159,7 +2494,6 @@ ShellRoot {
         monitorGeometryProcess.requestGeneration = generation
         monitorGeometryProcess.running = true
       }
-      windowGeometryRefreshTimer.restart()
       if (phase === "waiting" && currentStep && actionStepId === currentStep.id &&
           !layerCompletionFeedbackTimer.running) confirmDetectedShortcut()
       return
@@ -2361,7 +2695,7 @@ ShellRoot {
     targetWindowAddress = address
     targetWindowGeometry = null
     targetMonitorGeometry = null
-    windowGeometryRefreshTimer.stop()
+    targetGeometryRequested = false
     queryWindowGeometry()
   }
 
@@ -2527,7 +2861,6 @@ ShellRoot {
     storeWindowSnapshot(windowData, monitorData)
     if (monitorData) targetScreenId = Number(monitorData.id)
     windowActivationHintTimer.stop()
-    if (windowData && monitorData) windowGeometryRefreshTimer.restart()
     confirmDetectedShortcut()
   }
 
@@ -2558,9 +2891,9 @@ ShellRoot {
   }
 
   function parseClientGeometry(raw, generation) {
-    var wasRefresh = windowGeometryRefreshTimer.refreshing
-    windowGeometryRefreshTimer.refreshing = false
     if (generation !== windowGeometryGeneration) return
+    var wasRefresh = windowGeometryRefreshing
+    windowGeometryRefreshing = false
     if (wasRefresh) {
       try {
         var refreshed = findClientByAddress(raw)
@@ -2744,7 +3077,7 @@ ShellRoot {
     stepCredits = credits
     for (var i = 0; i < lessons.length; i++) {
       var lesson = lessons[i]
-      next[lesson.id] = lessonFullyExplored(lesson)
+      next[lesson.id] = lesson.kind === "welcome" ? ids.indexOf(lesson.id) !== -1 : lessonFullyExplored(lesson)
       if (!next[lesson.id] && ids.indexOf(lesson.id) !== -1) {
         var unfinished = lesson.steps.find(function(step) {
           return !step.optional && stepCredits[step.id] !== true
@@ -2925,6 +3258,7 @@ ShellRoot {
 
   function startCurrentStep() {
     cancelAction()
+    stepOwnsCleanupSurface = false
     stopAudio()
     lessonReveal.reset()
     clearActiveKeys()
@@ -3023,6 +3357,11 @@ ShellRoot {
   function runCleanup() {
     if (currentStep && Array.isArray(currentStep.cleanup) && currentStep.cleanup.length > 0) {
       var command = currentStep.cleanup
+      if (currentStep.completion && currentStep.completion.type === "hyprland-layer-open" &&
+          !stepOwnsCleanupSurface) {
+        console.info("learn-omarchy: cleanup skipped because this activity did not open the desktop panel")
+        return
+      }
       if (command.join(" ").indexOf("{tutorialWindow}") !== -1 && currentTutorialWindow() === "") {
         console.warn("learn-omarchy: cleanup skipped because its tutorial window is no longer available")
         return
@@ -3623,6 +3962,7 @@ ShellRoot {
   }
 
   function handleHyprlandEvent(event) {
+    handleGeometryEvent(event)
     if (event.name === "openlayer" && String(event.data || "").trim().indexOf("learn-omarchy") !== 0) {
       // A newer overlay-level surface stacks above ours; re-map HEXON's window so he stays visible.
       externalLayerTick++
@@ -3687,8 +4027,10 @@ ShellRoot {
       completion &&
       completion.type === "hyprland-layer-open" &&
       event.name === "openlayer" &&
-      String(event.data).trim() === completion.namespace
+      String(event.data).trim() === completion.namespace &&
+      (currentStepIsTour || windowDetectionArmed())
     ) {
+      stepOwnsCleanupSurface = true
       requestPanelGeometry(completion.namespace)
       confirmDetectedShortcut()
       return
@@ -3803,7 +4145,7 @@ ShellRoot {
   component SystemVolumeShortcut: Shortcut {
     property var action
     context: Qt.ApplicationShortcut
-    enabled: root.keyboardExclusive && root.shortcutInhibitionActive
+    enabled: root.phase !== "arcade" && root.keyboardExclusive && root.shortcutInhibitionActive
     onActivated: root.queueSystemVolume(action)
   }
   SystemVolumeShortcut { sequence: "Volume Up"; action: 5 }
@@ -3835,7 +4177,6 @@ ShellRoot {
   }
 
   function handleKeyPressed(event) {
-    if (handleSystemVolumeKey(event)) return
     var plain = event.modifiers === Qt.NoModifier
     if (referenceBrowsing) {
       if (isPlainEscape(event) || (plain && (event.key === Qt.Key_Return || event.key === Qt.Key_Enter)))
@@ -3843,6 +4184,30 @@ ShellRoot {
       event.accepted = true
       return
     }
+    if (phase === "arcade") {
+      event.accepted = true
+      if (event.isAutoRepeat || !arcadeHost) return
+      if (isPlainEscape(event)) {
+        clearArcadeInput()
+        arcadeHost.handleEscape()
+      } else if (arcadeHost.running && plain && event.key === Qt.Key_H) {
+        clearArcadeInput()
+        arcadeHost.showHint()
+      } else if (arcadeHost.running && arcadeHost.mode !== "sprint"
+          && plain && event.key === Qt.Key_P) {
+        clearArcadeInput()
+        arcadeHost.pauseGame()
+      } else if (!arcadeHost.running && (event.key === Qt.Key_Backtab ||
+          (event.key === Qt.Key_Tab && event.modifiers === Qt.ShiftModifier))) {
+        arcadeHost.handleControlKey("BACKTAB")
+      } else if (!arcadeHost.running && plain) {
+        arcadeHost.handleControlKey(keyName(event.key))
+      } else {
+        updateActiveKeys(event, true)
+      }
+      return
+    }
+    if (handleSystemVolumeKey(event)) return
     if (phase === "welcome" && plain) {
       if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter || event.key === Qt.Key_Space)
         advanceWelcome(introGeneration, welcomeStage)
@@ -3878,6 +4243,7 @@ ShellRoot {
       else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) moveMenuSelection(1)
       else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) startLesson(selectedLessonIndex)
       else if (event.key === Qt.Key_P) startLesson(selectedLessonIndex, true, false)
+      else if (event.key === Qt.Key_A) openArcade()
       else if (isPlainEscape(event)) Qt.quit()
       else return
       event.accepted = true
@@ -4615,6 +4981,7 @@ ShellRoot {
       waitForEnd: true
       onStreamFinished: root.parseLayerGeometry(text, layerGeometryProcess.requestGeneration)
     }
+    onExited: Qt.callLater(root.flushGeometryRequests)
   }
 
   Process {
@@ -4625,13 +4992,6 @@ ShellRoot {
     onExited: function(exitCode) {
       root.finishBarGeometry(exitCode, barGeometryOutput.text, requestScreens, providerRequest)
     }
-  }
-
-  Timer {
-    interval: 1000
-    repeat: true
-    running: root.phase === "waiting" || root.phase === "highlight"
-    onTriggered: root.requestBarGeometry()
   }
 
   Process {
@@ -4710,6 +5070,7 @@ ShellRoot {
       waitForEnd: true
       onStreamFinished: root.parseClientGeometry(text, clientGeometryProcess.requestGeneration)
     }
+    onExited: Qt.callLater(root.flushGeometryRequests)
   }
 
   Process {
@@ -4720,6 +5081,7 @@ ShellRoot {
       waitForEnd: true
       onStreamFinished: root.parseMonitorGeometry(text, monitorGeometryProcess.requestGeneration)
     }
+    onExited: Qt.callLater(root.flushGeometryRequests)
   }
 
   Timer {
@@ -4727,24 +5089,6 @@ ShellRoot {
     interval: 150
     repeat: false
     onTriggered: root.queryWindowGeometry()
-  }
-
-  Timer {
-    id: windowGeometryRefreshTimer
-    property bool refreshing: false
-    interval: 320
-    repeat: true
-    onTriggered: {
-      if (root.targetLayerNamespace !== "" && root.phase === "highlight") {
-        root.requestPanelGeometry(root.targetLayerNamespace)
-        return
-      }
-      if (!root.targetWindowGeometry || root.phase !== "highlight") return
-      if (clientGeometryProcess.running || monitorGeometryProcess.running) return
-      refreshing = true
-      clientGeometryProcess.requestGeneration = root.windowGeometryGeneration
-      clientGeometryProcess.running = true
-    }
   }
 
   Timer {
@@ -4985,7 +5329,7 @@ ShellRoot {
 
       PanelWindow {
         screen: screenScope.modelData
-        visible: root.splashActive && overlay.isFocusedScreen
+        visible: (root.splashActive || root.startupCoverHeld) && overlay.isFocusedScreen
         anchors { top: true; bottom: true; left: true; right: true }
         color: root.startupBackground
         exclusionMode: ExclusionMode.Ignore
@@ -5046,6 +5390,11 @@ ShellRoot {
         readonly property bool hasReliableCompletionTarget: !root.currentStepHasNoVisibleTarget &&
           Boolean(highlight) && !targetIsEstimated &&
           (highlight.target !== "panel" || usesWindowTarget || Boolean(measuredBarTarget && measuredBarTarget.panel))
+        readonly property bool hasCoachCompletionTarget: hasReliableCompletionTarget ||
+          (!root.currentStepHasNoVisibleTarget && Boolean(highlight) &&
+            ((highlight.target === "workspace" && measuredBarTarget !== null) ||
+              (highlight.target === "panel" && root.stepOwnsCleanupSurface &&
+                root.targetLayerNamespace !== "")))
         readonly property real fittedHighlightWidth: usesWindowTarget ? windowTargetWidth
           : measuredBarTarget ? measuredBarTarget.width : estimatedTarget ? estimatedTarget.width : 0
         readonly property real fittedHighlightHeight: usesWindowTarget ? windowTargetHeight
@@ -5130,7 +5479,8 @@ ShellRoot {
         }
         IdleInhibitor {
           window: overlay
-          enabled: overlay.shouldShow && (root.phase === "waiting" || root.phase === "highlight") &&
+          enabled: overlay.shouldShow && (root.phase === "waiting" || root.phase === "highlight" ||
+            root.phase === "arcade") &&
             !(root.embeddedPracticeRunning && root.practiceSessionMode === "screen-lock")
         }
         mask: Region {
@@ -5144,14 +5494,13 @@ ShellRoot {
           Region { item: errorPanel }
           Region { item: pausePanel }
           Region { item: welcomeControls }
+          Region { item: arcadePanel }
         }
 
-        // Omarchy's Apps menu shows a "Launching…" OSD two seconds after a
-        // launch unless a new toplevel window appeared. This overlay is a
-        // layer surface, not a window, so the OSD would sit there until its
-        // timeout; dismiss it every half second for the first few seconds.
+        // Omarchy's Apps menu shows a delayed "Launching…" OSD because this
+        // layer surface is not a toplevel window. Dismiss that one delayed
+        // notice without repeatedly closing unrelated desktop OSDs.
         property bool launchOsdDismissed: false
-        property int launchOsdAttempts: 0
         onVisibleChanged: {
           if (!visible || launchOsdDismissed) return
           launchOsdDismissed = true
@@ -5160,12 +5509,10 @@ ShellRoot {
 
         Timer {
           id: launchOsdTimer
-          interval: 500
-          repeat: true
+          interval: 2300
+          repeat: false
           onTriggered: {
             Quickshell.execDetached(["omarchy-shell", "osd", "close"])
-            overlay.launchOsdAttempts++
-            if (overlay.launchOsdAttempts >= 9) stop()
           }
         }
 
@@ -5196,9 +5543,9 @@ ShellRoot {
           Keys.priority: Keys.BeforeItem
           Keys.onPressed: function(event) { root.handleKeyPressed(event) }
           Keys.onReleased: function(event) {
-            if (root.phase === "waiting") {
-              root.updateActiveKeys(event, false)
-              event.accepted = false
+            if (root.phase === "waiting" || root.phase === "arcade") {
+              if (!event.isAutoRepeat) root.updateActiveKeys(event, false)
+              event.accepted = root.phase === "arcade"
             }
           }
 
@@ -5219,10 +5566,40 @@ ShellRoot {
         }
 
         Rectangle {
+          objectName: "lessonMenuBackdropFallback"
+          anchors.fill: parent
+          visible: lessonMenuBackdrop.requested
+          color: root.background
+        }
+
+        Image {
+          id: lessonMenuBackdrop
+          objectName: "lessonMenuBackdrop"
+          readonly property bool requested: root.phase === "menu" ||
+            (root.phase === "settings" && !root.settingsReturnToLesson)
+          anchors.fill: parent
+          source: appTheme.wallpaperSource
+          sourceSize: Qt.size(Math.max(1, Math.ceil(width * Screen.devicePixelRatio)),
+            Math.max(1, Math.ceil(height * Screen.devicePixelRatio)))
+          fillMode: Image.PreserveAspectCrop
+          asynchronous: true
+          cache: true
+          opacity: requested && status === Image.Ready ? 1 : 0
+          visible: opacity > 0
+          Behavior on opacity {
+            enabled: !root.reducedMotion
+            NumberAnimation { duration: 300; easing.type: Easing.InOutCubic }
+          }
+        }
+
+        Rectangle {
+          id: menuBackdropShade
+          objectName: "lessonMenuBackdropShade"
           anchors.fill: parent
           visible: !root.referenceBrowsing &&
             (root.phase === "menu" || root.phase === "settings" || root.phase === "lesson-complete" || root.phase === "error")
-          color: root.colorWithAlpha(root.background, 0.72)
+          color: root.background
+          opacity: lessonMenuBackdrop.requested && lessonMenuBackdrop.status === Image.Ready ? 0.3 : 0.72
         }
 
         // Darken the desktop while the opening scene plays so the sprites read clearly.
@@ -5239,7 +5616,7 @@ ShellRoot {
         UiPanel {
           id: packNoticePanel
           visible: !root.referenceBrowsing && root.phase !== "settings" && root.phase !== "loading" &&
-            (root.characterNotice !== "" || root.introNotice !== "" || root.integrationNotice !== "")
+            (root.characterNotice !== "" || root.introNotice !== "")
           anchors.horizontalCenter: parent.horizontalCenter
           y: 44
           width: Math.min(680, parent.width - 48)
@@ -5252,7 +5629,7 @@ ShellRoot {
             anchors.margins: 12
             Text {
               Layout.fillWidth: true
-              text: [root.characterNotice || root.introNotice, root.integrationNotice].filter(function(value) { return value }).join("\n")
+              text: root.characterNotice || root.introNotice
               textFormat: Text.PlainText
               color: root.foreground
               wrapMode: Text.WordWrap
@@ -5738,12 +6115,64 @@ ShellRoot {
           }
         }
 
+        ArcadePanel {
+          id: arcadePanel
+          anchors.fill: parent
+          z: 30
+          visible: !root.referenceBrowsing && root.phase === "arcade" && overlay.shouldShow
+          active: visible
+          course: root.course
+          stats: root.arcadeStats
+          pressedKeys: Object.keys(root.activeKeys)
+          storageNotice: root.arcadeStorageNotice
+          guideName: root.characterDisplayName
+          guidePack: root.resolvedPack
+          appRoot: root.appRoot
+          wallpaperSource: appTheme.wallpaperSource
+          backgroundColor: root.background
+          foregroundColor: root.foreground
+          accentColor: root.accent
+          mutedColor: root.muted
+          urgentColor: root.urgent
+          keyboardCaptureAvailable: root.keyboardExclusive
+          textScale: root.textScale
+          reducedMotion: root.reducedMotion
+          Keys.forwardTo: [keyCatcher]
+          onActiveHostChanged: function(isActive) {
+            if (isActive) root.arcadeHost = arcadePanel
+            else if (root.arcadeHost === arcadePanel) root.arcadeHost = null
+          }
+          onCloseRequested: root.returnToMenu()
+          onClearInputRequested: {
+            root.clearArcadeInput()
+            if (arcadePanel.active && arcadePanel.running && !root.keyboardExclusive)
+              root.setKeyboardExclusive(true)
+            else root.requestKeyboardFocus()
+          }
+          onStatsCommitted: function(value) { root.saveArcadeStats(value) }
+          onEffectRequested: function(name) {
+            if (name === "success") root.playSound("interaction-correct.wav")
+            else if (name === "finish") root.playSound("interaction-module-complete.wav")
+            else root.playSound("interaction-step-complete.wav")
+          }
+        }
+
         UiPanel {
           id: topicPanel
+          readonly property var selectedLesson: root.course && root.selectedLessonIndex >= 0 &&
+            root.selectedLessonIndex < root.course.lessons.length
+            ? root.course.lessons[root.selectedLessonIndex] : null
+          readonly property string selectedActionLabel: {
+            if (!selectedLesson) return "START LESSON"
+            if (selectedLesson.kind === "welcome") return root.lessonCompleted(selectedLesson) ? "REPLAY WELCOME" : "START WELCOME"
+            if (root.lessonBookmarks[selectedLesson.id] && !root.isOpeningTour(root.selectedLessonIndex))
+              return "RESUME LESSON"
+            return root.lessonCompleted(selectedLesson) ? "REPLAY LESSON" : "START LESSON"
+          }
           visible: !root.referenceBrowsing && root.phase === "menu" && root.course
           anchors.centerIn: parent
-          width: Math.min(860, parent.width - 64)
-          height: Math.min(900, parent.height - 80)
+          width: Math.min(1040, parent.width - 64)
+          height: Math.min(920, parent.height - 64)
           radius: 18
           stripe: root.accent
 
@@ -5756,6 +6185,7 @@ ShellRoot {
 
             RowLayout {
               Layout.fillWidth: true
+              Layout.bottomMargin: 12
               spacing: 24
 
               ColumnLayout {
@@ -5778,7 +6208,8 @@ ShellRoot {
                   font.weight: Font.Bold
                 }
                 Text {
-                  Layout.maximumWidth: topicPanel.width - 320
+                  Layout.maximumWidth: topicPanel.width - 380
+                  Layout.topMargin: 6
                   text: root.course ? root.course.description : ""
                   color: root.foreground
                   opacity: 0.8
@@ -5789,8 +6220,9 @@ ShellRoot {
               }
 
               ColumnLayout {
+                objectName: "lessonProgressSummary"
                 Layout.alignment: Qt.AlignBottom
-                Layout.preferredWidth: 220
+                Layout.preferredWidth: 260
                 spacing: 8
 
                 Text {
@@ -5818,6 +6250,11 @@ ShellRoot {
                     Behavior on width { NumberAnimation { duration: 300; easing.type: Easing.OutCubic } }
                   }
                 }
+                MixedPracticeButton {
+                  compact: true
+                  Layout.alignment: Qt.AlignRight
+                  Layout.topMargin: 8
+                }
               }
             }
 
@@ -5832,11 +6269,18 @@ ShellRoot {
               contentHeight: lessonColumn.implicitHeight
               boundsBehavior: Flickable.StopAtBounds
               flickableDirection: Flickable.VerticalFlick
+              Controls.ScrollBar.vertical: Controls.ScrollBar {
+                id: lessonScrollbar
+                objectName: "lessonScrollbar"
+                ThemePalette { target: lessonScrollbar; colors: appTheme.colors }
+                policy: Controls.ScrollBar.AlwaysOn
+                visible: lessonList.contentHeight > lessonList.height
+              }
 
               function revealSelected() {
                 var rowHeight = lessonColumn.rowHeight + lessonColumn.spacing
                 var top = root.selectedLessonIndex * rowHeight
-                var bottom = top + lessonColumn.rowHeight
+                var bottom = top + lessonColumn.rowHeight + 12
                 if (top < contentY) contentY = Math.max(0, top)
                 else if (bottom > contentY + height) contentY = Math.min(contentHeight - height, bottom - height)
               }
@@ -5862,7 +6306,7 @@ ShellRoot {
 
               ColumnLayout {
                 id: lessonColumn
-                width: lessonList.width
+                width: lessonList.width - (lessonScrollbar.visible ? 16 : 0)
                 spacing: 8
                 readonly property int rowHeight: 76
 
@@ -5971,22 +6415,37 @@ ShellRoot {
                         }
                       }
 
-                      RowLayout {
-                        spacing: 5
-                        Repeater {
-                          model: root.lessonShortcutLabel(lessonCard.modelData).split(" ")
-                          Keycap {
-                            required property string modelData
-                            label: modelData
-                            small: true
+                      Item {
+                        objectName: "lessonShortcutColumn"
+                        Layout.preferredWidth: 180
+                        Layout.minimumWidth: 180
+                        Layout.alignment: Qt.AlignVCenter
+                        visible: topicPanel.width >= 760
+                        implicitHeight: shortcutRow.implicitHeight
+
+                        RowLayout {
+                          id: shortcutRow
+                          anchors {
+                            left: parent.left
+                            verticalCenter: parent.verticalCenter
+                          }
+                          spacing: 5
+                          Repeater {
+                            model: root.lessonShortcutKeys(lessonCard.modelData)
+                            Keycap {
+                              required property string modelData
+                              label: modelData
+                              small: true
+                            }
                           }
                         }
                       }
 
                       Text {
-                        Layout.preferredWidth: 96
+                        Layout.preferredWidth: 140
+                        Layout.minimumWidth: topicPanel.width >= 760 ? 140 : 112
                         horizontalAlignment: Text.AlignRight
-                        text: lessonCard.modelData.kind === "welcome" ? (root.welcomeSeen ? "REPLAY" : "WELCOME")
+                        text: lessonCard.modelData.kind === "welcome" ? (lessonCard.completed ? "REPLAY" : "WELCOME")
                           : root.lessonBookmarks[lessonCard.modelData.id] &&
                           !root.isOpeningTour(lessonCard.index)
                           ? "RESUME"
@@ -6016,18 +6475,12 @@ ShellRoot {
                     }
                   }
                 }
+                Item {
+                  Layout.fillWidth: true
+                  Layout.preferredHeight: 12
+                }
               }
 
-              // Slim scrollbar, only when the list overflows.
-              Rectangle {
-                visible: lessonList.contentHeight > lessonList.height
-                anchors.right: parent.right
-                width: 4
-                radius: 2
-                color: root.colorWithAlpha(root.foreground, 0.3)
-                y: lessonList.height * (lessonList.contentY / Math.max(1, lessonList.contentHeight))
-                height: Math.max(24, lessonList.height * (lessonList.height / Math.max(1, lessonList.contentHeight)))
-              }
             }
 
             Item {
@@ -6037,54 +6490,96 @@ ShellRoot {
               visible: root.welcomeStage === "menu-flight" || root.welcomeStage === "recommendation"
             }
 
-            GridLayout {
-              Layout.alignment: Qt.AlignHCenter
-              columns: topicPanel.width < 640 ? 1 : 2
-              UiButton {
-                label: "MIXED PRACTICE"
-                enabled: root.mixedEligibleCount >= 2
-                onClicked: root.startMixedPractice()
-              }
-              UiButton {
-                label: cheatSheetProcess.running ? "PREPARING REFERENCE..." : "PRINTABLE SHORTCUTS"
-                description: "Open the shortcut sheet in your browser, move the course aside, and release keys for printing"
-                enabled: !cheatSheetProcess.running
-                onClicked: root.openCheatSheet()
-              }
-            }
-            Text {
+            Rectangle {
+              id: lessonMenuFooter
+              objectName: "lessonMenuFooter"
               Layout.fillWidth: true
-              text: root.retentionNotice || (root.mixedEligibleCount < 2
-                ? "Complete two practice-ready modules to unlock a mixed review."
-                : "Mixed practice reviews up to three completed modules in shuffled order.")
-              textFormat: Text.PlainText
-              horizontalAlignment: Text.AlignHCenter
-              wrapMode: Text.WordWrap
-              color: root.muted
-              font.pixelSize: 12 * root.textScale
-            }
+              implicitHeight: footerContent.implicitHeight
+              color: "transparent"
 
-            RowLayout {
-              Layout.alignment: Qt.AlignHCenter
-              spacing: 18
+              ColumnLayout {
+                id: footerContent
+                anchors {
+                  left: parent.left
+                  right: parent.right
+                  top: parent.top
+                }
+                spacing: 12
 
-              Repeater {
-                model: root.course && root.course.lessons[root.selectedLessonIndex] &&
-                  root.course.lessons[root.selectedLessonIndex].kind === "welcome"
-                  ? [["↑ ↓", "CHOOSE"], ["⏎", root.welcomeSeen ? "REPLAY WELCOME" : "START WELCOME"], ["ESC", "CLOSE"]]
-                  : [["↑ ↓", "CHOOSE"], ["⏎", "START / RESUME"], ["P", "PRACTICE"], ["ESC", "CLOSE"]]
+                Text {
+                  Layout.fillWidth: true
+                  visible: root.retentionNotice !== ""
+                  text: root.retentionNotice
+                  textFormat: Text.PlainText
+                  wrapMode: Text.WordWrap
+                  color: root.instruction
+                  font.pixelSize: 12 * root.textScale
+                }
 
-                RowLayout {
-                  required property var modelData
-                  spacing: 6
-                  Keycap { label: modelData[0]; small: true }
-                  Text {
-                    text: modelData[1]
-                    color: root.muted
-                    font.family: "monospace"
-                    font.pixelSize: 10
-                    font.weight: Font.Bold
-                    font.letterSpacing: 1
+                Rectangle {
+                  Layout.fillWidth: true
+                  Layout.preferredHeight: 1
+                  color: root.colorWithAlpha(root.foreground, 0.12)
+                }
+
+                GridLayout {
+                  id: lessonFooterGrid
+                  objectName: "lessonFooterGrid"
+                  readonly property bool singleRow: topicPanel.width >= 940
+                  z: 20
+                  Layout.fillWidth: true
+                  columns: singleRow ? 5 : 2
+                  columnSpacing: 10
+                  rowSpacing: 10
+
+                  UiButton {
+                    compact: true
+                    Layout.row: lessonFooterGrid.singleRow ? 0 : 1
+                    Layout.column: 0
+                    Layout.fillWidth: !lessonFooterGrid.singleRow
+                    label: cheatSheetProcess.running ? "PREPARING REFERENCE..." : "PRINTABLE SHORTCUTS"
+                    description: "Open the shortcut sheet in your browser, move the course aside, and release keys for printing"
+                    enabled: !cheatSheetProcess.running
+                    onClicked: root.openCheatSheet()
+                  }
+                  UiButton {
+                    objectName: "lessonArcadeButton"
+                    compact: true
+                    arcadeStyle: true
+                    Layout.row: lessonFooterGrid.singleRow ? 0 : 1
+                    Layout.column: 1
+                    Layout.fillWidth: !lessonFooterGrid.singleRow
+                    label: "ARCADE"
+                    description: "Play three safe shortcut games and chase your personal bests. Press A."
+                    onClicked: root.openArcade()
+                  }
+
+                  Item {
+                    visible: lessonFooterGrid.singleRow
+                    Layout.row: 0
+                    Layout.column: 2
+                    Layout.fillWidth: true
+                  }
+
+                  UiButton {
+                    visible: topicPanel.selectedLesson && topicPanel.selectedLesson.kind !== "welcome"
+                    compact: true
+                    kind: "ghost"
+                    Layout.row: 0
+                    Layout.column: lessonFooterGrid.singleRow ? 3 : 0
+                    Layout.fillWidth: !lessonFooterGrid.singleRow
+                    label: "PRACTICE"
+                    description: "Practice the selected lesson. Press P."
+                    onClicked: root.startLesson(root.selectedLessonIndex, true, false)
+                  }
+                  UiButton {
+                    kind: "primary"
+                    Layout.row: 0
+                    Layout.column: lessonFooterGrid.singleRow ? 4 : 1
+                    Layout.fillWidth: !lessonFooterGrid.singleRow
+                    label: topicPanel.selectedActionLabel
+                    description: "Open the selected lesson"
+                    onClicked: root.startLesson(root.selectedLessonIndex)
                   }
                 }
               }
@@ -6372,6 +6867,19 @@ ShellRoot {
               }
             }
 
+            Text {
+              objectName: "teachingGeometryNotice"
+              Layout.fillWidth: true
+              Layout.leftMargin: 8
+              Layout.rightMargin: 8
+              visible: text !== ""
+              text: root.geometryGuidance(overlay.targetIsEstimated)
+              color: root.muted
+              font.pixelSize: 12 * root.textScale
+              horizontalAlignment: Text.AlignHCenter
+              wrapMode: Text.WordWrap
+            }
+
             RowLayout {
               id: instructionKeys
               visible: Boolean(root.phase === "waiting" && root.currentStep && root.currentStep.keys.length > 0 && (!root.practiceMode || root.practiceHintVisible))
@@ -6446,19 +6954,6 @@ ShellRoot {
               horizontalAlignment: Text.AlignHCenter
               wrapMode: Text.WordWrap
               font.pixelSize: 16 * root.textScale
-            }
-
-            Text {
-              id: openedToolKeyboardHint
-              text: root.openedToolKeyboardHint()
-              visible: text !== ""
-              Layout.fillWidth: true
-              horizontalAlignment: Text.AlignHCenter
-              wrapMode: Text.WordWrap
-              color: root.instruction
-              font.pixelSize: 17 * root.textScale
-              Accessible.role: Accessible.StaticText
-              Accessible.name: text
             }
 
             Text {
@@ -6537,7 +7032,7 @@ ShellRoot {
         GridLayout {
           id: controls
           z: 100
-          visible: !root.referenceBrowsing && root.phase !== "loading" && root.phase !== "settings"
+          visible: !root.referenceBrowsing && root.phase !== "loading" && root.phase !== "settings" && root.phase !== "arcade"
           readonly property bool leftDock: root.phase === "waiting" &&
             root.currentStepIsTour &&
             Boolean(overlay.highlight) &&
@@ -6650,18 +7145,18 @@ ShellRoot {
             value: completionPanel.narrationReady
           }
           visible: !root.referenceBrowsing && root.phase === "lesson-complete" && root.currentLesson
-          onVisibleChanged: if (visible) completionScroll.contentY = 0
           opacity: root.lessonContentOpacity
+          onVisibleChanged: if (visible) completionScroll.contentY = 0
           anchors.centerIn: parent
           width: Math.min(620, parent.width - 48)
-          height: Math.min(parent.height - 72, completionColumn.implicitHeight + 64)
+          height: Math.min(parent.height - 72, completionColumn.implicitHeight + 72)
           radius: 18
           stripe: root.accent
 
           Flickable {
             id: completionScroll
             anchors.fill: parent
-            anchors.margins: 32
+            anchors.margins: 36
             contentWidth: width
             contentHeight: completionColumn.implicitHeight
             clip: true
@@ -6686,13 +7181,14 @@ ShellRoot {
           ColumnLayout {
             id: completionColumn
             width: completionScroll.width
-            spacing: 14
+            spacing: 22 * root.textScale
 
             Rectangle {
+              objectName: "completionCheckmark"
               Layout.alignment: Qt.AlignHCenter
-              implicitWidth: 72
-              implicitHeight: 72
-              radius: 36
+              implicitWidth: 48 * root.textScale
+              implicitHeight: implicitWidth
+              radius: width / 2
               color: Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, 0.16))
               border.color: root.accent
               border.width: 2
@@ -6702,27 +7198,24 @@ ShellRoot {
                 text: "✓"
                 color: root.accent
                 font.family: "sans-serif"
-                font.pixelSize: 36
+                font.pixelSize: 26 * root.textScale
                 font.weight: Font.Bold
               }
             }
             Text {
-              Layout.alignment: Qt.AlignHCenter
-              text: root.lessonResultSummary(root.currentLesson).skipped > 0 ||
-                root.lessonResultSummary(root.currentLesson).remaining > 0 ? "MODULE EXPLORED" : "MODULE COMPLETE"
-              color: root.accent
-              font.family: "monospace"
-              font.pixelSize: 11
-              font.weight: Font.Bold
-              font.letterSpacing: 2
-            }
-            Text {
+              objectName: "completionHeading"
               Layout.fillWidth: true
               horizontalAlignment: Text.AlignHCenter
-              text: root.currentLesson ? root.currentLesson.title : ""
+              text: {
+                if (!root.currentLesson) return ""
+                var result = root.lessonResultSummary(root.currentLesson)
+                return root.currentLesson.title + (result.skipped > 0 || result.remaining > 0 ? " explored" : " complete")
+              }
+              textFormat: Text.PlainText
+              wrapMode: Text.WordWrap
               color: root.instruction
               font.family: "sans-serif"
-              font.pixelSize: 28
+              font.pixelSize: 26 * root.textScale
               font.weight: Font.Bold
             }
             Text {
@@ -6748,68 +7241,16 @@ ShellRoot {
                 lineHeight: wrapupCaptionText.lineHeight
               }
             }
-            Text {
-              Layout.fillWidth: true
-              horizontalAlignment: Text.AlignHCenter
-              text: {
-                var result = root.lessonResultSummary(root.currentLesson)
-                return result.practiced + " practiced, " + result.assisted + " assisted, " +
-                  result.introduced + " introduced, " + result.skipped + " skipped."
-              }
-              color: root.foreground
-              opacity: 0.8
-              wrapMode: Text.WordWrap
-              font.family: "sans-serif"
-              font.pixelSize: 15
-            }
-            GridLayout {
+            UiButton {
+              objectName: "completionPrimary"
               Layout.alignment: Qt.AlignHCenter
-              Layout.topMargin: 8
-              columns: completionPanel.width < 620 || root.textScale > 1 ? 1 : 3
-              columnSpacing: 12
-              rowSpacing: 12
-
-              UiButton {
-                kind: "primary"
-                label: root.mixedPracticeActive
-                  ? (root.mixedLessonPosition + 1 < root.mixedLessonIds.length
-                    ? "NEXT PRACTICE MODULE" : "FINISH MIXED PRACTICE")
-                  : "CHOOSE ANOTHER TOPIC"
-                onClicked: root.mixedPracticeActive ? root.nextMixedLesson() : root.returnToMenu()
-              }
-              UiButton {
-                kind: "ghost"
-                label: "REPLAY MODULE"
-                onClicked: root.startLesson(root.lessonIndex, false, false)
-              }
-              UiButton {
-                kind: "ghost"
-                label: "PRACTICE"
-                onClicked: root.startLesson(root.lessonIndex, true, false)
-              }
-              UiButton {
-                label: cheatSheetProcess.running ? "PREPARING REFERENCE..." : "PRINTABLE SHORTCUTS"
-                description: "Open the shortcut sheet in your browser, move the course aside, and release keys for printing"
-                enabled: !cheatSheetProcess.running
-                onClicked: root.openCheatSheet()
-              }
-              UiButton {
-                visible: !root.mixedPracticeActive
-                label: "MIXED PRACTICE"
-                enabled: root.mixedEligibleCount >= 2
-                onClicked: root.startMixedPractice()
-              }
-            }
-            Text {
-              Layout.fillWidth: true
-              visible: root.retentionNotice !== "" || root.mixedPracticeActive
-              text: root.retentionNotice || ("Mixed practice: module " +
-                (root.mixedLessonPosition + 1) + " of " + root.mixedLessonIds.length)
-              textFormat: Text.PlainText
-              horizontalAlignment: Text.AlignHCenter
-              wrapMode: Text.WordWrap
-              color: root.muted
-              font.pixelSize: 12 * root.textScale
+              Layout.topMargin: 6 * root.textScale
+              kind: "primary"
+              label: root.mixedPracticeActive
+                ? (root.mixedLessonPosition + 1 < root.mixedLessonIds.length
+                  ? "NEXT REVIEW MODULE" : "FINISH REVIEW")
+                : "CHOOSE ANOTHER TOPIC"
+              onClicked: root.mixedPracticeActive ? root.nextMixedLesson() : root.returnToMenu()
             }
           }
           }
@@ -7150,11 +7591,20 @@ ShellRoot {
         Rectangle {
           id: tourCaption
           z: 11
-          readonly property bool ready: hexonCoach.visible && root.phase === "waiting"
+          readonly property bool eligible: hexonCoach.visible && root.phase === "waiting"
             && root.currentStepIsTour && !root.introActive
             && root.characterState === root.tourRestingState
-            && !coachTravelX.running && !coachTravelY.running
             && !characterMouse.pressed && !fallAnimation.running
+          // Wait for the first arrival, not every adjustment to measured geometry.
+          property bool arrived: false
+          readonly property bool settled: eligible && !coachTravelX.running && !coachTravelY.running
+          readonly property bool ready: eligible && (arrived || settled)
+          onEligibleChanged: if (!eligible) arrived = false
+          onSettledChanged: if (settled) arrived = true
+          Connections {
+            target: root
+            function onCurrentStepChanged() { tourCaption.arrived = false }
+          }
           visible: opacity > 0
           opacity: ready ? root.lessonContentOpacity : 0
           Behavior on opacity {
@@ -7347,7 +7797,7 @@ ShellRoot {
           property real userY: 0
           property string interactionMessage: ""
           readonly property bool targetsCompletion:
-            overlay.hasReliableCompletionTarget &&
+            overlay.hasCoachCompletionTarget &&
             (root.characterState === "target-fly" ||
             root.characterState === "target-settle" ||
             root.characterState === "target-point")
@@ -7363,9 +7813,15 @@ ShellRoot {
             ? TeachingLayout.besideBar(overlay.width, overlay.height, width, height,
                 {x: overlay.targetBoundsX, y: overlay.targetBoundsY,
                   width: overlay.fittedHighlightWidth, height: overlay.fittedHighlightHeight,
-                  edge: overlay.measuredBarTarget ? overlay.measuredBarTarget.barEdge : undefined}) : null
+                  edge: overlay.measuredBarTarget ? overlay.measuredBarTarget.barEdge : undefined},
+                targetsTour && root.currentTourTalks ? null : {
+                  x: width / 2 + (upTipLocalX - width / 2) * (targetsCompletion ? targetScale : 1),
+                  y: height + (upTipLocalY - height) * (targetsCompletion ? targetScale : 1),
+                  canvasTop: height - 192 * (targetsCompletion ? targetScale : 1)
+                }) : null
           readonly property bool isPointingUp: barPosition ? barPosition.edge === "top" && isPointing :
             root.characterState === "tour-point" || (root.characterState === "target-point" && completionPointsUp)
+          readonly property bool canPointAtBar: !barPosition || barPosition.edge !== "bottom"
           readonly property bool targetsIntro: root.characterState === "intro"
           readonly property bool targetsWelcomeControls: root.phase === "welcome" &&
             (root.welcomeStage === "controls-flight" || root.welcomeStage === "controls")
@@ -7377,8 +7833,8 @@ ShellRoot {
           readonly property bool targetsModuleComplete: root.phase === "lesson-complete"
           readonly property bool isPointing:
             root.characterState === "help" ||
-            (root.characterState === "target-point" && targetsCompletion) ||
-            root.characterState === "tour-point" ||
+            ((root.characterState === "target-point" && targetsCompletion) ||
+              root.characterState === "tour-point") && canPointAtBar ||
             root.characterState === "menu-point"
           readonly property int pointDirection:
             targetsWelcomeControls ? 1 :
