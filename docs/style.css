@@ -440,6 +440,7 @@ h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0
   font-family: var(--mono); font-size: 0.78rem; font-weight: 500;
   padding: 3px 9px; border-radius: 4px;
   background: var(--surface-2); border: 1px solid var(--line-2); border-bottom-width: 2px; color: var(--ink);
+  white-space: nowrap;
 }
 
 .lesson-column h3 span {
