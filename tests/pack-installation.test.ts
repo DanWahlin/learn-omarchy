@@ -66,6 +66,7 @@ test("the package install includes shared pack code and pack-owned intro assets"
       "app/PracticeSession.qml", "app/TeachingLayout.js", "tools/tutorial-launch.mjs",
       "app/SplashScreen.qml", "assets/splash/learn-omarchy.png",
       "app/SplashArtwork.qml", "app/InteractionAudio.qml", "app/WindowOutcomes.js", "app/Retention.js",
+      "assets/arcade/rescue-planet.png", "assets/arcade/rescue-ship.png",
       "assets/sounds/interaction-correct.wav", "assets/sounds/interaction-wrong.wav",
       "assets/sounds/interaction-step-complete.wav", "assets/sounds/interaction-module-complete.wav",
       "tools/bar-geometry.mjs", "tools/generate-cheat-sheet.mjs", "tools/generate-interaction-sounds.mjs",

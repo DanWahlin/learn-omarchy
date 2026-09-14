@@ -17,7 +17,7 @@ test:
 	npm test
 
 install:
-	install -d "$(APP_DIR)" "$(APP_DIR)/bin" "$(APP_DIR)/assets/characters" "$(APP_DIR)/assets/sounds" "$(BIN_DIR)" "$(DESKTOP_DIR)" "$(ICON_DIR)"
+	install -d "$(APP_DIR)" "$(APP_DIR)/bin" "$(APP_DIR)/assets/arcade" "$(APP_DIR)/assets/characters" "$(APP_DIR)/assets/sounds" "$(BIN_DIR)" "$(DESKTOP_DIR)" "$(ICON_DIR)"
 	install -m 644 share/icons/hicolor/256x256/apps/learn-omarchy.png "$(ICON_DIR)/learn-omarchy.png"
 	cp -R app courses integrations src package.json character-lab.qml "$(APP_DIR)/"
 	install -d "$(APP_DIR)/tools" "$(APP_DIR)/experiments/hexon-lab" "$(APP_DIR)/docs"
@@ -35,6 +35,7 @@ install:
 	install -m 644 tools/generate-cheat-sheet.mjs "$(APP_DIR)/tools/"
 	install -m 644 docs/curriculum-expansion.md "$(APP_DIR)/docs/"
 	install -m 644 docs/character-packs.md docs/character-intros.md "$(APP_DIR)/docs/"
+	install -m 644 assets/arcade/rescue-planet.png assets/arcade/rescue-ship.png "$(APP_DIR)/assets/arcade/"
 	cp -R assets/sounds "$(APP_DIR)/assets/"
 	install -d "$(APP_DIR)/assets/splash"
 	install -m 644 assets/splash/learn-omarchy.png "$(APP_DIR)/assets/splash/learn-omarchy.png"
