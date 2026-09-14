@@ -1,100 +1,72 @@
-# Learn Omarchy 0.1.0
+# Learn Omarchy 0.2.0
 
-First public release. Still early: expect rough edges, and please report what
-confuses you.
+This release adds Shortcut Arcade and sharpens the guided course for a clearer,
+more reliable learning experience.
 
-Learn Omarchy includes 17 lessons and 101 activities, the guides Ohm-1 and
-Ollie, and local recorded narration with validated timing metadata. One package
-contains the app and its read-only desktop integration. No separate plugin
-setup or speech-service account is needed.
+Learn Omarchy includes 17 lessons, 101 activities, the guides Ohm-1 and Ollie,
+offline narration, and read-only desktop integration in one package.
 
 ## Install
 
-Requires an updated **Omarchy 4.0.3 or newer** desktop.
+Requires an up-to-date **Omarchy 4.0.3 or newer** desktop.
 
-Download the package from this release, then install it with pacman:
+Download `learn-omarchy-0.2.0-1-any.pkg.tar.zst` from this release, then run:
 
 ```sh
-sudo pacman -U ./learn-omarchy-0.1.0-1-any.pkg.tar.zst
+sudo pacman -U ./learn-omarchy-0.2.0-1-any.pkg.tar.zst
 learn-omarchy
 ```
 
-To verify the download first, fetch `SHA256SUMS` from this release and run
-`sha256sum --check --ignore-missing SHA256SUMS` in the same directory.
-Checksums verify downloaded bytes; they aren't a signing-key authenticity
-guarantee. Pacman resolves required dependencies. The launcher prepares the
-bundled integration for your account automatically. Audio is bundled for
-offline use.
-
-For an isolated first-run trial:
+To verify the download first, place `SHA256SUMS` in the same directory and run:
 
 ```sh
-XDG_STATE_HOME="$(mktemp -d /tmp/learn-omarchy-trial.XXXXXX)" learn-omarchy
+sha256sum --check --ignore-missing SHA256SUMS
 ```
 
-This isolates learning preferences and progress, not the desktop integration.
-Use your usual launch command to return to normal progress.
+## Shortcut Arcade
+
+- **Window Rescue** teaches a six-step desktop workflow with no timer.
+- **Shortcut Sprint** tests recall in 60-second rounds and supports fair
+  same-deck replays against your best pace.
+- **Keyfall** challenges you to use each shortcut before its card reaches the
+  bottom, with selectable speed and reduced-motion support.
+- Hints and misses never remove earned points.
+- Practice history identifies shortcuts worth revisiting without punishing
+  learners who ask for help.
+
+## Course improvements
+
+- Simplified lesson, completion, and Arcade screens keep the next action clear.
+- Character pointing follows responsive bar, workspace, panel, and window
+  targets more accurately.
+- Text-entry exercises automatically pass keyboard input to the opened app.
+- Keyboard capture pauses safely when focus is lost and resumes explicitly.
+- Window exercises act only on course-owned windows.
+- Progress reset, migration, retention, and corrupt-file handling are more
+  reliable and transparent.
+- Arcade follows the current Omarchy theme and wallpaper.
+- All 400 narration clips have matching validated word timings.
 
 ## Remove
 
-Close the app, then run as your regular user from a terminal:
+Close the app, then run:
 
 ```sh
 /usr/bin/learn-omarchy --uninstall
 ```
 
-Package removal requests permission and confirmation. Managed integration
-cleanup preserves progress, settings, backups, and user-edited files. Removing
-only the package directly through pacman can leave the user integration behind.
+Managed integration cleanup preserves progress, settings, backups, and
+user-edited files.
 
-## Highlights
+## Compatibility notes
 
-All attached assets are built from the v0.1.0 tag.
+All attached assets were built and verified from the `v0.2.0` tag.
 
-- Clear goals throughout shortcut Practice mode; hints reveal instructions and keycaps.
-- Welcome mute/unmute no longer replays the current line.
-- Service readiness is checked through its own IPC rather than a bar-activation flag.
-- Practice exercises stay in the normal coaching panel.
-- Owned-window verification protects existing personal terminal/browser windows.
-- All 400 narration clips have matching word-timing files.
-- Expanded window/notification references, mixed practice, and interaction sounds.
-- Illustrated splash with a smooth transition into the first scene.
-- Solid text-bearing panels, buttons, captions, and print-return banners.
-- Printable reference with 122 entries covering all 17 lessons and 101 activities,
-  versioned Omarchy 4.0.3 citations, and complete source/coverage checks.
-- Printable Shortcuts moves the course aside for the browser and restores its
-  previous Keys state when you return.
-- A committed-checkout packaging command for collaborators testing directly from GitHub.
-- Ollie's welcome has short, fading background birdsong.
-- Progress reset now proves both state files were saved and reports failures.
-- Ollie speaks 10% faster while preserving synchronized word timings.
-- Captions reveal as the guide speaks instead of appearing all at once.
-- Every activity was re-audited against Omarchy 4.0.3; Power availability,
-  focused-monitor capture wording, and optional Compose behavior now match the
-  actual platform.
-- Release validation waits for complete JSON fixture output, eliminating a
-  cancellation-test race in the Arch packaging workflow.
-- Code uses MIT; original artwork/course content uses CC BY 4.0. Separately
-  licensed birdsong and example assets retain CC0.
+Hyprland exposes monitor, window, and layer geometry, but Omarchy 4.0.3 does not
+provide third-party plugins with every internal bar-widget or popup rectangle.
+Learn Omarchy uses measured geometry where available and responsive estimates
+where needed.
 
-## Compatibility and known limitations
-
-The live development environment is **Omarchy 4.0.3-1**, Quickshell 0.3.1, Qt
-6.11.2, and a scaled single-monitor Hyprland desktop. Package dependency floors
-are not claims that older versions have received full desktop acceptance.
-
-Independent terminal launching supports configured Ghostty or Foot instances.
-Isolated browser launching supports Chrome or Chromium. Unsupported adapters
-show recovery guidance rather than controlling an existing window.
-
-OCR, QR, dictation, and activity-monitor extras may require the optional
+OCR, QR, dictation, and activity-monitor exercises may require optional
 dependencies listed by pacman. Lock and microphone activities require an
-explicit choice; save work and know your password before trying lock practice.
-
-Clean graphical Omarchy installation, attended lock/microphone testing, and
-physical multi-monitor acceptance are still pending. Customized bars may still
-use approximate workspace highlights when individual pill geometry is unavailable.
-These limits are disclosed, not resolved, in this early release. See
-`packaging/ACCEPTANCE.md` in the source archive. Report issues with the release
-version, lesson/step, environment, and reproduction steps; redact private
-desktop content from screenshots.
+explicit choice.

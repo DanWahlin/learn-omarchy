@@ -42,7 +42,10 @@ test("CI pins actions and Arch image and restricts credentials and artifact uplo
 
 test("candidate artifacts preserve the tagged release notes and require offline package verification", async () => {
   const script = await read("tools/ci/prepare-candidate.mjs");
-  assert.match(script, /copyFile\(join\(source, "packaging\/RELEASE-NOTES\.md"\), join\(dist, "RELEASE-NOTES\.md"\)\)/);
+  assert.match(script, /releaseNotes\.startsWith\(`# Learn Omarchy \$\{version\}\\n`\)/);
+  assert.match(script, /releaseNotes\.includes\(`learn-omarchy-\$\{archVersion\}-1-any\.pkg\.tar\.zst`\)/);
+  assert.match(script, /writeFile\(join\(dist, "RELEASE-NOTES\.md"\), releaseNotes\)/);
+  assert.doesNotMatch(script, /DRAFT \/ PRERELEASE|not approved for public|before explicitly publishing/);
   assert.match(script, /tools\/verify-release-package\.mjs/);
   assert.match(script, /"--package", binary, "--source-root", source/);
   assert.match(script, /JSON\.parse\(verification\)\.verified !== true/);

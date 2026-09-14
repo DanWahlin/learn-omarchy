@@ -25,6 +25,11 @@ export async function prepareCandidate(tag) {
   const source = process.cwd();
   const pkg = JSON.parse(await readFile("package.json", "utf8"));
   const { version, archVersion } = candidateIdentity(tag, pkg.version);
+  const releaseNotes = await readFile("packaging/RELEASE-NOTES.md", "utf8");
+  if (!releaseNotes.startsWith(`# Learn Omarchy ${version}\n`))
+    throw new Error("Release notes heading must exactly match package.json version.");
+  if (!releaseNotes.includes(`learn-omarchy-${archVersion}-1-any.pkg.tar.zst`))
+    throw new Error("Release notes must include the version-matched package filename.");
   const commit = run("git", ["rev-parse", "--verify", `refs/tags/${tag}^{commit}`]).trim();
   if (run("git", ["rev-parse", "HEAD"]).trim() !== commit)
     throw new Error("The checkout must be the exact tagged commit.");
@@ -55,7 +60,7 @@ export async function prepareCandidate(tag) {
   await mkdir(dist);
   for (const name of [packages[0], `learn-omarchy-${archVersion}.tar.gz`, "PKGBUILD", ".SRCINFO"])
     await copyFile(join(build, name), join(dist, name === ".SRCINFO" ? "SRCINFO" : name));
-  await copyFile(join(source, "packaging/RELEASE-NOTES.md"), join(dist, "RELEASE-NOTES.md"));
+  await writeFile(join(dist, "RELEASE-NOTES.md"), releaseNotes);
   await writeFile(join(dist, "VERIFICATION.json"), verification);
   await writeFile(join(dist, "BUILD-INFO.txt"), [
     `tag=${tag}`, `version=${version}`, `arch_version=${archVersion}`,
@@ -64,14 +69,13 @@ export async function prepareCandidate(tag) {
     "", run("pacman", ["-Q"]),
   ].join("\n"));
   await writeFile(join(dist, "RELEASE-NOTES.txt"), [
-    `Learn Omarchy ${version} candidate`, "", `Source commit: ${commit}`,
+    `Learn Omarchy ${version}`, "", `Source commit: ${commit}`,
     `Source archive: learn-omarchy-${archVersion}.tar.gz`, "",
-    "DRAFT / PRERELEASE: not approved for public or stable release.",
     "Automated Node, offscreen QML, course/audio, licensing, and package-content checks passed.",
     "Built on vanilla Arch with --nodeps because Omarchy is not in the vanilla Arch repositories.",
     "The package retains its real Omarchy dependency. No installation or graphical acceptance is claimed.",
-    "Complete packaging/ACCEPTANCE.md against this exact source and package before explicitly publishing.",
-    "Review packaging/RELEASE-NOTES.md and packaging/CI.md before promotion.", "",
+    "Release acceptance must be completed before pushing the version tag.",
+    "See RELEASE-NOTES.md for installation instructions, highlights, and compatibility notes.", "",
   ].join("\n"));
   const checksums = [];
   for (const name of (await readdir(dist)).sort()) {
@@ -79,7 +83,7 @@ export async function prepareCandidate(tag) {
     checksums.push(`${digest}  ${name}`);
   }
   await writeFile(join(dist, "SHA256SUMS"), `${checksums.join("\n")}\n`);
-  console.log(`Verified draft candidate files: ${dist}`);
+  console.log(`Verified release files: ${dist}`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url))
