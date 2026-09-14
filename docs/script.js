@@ -136,6 +136,9 @@
     const pink = t.magenta.toLowerCase() === t.accent.toLowerCase() ? t.orange : t.magenta;
     const cyan = t.cyan.toLowerCase() === t.fg.toLowerCase() ? t.blue : t.cyan;
     const sky = mix(cyan, white, 0.25);
+    const readableText = function (color) {
+      return accessibleTextMix(white, color, 1, textBackgrounds, 4.5);
+    };
     const wordmarkPink = vividWordmarkColor(pink);
     const wordmarkColors = [
       mix(t.fg, white, 0.92),
@@ -165,15 +168,25 @@
       '--dim': accessibleTextMix(t.fg, bg, 0.52, textBackgrounds, 4.5),
       '--white': white,
       '--brand': t.accent,
+      '--brand-text': readableText(t.accent),
       '--pink': pink,
+      '--pink-text': readableText(pink),
       '--cyan': cyan,
+      '--cyan-text': readableText(cyan),
       '--sky': sky,
+      '--sky-text': readableText(sky),
       '--blue': t.blue,
+      '--blue-text': readableText(t.blue),
       '--orange': t.orange,
+      '--orange-text': readableText(t.orange),
       '--green': t.green,
+      '--green-text': readableText(t.green),
       '--magenta': t.magenta,
+      '--magenta-text': readableText(t.magenta),
       '--red': t.red,
+      '--red-text': readableText(t.red),
       '--yellow': t.yellow,
+      '--yellow-text': readableText(t.yellow),
       '--lavender': mix(t.accent, white, 0.3),
       '--brand-ink': luma(t.accent) > 0.5 ? mix(bg, '#000000', 0.32) : white,
       '--bg-rgb': rgbList(bg),
@@ -223,7 +236,10 @@
     const nameEl = document.getElementById('theme-name');
     const toggleBtn = document.getElementById('theme-toggle');
     const closeBtn = document.getElementById('theme-close');
-    if (!overlay || !stage) return;
+    const previousBtn = document.getElementById('theme-previous');
+    const keepBtn = document.getElementById('theme-keep');
+    const nextBtn = document.getElementById('theme-next');
+    if (!overlay || !stage || !toggleBtn || !closeBtn || !previousBtn || !keepBtn || !nextBtn) return;
 
     // Each card is a miniature of the demo desktop, recolored with that theme's tokens
     const template = document.getElementById('desktop');
@@ -316,6 +332,9 @@
 
     toggleBtn.addEventListener('click', function () { openPicker(!open); });
     closeBtn.addEventListener('click', cancel);
+    previousBtn.addEventListener('click', function () { select(selected - 1, true); });
+    keepBtn.addEventListener('click', commit);
+    nextBtn.addEventListener('click', function () { select(selected + 1, true); });
     overlay.addEventListener('click', function (e) { if (e.target === overlay) cancel(); });
     document.addEventListener('keydown', function (e) {
       const typing = /^(input|textarea|select)$/i.test(e.target.tagName) || e.target.isContentEditable;
@@ -324,7 +343,10 @@
         return;
       }
       if (e.key === 'Tab') {
-        const focusable = [closeBtn, cards[selected]];
+        const mobileControls = window.getComputedStyle(previousBtn).display === 'none'
+          ? []
+          : [previousBtn, keepBtn, nextBtn];
+        const focusable = [closeBtn, cards[selected]].concat(mobileControls);
         const current = focusable.indexOf(document.activeElement);
         const next = e.shiftKey
           ? (current <= 0 ? focusable.length - 1 : current - 1)

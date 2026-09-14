@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Learn Omarchy | Learn by doing</title>
-  <meta name="description" content="An interactive, narrated desktop course that teaches Omarchy shortcuts through guided practice with Ohm-1 and Ollie.">
+  <meta name="description" content="Learn Omarchy shortcuts on your desktop with guided lessons, narrated practice, and three replayable Arcade games.">
   <meta name="theme-color" content="#050919">
   <meta name="color-scheme" content="dark">
   <meta property="og:title" content="Learn Omarchy">
-  <meta property="og:description" content="Learn Omarchy by doing. Real shortcuts, on-screen guides, and hands-on practice on your actual desktop.">
+  <meta property="og:description" content="Learn Omarchy by doing with real shortcuts, on-screen guides, and replayable Arcade games.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://danwahlin.github.io/learn-omarchy/">
   <meta property="og:image" content="https://danwahlin.github.io/learn-omarchy/images/learn-omarchy-poster.webp">
@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -30,6 +30,11 @@
     <p class="theme-overlay-title">Pick a theme, change everything</p>
     <div class="theme-stage" id="theme-list" aria-label="Themes"></div>
     <p class="theme-name" id="theme-name" aria-live="polite"></p>
+    <div class="theme-controls" aria-label="Theme controls">
+      <button id="theme-previous" type="button" aria-label="Previous theme">←</button>
+      <button id="theme-keep" type="button">Use this theme</button>
+      <button id="theme-next" type="button" aria-label="Next theme">→</button>
+    </div>
     <p class="theme-keys"><kbd>←</kbd> <kbd>→</kbd> browse &nbsp;·&nbsp; <kbd>Enter</kbd> keep &nbsp;·&nbsp; <kbd>Esc</kbd> close</p>
   </div>
 
@@ -64,7 +69,7 @@
     <div class="container">
       <pre class="wordmark" data-pixel-text="LEARN OMARCHY" aria-hidden="true">LEARN OMARCHY</pre>
       <h1>Learn Omarchy by doing.</h1>
-      <p class="hero-lead">An interactive course that teaches Omarchy directly on your desktop. Press each shortcut, hear it explained, and watch a pixel guide point out what just happened.</p>
+      <p class="hero-lead">Learn Omarchy on your desktop. Press real shortcuts, hear each step, and watch a pixel guide point to the result.</p>
       <div class="hero-actions">
         <a class="button button-primary" href="#install">
           <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M7.25 1a.75.75 0 0 1 1.5 0v7.19l2.22-2.22a.75.75 0 1 1 1.06 1.06l-3.5 3.5a.75.75 0 0 1-1.06 0l-3.5-3.5a.75.75 0 0 1 1.06-1.06l2.22 2.22V1ZM2 11.75a.75.75 0 0 1 1.5 0v1.5h9v-1.5a.75.75 0 0 1 1.5 0v1.5A1.5 1.5 0 0 1 12.5 15h-9A1.5 1.5 0 0 1 2 13.5v-1.75Z"/></svg>
@@ -169,7 +174,7 @@
         </div>
         <button class="replay" id="replay" type="button" hidden>↻ Replay</button>
       </div>
-      <p class="demo-caption">A short emulation of a real lesson. In the course, Hyprland confirms each result before moving on.</p>
+      <p class="demo-caption">A sample lesson. The course waits for Hyprland to confirm each result.</p>
     </div>
 
     <div class="container hero-stats" aria-label="Course summary">
@@ -186,7 +191,7 @@
       <div class="container">
         <div class="section-heading">
           <h2>Meet your guides</h2>
-          <p>They fly to the menu, workspace, or panel being discussed, narrate every step, and react as you press each key. Pick one on first launch. Switch anytime.</p>
+          <p>Pick Ohm-1 or Ollie. They narrate each step, react to your keys, and point to the menu, workspace, or panel in use.</p>
         </div>
         <div class="coach-grid">
           <article class="coach-card ohm">
@@ -196,7 +201,7 @@
             <div class="coach-copy">
               <p class="coach-tag">rocket-powered</p>
               <h3>Ohm-1</h3>
-              <p>Precise, upbeat, and always pointing the way. Lands by rocket, hovers beside the keycaps, and celebrates every shortcut. Call him Ohm for short.</p>
+              <p>Precise and upbeat, Ohm rockets between targets and celebrates every shortcut.</p>
             </div>
           </article>
           <article class="coach-card ollie">
@@ -206,16 +211,9 @@
             <div class="coach-copy">
               <p class="coach-tag">calm and patient</p>
               <h3>Ollie</h3>
-              <p>A wise little owl who glides between stops and explains things gently. Her hints make the next keypress feel obvious instead of mysterious.</p>
+              <p>Calm and patient, Ollie glides between steps and offers gentle hints.</p>
             </div>
           </article>
-        </div>
-        <div class="guide-steps">
-          <ol class="steps">
-            <li><span>01</span><div><h3>Choose a guide</h3><p>Start with Ohm-1 or Ollie, then tune narration, captions, text size, and motion.</p></div></li>
-            <li><span>02</span><div><h3>Follow along</h3><p>See the exact desktop area being discussed and open Details when you want more context.</p></div></li>
-            <li><span>03</span><div><h3>Press the keys</h3><p>Use the real shortcut, complete guided exercises, and lock it in with mixed practice.</p></div></li>
-          </ol>
         </div>
       </div>
     </section>
@@ -224,40 +222,84 @@
       <div class="container">
         <div class="section-heading">
           <h2>Practice directly on your desktop</h2>
-          <p>No flashcards. No fake keyboard. Learn Omarchy watches what you press and highlights what happens next.</p>
+          <p>Press real shortcuts and see what they change. Learn Omarchy follows along on your desktop.</p>
         </div>
         <div class="feature-grid">
           <article class="feature-card">
             <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10"/></svg></div>
             <h3>Real shortcuts</h3>
-            <p>Press the actual Omarchy combinations. Each keycap lights up as you hold it, and Hyprland verifies the result before the lesson moves on.</p>
+            <p>Keycaps light up as you press each combination. Hyprland verifies the result before the lesson continues.</p>
             <div class="key-row"><kbd>Super</kbd><span>+</span><kbd>Return</kbd></div>
           </article>
           <article class="feature-card">
             <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4l16 6-7 2-2 7z"/></svg></div>
             <h3>On-screen pointing</h3>
-            <p>Your guide flies to the exact bar button, workspace, window, or panel while each idea is introduced. Highlights track the real surface.</p>
+            <p>Your guide flies to the bar button, workspace, window, or panel being explained.</p>
           </article>
           <article class="feature-card">
             <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/></svg></div>
             <h3>Narrated captions</h3>
-            <p>Spoken guidance with captions that reveal word by word as they are said. Larger text, reduced motion, and mute are one switch away.</p>
+            <p>Hear each step and read along. Larger text, reduced motion, and mute are built in.</p>
           </article>
           <article class="feature-card">
             <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></div>
             <h3>Hints and replay</h3>
-            <p>Skip, hint, Help, or replay any lesson. Practice mode hides the keycaps and quizzes you. Earned progress stays even if you try again later.</p>
+            <p>Use a hint, replay a lesson, or hide the keycaps for a challenge. Earned progress stays yours.</p>
           </article>
           <article class="feature-card">
             <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5M3 16.5L12 21l9-4.5"/></svg></div>
             <h3>Safe by design</h3>
-            <p>Help runs the same semantic commands as Omarchy's own bindings. Nothing edits your config, and nothing is installed without asking.</p>
+            <p>Nothing edits your config, and nothing is installed without asking.</p>
           </article>
           <article class="feature-card">
             <div class="feature-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h7"/></svg></div>
             <h3>Printable cheatsheet</h3>
-            <p>Open a complete shortcut reference from inside the course, then print it or save it as a PDF for the desk.</p>
+            <p>Open the full shortcut reference, print it, or save it as a PDF.</p>
           </article>
+        </div>
+
+        <div class="arcade-showcase" id="arcade">
+          <div class="arcade-heading">
+            <h3>Shortcut Arcade: Turn practice into play</h3>
+            <p>Build recall with three quick games. Use hints anytime, keep earned points, and revisit shortcuts that need practice.</p>
+          </div>
+          <div class="arcade-grid">
+            <article class="arcade-card rescue">
+              <p class="arcade-tag">Start here · No timer</p>
+              <div class="arcade-preview rescue-preview" role="img" aria-label="A rescue ship flying toward a pixel planet">
+                <img class="rescue-ship" src="images/arcade-rescue-ship.png" alt="">
+                <img class="rescue-planet" src="images/arcade-rescue-planet.png" alt="">
+              </div>
+              <h3>Window Rescue</h3>
+              <p>Complete a six-step desktop mission at your own pace. Hints are always available, and no real windows are moved.</p>
+            </article>
+
+            <article class="arcade-card sprint">
+              <p class="arcade-tag">60 seconds</p>
+              <div class="arcade-preview sprint-preview" role="img" aria-label="Two pixel racers moving toward a finish line">
+                <span class="preview-label">Time trial</span>
+                <span class="preview-timer">1:00</span>
+                <span class="sprint-lane lane-one"></span>
+                <span class="sprint-lane lane-two"></span>
+                <span class="mini-racer racer-player"></span>
+                <span class="mini-racer racer-ghost"></span>
+                <span class="finish-line"></span>
+              </div>
+              <h3>Shortcut Sprint</h3>
+              <p>Recall as many shortcuts as you can in one minute. Replay the same deck to race your best pace.</p>
+            </article>
+
+            <article class="arcade-card keyfall">
+              <p class="arcade-tag">Falling cards</p>
+              <div class="arcade-preview keyfall-preview" role="img" aria-label="A Super and 2 shortcut card falling toward a catch zone">
+                <span class="falling-card"><kbd>Super</kbd><kbd>2</kbd></span>
+                <span class="fall-arrow">↓</span>
+                <span class="catch-zone"><i></i></span>
+              </div>
+              <h3>Keyfall</h3>
+              <p>Use each shortcut before its card reaches the bottom. Choose the pace, take hints, and retry missed skills.</p>
+            </article>
+          </div>
         </div>
       </div>
     </section>
@@ -266,7 +308,7 @@
       <div class="container">
         <div class="section-heading">
           <h2>From first launch to daily flow</h2>
-          <p>Seventeen focused lessons. Start with the essentials, then explore optional tools when you are ready. Optional activities never block core completion.</p>
+          <p>Seventeen focused lessons, from core shortcuts to optional tools. Extras never block completion.</p>
         </div>
         <div class="curriculum-layout">
           <div class="lesson-column">
@@ -308,7 +350,7 @@
       <div class="container">
         <div class="section-heading">
           <h2>Install</h2>
-          <p>One package. Both guides, all narration, and the desktop integration are included. Requires an up-to-date Omarchy desktop.</p>
+          <p>One package includes both guides, all narration, and desktop integration. Requires an up-to-date Omarchy desktop.</p>
         </div>
 
         <div class="install-grid">
@@ -317,7 +359,7 @@
               <span class="step-num">01</span>
               <div>
                 <h3>Download the package</h3>
-                <p>From the latest GitHub release, grab the <code>.pkg.tar.zst</code> package. <code>SHA256SUMS</code> is there too if you want to verify.</p>
+                <p>Download the <code>.pkg.tar.zst</code> file from the latest GitHub release. Use <code>SHA256SUMS</code> to verify it if you like.</p>
                 <a class="button button-primary button-small" href="https://github.com/DanWahlin/learn-omarchy/releases" target="_blank" rel="noopener noreferrer">Open Releases →</a>
               </div>
             </li>
@@ -344,7 +386,7 @@
               <span class="step-num">03</span>
               <div>
                 <h3>Launch Learn Omarchy</h3>
-                <p>Open it from the Apps menu, or run it from a terminal. Choose Ohm-1 or Ollie and start the welcome lesson.</p>
+                <p>Open it from Apps or a terminal, choose your guide, and start the welcome lesson.</p>
                 <div class="terminal">
                   <div class="terminal-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><small>launch</small><button class="copy" type="button" data-copy="learn-omarchy">Copy</button></div>
                   <pre><code><span>$</span> learn-omarchy</code></pre>
@@ -398,6 +440,6 @@
     </div>
   </footer>
 
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>

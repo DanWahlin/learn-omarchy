@@ -42,6 +42,39 @@ test("all site themes keep every wordmark gradient segment readable", () => {
   assert.equal(palettes.size, Object.keys(context.themes).length, "every theme supplies its own palette");
 });
 
+test("all site themes keep body, secondary, and accent text readable", () => {
+  const backgrounds = ["--bg", "--bg-deep", "--crust", "--surface", "--surface-2"];
+  const textRoles = [
+    ["--ink", 4.5],
+    ["--ink-2", 4.5],
+    ["--muted", 5.5],
+    ["--dim", 4.5],
+    ["--brand-text", 4.5],
+    ["--pink-text", 4.5],
+    ["--cyan-text", 4.5],
+    ["--sky-text", 4.5],
+    ["--blue-text", 4.5],
+    ["--orange-text", 4.5],
+    ["--green-text", 4.5],
+    ["--magenta-text", 4.5],
+    ["--red-text", 4.5],
+    ["--yellow-text", 4.5],
+  ] as const;
+  for (const [id, theme] of Object.entries(context.themes)) {
+    const tokens = context.tokensFor(theme);
+    for (const [foreground, minimum] of textRoles) {
+      for (const background of backgrounds) {
+        assert.ok(context.contrastRatio(tokens[foreground], tokens[background]) >= minimum,
+          `${id}: ${foreground} must stand out against ${background}`);
+      }
+    }
+    for (const background of ["--brand", "--pink"]) {
+      assert.ok(context.contrastRatio(tokens["--brand-ink"], tokens[background]) >= 4.5,
+        `${id}: --brand-ink must stand out against ${background}`);
+    }
+  }
+});
+
 test("theme switching, accessible text and high-contrast rendering remain connected", async () => {
   const html = await readFile(new URL("../docs/index.html", import.meta.url), "utf8");
   const css = await readFile(new URL("../docs/style.css", import.meta.url), "utf8");
@@ -52,4 +85,21 @@ test("theme switching, accessible text and high-contrast rendering remain connec
   assert.match(html, /aria-hidden="true">LEARN OMARCHY<\/pre>/);
   assert.match(css, /shape-rendering: crispEdges/);
   assert.match(css, /\.wordmark-pixels \{ fill: CanvasText; \}/);
+});
+
+test("the homepage presents Arcade clearly and exposes mobile theme controls", async () => {
+  const html = await readFile(new URL("../docs/index.html", import.meta.url), "utf8");
+  const css = await readFile(new URL("../docs/style.css", import.meta.url), "utf8");
+  assert.doesNotMatch(html, /guide-steps|Choose a guide|Follow along|Press the keys/);
+  for (const game of ["Window Rescue", "Shortcut Sprint", "Keyfall"])
+    assert.match(html, new RegExp(`<h3>${game}</h3>`));
+  assert.match(html, /images\/arcade-rescue-ship\.png/);
+  assert.match(html, /images\/arcade-rescue-planet\.png/);
+  assert.match(html, /id="theme-previous"/);
+  assert.match(html, /id="theme-keep"[^>]*>Use this theme</);
+  assert.match(html, /id="theme-next"/);
+  assert.match(source, /previousBtn\.addEventListener\('click'/);
+  assert.match(source, /keepBtn\.addEventListener\('click', commit\)/);
+  assert.match(source, /nextBtn\.addEventListener\('click'/);
+  assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.theme-controls \{ display: flex; \}/);
 });
