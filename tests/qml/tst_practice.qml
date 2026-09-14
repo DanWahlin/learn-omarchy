@@ -51,6 +51,19 @@ Item {
       practice.observeCopy(false, practice.secondSample)
       verify(!practice.copiedSecond)
     }
+    function test_resetRestartsClipboardAtTheFirstNote() {
+      practice.copiedFirst = true
+      practice.copiedSecond = true
+      practice.historyOpened = true
+      findChild(practice, "pasteDestination").text = practice.sample
+      practice.resetExercise()
+      verify(!practice.copiedFirst)
+      verify(!practice.copiedSecond)
+      verify(!practice.historyOpened)
+      compare(findChild(practice, "pasteDestination").text, "")
+      verify(findChild(practice, "firstNote").visible)
+      verify(!findChild(practice, "secondNote").visible)
+    }
     function test_disabledFinishIsVisiblyInactive() {
       var finish = findChild(practice, "finishExercise")
       verify(!finish.enabled)
@@ -87,6 +100,33 @@ Item {
       practice.mode = "capture"
       practice.focusPractice()
       tryCompare(findChild(practice, "selectRegion"), "activeFocus", true)
+    }
+    function test_clipboardProgressRevealsEachNextStep() {
+      root.width = 760
+      root.height = 480
+      practice.textScale = 1.25
+      var scroll = findChild(practice, "practiceScroll")
+      var first = findChild(practice, "firstNote")
+      var second = findChild(practice, "secondNote")
+      var history = findChild(practice, "clipboardHistoryInstructions")
+      verify(first.visible)
+      verify(!second.visible)
+      verify(!history.visible)
+
+      practice.observeCopy(true, practice.sample)
+      tryCompare(second, "visible", true)
+      tryCompare(second, "activeFocus", true)
+      wait(30)
+      var secondPoint = second.mapToItem(scroll, 0, 0)
+      verify(secondPoint.y >= 0 && secondPoint.y + second.height <= scroll.height,
+        "Second note must be fully visible after copying the first")
+
+      practice.observeCopy(false, practice.secondSample)
+      tryCompare(history, "visible", true)
+      wait(30)
+      var historyPoint = history.mapToItem(scroll, 0, 0)
+      verify(historyPoint.y >= 0 && historyPoint.y + history.height <= scroll.height,
+        "History instructions must be fully visible after copying the second")
     }
     function test_tabFromScrollReturnsToTheNextEnabledExerciseControl() {
       practice.mode = "screen-recording"
@@ -196,7 +236,7 @@ Item {
       verify(practice.verified)
     }
     function test_nativeCopyAndPaste() {
-      verify(findChild(practice, "exerciseInstructions").text.indexOf("Shift+Enter to copy without pasting") !== -1)
+      verify(findChild(practice, "exerciseInstructions").text.indexOf("press Shift+Enter") !== -1)
       verify(findChild(practice, "clipboardHistoryInstructions").text.indexOf("Shift+Enter") !== -1)
       var first = findChild(practice, "firstNote")
       var second = findChild(practice, "secondNote")

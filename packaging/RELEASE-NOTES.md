@@ -1,6 +1,6 @@
-# Learn Omarchy 0.2.1
+# Learn Omarchy 0.2.2
 
-This patch release fixes the packaged installation of Shortcut Arcade.
+This patch release makes the Clipboard and Compose exercise easier to follow.
 
 Learn Omarchy includes 17 lessons, 101 activities, the guides Ohm-1 and Ollie,
 offline narration, and read-only desktop integration in one package.
@@ -9,10 +9,10 @@ offline narration, and read-only desktop integration in one package.
 
 Requires an up-to-date **Omarchy 4.0.3 or newer** desktop.
 
-Download `learn-omarchy-0.2.1-1-any.pkg.tar.zst` from this release, then run:
+Download `learn-omarchy-0.2.2-1-any.pkg.tar.zst` from this release, then run:
 
 ```sh
-sudo pacman -U ./learn-omarchy-0.2.1-1-any.pkg.tar.zst
+sudo pacman -U ./learn-omarchy-0.2.2-1-any.pkg.tar.zst
 learn-omarchy
 ```
 
@@ -24,14 +24,17 @@ sha256sum --check --ignore-missing SHA256SUMS
 
 ## Fixed
 
-- Added the rescue ship and planet images that were accidentally omitted from
-  the `v0.2.0` package.
-- Added package-install coverage for every Arcade runtime image.
-- Window Rescue and its Arcade card now render correctly from packaged installs.
+- Completed clipboard steps collapse into short confirmations.
+- Copying the first note automatically reveals and selects the newer note.
+- Copying the newer note automatically reveals the clipboard-history step.
+- Replaying the exercise reliably returns to the first note with an empty
+  destination field.
+- Added compact-layout coverage to keep each next step fully visible.
 
-## Included from 0.2.0
+## Included from 0.2
 
 - Three Shortcut Arcade games: Window Rescue, Shortcut Sprint, and Keyfall.
+- Correctly packaged Window Rescue ship and planet artwork.
 - Non-punitive hints, fair same-deck Sprint replays, and targeted practice.
 - Simplified lesson and completion screens.
 - Improved responsive character pointing and keyboard capture.
@@ -52,7 +55,7 @@ user-edited files.
 
 ## Compatibility notes
 
-All attached assets were built and verified from the `v0.2.1` tag.
+All attached assets were built and verified from the `v0.2.2` tag.
 
 Hyprland exposes monitor, window, and layer geometry, but Omarchy 4.0.3 does not
 provide third-party plugins with every internal bar-widget or popup rectangle.

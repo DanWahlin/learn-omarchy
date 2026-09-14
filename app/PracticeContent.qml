@@ -121,9 +121,13 @@ Rectangle {
     nativeSamplePasted = false
     captureCopied = false
     captureEdited = false
+    copiedFirst = false
+    copiedSecond = false
+    historyOpened = false
     smile.text = ""
     heart.text = ""
     exerciseInput.text = ""
+    destination.text = ""
     recipient.currentIndex = 0
     resolution.currentIndex = 0
   }
@@ -220,11 +224,17 @@ Rectangle {
       copiedSecond = false
       historyOpened = false
       verified = false
+      Qt.callLater(function() {
+        second.forceActiveFocus()
+        second.selectAll()
+        root.revealControl(second)
+      })
     }
     if (!first && copiedFirst && selected === secondSample) {
       copiedSecond = true
       historyOpened = false
       verified = false
+      Qt.callLater(function() { root.revealControl(clipboardHistoryInstructions) })
     }
   }
   function observeHistory() {
@@ -416,7 +426,7 @@ Rectangle {
       objectName: "exerciseInstructions"
       Layout.fillWidth: true
       text: root.extendedMode ? root.exercises[root.mode][1] : root.mode === "clipboard"
-        ? "This exercise replaces your clipboard with harmless sample text. Copy both notes in order with Super+C. Open history with Super+Ctrl+V, highlight the first note, and use Shift+Enter to copy without pasting. Then click the destination field and paste once with Super+V."
+        ? "Copy the first note, then the newer note. Open history with Super+Ctrl+V, choose the first note, and press Shift+Enter. Paste it into the destination field with Super+V."
         : root.mode === "capture"
         ? "Select only the practice card below. Inspect the saved image, copy its file path, and add a label to the preview. The label appears here only; it doesn't change the saved image. Nothing is uploaded. Escape cancels the selection."
         : root.mode === "screen-lock"
@@ -679,11 +689,11 @@ Rectangle {
           color: root.muted
           font.pixelSize: 14 * root.textScale
         }
-        Text { visible: root.mode === "clipboard"; Layout.fillWidth: true; wrapMode: Text.WordWrap; text: "1. Select this note, then Super+C"; color: root.accent; font.pixelSize: 16 * root.textScale }
+        Text { visible: root.mode === "clipboard" && !root.copiedFirst; Layout.fillWidth: true; wrapMode: Text.WordWrap; text: "1. Select this note, then Super+C"; color: root.accent; font.pixelSize: 16 * root.textScale }
         NoteArea {
           id: first
           objectName: "firstNote"
-          visible: root.mode === "clipboard"
+          visible: root.mode === "clipboard" && !root.copiedFirst
           Layout.fillWidth: true
           text: root.sample
           readOnly: true
@@ -700,15 +710,22 @@ Rectangle {
           }
         }
         PracticeButton {
-          visible: root.mode === "clipboard"
-          text: root.copiedFirst ? "First note copied" : "Select first note"
+          visible: root.mode === "clipboard" && !root.copiedFirst
+          text: "Select first note"
           onClicked: { first.forceActiveFocus(); first.selectAll() }
         }
-        Text { visible: root.mode === "clipboard"; Layout.fillWidth: true; wrapMode: Text.WordWrap; text: "2. Copy this newer note with Super+C"; color: root.accent; font.pixelSize: 16 * root.textScale }
+        Text {
+          visible: root.mode === "clipboard" && root.copiedFirst
+          Layout.fillWidth: true
+          text: "✓ First note copied"
+          color: root.foreground
+          font.pixelSize: 15 * root.textScale
+        }
+        Text { visible: root.mode === "clipboard" && root.copiedFirst && !root.copiedSecond; Layout.fillWidth: true; wrapMode: Text.WordWrap; text: "2. Copy this newer note with Super+C"; color: root.accent; font.pixelSize: 16 * root.textScale }
         NoteArea {
           id: second
           objectName: "secondNote"
-          visible: root.mode === "clipboard"
+          visible: root.mode === "clipboard" && root.copiedFirst && !root.copiedSecond
           enabled: root.copiedFirst
           Layout.fillWidth: true
           text: root.secondSample
@@ -727,14 +744,22 @@ Rectangle {
         }
         PracticeButton {
           id: selectNewerButton
-          visible: root.mode === "clipboard"
+          visible: root.mode === "clipboard" && root.copiedFirst && !root.copiedSecond
           enabled: root.copiedFirst
-          text: root.copiedSecond ? "Newer note copied" : "Select newer note"
+          text: "Select newer note"
           onClicked: { second.forceActiveFocus(); second.selectAll() }
         }
         Text {
+          visible: root.mode === "clipboard" && root.copiedSecond
+          Layout.fillWidth: true
+          text: "✓ Newer note copied"
+          color: root.foreground
+          font.pixelSize: 15 * root.textScale
+        }
+        Text {
+          id: clipboardHistoryInstructions
           objectName: "clipboardHistoryInstructions"
-          visible: root.mode === "clipboard"
+          visible: root.mode === "clipboard" && root.copiedSecond
           Layout.fillWidth: true
           text: "3. Open history with Super+Ctrl+V. Use the arrows to highlight the FIRST note, then Shift+Enter to copy it without pasting."
           wrapMode: Text.WordWrap
@@ -744,7 +769,7 @@ Rectangle {
         NoteArea {
           id: destination
           objectName: "pasteDestination"
-          visible: root.mode === "clipboard"
+          visible: root.mode === "clipboard" && root.copiedSecond
           enabled: root.copiedSecond
           Layout.fillWidth: true
           placeholderText: "4. Click here, then Super+V to paste the first note"
