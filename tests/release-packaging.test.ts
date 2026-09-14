@@ -328,8 +328,9 @@ test("release preparation uses exact archive bytes and emits one self-contained 
     assert.match(pkgbuild, /cd "\$srcdir\/learn-omarchy-\$pkgver"/);
     assert.match(pkgbuild, /node tools\/prepare-release\.mjs --check \./);
     assert.doesNotMatch(pkgbuild, /\$startdir|SKIP|@[A-Z]+@|install=.*\.install/);
-    for (const dependency of ["omarchy>=4.0.3", "nodejs>=22.6", "quickshell>=0.3", "qt6-multimedia", "xdg-utils", "tesseract-data-eng"])
+    for (const dependency of ["omarchy", "nodejs>=22.6", "quickshell>=0.3", "qt6-multimedia", "xdg-utils", "tesseract-data-eng"])
       assert.ok(pkgbuild.includes(dependency), dependency);
+    assert.ok(!pkgbuild.includes("omarchy>="), "omarchy-dev provides the unversioned omarchy package");
     assert.equal(spawnSync("bash", ["-n", join(output, "PKGBUILD")]).status, 0);
     const srcinfo = await readFile(join(output, ".SRCINFO"), "utf8");
     for (const dependency of ["grim", "slurp", "gpu-screen-recorder", "util-linux", "ffmpeg", "qt6-multimedia",
