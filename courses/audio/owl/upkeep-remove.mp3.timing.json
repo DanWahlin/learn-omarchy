@@ -1,123 +1,131 @@
 {
   "version": 1,
-  "audioHash": "6c76708528165d8c1cbd5bd24ba2292c7ee9500c274f1b1b1ffe71a919f84da6",
-  "text": "The Remove menu uninstalls software you no longer need. Before confirming, check the package name and any other software it would remove. There's nothing to uninstall in this lesson.",
+  "audioHash": "977a20a99146bb6bd5804481e9c2d6f6c802d95c9f0dd295aed0d489676b51c1",
+  "text": "Press Super and Space, type Remove, then press Enter. Look at the removal categories, but don't select one. Before uninstalling software, check its name and every dependency the removal would affect.",
   "words": [
     {
       "startMs": 70,
-      "endOffset": 3
+      "endOffset": 5
     },
     {
-      "startMs": 230,
-      "endOffset": 10
+      "startMs": 430,
+      "endOffset": 11
     },
     {
-      "startMs": 670,
+      "startMs": 990,
       "endOffset": 15
     },
     {
-      "startMs": 1270,
-      "endOffset": 26
+      "startMs": 1230,
+      "endOffset": 22
     },
     {
-      "startMs": 1950,
+      "startMs": 2029,
+      "endOffset": 27
+    },
+    {
+      "startMs": 2429,
       "endOffset": 35
     },
     {
-      "startMs": 2590,
-      "endOffset": 39
+      "startMs": 3230,
+      "endOffset": 40
     },
     {
-      "startMs": 2789,
-      "endOffset": 42
+      "startMs": 3590,
+      "endOffset": 46
     },
     {
-      "startMs": 2949,
-      "endOffset": 49
+      "startMs": 3909,
+      "endOffset": 53
     },
     {
-      "startMs": 3270,
-      "endOffset": 55
+      "startMs": 5230,
+      "endOffset": 58
     },
     {
-      "startMs": 4270,
-      "endOffset": 62
+      "startMs": 5550,
+      "endOffset": 61
     },
     {
-      "startMs": 4750,
-      "endOffset": 74
+      "startMs": 5630,
+      "endOffset": 65
     },
     {
-      "startMs": 5670,
-      "endOffset": 80
+      "startMs": 5750,
+      "endOffset": 73
     },
     {
-      "startMs": 5990,
-      "endOffset": 84
+      "startMs": 6310,
+      "endOffset": 85
     },
     {
-      "startMs": 6150,
-      "endOffset": 92
+      "startMs": 7070,
+      "endOffset": 89
     },
     {
-      "startMs": 6590,
-      "endOffset": 97
+      "startMs": 7310,
+      "endOffset": 95
     },
     {
-      "startMs": 7110,
-      "endOffset": 101
+      "startMs": 7630,
+      "endOffset": 102
     },
     {
-      "startMs": 7390,
-      "endOffset": 105
+      "startMs": 8029,
+      "endOffset": 107
     },
     {
-      "startMs": 7710,
-      "endOffset": 111
+      "startMs": 8950,
+      "endOffset": 114
     },
     {
-      "startMs": 7950,
-      "endOffset": 120
+      "startMs": 9469,
+      "endOffset": 127
     },
     {
-      "startMs": 8549,
-      "endOffset": 123
-    },
-    {
-      "startMs": 8629,
-      "endOffset": 129
-    },
-    {
-      "startMs": 8830,
+      "startMs": 10229,
       "endOffset": 137
     },
     {
-      "startMs": 9950,
-      "endOffset": 145
+      "startMs": 11069,
+      "endOffset": 143
     },
     {
-      "startMs": 10309,
-      "endOffset": 153
-    },
-    {
-      "startMs": 10670,
-      "endOffset": 156
-    },
-    {
-      "startMs": 10870,
-      "endOffset": 166
-    },
-    {
-      "startMs": 11469,
-      "endOffset": 169
+      "startMs": 11389,
+      "endOffset": 147
     },
     {
       "startMs": 11590,
-      "endOffset": 174
+      "endOffset": 152
     },
     {
-      "startMs": 11830,
-      "endOffset": 182
+      "startMs": 12149,
+      "endOffset": 156
+    },
+    {
+      "startMs": 12389,
+      "endOffset": 162
+    },
+    {
+      "startMs": 12790,
+      "endOffset": 173
+    },
+    {
+      "startMs": 13590,
+      "endOffset": 177
+    },
+    {
+      "startMs": 13709,
+      "endOffset": 185
+    },
+    {
+      "startMs": 14229,
+      "endOffset": 191
+    },
+    {
+      "startMs": 14430,
+      "endOffset": 199
     }
   ]
 }

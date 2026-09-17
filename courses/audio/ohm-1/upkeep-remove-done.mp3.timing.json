@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "6c6fb61675763b64ca2f0085cadfb1b5d8ed0a9fd21c34ffa1073cddcae1cb7b",
+  "text": "You inspected Remove and closed the menu without uninstalling anything.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 13
+    },
+    {
+      "startMs": 670,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1110,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 35
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 48
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 71
+    }
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "f07531d0da82889d078511ddd76c2717712098e2f562c5b53a48625403fd7449",
+  "text": "The disposable terminal is ready. Only this exact window can satisfy the remaining activities.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 14
+    },
+    {
+      "startMs": 790,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 38
+    },
+    {
+      "startMs": 2630,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 49
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 72
+    },
+    {
+      "startMs": 4910,
+      "endOffset": 82
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 94
+    }
+  ]
+}

@@ -1941,118 +1941,127 @@
     {
       "id": "advanced-windows",
       "references": [
-        { "kind": "chord", "keys": ["SUPER", "+", "G"], "action": "Toggle window grouping", "caution": "A group holds several windows in one tile with tabs along the top. Affects the focused window; try with disposable windows first.", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings", "navigation"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "ARROW"], "action": "Move the active window into the adjacent group", "caution": "Use the arrow for the desired direction. Check the focused window and adjacent group before moving it.", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "TAB"], "action": "Next window in the group", "caution": "Add Shift for the previous window.", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "SHIFT", "+", "TAB"], "action": "Previous window in the group.", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "G"], "action": "Move the active window out of its group", "stepIds": ["advanced-window-groups"], "sourceIds": ["tiling-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "O"], "action": "Pop a tiled window out: float and pin", "caution": "Start tiled. Invoke again on the pinned pop-out to unpin and retile. Pop-out also resizes and centers; pinning keeps it visible across workspaces on its display. Already-floating or independently pinned windows can behave differently.", "stepIds": ["advanced-window-pop"], "sourceIds": ["tiling-bindings", "navigation"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "L"], "action": "Toggle workspace layout between dwindle and scrolling", "caution": "Persists a setting. A custom layout is not restored by toggling again. The saved setting is per-workspace; a custom layout switches to dwindle. Dwindle divides tiles; scrolling extends windows horizontally. This is not the dwindle split toggle.", "stepIds": ["advanced-window-layout"], "sourceIds": ["tiling-bindings", "navigation"] },
-        { "kind": "gesture", "keys": ["SUPER", "+", "LEFT MOUSE DRAG"], "action": "Move a window", "caution": "Hold Super while dragging with the left mouse button, then release both. Start with a disposable floating window; on tiled windows, the layout determines the effect.", "stepIds": ["advanced-window-mouse"], "sourceIds": ["tiling-bindings"] },
-        { "kind": "gesture", "keys": ["SUPER", "+", "RIGHT MOUSE DRAG"], "action": "Resize a window", "caution": "Hold Super while dragging with the right mouse button, then release both. Start with a disposable floating window; tiled layout constraints affect resizing.", "stepIds": ["advanced-window-mouse"], "sourceIds": ["tiling-bindings"] }
+        { "kind": "chord", "keys": ["SUPER", "+", "RETURN"], "action": "Open the disposable terminal used by this lesson.", "stepIds": ["advanced-window-open"], "sourceIds": ["app-bindings", "course-controls"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "O"], "action": "Pop a tiled window out, or restore that pop-out to tiling.", "caution": "Start tiled. Pop-out floats, resizes, centers, and pins the window. This lesson uses and restores only its disposable terminal.", "stepIds": ["advanced-window-pop", "advanced-window-restore"], "sourceIds": ["tiling-bindings", "navigation"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "EQUAL"], "action": "Widen a floating window.", "caution": "Use the physical key immediately left of Backspace. This lesson targets only its disposable terminal.", "stepIds": ["advanced-window-resize"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Check focus first. This lesson verifies closure of only its disposable terminal.", "stepIds": ["advanced-window-close"], "sourceIds": ["tiling-bindings"] }
       ],
       "wrapUp": {
-        "text": "You've been introduced to groups, pop-out windows, workspace layouts, and mouse controls. Nothing was changed for you. Try these later with disposable windows, and keep the printable reference nearby.",
+        "text": "Nice work. You've practiced opening a disposable terminal, popping it out, resizing it, returning it to tiling, and closing it. Your other windows and workspace settings were left alone.",
         "audio": "audio/wrapup-advanced-windows.mp3"
       },
       "title": "More window controls",
-      "description": "Optional, read-only reference for groups, pop-out pinning, layout switching, and mouse resizing.",
-      "icon": "05",
+      "description": "Optional: safely practice pop-out and resizing on a disposable lesson terminal.",
+      "icon": "+",
       "estimatedMinutes": 4,
       "optional": true,
       "steps": [
         {
-          "id": "advanced-window-groups",
-          "kind": "tour",
-          "pose": "talk",
-          "audio": "audio/advanced-window-groups.mp3",
-          "keys": [],
-          "note": "Reference only. No grouping action is run or marked as practiced.",
-          "instruction": "A window group holds several windows in one tile, with tabs along the top. Super and G toggles grouping. Super, Alt, and an arrow moves a window into an adjacent group; Super, Alt, and Tab cycles the group. This is a read-only introduction.",
-          "detail": "Super, Alt, and G removes the active window from its group. These commands affect the focused window, so try them later only with disposable practice windows.",
-          "completion": { "type": "narration-complete", "delayMs": 900 },
-          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+          "id": "advanced-window-open",
+          "practicePrompt": "Open the disposable terminal used only by this lesson.",
+          "note": "Only this newly launched terminal will be changed.",
+          "instruction": "Press Super and Return to open a disposable practice terminal.",
+          "audio": "audio/advanced-window-open.mp3",
+          "detail": "The lesson records the exact new window, so later actions cannot target an app that was already open. Groups combine disposable windows in one tile; Super with a mouse drag moves or resizes. Those and persistent workspace-layout switching remain reference topics because they cannot be verified and restored as reliably as this pop-out practice.",
+          "keys": ["SUPER", "+", "RETURN"],
+          "help": { "label": "Launch the practice terminal for me", "command": ["omarchy", "launch", "terminal"] },
+          "completion": { "type": "hyprland-window-activated" },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800, "target": "window" },
+          "completionMessage": "The disposable terminal is ready. Only this exact window can satisfy the remaining activities.",
+          "completionAudio": "audio/advanced-window-open-done.mp3"
         },
         {
           "id": "advanced-window-pop",
-          "kind": "tour",
-          "pose": "talk",
+          "windowFromStep": "advanced-window-open",
+          "practicePrompt": "Pop the disposable terminal out of the tiled layout.",
+          "note": "The lesson verifies that its own terminal became floating.",
+          "instruction": "Press Super and O to pop the practice terminal out. Omarchy floats, centers, resizes, and pins the tiled window.",
           "audio": "audio/advanced-window-pop.mp3",
-          "keys": [],
-          "note": "Reference only. Nothing is floated or pinned by this activity.",
-          "instruction": "Super and O pops a tiled window out: it floats, resizes, centers, and pins the window on its display. Pinned windows remain visible when you change workspaces on that display. Pressing the shortcut again on that pinned pop-out unpins and retiles it.",
-          "detail": "Start from a tiled window when trying pop-out later. This is not the same as Super and T, which only toggles floating. The installed pop-out script toggles floating, so starting with an already-floating or independently pinned window can produce different results.",
-          "completion": { "type": "narration-complete", "delayMs": 900 },
-          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+          "detail": "Pinned pop-outs stay visible across workspaces on this display. You'll resize this same lesson-owned window next, then restore it to tiling before closing it.",
+          "keys": ["SUPER", "+", "O"],
+          "help": { "label": "Pop out the practice terminal for me", "command": ["hyprctl", "eval", "local window = \"{tutorialWindow}\"; assert(hl.get_window(window), \"The practice window is unavailable\"); hl.dispatch(hl.dsp.window.float({ action = \"enable\", window = window })); hl.dispatch(hl.dsp.window.resize({ window = window, x = 1300, y = 900 })); hl.dispatch(hl.dsp.window.center({ window = window })); hl.dispatch(hl.dsp.window.pin({ window = window })); hl.dispatch(hl.dsp.window.alter_zorder({ window = window, mode = \"top\" })); hl.dispatch(hl.dsp.window.tag({ window = window, tag = \"+pop\" }))"] },
+          "completion": { "type": "hyprland-event", "events": ["changefloatingmode", "activewindowv2"], "target": "tutorial-window", "windowState": { "floating": true, "pinned": true } },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800, "target": "window" },
+          "completionMessage": "The disposable terminal is floating. Your other windows were not changed.",
+          "completionAudio": "audio/advanced-window-pop-done.mp3"
         },
         {
-          "id": "advanced-window-layout",
-          "kind": "tour",
-          "pose": "talk",
-          "audio": "audio/advanced-window-layout.mp3",
-          "keys": [],
-          "note": "Reference only. Layout switching persists a workspace setting; this lesson does not run it.",
-          "instruction": "Super and L switches the current workspace between dwindle tiling and scrolling. Dwindle divides the available space into tiles; scrolling lets windows extend horizontally. This shortcut changes a saved workspace setting, so we are only introducing it.",
-          "detail": "This is not Super and J, which changes a split within dwindle. The installed layout helper saves a rule under your local state directory. On a custom layout it switches to dwindle; toggling again does not necessarily restore your original custom layout.",
-          "completion": { "type": "narration-complete", "delayMs": 900 },
-          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+          "id": "advanced-window-resize",
+          "windowFromStep": "advanced-window-open",
+          "practicePrompt": "Change the width of the floating disposable terminal.",
+          "note": "Use the physical key immediately left of Backspace.",
+          "instruction": "Hold Super and press the key immediately left of Backspace, normally equals, to widen the floating practice terminal.",
+          "audio": "audio/advanced-window-resize.mp3",
+          "detail": "The lesson compares this owned window's size before and after. Workspace-layout switching is intentionally omitted because it persists user state that cannot always be restored reliably.",
+          "keys": ["SUPER", "+", "EQUAL"],
+          "help": { "label": "Resize the practice terminal for me", "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.window.resize({ window = \"{tutorialWindow}\", x = 100, y = 0, relative = true }))"] },
+          "completion": { "type": "hyprland-event", "events": ["activewindowv2", "changefloatingmode", "movewindowv2"], "target": "tutorial-window", "windowState": { "floating": true, "resized": true } },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800, "target": "window" },
+          "completionMessage": "The lesson-owned terminal changed width. No existing window was resized.",
+          "completionAudio": "audio/advanced-window-resize-done.mp3"
         },
         {
-          "id": "advanced-window-mouse",
-          "kind": "tour",
-          "pose": "talk",
-          "audio": "audio/advanced-window-mouse.mp3",
-          "keys": [],
-          "note": "Reference only. Try these mouse gestures later with disposable windows.",
-          "instruction": "The mouse works with Super too. Hold Super and drag with the left mouse button to move a window; hold Super and drag with the right button to resize it. Release the mouse button and Super when you are done.",
-          "detail": "Try these later on a disposable floating terminal, where movement is easiest to see. On a tiled window, the layout decides how dragging changes the tiles. This reference does not capture a mouse gesture or claim you performed one.",
-          "completion": { "type": "narration-complete", "delayMs": 900 },
-          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+          "id": "advanced-window-restore",
+          "windowFromStep": "advanced-window-open",
+          "practicePrompt": "Return the disposable pop-out to the tiled layout.",
+          "instruction": "Press Super and O again to unpin and retile the practice terminal.",
+          "audio": "audio/advanced-window-restore.mp3",
+          "detail": "This restores the pop-out operation on the same lesson-owned window. It does not change the workspace's saved layout.",
+          "keys": ["SUPER", "+", "O"],
+          "help": { "label": "Retile the practice terminal for me", "command": ["hyprctl", "eval", "local window = \"{tutorialWindow}\"; assert(hl.get_window(window), \"The practice window is unavailable\"); hl.dispatch(hl.dsp.window.pin({ window = window })); hl.dispatch(hl.dsp.window.float({ action = \"disable\", window = window })); hl.dispatch(hl.dsp.window.tag({ window = window, tag = \"-pop\" }))"] },
+          "completion": { "type": "hyprland-event", "events": ["changefloatingmode", "activewindowv2"], "target": "tutorial-window", "windowState": { "floating": false, "pinned": false } },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800, "target": "window" },
+          "completionMessage": "The disposable terminal is tiled again.",
+          "completionAudio": "audio/advanced-window-restore-done.mp3"
+        },
+        {
+          "id": "advanced-window-close",
+          "windowFromStep": "advanced-window-open",
+          "practicePrompt": "Close the disposable terminal opened by this lesson.",
+          "instruction": "Press Super and W to close the practice terminal.",
+          "audio": "audio/advanced-window-close.mp3",
+          "detail": "Completion requires the exact lesson-owned window to close. Existing windows cannot satisfy this activity.",
+          "keys": ["SUPER", "+", "W"],
+          "help": { "label": "Close the practice terminal for me", "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"] },
+          "completion": { "type": "hyprland-event", "events": ["closewindow"], "target": "tutorial-window" },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800, "target": "window" },
+          "completionMessage": "The disposable terminal is closed. Your other windows and settings remain as they were.",
+          "completionAudio": "audio/advanced-window-close-done.mp3"
         }
       ]
     },
     {
       "id": "notifications",
       "references": [
-        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "ALT", "+", "COMMA"], "action": "Open notification history", "stepIds": ["notifications-history"], "sourceIds": ["utility-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "COMMA"], "action": "Dismiss the latest notification", "caution": "Affects your real notifications.", "stepIds": ["notifications-history"], "sourceIds": ["utility-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "COMMA"], "action": "Dismiss all notifications", "caution": "Affects your real notifications.", "stepIds": ["notifications-history"], "sourceIds": ["utility-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "COMMA"], "action": "Invoke the latest notification", "caution": "May launch an app or follow a link; inspect it first.", "stepIds": ["notifications-history"], "sourceIds": ["utility-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "COMMA"], "action": "Toggle notification silencing", "caution": "Changes your real preference; toggle back when finished.", "stepIds": ["notifications-quiet"], "sourceIds": ["utility-bindings"] }
+        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "ALT", "+", "COMMA"], "action": "Open notification history.", "stepIds": ["notifications-practice"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "COMMA"], "action": "Dismiss the latest notification.", "caution": "Affects real notifications; the course uses an isolated simulation instead.", "stepIds": ["notifications-practice"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "COMMA"], "action": "Invoke the latest notification.", "caution": "May launch an app or link. The course never invokes a real notification.", "stepIds": ["notifications-practice"], "sourceIds": ["utility-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "COMMA"], "action": "Toggle notification silencing.", "caution": "Changes a real preference; the course practices with a simulation that must be turned back off.", "stepIds": ["notifications-practice"], "sourceIds": ["utility-bindings"] }
       ],
       "wrapUp": {
         "text": "You now have a reference for notification history, dismissal, actions, and silencing. Your notifications and preferences are unchanged. Use these shortcuts when you need them, and inspect a notification before invoking its action.",
         "audio": "audio/wrapup-notifications.mp3"
       },
       "title": "Notifications",
-      "description": "Optional, read-only guide to history, dismissing notifications, and quiet mode.",
-      "icon": "07",
+      "description": "Optional: practice history, dismissal, and quiet mode with controlled sample notifications.",
+      "icon": "+",
       "estimatedMinutes": 2,
       "optional": true,
       "steps": [
         {
-          "id": "notifications-history",
-          "kind": "tour",
-          "pose": "talk",
-          "audio": "audio/notifications-history.mp3",
+          "id": "notifications-practice",
+          "kind": "practice",
+          "practice": "notifications",
+          "instruction": "Practice notification history, dismissal, and quiet mode with a controlled sample inside the lesson.",
+          "audio": "audio/notifications-practice.mp3",
+          "detail": "The exercise never reads, dismisses, invokes, or creates a desktop notification. Its quiet-mode switch is simulated and must be returned to alerts on before completion.",
+          "note": "Real notifications and silencing preferences remain untouched.",
           "keys": [],
-          "note": "Reference only. No notifications are opened, dismissed, or invoked for you.",
-          "instruction": "Notification history is available with Super, Shift, Alt, and comma. Super and comma dismisses the latest notification; adding Shift dismisses all. This lesson leaves your notifications untouched.",
-          "detail": "Super, Alt, and comma invokes the latest notification's action, which may launch an app or follow a link. Do not try it on an unfamiliar notification. Read these shortcuts here, then use them when you actually need them.",
-          "completion": { "type": "narration-complete", "delayMs": 900 },
-          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
-        },
-        {
-          "id": "notifications-quiet",
-          "kind": "tour",
-          "pose": "talk",
-          "audio": "audio/notifications-quiet.mp3",
-          "keys": [],
-          "note": "Reference only. Notification silencing is not changed.",
-          "instruction": "Super, Control, and comma toggles notification silencing. It is useful when you need quiet, but remember to turn it off when you want alerts again. We do not change it during this introduction.",
-          "detail": "The installed helper toggles your real notification-silencing preference. This is deliberately a read-only reference, not a task that silently changes your desktop.",
-          "completion": { "type": "narration-complete", "delayMs": 900 },
-          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 1, "height": 1, "borderWidth": 1 }
+          "actionLabel": "Start safe sample",
+          "completion": { "type": "practice-result" },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": 0, "width": 180, "height": 120, "borderWidth": 3 },
+          "completionMessage": "You handled the controlled sample and restored simulated quiet mode. Your real notification state never changed.",
+          "completionAudio": "audio/notifications-practice-done.mp3"
         }
       ]
     },
@@ -2070,7 +2079,7 @@
       "wrapUp": { "text": "You've explored the desktop controls. The bar gives you a quick place to check your system and reach the settings you need.", "audio": "audio/wrapup-bar-panels.mp3" },
       "title": "Desktop controls",
       "description": "Optional: understand status, preview themes, and explore desktop controls safely.",
-      "icon": "07",
+      "icon": "+",
       "estimatedMinutes": 6,
       "steps": [
         {
@@ -2444,7 +2453,7 @@
       "wrapUp": { "text": "Nicely done. You've explored clipboard history and practiced Compose sequences. A few useful characters and shortcuts can save you time.", "audio": "audio/wrapup-clipboard-and-helpers.mp3" },
       "title": "Clipboard and Compose",
       "description": "Retrieve older clipboard entries and type emojis with sequential Compose keys.",
-      "icon": "08",
+      "icon": "07",
       "estimatedMinutes": 5,
       "steps": [
         {
@@ -2620,7 +2629,7 @@
       "wrapUp": { "text": "That wraps up capture. You've practiced making a screenshot and a short recording. Remember to check for private information before sharing.", "audio": "audio/wrapup-capture-and-share.mp3" },
       "title": "Capture",
       "description": "Capture an image, record and replay a short clip, and optionally extract text or decode a QR code.",
-      "icon": "09",
+      "icon": "08",
       "estimatedMinutes": 8,
       "steps": [
         {
@@ -2835,30 +2844,46 @@
     {
       "id": "apps-and-upkeep",
       "references": [
-        { "kind": "workflow", "keys": ["Omarchy menu > Install"], "action": "Search Install to find software packages. Prefer official packages; review community Arch User Repository (AUR) packages more closely.", "caution": "Installing can request your password and change the system. Inspect package details before confirming; no installation is needed to learn the menu.", "stepIds": ["upkeep-install"], "sourceIds": ["packages"] },
-        { "kind": "workflow", "keys": ["Omarchy menu > Remove"], "action": "Uninstall an unwanted package only after checking its name and the full removal list. Dependencies are software other apps need.", "caution": "Removal may affect other software. Cancel if you do not understand the proposed changes.", "stepIds": ["upkeep-remove"], "sourceIds": ["packages"] },
-        { "kind": "workflow", "keys": ["Setup > Defaults"], "action": "Choose which installed apps Omarchy launches by default. Open the Omarchy menu and search Defaults.", "caution": "Default changes affect future launches immediately. Installing an app and making it the default are separate decisions.", "stepIds": ["upkeep-defaults"], "sourceIds": ["browsers", "app-bindings"] },
-        { "kind": "workflow", "keys": ["Omarchy menu > Update"], "action": "Save work, review proposed changes and use the stable channel for everyday updates to Omarchy and its packages.", "caution": "Some installations create rollback snapshots before updates. Snapshots are not independent backups of personal files.", "stepIds": ["upkeep-updates"], "sourceIds": ["updates"] },
-        { "kind": "workflow", "keys": ["Update > Hardware"], "action": "Use targeted hardware restarts only when needed. Distinguish restarting a device or updating software from resetting its configuration.", "caution": "Network or audio restarts can interrupt calls, downloads and recordings. Back up custom settings under ~/.config before resets; do not edit packaged defaults under /usr/share/omarchy.", "stepIds": ["upkeep-recovery"], "sourceIds": ["updates", "course-controls"] }
+        { "kind": "chord", "keys": ["SUPER", "+", "SPACE"], "action": "Open the Omarchy menu, search Install and press Enter. Prefer official packages; review community Arch User Repository (AUR) packages more closely.", "caution": "Installing can request your password and change the system. Inspect package details before confirming; no installation is needed to learn the menu.", "stepIds": ["upkeep-install"], "sourceIds": ["packages"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SPACE"], "action": "Open the Omarchy menu, search Remove and press Enter. Uninstall only after checking the package name and full dependency list.", "caution": "Removal may affect other software. Cancel if you do not understand the proposed changes.", "stepIds": ["upkeep-remove"], "sourceIds": ["packages"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SPACE"], "action": "Open the Omarchy menu, search Defaults and press Enter to see which installed apps Omarchy launches by default.", "caution": "Default changes affect future launches immediately. Installing an app and making it the default are separate decisions.", "stepIds": ["upkeep-defaults"], "sourceIds": ["browsers", "app-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SPACE"], "action": "Open the Omarchy menu, search Update and press Enter. Save work, review proposed changes and use the stable channel for everyday updates.", "caution": "Some installations create rollback snapshots before updates. Snapshots are not independent backups of personal files.", "stepIds": ["upkeep-updates"], "sourceIds": ["updates"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "SPACE"], "action": "Open the Omarchy menu, search Hardware and choose the result under Update to inspect targeted hardware restarts.", "caution": "Network or audio restarts can interrupt calls, downloads and recordings. Back up custom settings under ~/.config before resets; do not edit packaged defaults under /usr/share/omarchy.", "stepIds": ["upkeep-recovery"], "sourceIds": ["updates", "course-controls"] }
       ],
       "wrapUp": { "text": "You've explored where to find apps and upkeep tools. Knowing where a setting lives is a useful first step. Read the changes before confirming them.", "audio": "audio/wrapup-apps-and-upkeep.mp3" },
       "title": "Apps and upkeep",
-      "icon": "10",
+      "icon": "09",
       "estimatedMinutes": 4,
       "description": "Find install, removal, defaults, updates, and recovery tools without changing the system.",
       "steps": [
         {
           "id": "upkeep-install",
-          "kind": "tour",
-          "pose": "talk",
-          "instruction": "Install is available from the Omarchy menu. Just note the location; don't install anything for this lesson. A package is installable software. Prefer official packages. Community packages from the Arch User Repository, or AUR, need closer review.",
-          "detail": "This is an introduction, not an installation task. Installing software can request your password and change the system. No installation is required for completion.",
-          "keys": [],
+          "practicePrompt": "Open Install from the Omarchy menu. Look only; don't select an installation type.",
+          "instruction": "Press Super and Space, type Install, then press Enter. Look at the available installation types, but don't install anything. Prefer official packages; community packages from the Arch User Repository, or AUR, need closer review.",
           "audio": "audio/upkeep-install.mp3",
+          "detail": "Opening Install is safe. Choosing an installation type can continue into a workflow that requests your password and changes the system, so stop at this menu. Press Escape until the menu closes to finish.",
+          "note": "Look only: don't select an installation type.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SPACE"
+          ],
+          "help": {
+            "label": "Open Install for me",
+            "command": [
+              "omarchy",
+              "menu",
+              "summon"
+            ]
+          },
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 13440
+            "type": "hyprland-layer-closed",
+            "namespace": "omarchy-menu"
           },
           "highlight": {
             "shape": "circle",
@@ -2870,23 +2895,42 @@
             "borderWidth": 2,
             "radius": 6,
             "durationMs": 1000,
+            "target": "panel",
             "barWidgets": [
               "omarchy.menu"
             ]
-          }
+          },
+          "completionMessage": "You inspected Install and closed the menu without changing the system.",
+          "completionAudio": "audio/upkeep-install-done.mp3"
         },
         {
           "id": "upkeep-remove",
-          "kind": "tour",
-          "pose": "talk",
-          "instruction": "The Remove menu uninstalls software you no longer need. Before confirming, check the package name and any other software it would remove. There's nothing to uninstall in this lesson.",
-          "detail": "A dependency is software another app needs. Explore the menu if useful, but cancel before removing anything.",
-          "keys": [],
+          "practicePrompt": "Open Remove from the Omarchy menu. Look only; don't select anything to remove.",
+          "instruction": "Press Super and Space, type Remove, then press Enter. Look at the removal categories, but don't select one. Before uninstalling software, check its name and every dependency the removal would affect.",
           "audio": "audio/upkeep-remove.mp3",
+          "detail": "A dependency is software another app needs. Opening Remove is safe; choosing an item can begin an uninstall workflow, so stop at this menu. Press Escape until the menu closes to finish.",
+          "note": "Look only: don't select anything to remove.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SPACE"
+          ],
+          "help": {
+            "label": "Open Remove for me",
+            "command": [
+              "omarchy",
+              "menu",
+              "summon"
+            ]
+          },
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 13440
+            "type": "hyprland-layer-closed",
+            "namespace": "omarchy-menu"
           },
           "highlight": {
             "shape": "circle",
@@ -2898,23 +2942,42 @@
             "borderWidth": 2,
             "radius": 6,
             "durationMs": 1000,
+            "target": "panel",
             "barWidgets": [
               "omarchy.menu"
             ]
-          }
+          },
+          "completionMessage": "You inspected Remove and closed the menu without uninstalling anything.",
+          "completionAudio": "audio/upkeep-remove-done.mp3"
         },
         {
           "id": "upkeep-defaults",
-          "kind": "tour",
-          "pose": "talk",
-          "instruction": "Setup, Defaults is where you choose which apps Omarchy opens. For now, just note the location; keep your current settings. Installing an app and making it the default are separate decisions.",
-          "detail": "Open Super+Space, then search Defaults. Selecting a default changes future launches immediately. This lesson only introduces the location; keep your current defaults. Escape clears typed text; press it again to close, or once if empty.",
-          "keys": [],
+          "practicePrompt": "Open Defaults from the Omarchy menu. Look only; keep your current defaults.",
+          "instruction": "Press Super and Space, type Defaults, then press Enter. Look at the kinds of default apps you can choose, but don't change one. Installing an app and making it the default are separate decisions.",
           "audio": "audio/upkeep-defaults.mp3",
+          "detail": "Selecting a default changes future launches immediately. Keep your current settings. Press Escape until the menu closes to finish.",
+          "note": "Look only: selecting a default changes future launches.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SPACE"
+          ],
+          "help": {
+            "label": "Open Defaults for me",
+            "command": [
+              "omarchy",
+              "menu",
+              "summon"
+            ]
+          },
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 13020
+            "type": "hyprland-layer-closed",
+            "namespace": "omarchy-menu"
           },
           "highlight": {
             "shape": "circle",
@@ -2926,23 +2989,42 @@
             "borderWidth": 2,
             "radius": 6,
             "durationMs": 1000,
+            "target": "panel",
             "barWidgets": [
               "omarchy.menu"
             ]
-          }
+          },
+          "completionMessage": "You inspected Defaults and closed the menu without changing your settings.",
+          "completionAudio": "audio/upkeep-defaults-done.mp3"
         },
         {
           "id": "upkeep-updates",
-          "kind": "tour",
-          "pose": "talk",
-          "instruction": "The Update menu keeps Omarchy and its packages current. We're not running an update in this lesson. When you do update, save your work first and read the proposed changes. Stay on the stable channel for everyday use.",
-          "detail": "Some installations create filesystem snapshots before updates, allowing system changes to be rolled back. A snapshot isn't an independent backup of your personal files. This lesson doesn't run an update.",
-          "keys": [],
+          "practicePrompt": "Open Update from the Omarchy menu. Look only; don't run an update or change channels.",
+          "instruction": "Press Super and Space, type Update, then press Enter. Look at the available update tools, but don't select one. Before a real update, save your work, review the changes, and use the stable channel for everyday use.",
           "audio": "audio/upkeep-updates.mp3",
+          "detail": "Some installations create filesystem snapshots before updates, but a snapshot isn't an independent backup of your personal files. Opening this menu doesn't run an update. Press Escape until the menu closes to finish.",
+          "note": "Look only: don't run an update or change channels.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SPACE"
+          ],
+          "help": {
+            "label": "Open Update for me",
+            "command": [
+              "omarchy",
+              "menu",
+              "summon"
+            ]
+          },
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 13440
+            "type": "hyprland-layer-closed",
+            "namespace": "omarchy-menu"
           },
           "highlight": {
             "shape": "circle",
@@ -2954,23 +3036,42 @@
             "borderWidth": 2,
             "radius": 6,
             "durationMs": 1000,
+            "target": "panel",
             "barWidgets": [
               "omarchy.menu"
             ]
-          }
+          },
+          "completionMessage": "You inspected Update and closed the menu without running an update.",
+          "completionAudio": "audio/upkeep-updates-done.mp3"
         },
         {
           "id": "upkeep-recovery",
-          "kind": "tour",
-          "pose": "talk",
-          "instruction": "If one device stops working, Update, Hardware offers targeted restarts. Just note the location for now; don't restart anything during this lesson. Resetting configuration is different from updating and can replace your custom settings.",
-          "detail": "Your user settings generally live under ~/.config; packaged Omarchy defaults live under /usr/share/omarchy and shouldn't be edited. Back up your changes before resets. Restarting network or audio services can interrupt active calls, downloads, and recordings, so this lesson performs none.",
-          "keys": [],
+          "practicePrompt": "Open Update, Hardware. Look only; don't restart any hardware service.",
+          "instruction": "Press Super and Space, type Hardware, then choose the result under Update. Look at the targeted restarts, but don't select one. A restart can interrupt calls, downloads, or recordings.",
           "audio": "audio/upkeep-recovery.mp3",
+          "detail": "Use Update, Hardware when a specific device service stops working. Resetting configuration is different and can replace settings under ~/.config; don't edit packaged defaults under /usr/share/omarchy. Press Escape until the menu closes to finish.",
+          "note": "Choose Hardware under Update, then look only; don't restart a service.",
+          "keys": [
+            "SUPER",
+            "+",
+            "SPACE"
+          ],
+          "help": {
+            "label": "Open Update, Hardware for me",
+            "command": [
+              "omarchy",
+              "menu",
+              "summon"
+            ]
+          },
+          "cleanup": [
+            "omarchy",
+            "menu",
+            "close"
+          ],
           "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 12600
+            "type": "hyprland-layer-closed",
+            "namespace": "omarchy-menu"
           },
           "highlight": {
             "shape": "circle",
@@ -2982,10 +3083,13 @@
             "borderWidth": 2,
             "radius": 6,
             "durationMs": 1000,
+            "target": "panel",
             "barWidgets": [
               "omarchy.menu"
             ]
-          }
+          },
+          "completionMessage": "You inspected Update, Hardware and closed the menu without restarting a service.",
+          "completionAudio": "audio/upkeep-recovery-done.mp3"
         }
       ]
     },
@@ -3001,7 +3105,7 @@
       "wrapUp": { "text": "That wraps up setup and system controls. You know where to look when you need them, without changing settings just for practice.", "audio": "audio/wrapup-setup-and-install.mp3" },
       "title": "Setup and system",
       "description": "Reach hardware setup, display settings, and safe system actions from the keyboard.",
-      "icon": "11",
+      "icon": "10",
       "estimatedMinutes": 3,
       "steps": [
         {
@@ -3183,7 +3287,7 @@
         { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "X"], "action": "Toggle local dictation on/off when Voxtype is installed. Focus the destination, start, speak, stop and proofread.", "caution": "You control the microphone. Installed software does not guarantee a configured microphone or running service; skip if unavailable.", "stepIds": ["dictation-practice"], "sourceIds": ["dictation-bindings", "text-tools", "course-practice"] },
         { "kind": "gesture", "keys": ["F9", "HOLD", "→", "RELEASE"], "action": "With Voxtype installed, hold F9 while speaking and release it to finish push-to-talk dictation.", "caution": "Review the resulting text; do not leave recording active. The toggle shortcut is an alternative if your keyboard lacks F9.", "stepIds": ["dictation-practice"], "sourceIds": ["dictation-bindings", "text-tools"] },
         { "kind": "workflow", "keys": ["COURSE: Dictation practice"], "action": "Check availability, enable the practice field when ready, use the dictation shortcut for 'Omarchy practice', stop and review the words.", "caution": "The exercise does not start your microphone. It checks the entered sample and your review, not whether speech produced the text.", "stepIds": ["dictation-practice"], "sourceIds": ["course-practice"] },
-        { "kind": "workflow", "keys": ["Voxtype > config.toml > Replacements"], "action": "For installed Voxtype, review ~/.config/voxtype/config.toml and its commented [text] replacements example to correct recurring recognition errors.", "caution": "Back up before edits, keep replacements specific and test a harmless phrase. Install > AI > Dictation installs the tool, not its configuration; Remove > Dictation removes it. Replacements affect dictation, not ordinary typing.", "stepIds": ["dictation-corrections"], "sourceIds": ["text-tools", "course-controls"] }
+        { "kind": "workflow", "keys": ["COURSE: Dictation corrections"], "action": "Inspect whether the Voxtype config documents replacements, then apply a specific correction to a harmless simulated transcript.", "caution": "The course reads only replacement metadata and never displays or edits the real config. A bundled sample is used when Voxtype or its config is unavailable.", "stepIds": ["dictation-corrections"], "sourceIds": ["text-tools", "course-controls", "course-practice"] }
       ],
       "wrapUp": { "text": "That wraps up productivity extras. You've explored emojis, reminders, and dictation. Choose the tools that help with your own work.", "audio": "audio/wrapup-productivity-extras.mp3" },
       "title": "Productivity extras",
@@ -3316,32 +3420,21 @@
         },
         {
           "id": "dictation-corrections",
-          "kind": "tour",
-          "pose": "talk",
-          "instruction": "Names and technical words can trip up speech recognition. Voxtype's configuration file has replacement settings for recurring mistakes. No edits for this lesson. If you change them later, back up the file first and keep replacements specific.",
-          "detail": "For installed Voxtype, review ~/.config/voxtype/config.toml and its commented [text] replacements example. Install > AI > Dictation installs the tool; it isn't a configuration menu. Once installed, Remove > Dictation removes it. Back up the file before future edits and test with a harmless phrase. These rules affect dictation, not ordinary typing.",
-          "note": "Voxtype replacements: ~/.config/voxtype/config.toml. No edits today; back up before future changes.",
-          "keys": [],
+          "kind": "practice",
+          "practice": "dictation-corrections",
+          "instruction": "Inspect replacement support without exposing or editing your Voxtype config, then correct a harmless simulated transcript.",
           "audio": "audio/dictation-corrections.mp3",
-          "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 12600
-          },
+          "detail": "The exercise reports only whether ~/.config/voxtype/config.toml exists and appears to document replacements. If it is missing, unreadable, or lacks the example, a bundled simulation provides the same safe practice.",
+          "note": "The real Voxtype config is read-only and its contents are never shown.",
+          "keys": [],
+          "actionLabel": "Start correction practice",
+          "completion": { "type": "practice-result" },
           "highlight": {
-            "shape": "circle",
-            "anchor": "top-left",
-            "x": 25,
-            "y": 14,
-            "width": 28,
-            "height": 28,
-            "borderWidth": 2,
-            "radius": 6,
-            "durationMs": 1000,
-            "barWidgets": [
-              "omarchy.menu"
-            ]
-          }
+            "shape": "rectangle", "anchor": "center", "x": 0, "y": 0,
+            "width": 180, "height": 120, "borderWidth": 3
+          },
+          "completionMessage": "You chose a specific correction and applied it to the sample. Your real Voxtype config was not edited.",
+          "completionAudio": "audio/dictation-corrections-done.mp3"
         }
       ]
     },
@@ -3349,9 +3442,9 @@
       "id": "useful-tools",
       "references": [
         { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "T"], "action": "Open the activity monitor to inspect processor, memory, storage and running programs.", "caution": "Inspect resource use without stopping programs; ending a process can lose work or interrupt services.", "stepIds": ["tools-monitor-open"], "sourceIds": ["app-bindings", "guis"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Check focus and save work first. Outside guided practice this can close any focused app, not only the monitor or calculator.", "stepIds": ["tools-monitor-close", "tools-calculator-close"], "sourceIds": ["tiling-bindings"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Check focus and save work first. Guided close activities verify only lesson-owned windows.", "stepIds": ["tools-monitor-close", "tools-calculator-close", "tools-disk-usage-close"], "sourceIds": ["tiling-bindings"] },
         { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "Q"], "action": "Open the calculator. Enter a simple calculation such as 5 + 5 and inspect the result.", "stepIds": ["tools-calculator-open"], "sourceIds": ["app-bindings", "guis"] },
-        { "kind": "workflow", "keys": ["Omarchy menu > Disk Usage"], "action": "Search Disk Usage to inspect which folders consume storage before deciding what to clean.", "caution": "Inspect, do not delete during exploration. Large folders may be important work; backups, caches and packages require different cleanup decisions.", "stepIds": ["tools-disk-usage"], "sourceIds": ["guis"] }
+        { "kind": "workflow", "keys": ["COURSE: Open Disk Usage"], "action": "Launch the installed dua TUI through Omarchy's terminal launcher and inspect folder sizes from /.", "caution": "Navigate and inspect only. Do not use deletion actions; large folders may be important work.", "stepIds": ["tools-disk-usage-open"], "sourceIds": ["guis", "course-controls"] }
       ],
       "wrapUp": { "text": "That wraps up useful tools. You have places to check resource use, do a quick calculation, and investigate disk space before deleting anything.", "audio": "audio/wrapup-useful-tools.mp3" },
       "title": "Useful tools",
@@ -3378,10 +3471,10 @@
           "help": {
             "label": "Open it for me",
             "command": [
-              "xdg-terminal-exec",
+              "omarchy",
+              "launch",
+              "tui",
               "--app-id=org.learn-omarchy.toolbox",
-              "--title=Learn Omarchy activity",
-              "-e",
               "btop"
             ]
           },
@@ -3526,32 +3619,34 @@
           "completionAudio": "audio/tools-calculator-close-done.mp3"
         },
         {
-          "id": "tools-disk-usage",
-          "kind": "tour",
-          "pose": "talk",
-          "instruction": "Running low on space? Search Disk Usage in the Omarchy menu to see where it's going. Inspect before deleting: a large folder might be important work, not disposable clutter.",
-          "detail": "This is a read-only introduction. Don't use trash or permanent-delete commands as part of the lesson. Backups, application caches, and system packages need different cleanup decisions.",
+          "id": "tools-disk-usage-open",
+          "practicePrompt": "Open Disk Usage and inspect folder sizes without deleting anything.",
+          "windowSize": { "width": 1200, "height": 640 },
+          "instruction": "Choose Open Disk Usage, wait for the scan, then navigate the dua list to inspect which top-level folders use space.",
+          "audio": "audio/tools-disk-usage-open.mp3",
+          "detail": "This launches the installed `dua i /` TUI through Omarchy's terminal-selection interface. Use arrows and Enter to inspect. Do not use deletion actions; the lesson only verifies its own viewer window.",
+          "note": "Read-only exploration: do not delete or mark entries for removal.",
           "keys": [],
-          "audio": "audio/tools-disk-usage.mp3",
-          "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 12180
-          },
-          "highlight": {
-            "shape": "circle",
-            "anchor": "top-left",
-            "x": 25,
-            "y": 14,
-            "width": 28,
-            "height": 28,
-            "borderWidth": 2,
-            "radius": 6,
-            "durationMs": 1000,
-            "barWidgets": [
-              "omarchy.menu"
-            ]
-          }
+          "actionLabel": "Open Disk Usage",
+          "help": { "label": "Open Disk Usage", "command": ["omarchy", "launch", "tui", "--app-id=org.learn-omarchy.disk-usage", "dua", "i", "/"] },
+          "completion": { "type": "hyprland-window-activated" },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800, "target": "window" },
+          "completionMessage": "Disk Usage is scanning in a lesson-owned terminal. Inspect sizes and navigate folders; do not delete anything.",
+          "completionAudio": "audio/tools-disk-usage-open-done.mp3"
+        },
+        {
+          "id": "tools-disk-usage-close",
+          "practicePrompt": "After inspecting at least one folder, close the lesson-owned Disk Usage window.",
+          "windowFromStep": "tools-disk-usage-open",
+          "instruction": "When you have inspected the list, press Super and W to close Disk Usage.",
+          "audio": "audio/tools-disk-usage-close.mp3",
+          "detail": "The course verifies closure of only the viewer it launched. No files are changed or removed.",
+          "keys": ["SUPER", "+", "W"],
+          "help": { "label": "Close Disk Usage for me", "command": ["hyprctl", "eval", "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"] },
+          "completion": { "type": "hyprland-event", "events": ["closewindow"], "target": "tutorial-window" },
+          "highlight": { "shape": "rectangle", "anchor": "center", "x": 0, "y": -40, "width": 1280, "height": 760, "borderWidth": 10, "radius": 12, "durationMs": 1800, "target": "window" },
+          "completionMessage": "Disk Usage is closed. You completed a real inspection without deleting anything.",
+          "completionAudio": "audio/tools-disk-usage-close-done.mp3"
         }
       ]
     },
@@ -3697,375 +3792,6 @@
           },
           "completionMessage": "You reviewed the safe sharing workflow. Delivery to another device is a separate action that this course doesn't assume.",
           "completionAudio": "audio/sharing-practice-done.mp3"
-        }
-      ]
-    },
-    {
-      "id": "first-real-session",
-      "references": [
-        { "kind": "workflow", "keys": ["Short desktop workflow"], "action": "On workspace one, open a terminal and browser. Focus the browser, move it to workspace two and follow. Return to one, focus and close the terminal; visit two, focus and close the browser.", "caution": "Use disposable windows, save work and check focus before moving or closing. Native shortcuts have no course-owned-window protection.", "stepIds": ["finale-intro"], "sourceIds": ["navigation", "tiling-bindings", "course-controls"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "1"], "action": "Switch to workspace one.", "stepIds": ["finale-home", "finale-back-to-one"], "sourceIds": ["tiling-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "RETURN"], "action": "Open a terminal.", "stepIds": ["finale-terminal"], "sourceIds": ["app-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "RETURN"], "action": "Launch the configured browser; its settings determine whether a new window opens.", "stepIds": ["finale-browser"], "sourceIds": ["app-bindings", "browsers"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "SHIFT", "+", "2"], "action": "Move the focused window to workspace two and follow it there.", "caution": "Focus the intended window first; this does not automatically target the browser.", "stepIds": ["finale-send-browser"], "sourceIds": ["tiling-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "W"], "action": "Close the focused window.", "caution": "Save work and verify focus first. This can close existing work, not only windows from the capstone.", "stepIds": ["finale-close-terminal", "finale-close-browser"], "sourceIds": ["tiling-bindings"] },
-        { "kind": "chord", "keys": ["SUPER", "+", "2"], "action": "Switch to workspace two.", "stepIds": ["finale-to-two"], "sourceIds": ["tiling-bindings"] }
-      ],
-      "wrapUp": { "text": "Nicely done. You've brought app, window, and workspace shortcuts together in one workflow. Super and K opens the shortcut guide whenever you need a reminder. Keep the shortcuts that help you. Your desktop. Your way.", "audio": "audio/wrapup-first-real-session.mp3" },
-      "title": "Your first real session",
-      "description": "Combine app, window, and workspace shortcuts in one practical workflow.",
-      "icon": "12",
-      "estimatedMinutes": 4,
-      "steps": [
-        {
-          "id": "finale-intro",
-          "kind": "tour",
-          "instruction": "Bring the shortcuts together in a short workflow: open a terminal and browser, move the browser to another workspace, then close both. Use Help whenever you need a reminder.",
-          "detail": "Use your existing desktop. We'll verify only the windows opened by this lesson and leave your other work alone.",
-          "keys": [],
-          "audio": "audio/finale-intro.mp3",
-          "completion": {
-            "type": "narration-complete",
-            "delayMs": 900,
-            "durationMs": 8000
-          },
-          "highlight": {
-            "shape": "circle",
-            "anchor": "center",
-            "x": 0,
-            "y": -60,
-            "width": 12,
-            "height": 12,
-            "borderWidth": 2,
-            "radius": 6,
-            "durationMs": 1000
-          },
-          "pose": "talk"
-        },
-        {
-          "id": "finale-home",
-          "practicePrompt": "Switch to workspace one to begin your practice session.",
-          "instruction": "Let's begin on workspace one. Press Super and 1.",
-          "detail": "If you're already on workspace one, this step takes care of itself.",
-          "keys": [
-            "SUPER",
-            "+",
-            "1"
-          ],
-          "audio": "audio/finale-home.mp3",
-          "help": {
-            "label": "Take me there",
-            "command": [
-              "hyprctl",
-              "eval",
-              "hl.dispatch(hl.dsp.focus({ workspace = \"1\" }))"
-            ]
-          },
-          "completion": {
-            "type": "hyprland-workspace-is",
-            "id": 1
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "top-left",
-            "x": 8,
-            "y": 1,
-            "width": 180,
-            "height": 27,
-            "borderWidth": 3,
-            "radius": 8,
-            "dynamic": "workspaces",
-            "durationMs": 1800,
-            "target": "workspace",
-            "workspaceId": 1
-          },
-          "completionMessage": "Good. Everything starts from here.",
-          "completionAudio": "audio/finale-home-done.mp3"
-        },
-        {
-          "id": "finale-terminal",
-          "practicePrompt": "Open a new terminal on workspace one.",
-          "instruction": "Start with a terminal. Press Super and Return.",
-          "keys": [
-            "SUPER",
-            "+",
-            "RETURN"
-          ],
-          "audio": "audio/finale-terminal.mp3",
-          "help": {
-            "label": "Launch the terminal for me",
-            "command": [
-              "omarchy",
-              "launch",
-              "terminal"
-            ]
-          },
-          "completion": {
-            "type": "hyprland-window-activated"
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "center",
-            "x": 0,
-            "y": -40,
-            "width": 1280,
-            "height": 760,
-            "borderWidth": 10,
-            "radius": 12,
-            "durationMs": 1800,
-            "target": "window"
-          },
-          "completionMessage": "Terminal's up.",
-          "completionAudio": "audio/finale-terminal-done.mp3"
-        },
-        {
-          "id": "finale-browser",
-          "practicePrompt": "Open a new browser window alongside the terminal.",
-          "instruction": "Now a browser. Hold Super and Shift, then press Return.",
-          "keys": [
-            "SUPER",
-            "+",
-            "SHIFT",
-            "+",
-            "RETURN"
-          ],
-          "audio": "audio/finale-browser.mp3",
-          "help": {
-            "label": "Open the browser for me",
-            "command": [
-              "omarchy",
-              "launch",
-              "browser"
-            ]
-          },
-          "completion": {
-            "type": "hyprland-window-activated"
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "center",
-            "x": 0,
-            "y": -40,
-            "width": 1280,
-            "height": 760,
-            "borderWidth": 10,
-            "radius": 12,
-            "durationMs": 1800,
-            "target": "window"
-          },
-          "completionMessage": "Both practice windows are open. Next, give the browser its own workspace.",
-          "completionAudio": "audio/finale-browser-done.mp3"
-        },
-        {
-          "id": "finale-send-browser",
-          "practicePrompt": "Move the practice browser window to workspace two.",
-          "windowFromStep": "finale-browser",
-          "instruction": "Let's give the browser its own desktop. Hold Super and Shift, then press 2.",
-          "detail": "The browser moves to workspace two and you go with it.",
-          "keys": [
-            "SUPER",
-            "+",
-            "SHIFT",
-            "+",
-            "2"
-          ],
-          "audio": "audio/finale-send-browser.mp3",
-          "help": {
-            "label": "Move it for me",
-            "command": [
-              "hyprctl",
-              "eval",
-              "local target = assert(hl.get_window(\"{tutorialWindow}\"), \"The practice window is unavailable\"); hl.dispatch(hl.dsp.focus({ window = \"{tutorialWindow}\" })); local active = hl.get_active_window(); assert(active and active.address == target.address, \"Could not focus the practice window\"); hl.dispatch(hl.dsp.window.move({ workspace = \"2\", window = \"{tutorialWindow}\" }))"
-            ]
-          },
-          "completion": {
-            "type": "hyprland-event",
-            "events": [
-              "movewindowv2",
-              "movewindow"
-            ],
-            "target": "tutorial-window",
-            "windowState": {
-              "workspace": 2,
-              "focused": true
-            }
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "top-left",
-            "x": 8,
-            "y": 1,
-            "width": 180,
-            "height": 27,
-            "borderWidth": 3,
-            "radius": 8,
-            "dynamic": "workspaces",
-            "durationMs": 1800,
-            "target": "workspace",
-            "workspaceId": 2
-          },
-          "completionMessage": "The browser is on workspace two; the terminal stays on workspace one.",
-          "completionAudio": "audio/finale-send-browser-done.mp3"
-        },
-        {
-          "id": "finale-back-to-one",
-          "practicePrompt": "Return to workspace one, where you left the terminal.",
-          "instruction": "Press Super and 1 to return to the terminal's workspace.",
-          "keys": [
-            "SUPER",
-            "+",
-            "1"
-          ],
-          "audio": "audio/finale-back-to-one.mp3",
-          "help": {
-            "label": "Switch for me",
-            "command": [
-              "hyprctl",
-              "eval",
-              "hl.dispatch(hl.dsp.focus({ workspace = \"1\" }))"
-            ]
-          },
-          "completion": {
-            "type": "hyprland-workspace-is",
-            "id": 1
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "top-left",
-            "x": 8,
-            "y": 1,
-            "width": 180,
-            "height": 27,
-            "borderWidth": 3,
-            "radius": 8,
-            "dynamic": "workspaces",
-            "durationMs": 1800,
-            "target": "workspace",
-            "workspaceId": 1
-          },
-          "completionMessage": "And there's the terminal, right where you left it.",
-          "completionAudio": "audio/finale-back-to-one-done.mp3"
-        },
-        {
-          "id": "finale-close-terminal",
-          "practicePrompt": "Close the practice terminal on workspace one.",
-          "windowFromStep": "finale-terminal",
-          "instruction": "Done with the terminal for now. Press Super and W.",
-          "keys": [
-            "SUPER",
-            "+",
-            "W"
-          ],
-          "audio": "audio/finale-close-terminal.mp3",
-          "help": {
-            "label": "Close it for me",
-            "command": [
-              "hyprctl",
-              "eval",
-              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
-            ]
-          },
-          "completion": {
-            "type": "hyprland-event",
-            "events": [
-              "closewindow"
-            ],
-            "target": "tutorial-window"
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "center",
-            "x": 0,
-            "y": -40,
-            "width": 1280,
-            "height": 760,
-            "borderWidth": 10,
-            "radius": 12,
-            "durationMs": 1800,
-            "target": "window"
-          },
-          "completionMessage": "Closed. One more to go.",
-          "completionAudio": "audio/finale-close-terminal-done.mp3"
-        },
-        {
-          "id": "finale-to-two",
-          "practicePrompt": "Switch to workspace two, where you left the browser.",
-          "instruction": "Press Super and 2 to head over to the browser.",
-          "keys": [
-            "SUPER",
-            "+",
-            "2"
-          ],
-          "audio": "audio/finale-to-two.mp3",
-          "help": {
-            "label": "Switch for me",
-            "command": [
-              "hyprctl",
-              "eval",
-              "hl.dispatch(hl.dsp.focus({ workspace = \"2\" }))"
-            ]
-          },
-          "completion": {
-            "type": "hyprland-workspace-is",
-            "id": 2
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "top-left",
-            "x": 8,
-            "y": 1,
-            "width": 180,
-            "height": 27,
-            "borderWidth": 3,
-            "radius": 8,
-            "dynamic": "workspaces",
-            "durationMs": 1800,
-            "target": "workspace",
-            "workspaceId": 2
-          },
-          "completionMessage": "There it is.",
-          "completionAudio": "audio/finale-to-two-done.mp3"
-        },
-        {
-          "id": "finale-close-browser",
-          "practicePrompt": "Close the practice browser window on workspace two.",
-          "windowFromStep": "finale-browser",
-          "instruction": "And close it. Press Super and W.",
-          "keys": [
-            "SUPER",
-            "+",
-            "W"
-          ],
-          "audio": "audio/finale-close-browser.mp3",
-          "help": {
-            "label": "Close it for me",
-            "command": [
-              "hyprctl",
-              "eval",
-              "hl.dispatch(hl.dsp.window.close({ window = \"{tutorialWindow}\" }))"
-            ]
-          },
-          "completion": {
-            "type": "hyprland-event",
-            "events": [
-              "closewindow"
-            ],
-            "target": "tutorial-window"
-          },
-          "highlight": {
-            "shape": "rectangle",
-            "anchor": "center",
-            "x": 0,
-            "y": -40,
-            "width": 1280,
-            "height": 760,
-            "borderWidth": 10,
-            "radius": 12,
-            "durationMs": 1800,
-            "target": "window"
-          },
-          "completionMessage": "Both practice windows are closed.",
-          "completionAudio": "audio/finale-close-browser-done.mp3"
         }
       ]
     }

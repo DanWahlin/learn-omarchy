@@ -1,0 +1,75 @@
+{
+  "version": 1,
+  "audioHash": "97f2f254814c2310746dd3f890c40651a94e5bf7e192f6fdea2f91efac0ea205",
+  "text": "Disk Usage is scanning in a lesson-owned terminal. Inspect sizes and navigate folders; do not delete anything.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 310,
+      "endOffset": 10
+    },
+    {
+      "startMs": 710,
+      "endOffset": 13
+    },
+    {
+      "startMs": 830,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 40
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 50
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 58
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 64
+    },
+    {
+      "startMs": 3829,
+      "endOffset": 68
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 77
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 86
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 89
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 93
+    },
+    {
+      "startMs": 5630,
+      "endOffset": 100
+    },
+    {
+      "startMs": 6030,
+      "endOffset": 110
+    }
+  ]
+}

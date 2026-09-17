@@ -1,159 +1,155 @@
 {
   "version": 1,
-  "audioHash": "53f72acd6b69cbd6f0e5f89f5b21e2338174d075530761eb1f7d8732655cb2c3",
-  "text": "The Update menu keeps Omarchy and its packages current. We're not running an update in this lesson. When you do update, save your work first and read the proposed changes. Stay on the stable channel for everyday use.",
+  "audioHash": "71215434017d058b1f625114f633c93251c0e11777fd228cbdaa08d0dc2beede",
+  "text": "Press Super and Space, type Update, then press Enter. Look at the available update tools, but don't select one. Before a real update, save your work, review the changes, and use the stable channel for everyday use.",
   "words": [
     {
       "startMs": 70,
-      "endOffset": 3
+      "endOffset": 5
     },
     {
-      "startMs": 230,
-      "endOffset": 10
+      "startMs": 310,
+      "endOffset": 11
     },
     {
-      "startMs": 510,
+      "startMs": 790,
       "endOffset": 15
     },
     {
-      "startMs": 870,
-      "endOffset": 21
+      "startMs": 950,
+      "endOffset": 22
     },
     {
-      "startMs": 1190,
-      "endOffset": 29
+      "startMs": 1950,
+      "endOffset": 27
     },
     {
-      "startMs": 1790,
-      "endOffset": 33
+      "startMs": 2230,
+      "endOffset": 35
     },
     {
-      "startMs": 1910,
-      "endOffset": 37
+      "startMs": 3150,
+      "endOffset": 40
     },
     {
-      "startMs": 2070,
+      "startMs": 3389,
       "endOffset": 46
     },
     {
-      "startMs": 2550,
-      "endOffset": 55
+      "startMs": 3630,
+      "endOffset": 53
     },
     {
-      "startMs": 3190,
-      "endOffset": 61
-    },
-    {
-      "startMs": 3429,
-      "endOffset": 65
-    },
-    {
-      "startMs": 3550,
-      "endOffset": 73
-    },
-    {
-      "startMs": 3829,
-      "endOffset": 76
-    },
-    {
-      "startMs": 3909,
-      "endOffset": 83
-    },
-    {
-      "startMs": 4230,
-      "endOffset": 86
-    },
-    {
-      "startMs": 4310,
-      "endOffset": 91
-    },
-    {
-      "startMs": 4510,
-      "endOffset": 99
+      "startMs": 4870,
+      "endOffset": 58
     },
     {
       "startMs": 5150,
-      "endOffset": 104
+      "endOffset": 61
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 65
     },
     {
       "startMs": 5350,
-      "endOffset": 108
+      "endOffset": 75
     },
     {
-      "startMs": 5510,
-      "endOffset": 111
+      "startMs": 5830,
+      "endOffset": 82
     },
     {
-      "startMs": 5710,
-      "endOffset": 119
+      "startMs": 6190,
+      "endOffset": 89
     },
     {
-      "startMs": 6270,
-      "endOffset": 124
+      "startMs": 6790,
+      "endOffset": 93
     },
     {
-      "startMs": 6590,
-      "endOffset": 129
+      "startMs": 6990,
+      "endOffset": 99
     },
     {
-      "startMs": 6750,
-      "endOffset": 134
-    },
-    {
-      "startMs": 7030,
-      "endOffset": 140
+      "startMs": 7230,
+      "endOffset": 106
     },
     {
       "startMs": 7590,
-      "endOffset": 144
+      "endOffset": 111
     },
     {
-      "startMs": 7750,
+      "startMs": 8350,
+      "endOffset": 118
+    },
+    {
+      "startMs": 8870,
+      "endOffset": 120
+    },
+    {
+      "startMs": 8910,
+      "endOffset": 125
+    },
+    {
+      "startMs": 9190,
+      "endOffset": 133
+    },
+    {
+      "startMs": 9830,
+      "endOffset": 138
+    },
+    {
+      "startMs": 10190,
+      "endOffset": 143
+    },
+    {
+      "startMs": 10350,
       "endOffset": 149
     },
     {
-      "startMs": 7950,
-      "endOffset": 153
+      "startMs": 10950,
+      "endOffset": 156
     },
     {
-      "startMs": 8069,
-      "endOffset": 162
+      "startMs": 11309,
+      "endOffset": 160
     },
     {
-      "startMs": 8430,
-      "endOffset": 171
+      "startMs": 11430,
+      "endOffset": 169
     },
     {
-      "startMs": 9229,
-      "endOffset": 176
+      "startMs": 12190,
+      "endOffset": 173
     },
     {
-      "startMs": 9549,
-      "endOffset": 179
+      "startMs": 12430,
+      "endOffset": 177
     },
     {
-      "startMs": 9629,
-      "endOffset": 183
+      "startMs": 12670,
+      "endOffset": 181
     },
     {
-      "startMs": 9750,
-      "endOffset": 190
+      "startMs": 12790,
+      "endOffset": 188
     },
     {
-      "startMs": 10030,
-      "endOffset": 198
+      "startMs": 13110,
+      "endOffset": 196
     },
     {
-      "startMs": 10389,
-      "endOffset": 202
+      "startMs": 13430,
+      "endOffset": 200
     },
     {
-      "startMs": 10590,
-      "endOffset": 211
+      "startMs": 13590,
+      "endOffset": 209
     },
     {
-      "startMs": 11030,
-      "endOffset": 216
+      "startMs": 14030,
+      "endOffset": 214
     }
   ]
 }

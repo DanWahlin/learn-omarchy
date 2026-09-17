@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "audioHash": "7d3384a8ff7e1e10b8d3f924b671f46e00d6e2f807930a2ab8051fe8358e6059",
+  "text": "The disposable terminal is tiled again.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 310,
+      "endOffset": 14
+    },
+    {
+      "startMs": 750,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 39
+    }
+  ]
+}

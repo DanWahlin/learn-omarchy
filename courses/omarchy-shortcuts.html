@@ -25,7 +25,7 @@ a { color: inherit; } .sources { margin-top: 1.5rem; font-size: .8rem; }
 }
 </style></head><body>
 <header><h1>Learn Omarchy: shortcut reference</h1>
-<p><strong>Omarchy 4.0.3 defaults.</strong> Reviewed 2026-09-11 against the versioned sources below. Reference entries cover all 17 lessons and 101 activities.</p>
+<p><strong>Omarchy 4.0.3 defaults.</strong> Reviewed 2026-09-11 against the versioned sources below. Reference entries cover all 16 lessons and 93 activities.</p>
 <p>Super is the Windows-logo key, or Command on a Mac keyboard; Alt is Option on a Mac keyboard. Return means Enter. Hold chord keys together. Entries marked <strong>Press in order</strong> are separate key presses, not held chords; <strong>Workflow</strong> entries describe menu paths or procedures.</p>
 <p>MINUS and EQUAL name the two physical keys to the left of Backspace (codes 20 and 21), regardless of their printed labels. COMMA means the comma key.</p>
 <p><strong>Outside the guided app, shortcuts affect your real focused window and desktop, not just lesson-created windows.</strong> Save your work, use disposable windows, and inspect notifications before invoking them. Super + K shows current bindings; Enter or clicking a result executes it. Custom bindings may differ.</p>
@@ -249,21 +249,21 @@ a { color: inherit; } .sources { margin-top: 1.5rem; font-size: .8rem; }
 <dd>Prepare the harmless QR sample, select and decode it, copy the result and paste it below to compare with the sample.<small>The sample contains text, not a website; no link is opened. Requires qrencode, slurp, grim and zbarimg.</small></dd></div></dl></section>
 <section id="apps-and-upkeep">
 <h2>Apps and upkeep</h2>
-<dl><div data-step-id="upkeep-install" data-step-ids="[&quot;upkeep-install&quot;]" data-kind="workflow">
-<dt><span class="kind">Workflow: </span>Omarchy menu &gt; Install <sup><a href="#source-packages" aria-label="Omarchy 4.0.3: Other packages">[7]</a></sup></dt>
-<dd>Search Install to find software packages. Prefer official packages; review community Arch User Repository (AUR) packages more closely.<small>Installing can request your password and change the system. Inspect package details before confirming; no installation is needed to learn the menu.</small></dd></div>
-<div data-step-id="upkeep-remove" data-step-ids="[&quot;upkeep-remove&quot;]" data-kind="workflow">
-<dt><span class="kind">Workflow: </span>Omarchy menu &gt; Remove <sup><a href="#source-packages" aria-label="Omarchy 4.0.3: Other packages">[7]</a></sup></dt>
-<dd>Uninstall an unwanted package only after checking its name and the full removal list. Dependencies are software other apps need.<small>Removal may affect other software. Cancel if you do not understand the proposed changes.</small></dd></div>
-<div data-step-id="upkeep-defaults" data-step-ids="[&quot;upkeep-defaults&quot;]" data-kind="workflow">
-<dt><span class="kind">Workflow: </span>Setup &gt; Defaults <sup><a href="#source-browsers" aria-label="Omarchy 4.0.3: Browsers">[9]</a> <a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a></sup></dt>
-<dd>Choose which installed apps Omarchy launches by default. Open the Omarchy menu and search Defaults.<small>Default changes affect future launches immediately. Installing an app and making it the default are separate decisions.</small></dd></div>
-<div data-step-id="upkeep-updates" data-step-ids="[&quot;upkeep-updates&quot;]" data-kind="workflow">
-<dt><span class="kind">Workflow: </span>Omarchy menu &gt; Update <sup><a href="#source-updates" aria-label="Omarchy 4.0.3: Updates">[10]</a></sup></dt>
-<dd>Save work, review proposed changes and use the stable channel for everyday updates to Omarchy and its packages.<small>Some installations create rollback snapshots before updates. Snapshots are not independent backups of personal files.</small></dd></div>
-<div data-step-id="upkeep-recovery" data-step-ids="[&quot;upkeep-recovery&quot;]" data-kind="workflow">
-<dt><span class="kind">Workflow: </span>Update &gt; Hardware <sup><a href="#source-updates" aria-label="Omarchy 4.0.3: Updates">[10]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
-<dd>Use targeted hardware restarts only when needed. Distinguish restarting a device or updating software from resetting its configuration.<small>Network or audio restarts can interrupt calls, downloads and recordings. Back up custom settings under ~/.config before resets; do not edit packaged defaults under /usr/share/omarchy.</small></dd></div></dl></section>
+<dl><div data-step-id="upkeep-install" data-step-ids="[&quot;upkeep-install&quot;]" data-kind="chord">
+<dt>SUPER + SPACE <sup><a href="#source-packages" aria-label="Omarchy 4.0.3: Other packages">[7]</a></sup></dt>
+<dd>Open the Omarchy menu, search Install and press Enter. Prefer official packages; review community Arch User Repository (AUR) packages more closely.<small>Installing can request your password and change the system. Inspect package details before confirming; no installation is needed to learn the menu.</small></dd></div>
+<div data-step-id="upkeep-remove" data-step-ids="[&quot;upkeep-remove&quot;]" data-kind="chord">
+<dt>SUPER + SPACE <sup><a href="#source-packages" aria-label="Omarchy 4.0.3: Other packages">[7]</a></sup></dt>
+<dd>Open the Omarchy menu, search Remove and press Enter. Uninstall only after checking the package name and full dependency list.<small>Removal may affect other software. Cancel if you do not understand the proposed changes.</small></dd></div>
+<div data-step-id="upkeep-defaults" data-step-ids="[&quot;upkeep-defaults&quot;]" data-kind="chord">
+<dt>SUPER + SPACE <sup><a href="#source-browsers" aria-label="Omarchy 4.0.3: Browsers">[9]</a> <a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a></sup></dt>
+<dd>Open the Omarchy menu, search Defaults and press Enter to see which installed apps Omarchy launches by default.<small>Default changes affect future launches immediately. Installing an app and making it the default are separate decisions.</small></dd></div>
+<div data-step-id="upkeep-updates" data-step-ids="[&quot;upkeep-updates&quot;]" data-kind="chord">
+<dt>SUPER + SPACE <sup><a href="#source-updates" aria-label="Omarchy 4.0.3: Updates">[10]</a></sup></dt>
+<dd>Open the Omarchy menu, search Update and press Enter. Save work, review proposed changes and use the stable channel for everyday updates.<small>Some installations create rollback snapshots before updates. Snapshots are not independent backups of personal files.</small></dd></div>
+<div data-step-id="upkeep-recovery" data-step-ids="[&quot;upkeep-recovery&quot;]" data-kind="chord">
+<dt>SUPER + SPACE <sup><a href="#source-updates" aria-label="Omarchy 4.0.3: Updates">[10]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>Open the Omarchy menu, search Hardware and choose the result under Update to inspect targeted hardware restarts.<small>Network or audio restarts can interrupt calls, downloads and recordings. Back up custom settings under ~/.config before resets; do not edit packaged defaults under /usr/share/omarchy.</small></dd></div></dl></section>
 <section id="setup-and-install">
 <h2>Setup and system</h2>
 <dl><div data-step-id="hardware-menu" data-step-ids="[&quot;hardware-menu&quot;]" data-kind="chord">
@@ -281,75 +281,34 @@ a { color: inherit; } .sources { margin-top: 1.5rem; font-size: .8rem; }
 <div data-step-id="lock-practice" data-step-ids="[&quot;lock-practice&quot;]" data-kind="workflow">
 <dt><span class="kind">Workflow: </span>COURSE: Screen-lock practice <span class="kind">(optional activity)</span> <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
 <dd>When ready, explicitly choose the lock button, unlock with your password, then return to the course. Skip if you are not ready.<small>Opening the exercise alone does not lock the computer.</small></dd></div></dl></section>
-<section id="first-real-session">
-<h2>Your first real session</h2>
-<dl><div data-step-id="finale-intro" data-step-ids="[&quot;finale-intro&quot;]" data-kind="workflow">
-<dt><span class="kind">Workflow: </span>Short desktop workflow <sup><a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a> <a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
-<dd>On workspace one, open a terminal and browser. Focus the browser, move it to workspace two and follow. Return to one, focus and close the terminal; visit two, focus and close the browser.<small>Use disposable windows, save work and check focus before moving or closing. Native shortcuts have no course-owned-window protection.</small></dd></div>
-<div data-step-id="finale-home" data-step-ids="[&quot;finale-home&quot;,&quot;finale-back-to-one&quot;]" data-kind="chord">
-<dt>SUPER + 1 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Switch to workspace one.</dd></div>
-<div data-step-id="finale-terminal" data-step-ids="[&quot;finale-terminal&quot;]" data-kind="chord">
-<dt>SUPER + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a></sup></dt>
-<dd>Open a terminal.</dd></div>
-<div data-step-id="finale-browser" data-step-ids="[&quot;finale-browser&quot;]" data-kind="chord">
-<dt>SUPER + SHIFT + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-browsers" aria-label="Omarchy 4.0.3: Browsers">[9]</a></sup></dt>
-<dd>Launch the configured browser; its settings determine whether a new window opens.</dd></div>
-<div data-step-id="finale-send-browser" data-step-ids="[&quot;finale-send-browser&quot;]" data-kind="chord">
-<dt>SUPER + SHIFT + 2 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Move the focused window to workspace two and follow it there.<small>Focus the intended window first; this does not automatically target the browser.</small></dd></div>
-<div data-step-id="finale-close-terminal" data-step-ids="[&quot;finale-close-terminal&quot;,&quot;finale-close-browser&quot;]" data-kind="chord">
-<dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Close the focused window.<small>Save work and verify focus first. This can close existing work, not only windows from the capstone.</small></dd></div>
-<div data-step-id="finale-to-two" data-step-ids="[&quot;finale-to-two&quot;]" data-kind="chord">
-<dt>SUPER + 2 <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Switch to workspace two.</dd></div></dl></section>
 <section id="advanced-windows">
 <h2>More window controls <small>(optional)</small></h2>
-<dl><div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
-<dt>SUPER + G <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
-<dd>Toggle window grouping<small>A group holds several windows in one tile with tabs along the top. Affects the focused window; try with disposable windows first.</small></dd></div>
-<div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
-<dt>SUPER + ALT + ARROW <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Move the active window into the adjacent group<small>Use the arrow for the desired direction. Check the focused window and adjacent group before moving it.</small></dd></div>
-<div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
-<dt>SUPER + ALT + TAB <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Next window in the group<small>Add Shift for the previous window.</small></dd></div>
-<div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
-<dt>SUPER + ALT + SHIFT + TAB <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Previous window in the group.</dd></div>
-<div data-step-id="advanced-window-groups" data-step-ids="[&quot;advanced-window-groups&quot;]" data-kind="chord">
-<dt>SUPER + ALT + G <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Move the active window out of its group</dd></div>
-<div data-step-id="advanced-window-pop" data-step-ids="[&quot;advanced-window-pop&quot;]" data-kind="chord">
+<dl><div data-step-id="advanced-window-open" data-step-ids="[&quot;advanced-window-open&quot;]" data-kind="chord">
+<dt>SUPER + RETURN <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>Open the disposable terminal used by this lesson.</dd></div>
+<div data-step-id="advanced-window-pop" data-step-ids="[&quot;advanced-window-pop&quot;,&quot;advanced-window-restore&quot;]" data-kind="chord">
 <dt>SUPER + O <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
-<dd>Pop a tiled window out: float and pin<small>Start tiled. Invoke again on the pinned pop-out to unpin and retile. Pop-out also resizes and centers; pinning keeps it visible across workspaces on its display. Already-floating or independently pinned windows can behave differently.</small></dd></div>
-<div data-step-id="advanced-window-layout" data-step-ids="[&quot;advanced-window-layout&quot;]" data-kind="chord">
-<dt>SUPER + L <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a> <a href="#source-navigation" aria-label="Omarchy 4.0.3: Navigation">[2]</a></sup></dt>
-<dd>Toggle workspace layout between dwindle and scrolling<small>Persists a setting. A custom layout is not restored by toggling again. The saved setting is per-workspace; a custom layout switches to dwindle. Dwindle divides tiles; scrolling extends windows horizontally. This is not the dwindle split toggle.</small></dd></div>
-<div data-step-id="advanced-window-mouse" data-step-ids="[&quot;advanced-window-mouse&quot;]" data-kind="gesture">
-<dt><span class="kind">Mouse gesture: </span>SUPER + LEFT MOUSE DRAG <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Move a window<small>Hold Super while dragging with the left mouse button, then release both. Start with a disposable floating window; on tiled windows, the layout determines the effect.</small></dd></div>
-<div data-step-id="advanced-window-mouse" data-step-ids="[&quot;advanced-window-mouse&quot;]" data-kind="gesture">
-<dt><span class="kind">Mouse gesture: </span>SUPER + RIGHT MOUSE DRAG <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Resize a window<small>Hold Super while dragging with the right mouse button, then release both. Start with a disposable floating window; tiled layout constraints affect resizing.</small></dd></div></dl></section>
+<dd>Pop a tiled window out, or restore that pop-out to tiling.<small>Start tiled. Pop-out floats, resizes, centers, and pins the window. This lesson uses and restores only its disposable terminal.</small></dd></div>
+<div data-step-id="advanced-window-resize" data-step-ids="[&quot;advanced-window-resize&quot;]" data-kind="chord">
+<dt>SUPER + EQUAL <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Widen a floating window.<small>Use the physical key immediately left of Backspace. This lesson targets only its disposable terminal.</small></dd></div>
+<div data-step-id="advanced-window-close" data-step-ids="[&quot;advanced-window-close&quot;]" data-kind="chord">
+<dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
+<dd>Close the focused window.<small>Check focus first. This lesson verifies closure of only its disposable terminal.</small></dd></div></dl></section>
 <section id="notifications">
 <h2>Notifications <small>(optional)</small></h2>
-<dl><div data-step-id="notifications-history" data-step-ids="[&quot;notifications-history&quot;]" data-kind="chord">
+<dl><div data-step-id="notifications-practice" data-step-ids="[&quot;notifications-practice&quot;]" data-kind="chord">
 <dt>SUPER + SHIFT + ALT + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
-<dd>Open notification history</dd></div>
-<div data-step-id="notifications-history" data-step-ids="[&quot;notifications-history&quot;]" data-kind="chord">
+<dd>Open notification history.</dd></div>
+<div data-step-id="notifications-practice" data-step-ids="[&quot;notifications-practice&quot;]" data-kind="chord">
 <dt>SUPER + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
-<dd>Dismiss the latest notification<small>Affects your real notifications.</small></dd></div>
-<div data-step-id="notifications-history" data-step-ids="[&quot;notifications-history&quot;]" data-kind="chord">
-<dt>SUPER + SHIFT + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
-<dd>Dismiss all notifications<small>Affects your real notifications.</small></dd></div>
-<div data-step-id="notifications-history" data-step-ids="[&quot;notifications-history&quot;]" data-kind="chord">
+<dd>Dismiss the latest notification.<small>Affects real notifications; the course uses an isolated simulation instead.</small></dd></div>
+<div data-step-id="notifications-practice" data-step-ids="[&quot;notifications-practice&quot;]" data-kind="chord">
 <dt>SUPER + ALT + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
-<dd>Invoke the latest notification<small>May launch an app or follow a link; inspect it first.</small></dd></div>
-<div data-step-id="notifications-quiet" data-step-ids="[&quot;notifications-quiet&quot;]" data-kind="chord">
+<dd>Invoke the latest notification.<small>May launch an app or link. The course never invokes a real notification.</small></dd></div>
+<div data-step-id="notifications-practice" data-step-ids="[&quot;notifications-practice&quot;]" data-kind="chord">
 <dt>SUPER + CTRL + COMMA <sup><a href="#source-utility-bindings" aria-label="Omarchy 4.0.3: Menus, panels, capture and notification bindings">[13]</a></sup></dt>
-<dd>Toggle notification silencing<small>Changes your real preference; toggle back when finished.</small></dd></div></dl></section>
+<dd>Toggle notification silencing.<small>Changes a real preference; the course practices with a simulation that must be turned back off.</small></dd></div></dl></section>
 <section id="bar-panels">
 <h2>Desktop controls <small>(optional)</small></h2>
 <dl><div data-step-id="audio-panel" data-step-ids="[&quot;audio-panel&quot;]" data-kind="chord">
@@ -391,22 +350,22 @@ a { color: inherit; } .sources { margin-top: 1.5rem; font-size: .8rem; }
 <dt><span class="kind">Workflow: </span>COURSE: Dictation practice <sup><a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
 <dd>Check availability, enable the practice field when ready, use the dictation shortcut for &#39;Omarchy practice&#39;, stop and review the words.<small>The exercise does not start your microphone. It checks the entered sample and your review, not whether speech produced the text.</small></dd></div>
 <div data-step-id="dictation-corrections" data-step-ids="[&quot;dictation-corrections&quot;]" data-kind="workflow">
-<dt><span class="kind">Workflow: </span>Voxtype &gt; config.toml &gt; Replacements <sup><a href="#source-text-tools" aria-label="Omarchy 4.0.3: Text extraction and dictation">[6]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
-<dd>For installed Voxtype, review ~/.config/voxtype/config.toml and its commented [text] replacements example to correct recurring recognition errors.<small>Back up before edits, keep replacements specific and test a harmless phrase. Install &gt; AI &gt; Dictation installs the tool, not its configuration; Remove &gt; Dictation removes it. Replacements affect dictation, not ordinary typing.</small></dd></div></dl></section>
+<dt><span class="kind">Workflow: </span>COURSE: Dictation corrections <sup><a href="#source-text-tools" aria-label="Omarchy 4.0.3: Text extraction and dictation">[6]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a> <a href="#source-course-practice" aria-label="Learn Omarchy course practice (bundled app source)">[19]</a></sup></dt>
+<dd>Inspect whether the Voxtype config documents replacements, then apply a specific correction to a harmless simulated transcript.<small>The course reads only replacement metadata and never displays or edits the real config. A bundled sample is used when Voxtype or its config is unavailable.</small></dd></div></dl></section>
 <section id="useful-tools">
 <h2>Useful tools <small>(optional)</small></h2>
 <dl><div data-step-id="tools-monitor-open" data-step-ids="[&quot;tools-monitor-open&quot;]" data-kind="chord">
 <dt>SUPER + CTRL + T <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-guis" aria-label="Omarchy 4.0.3: Graphical tools">[11]</a></sup></dt>
 <dd>Open the activity monitor to inspect processor, memory, storage and running programs.<small>Inspect resource use without stopping programs; ending a process can lose work or interrupt services.</small></dd></div>
-<div data-step-id="tools-monitor-close" data-step-ids="[&quot;tools-monitor-close&quot;,&quot;tools-calculator-close&quot;]" data-kind="chord">
+<div data-step-id="tools-monitor-close" data-step-ids="[&quot;tools-monitor-close&quot;,&quot;tools-calculator-close&quot;,&quot;tools-disk-usage-close&quot;]" data-kind="chord">
 <dt>SUPER + W <sup><a href="#source-tiling-bindings" aria-label="Omarchy 4.0.3: Window, workspace and physical resize bindings">[12]</a></sup></dt>
-<dd>Close the focused window.<small>Check focus and save work first. Outside guided practice this can close any focused app, not only the monitor or calculator.</small></dd></div>
+<dd>Close the focused window.<small>Check focus and save work first. Guided close activities verify only lesson-owned windows.</small></dd></div>
 <div data-step-id="tools-calculator-open" data-step-ids="[&quot;tools-calculator-open&quot;]" data-kind="chord">
 <dt>SUPER + CTRL + Q <sup><a href="#source-app-bindings" aria-label="Omarchy 4.0.3: Application bindings">[14]</a> <a href="#source-guis" aria-label="Omarchy 4.0.3: Graphical tools">[11]</a></sup></dt>
 <dd>Open the calculator. Enter a simple calculation such as 5 + 5 and inspect the result.</dd></div>
-<div data-step-id="tools-disk-usage" data-step-ids="[&quot;tools-disk-usage&quot;]" data-kind="workflow">
-<dt><span class="kind">Workflow: </span>Omarchy menu &gt; Disk Usage <sup><a href="#source-guis" aria-label="Omarchy 4.0.3: Graphical tools">[11]</a></sup></dt>
-<dd>Search Disk Usage to inspect which folders consume storage before deciding what to clean.<small>Inspect, do not delete during exploration. Large folders may be important work; backups, caches and packages require different cleanup decisions.</small></dd></div></dl></section>
+<div data-step-id="tools-disk-usage-open" data-step-ids="[&quot;tools-disk-usage-open&quot;]" data-kind="workflow">
+<dt><span class="kind">Workflow: </span>COURSE: Open Disk Usage <sup><a href="#source-guis" aria-label="Omarchy 4.0.3: Graphical tools">[11]</a> <a href="#source-course-controls" aria-label="Learn Omarchy course controls (bundled app source)">[18]</a></sup></dt>
+<dd>Launch the installed dua TUI through Omarchy&#39;s terminal launcher and inspect folder sizes from /.<small>Navigate and inspect only. Do not use deletion actions; large folders may be important work.</small></dd></div></dl></section>
 <section id="create-and-share">
 <h2>Create and share <small>(optional)</small></h2>
 <dl><div data-step-id="web-app-practice" data-step-ids="[&quot;web-app-practice&quot;]" data-kind="workflow">

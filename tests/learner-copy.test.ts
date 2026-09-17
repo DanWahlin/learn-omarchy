@@ -9,6 +9,22 @@ const instruction = (id: string) => steps.get(id)!.instruction;
 const detail = (id: string) => steps.get(id)!.detail!;
 const completion = (id: string) => steps.get(id)!.completionMessage!;
 
+test("every bundled activity has instruction and completion narration references", () => {
+  for (const step of steps.values()) {
+    assert.match(step.audio ?? "", /^audio\/[\w-]+\.mp3$/, step.id);
+    if (step.completionMessage)
+      assert.match(step.completionAudio ?? "", /^audio\/[\w-]+\.mp3$/, step.id);
+  }
+});
+
+test("more window controls wraps up the hands-on terminal workflow", () => {
+  const wrapUp = course.lessons.find(lesson => lesson.id === "advanced-windows")!.wrapUp!;
+  assert.match(wrapUp.text, /opening a disposable terminal.*popping it out.*resizing it.*returning it to tiling.*closing it/);
+  assert.match(wrapUp.text, /other windows and workspace settings were left alone/);
+  assert.doesNotMatch(wrapUp.text, /groups|mouse controls|Nothing was changed|Try these later/);
+  assert.equal(wrapUp.audio, "audio/wrapup-advanced-windows.mp3");
+});
+
 test("every shortcut practice step has a concrete goal instead of a Help-button label", () => {
   for (const step of steps.values()) {
     if (!step.help) continue;
@@ -59,10 +75,6 @@ test("rehearsals and preview tools describe what they actually do", () => {
 });
 
 test("completion messages reinforce outcomes without claiming mastery or unperformed work", () => {
-  const finale = course.lessons.find(lesson => lesson.id === "first-real-session")!;
-  assert.doesNotMatch(finale.wrapUp!.text, /without touching the mouse|you did every/);
-  assert.match(finale.wrapUp!.text, /Super and K/);
-  assert.equal(steps.has("finale-graduate"), false);
   for (const step of steps.values()) {
     assert.doesNotMatch(step.completionMessage || "",
       /more.*than most people|Spotless|status crew|You completed the real task/);
@@ -123,9 +135,9 @@ test("essential cautions and keyboard alternatives are in the spoken instruction
   assert.match(instruction("capture-native-workflow"), /No Print key/);
   assert.match(instruction("dictation-practice"), /don't need an F9 key/);
   assert.match(instruction("upkeep-install"), /don't install anything/);
-  assert.match(instruction("upkeep-defaults"), /keep your current settings/);
-  assert.match(instruction("upkeep-updates"), /not running an update/);
-  assert.match(instruction("upkeep-recovery"), /don't restart anything/);
+  assert.match(instruction("upkeep-defaults"), /don't change one/);
+  assert.match(instruction("upkeep-updates"), /don't select one/);
+  assert.match(instruction("upkeep-recovery"), /don't select one/);
   assert.match(completion("open-root-menu"), /course will close it when you continue/);
   assert.doesNotMatch(completion("open-root-menu"), /Release Keys|Capture Keys/);
   assert.match(instruction("clipboard-practice"), /Shift and Enter to copy it without pasting/);
@@ -168,8 +180,6 @@ test("secondary notes are concise and keep important cautions visible", () => {
   assert.match(steps.get("clipboard-practice")!.note!, /replaces your clipboard/);
   assert.match(steps.get("lock-practice")!.note!, /password/);
   assert.match(steps.get("capture-practice")!.note!, /not private windows/);
-  assert.equal(steps.get("finale-to-two")!.note, undefined);
-  assert.equal(steps.get("finale-to-two")!.detail, undefined);
 });
 
 test("hardware orientation describes Trigger controls and warns before opening", () => {
@@ -209,7 +219,7 @@ test("native recordings describe combined inputs using the actual menu labels", 
 
 test("native search cancellation clears entered text before closing", () => {
   const cancellationCopy = [
-    detail("clipboard-history"), detail("upkeep-defaults"), detail("helpers-reminder"),
+    detail("clipboard-history"), detail("helpers-reminder"),
     completion("helpers-reminder"), steps.get("helpers-reminder")!.note!, detail("share-menu")
   ];
   for (const text of cancellationCopy) {
@@ -219,13 +229,11 @@ test("native search cancellation clears entered text before closing", () => {
 });
 
 test("dictation replacements use the installed configuration, not a nonexistent setup menu", () => {
-  assert.match(instruction("dictation-corrections"), /No edits for this lesson/);
-  assert.match(instruction("dictation-corrections"), /back up the file first/);
+  assert.match(instruction("dictation-corrections"), /without exposing or editing/);
   assert.match(detail("dictation-corrections"), /~\/\.config\/voxtype\/config\.toml/);
-  assert.match(detail("dictation-corrections"), /commented \[text\] replacements example/);
-  assert.match(detail("dictation-corrections"), /Install > AI > Dictation installs the tool; it isn't a configuration menu/);
-  assert.match(detail("dictation-corrections"), /Remove > Dictation removes it/);
-  assert.doesNotMatch(detail("dictation-corrections"), /Find dictation setup/);
+  assert.match(detail("dictation-corrections"), /missing, unreadable, or lacks the example/);
+  assert.match(steps.get("dictation-corrections")!.note!, /read-only/);
+  assert.equal(steps.get("dictation-corrections")!.practice, "dictation-corrections");
 });
 
 test("workspace orientation allows the active marker to replace the number", () => {

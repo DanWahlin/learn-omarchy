@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "audioHash": "4df7c7e46a32d6e1a9e9ad807746c7d0c82ab2d6c39ffa232cd205a43510a28c",
+  "text": "You inspected Update and closed the menu without running an update.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 13
+    },
+    {
+      "startMs": 910,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 31
+    },
+    {
+      "startMs": 2230,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 67
+    }
+  ]
+}

@@ -1,123 +1,123 @@
 {
   "version": 1,
-  "audioHash": "4d28d7e1c463bc929c4d92a28280bf0862a11d663ce578ff6696f81b956b5437",
-  "text": "You've been introduced to groups, pop-out windows, workspace layouts, and mouse controls. Nothing was changed for you. Try these later with disposable windows, and keep the printable reference nearby.",
+  "audioHash": "47dc6210194462378703bfb4379f6b3afe771bb57e35ec85396358085b26d9cd",
+  "text": "Nice work. You've practiced opening a disposable terminal, popping it out, resizing it, returning it to tiling, and closing it. Your other windows and workspace settings were left alone.",
   "words": [
     {
       "startMs": 70,
-      "endOffset": 6
-    },
-    {
-      "startMs": 310,
-      "endOffset": 11
+      "endOffset": 4
     },
     {
       "startMs": 470,
-      "endOffset": 22
+      "endOffset": 10
     },
     {
-      "startMs": 990,
-      "endOffset": 25
-    },
-    {
-      "startMs": 1150,
-      "endOffset": 33
+      "startMs": 1390,
+      "endOffset": 17
     },
     {
       "startMs": 1830,
-      "endOffset": 41
+      "endOffset": 27
     },
     {
-      "startMs": 2270,
-      "endOffset": 50
+      "startMs": 2389,
+      "endOffset": 35
     },
     {
-      "startMs": 3030,
-      "endOffset": 60
+      "startMs": 2829,
+      "endOffset": 37
     },
     {
-      "startMs": 3750,
+      "startMs": 2869,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 66
+    },
+    {
+      "startMs": 4750,
       "endOffset": 69
     },
     {
-      "startMs": 4350,
-      "endOffset": 73
+      "startMs": 4910,
+      "endOffset": 74
     },
     {
-      "startMs": 4630,
-      "endOffset": 79
+      "startMs": 5430,
+      "endOffset": 83
     },
     {
-      "startMs": 4950,
-      "endOffset": 89
+      "startMs": 6150,
+      "endOffset": 87
     },
     {
-      "startMs": 5950,
+      "startMs": 6510,
       "endOffset": 97
     },
     {
-      "startMs": 6470,
-      "endOffset": 101
-    },
-    {
-      "startMs": 6670,
-      "endOffset": 109
+      "startMs": 7070,
+      "endOffset": 100
     },
     {
       "startMs": 7150,
-      "endOffset": 113
+      "endOffset": 103
     },
     {
       "startMs": 7270,
-      "endOffset": 118
+      "endOffset": 111
     },
     {
-      "startMs": 8229,
-      "endOffset": 122
+      "startMs": 7990,
+      "endOffset": 115
     },
     {
-      "startMs": 8590,
-      "endOffset": 128
+      "startMs": 8189,
+      "endOffset": 123
     },
     {
-      "startMs": 8870,
-      "endOffset": 134
+      "startMs": 8670,
+      "endOffset": 127
     },
     {
-      "startMs": 9389,
-      "endOffset": 139
+      "startMs": 9590,
+      "endOffset": 132
     },
     {
-      "startMs": 9670,
+      "startMs": 9910,
+      "endOffset": 138
+    },
+    {
+      "startMs": 10149,
+      "endOffset": 146
+    },
+    {
+      "startMs": 10670,
       "endOffset": 150
     },
     {
-      "startMs": 10350,
-      "endOffset": 159
+      "startMs": 10830,
+      "endOffset": 160
     },
     {
-      "startMs": 11030,
-      "endOffset": 163
+      "startMs": 11430,
+      "endOffset": 169
     },
     {
-      "startMs": 11309,
-      "endOffset": 168
+      "startMs": 12110,
+      "endOffset": 174
     },
     {
-      "startMs": 11590,
-      "endOffset": 172
+      "startMs": 12270,
+      "endOffset": 179
     },
     {
-      "startMs": 11750,
-      "endOffset": 182
-    },
-    {
-      "startMs": 12229,
-      "endOffset": 192
-    },
-    {
-      "startMs": 12750,
-      "endOffset": 200
+      "startMs": 12590,
+      "endOffset": 186
     }
   ]
 }

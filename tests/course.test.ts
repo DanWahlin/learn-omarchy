@@ -87,6 +87,10 @@ test("bundled course is valid and covers the core curriculum", async () => {
   assert.ok(
     (result.course?.lessons.reduce((total, lesson) => total + lesson.steps.length, 0) ?? 0) >= 18,
   );
+  const coreLessons = result.course!.lessons.filter(lesson => !lesson.optional);
+  assert.deepEqual(coreLessons.map(lesson => lesson.icon),
+    coreLessons.map((_lesson, index) => String(index + 1).padStart(2, "0")));
+  assert.ok(result.course!.lessons.filter(lesson => lesson.optional).every(lesson => lesson.icon === "+"));
 
   const barPanels = result.course?.lessons.find((lesson) => lesson.id === "bar-panels");
   assert.ok(barPanels);
@@ -150,6 +154,11 @@ test("bundled course is valid and covers the core curriculum", async () => {
     ["helpers-reminder", "SUPER + CTRL + R"],
     ["capture-menu", "SUPER + CTRL + C"],
     ["share-menu", "SUPER + CTRL + S"],
+    ["upkeep-install", "SUPER + SPACE"],
+    ["upkeep-remove", "SUPER + SPACE"],
+    ["upkeep-defaults", "SUPER + SPACE"],
+    ["upkeep-updates", "SUPER + SPACE"],
+    ["upkeep-recovery", "SUPER + SPACE"],
     ["hardware-menu", "SUPER + CTRL + H"],
     ["display-panel", "SUPER + CTRL + D"],
     ["system-menu", "SUPER + ESCAPE"],
@@ -157,14 +166,12 @@ test("bundled course is valid and covers the core curriculum", async () => {
     ["tools-monitor-close", "SUPER + W"],
     ["tools-calculator-open", "SUPER + CTRL + Q"],
     ["tools-calculator-close", "SUPER + W"],
-    ["finale-home", "SUPER + 1"],
-    ["finale-terminal", "SUPER + RETURN"],
-    ["finale-browser", "SUPER + SHIFT + RETURN"],
-    ["finale-send-browser", "SUPER + SHIFT + 2"],
-    ["finale-back-to-one", "SUPER + 1"],
-    ["finale-close-terminal", "SUPER + W"],
-    ["finale-to-two", "SUPER + 2"],
-    ["finale-close-browser", "SUPER + W"],
+    ["advanced-window-open", "SUPER + RETURN"],
+    ["advanced-window-pop", "SUPER + O"],
+    ["advanced-window-resize", "SUPER + EQUAL"],
+    ["advanced-window-restore", "SUPER + O"],
+    ["advanced-window-close", "SUPER + W"],
+    ["tools-disk-usage-close", "SUPER + W"],
   ]);
   const allSteps = result.course?.lessons.flatMap((lesson) => lesson.steps) ?? [];
   const tourSteps = allSteps.filter((step) => step.kind === "tour");
@@ -177,8 +184,11 @@ test("bundled course is valid and covers the core curriculum", async () => {
       (step) => step.completion.type === "narration-complete" && typeof step.audio === "string",
     ),
   );
-  const keyedSteps = allSteps.filter((step) => !step.kind);
+  const keyedSteps = allSteps.filter((step) => !step.kind && step.keys.length > 0);
   assert.ok(keyedSteps.every((step) => step.keys.length > 0), "every non-tour activity teaches a real hotkey");
+  const buttonSteps = allSteps.filter((step) => !step.kind && step.keys.length === 0);
+  assert.ok(buttonSteps.every((step) => step.actionLabel && step.help?.command.length),
+    "keyless activities must run an explicit verifiable action");
 
   assert.equal(keyedSteps?.length, expectedShortcuts.size);
   keyedSteps?.forEach((step) => {
@@ -202,9 +212,11 @@ test("bundled course is valid and covers the core curriculum", async () => {
     ["windows-close-one", "windows-open-second"],
     ["windows-close-two", "windows-open-first"],
     ["workspaces-send", "workspaces-open-terminal"],
-    ["finale-send-browser", "finale-browser"],
-    ["finale-close-terminal", "finale-terminal"],
-    ["finale-close-browser", "finale-browser"],
+    ["advanced-window-pop", "advanced-window-open"],
+    ["advanced-window-resize", "advanced-window-open"],
+    ["advanced-window-restore", "advanced-window-open"],
+    ["advanced-window-close", "advanced-window-open"],
+    ["tools-disk-usage-close", "tools-disk-usage-open"],
   ]);
   for (const [stepId, launchId] of windowTargets) {
     assert.equal(allSteps.find((step) => step.id === stepId)?.windowFromStep, launchId);
@@ -213,7 +225,7 @@ test("bundled course is valid and covers the core curriculum", async () => {
 
 test("tutorial window references must name an earlier launch in the same lesson", async () => {
   const json = await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8");
-  for (const reference of [undefined, "", "missing", "launch-files", "close-terminal", "finale-terminal"]) {
+  for (const reference of [undefined, "", "missing", "launch-files", "close-terminal", "windows-open-first"]) {
     const { course } = parseCourseJson(json);
     assert.ok(course);
     const step = course.lessons.flatMap((lesson) => lesson.steps)
@@ -250,7 +262,7 @@ test("every window mutation and focus step is bound to an owned launch and exact
   const { course } = await loadStep("windows-float");
   const protectedSteps = course.lessons.flatMap((lesson) => lesson.steps)
     .filter((step) => step.help?.command.some((part) => /hl\.dsp\.(window\.(close|float|fullscreen|move)|focus\(\{ window)/.test(part)));
-  assert.ok(protectedSteps.length >= 17);
+  assert.ok(protectedSteps.length >= 14);
   for (const step of protectedSteps) {
     assert.ok(step.windowFromStep, step.id);
     assert.ok(step.help?.command.some((part) => part.includes('window = "{tutorialWindow}"')), step.id);
@@ -271,7 +283,6 @@ test("semantic outcomes verify focus, float, fullscreen, and the destination wor
     ["windows-float", { floating: true }, 'action = "enable"'],
     ["windows-fullscreen", { fullscreen: true }, 'action = "set"'],
     ["workspaces-send", { workspace: 2, focused: true }, 'workspace = "2"'],
-    ["finale-send-browser", { workspace: 2, focused: true }, 'workspace = "2"'],
   ] as const) {
     const { step } = await loadStep(id);
     assert.equal(step.completion.type, "hyprland-event");
@@ -285,11 +296,11 @@ test("semantic outcomes verify focus, float, fullscreen, and the destination wor
 test("all protected steps reject missing, later, nonlaunch, self, or cross-lesson references", async () => {
   const { course } = await loadStep("windows-float");
   const protectedSteps = course.lessons.flatMap((lesson) => lesson.steps).filter((step) => step.windowFromStep);
-  assert.ok(protectedSteps.length >= 18);
+  assert.ok(protectedSteps.length >= 15);
   for (const step of protectedSteps) {
     const original = step.windowFromStep;
-    const foreignLaunch = step.id.startsWith("finale-") ? "windows-open-first" : "finale-terminal";
-    for (const reference of [undefined, "", 12, "missing", step.id, "finale-graduate", foreignLaunch]) {
+    const foreignLaunch = step.id.startsWith("close-") ? "windows-open-first" : "launch-terminal";
+    for (const reference of [undefined, "", 12, "missing", step.id, "not-a-launch", foreignLaunch]) {
       Object.assign(step, { windowFromStep: reference });
       assert.ok(validateCourse(course).some((error) => error.includes("windowFromStep")), `${step.id}: ${reference}`);
     }
@@ -303,7 +314,8 @@ test("all protected steps reject missing, later, nonlaunch, self, or cross-lesso
 test("window state validation rejects malformed values, unsupported fields, and wrong ownership", async () => {
   for (const state of [
     null, [], true, "", {}, { minimized: true },
-    { floating: "true" }, { floating: 1 }, { fullscreen: null }, { focused: 0 },
+    { floating: "true" }, { floating: 1 }, { pinned: "true" }, { pinned: 1 },
+    { fullscreen: null }, { focused: 0 },
     { workspace: 0 }, { workspace: 11 }, { workspace: 1.5 }, { workspace: "2" },
     { workspace: NaN }, { workspace: Infinity }, { workspace: undefined }, { swapped: false },
     { floating: true, fullscreen: false, typo: true },
@@ -324,9 +336,9 @@ test("window state validation rejects malformed values, unsupported fields, and 
 
 test("window state accepts explicit true and false and workspace boundaries", async () => {
   for (const state of [
-    { floating: false }, { fullscreen: false }, { focused: false },
-    { floating: true, fullscreen: true, focused: true, workspace: 1 },
-    { floating: false, fullscreen: false, focused: false, workspace: 10 },
+    { floating: false }, { pinned: false }, { fullscreen: false }, { focused: false },
+    { floating: true, pinned: true, fullscreen: true, focused: true, workspace: 1 },
+    { floating: false, pinned: false, fullscreen: false, focused: false, workspace: 10 },
   ]) {
     const { course, step } = await loadStep("windows-float");
     Object.assign(step.completion, { windowState: state });
@@ -387,7 +399,14 @@ test("bundled file launch filters Nautilus but configurable terminal and browser
   const configurable = course.lessons.flatMap((lesson) => lesson.steps)
     .filter((step) => step.help?.command[0] === "omarchy" &&
       ["terminal", "browser"].includes(step.help.command[2] ?? ""));
-  assert.equal(configurable.length, 7);
+  assert.deepEqual(configurable.map((step) => step.id), [
+    "launch-terminal",
+    "launch-browser",
+    "windows-open-first",
+    "windows-open-second",
+    "workspaces-open-terminal",
+    "advanced-window-open",
+  ]);
   for (const step of configurable) {
     assert.equal(step.completion.type, "hyprland-window-activated");
     if (step.completion.type === "hyprland-window-activated") {
@@ -402,7 +421,8 @@ test("bundled highlights select semantic windows, panels, and workspace destinat
     if (step.kind) continue;
     const completion = step.completion;
     assert.ok(step.highlight.target, step.id);
-    if (completion.type === "hyprland-layer-open") assert.equal(step.highlight.target, "panel", step.id);
+    if (completion.type === "hyprland-layer-open" || completion.type === "hyprland-layer-closed")
+      assert.equal(step.highlight.target, "panel", step.id);
     if (completion.type === "hyprland-window-activated") assert.equal(step.highlight.target, "window", step.id);
     if (completion.type === "hyprland-workspace-is") {
       assert.equal(step.highlight.target, "workspace", step.id);
@@ -472,7 +492,7 @@ test("semantic highlights validate target and workspace IDs while preserving geo
 test("hands-on tasks are verified exercises and optional activities don't block the core", async () => {
   const { course } = await loadStep("clipboard-practice");
   const practices = course.lessons.flatMap(lesson => lesson.steps).filter(step => step.kind === "practice");
-  assert.deepEqual(practices.map(step => step.practice).sort(), ["app-search", "capture", "clipboard", "compose", "dictation", "ocr", "qr", "screen-lock", "screen-recording", "sharing", "transcode", "web-app"]);
+  assert.deepEqual(practices.map(step => step.practice).sort(), ["app-search", "capture", "clipboard", "compose", "dictation", "dictation-corrections", "notifications", "ocr", "qr", "screen-lock", "screen-recording", "sharing", "transcode", "web-app"]);
   for (const step of practices) {
     assert.equal(step.completion.type, "practice-result");
     assert.deepEqual(step.keys, []);

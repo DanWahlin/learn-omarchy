@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "audioHash": "7c3298fdbef6c13bdb634603445de3b5c36742d46f770070e49167c9423ce2c7",
+  "text": "Press Super and W to close the practice terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 11
+    },
+    {
+      "startMs": 710,
+      "endOffset": 15
+    },
+    {
+      "startMs": 870,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 30
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 49
+    }
+  ]
+}

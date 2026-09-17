@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "audioHash": "8cf552e9da6ecb63da801d16aa67dc22a5c026abe735441fffae1fbdb05be8fb",
+  "text": "You handled the controlled sample and restored simulated quiet mode. Your real notification state never changed.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 230,
+      "endOffset": 11
+    },
+    {
+      "startMs": 550,
+      "endOffset": 15
+    },
+    {
+      "startMs": 670,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1070,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 37
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2110,
+      "endOffset": 56
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 62
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 68
+    },
+    {
+      "startMs": 3710,
+      "endOffset": 73
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 78
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 91
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 97
+    },
+    {
+      "startMs": 5150,
+      "endOffset": 103
+    },
+    {
+      "startMs": 5470,
+      "endOffset": 112
+    }
+  ]
+}

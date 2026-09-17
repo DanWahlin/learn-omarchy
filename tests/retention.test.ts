@@ -58,7 +58,7 @@ test("printable reference is generated from explicit source and retains each les
   const html = renderCheatSheet(course);
   assert.equal(await readFile(new URL("../courses/omarchy-shortcuts.html", import.meta.url), "utf8"), html);
   const entries = shortcutSections(course).flatMap(section => section.entries);
-  for (const stepId of ["windows-resize", "windows-resize-back", "windows-split", "notifications-history", "advanced-window-mouse"])
+  for (const stepId of ["windows-resize", "windows-resize-back", "windows-split", "notifications-practice", "advanced-window-resize"])
     assert.ok(entries.some(entry => entry.stepIds.includes(stepId)), stepId);
   assert.match(html, /@media print/);
   assert.match(html, /window\.print\(\)/);

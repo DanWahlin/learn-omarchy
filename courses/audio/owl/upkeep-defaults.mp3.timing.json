@@ -1,131 +1,143 @@
 {
   "version": 1,
-  "audioHash": "9153ce98fc11b260a21a8f543939d7d468badf75f00b38a10a244a2e06ac8f0a",
-  "text": "Setup, Defaults is where you choose which apps Omarchy opens. For now, just note the location; keep your current settings. Installing an app and making it the default are separate decisions.",
+  "audioHash": "09a186e5f7ccd25168cfd5ad48d09baaa622203a430314a14d0a1c7178b527cb",
+  "text": "Press Super and Space, type Defaults, then press Enter. Look at the kinds of default apps you can choose, but don't change one. Installing an app and making it the default are separate decisions.",
   "words": [
     {
       "startMs": 70,
-      "endOffset": 6
+      "endOffset": 5
     },
     {
-      "startMs": 790,
+      "startMs": 350,
+      "endOffset": 11
+    },
+    {
+      "startMs": 870,
       "endOffset": 15
     },
     {
-      "startMs": 1550,
-      "endOffset": 18
+      "startMs": 1070,
+      "endOffset": 22
     },
     {
-      "startMs": 1750,
-      "endOffset": 24
+      "startMs": 1910,
+      "endOffset": 27
     },
     {
-      "startMs": 1950,
-      "endOffset": 28
+      "startMs": 2270,
+      "endOffset": 37
     },
     {
-      "startMs": 2110,
-      "endOffset": 35
+      "startMs": 3030,
+      "endOffset": 42
     },
     {
-      "startMs": 2469,
-      "endOffset": 41
+      "startMs": 3309,
+      "endOffset": 48
     },
     {
-      "startMs": 2829,
-      "endOffset": 46
-    },
-    {
-      "startMs": 3190,
-      "endOffset": 54
-    },
-    {
-      "startMs": 3829,
-      "endOffset": 61
+      "startMs": 3590,
+      "endOffset": 55
     },
     {
       "startMs": 4870,
-      "endOffset": 65
+      "endOffset": 60
     },
     {
       "startMs": 5150,
-      "endOffset": 70
+      "endOffset": 63
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 67
+    },
+    {
+      "startMs": 5390,
+      "endOffset": 73
     },
     {
       "startMs": 5710,
-      "endOffset": 75
+      "endOffset": 76
     },
     {
-      "startMs": 5990,
-      "endOffset": 80
-    },
-    {
-      "startMs": 6230,
+      "startMs": 5830,
       "endOffset": 84
     },
     {
-      "startMs": 6390,
-      "endOffset": 94
+      "startMs": 6270,
+      "endOffset": 89
     },
     {
-      "startMs": 7270,
-      "endOffset": 99
+      "startMs": 6670,
+      "endOffset": 93
     },
     {
-      "startMs": 7550,
-      "endOffset": 104
+      "startMs": 6790,
+      "endOffset": 97
     },
     {
-      "startMs": 7710,
-      "endOffset": 112
+      "startMs": 6990,
+      "endOffset": 105
     },
     {
-      "startMs": 8069,
+      "startMs": 7590,
+      "endOffset": 109
+    },
+    {
+      "startMs": 7790,
+      "endOffset": 115
+    },
+    {
+      "startMs": 8109,
       "endOffset": 122
     },
     {
+      "startMs": 8469,
+      "endOffset": 127
+    },
+    {
       "startMs": 9270,
-      "endOffset": 133
+      "endOffset": 138
     },
     {
       "startMs": 9990,
-      "endOffset": 136
+      "endOffset": 141
     },
     {
-      "startMs": 10350,
-      "endOffset": 140
+      "startMs": 10110,
+      "endOffset": 145
     },
     {
       "startMs": 10510,
-      "endOffset": 144
+      "endOffset": 149
     },
     {
       "startMs": 10670,
-      "endOffset": 151
+      "endOffset": 156
     },
     {
       "startMs": 11030,
-      "endOffset": 154
+      "endOffset": 159
     },
     {
       "startMs": 11110,
-      "endOffset": 158
+      "endOffset": 163
     },
     {
-      "startMs": 11229,
-      "endOffset": 166
+      "startMs": 11270,
+      "endOffset": 171
     },
     {
       "startMs": 11910,
-      "endOffset": 170
+      "endOffset": 175
     },
     {
-      "startMs": 12110,
-      "endOffset": 179
+      "startMs": 12069,
+      "endOffset": 184
     },
     {
-      "startMs": 12549,
-      "endOffset": 190
+      "startMs": 12510,
+      "endOffset": 195
     }
   ]
 }

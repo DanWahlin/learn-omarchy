@@ -1,155 +1,143 @@
 {
   "version": 1,
-  "audioHash": "ac42758a89e6caf2494fd9913855156257cfaf6bd42fa11bf69b4448ea38e9e8",
-  "text": "Install is available from the Omarchy menu. Just note the location; don't install anything for this lesson. A package is installable software. Prefer official packages. Community packages from the Arch User Repository, or AUR, need closer review.",
+  "audioHash": "61104929329e1c9781f04b4d6a12be5048abc0e97c525b1ae7e91090163a6957",
+  "text": "Press Super and Space, type Install, then press Enter. Look at the available installation types, but don't install anything. Prefer official packages; community packages from the Arch User Repository, or AUR, need closer review.",
   "words": [
     {
-      "startMs": 30,
-      "endOffset": 7
+      "startMs": 70,
+      "endOffset": 5
     },
     {
-      "startMs": 830,
-      "endOffset": 10
+      "startMs": 390,
+      "endOffset": 11
     },
     {
-      "startMs": 1030,
-      "endOffset": 20
+      "startMs": 870,
+      "endOffset": 15
     },
     {
-      "startMs": 1550,
-      "endOffset": 25
+      "startMs": 1070,
+      "endOffset": 22
     },
     {
-      "startMs": 1750,
-      "endOffset": 29
+      "startMs": 1910,
+      "endOffset": 27
     },
     {
-      "startMs": 1950,
-      "endOffset": 37
+      "startMs": 2309,
+      "endOffset": 36
     },
     {
-      "startMs": 2550,
-      "endOffset": 43
+      "startMs": 3110,
+      "endOffset": 41
     },
     {
-      "startMs": 2869,
-      "endOffset": 48
+      "startMs": 3389,
+      "endOffset": 47
     },
     {
-      "startMs": 3550,
-      "endOffset": 53
+      "startMs": 3710,
+      "endOffset": 54
     },
     {
-      "startMs": 3869,
-      "endOffset": 57
+      "startMs": 4870,
+      "endOffset": 59
     },
     {
-      "startMs": 3989,
-      "endOffset": 67
+      "startMs": 5190,
+      "endOffset": 62
     },
     {
-      "startMs": 4990,
-      "endOffset": 73
+      "startMs": 5310,
+      "endOffset": 66
     },
     {
-      "startMs": 5390,
-      "endOffset": 81
+      "startMs": 5430,
+      "endOffset": 76
     },
     {
-      "startMs": 5910,
-      "endOffset": 90
-    },
-    {
-      "startMs": 6390,
-      "endOffset": 94
-    },
-    {
-      "startMs": 6510,
-      "endOffset": 99
+      "startMs": 5950,
+      "endOffset": 89
     },
     {
       "startMs": 6750,
-      "endOffset": 107
+      "endOffset": 96
     },
     {
-      "startMs": 7870,
-      "endOffset": 109
+      "startMs": 7350,
+      "endOffset": 100
     },
     {
-      "startMs": 8109,
-      "endOffset": 117
+      "startMs": 7630,
+      "endOffset": 106
     },
     {
-      "startMs": 8709,
-      "endOffset": 120
+      "startMs": 7950,
+      "endOffset": 114
     },
     {
-      "startMs": 8910,
-      "endOffset": 132
+      "startMs": 8430,
+      "endOffset": 124
     },
     {
-      "startMs": 9670,
-      "endOffset": 142
+      "startMs": 9309,
+      "endOffset": 131
     },
     {
-      "startMs": 10549,
-      "endOffset": 149
+      "startMs": 9910,
+      "endOffset": 140
     },
     {
-      "startMs": 11190,
-      "endOffset": 158
+      "startMs": 10389,
+      "endOffset": 150
     },
     {
-      "startMs": 11750,
-      "endOffset": 168
+      "startMs": 11229,
+      "endOffset": 160
     },
     {
-      "startMs": 13110,
+      "startMs": 11910,
+      "endOffset": 169
+    },
+    {
+      "startMs": 12469,
+      "endOffset": 174
+    },
+    {
+      "startMs": 12629,
       "endOffset": 178
     },
     {
-      "startMs": 13750,
-      "endOffset": 187
+      "startMs": 12790,
+      "endOffset": 183
     },
     {
-      "startMs": 14430,
-      "endOffset": 192
+      "startMs": 13190,
+      "endOffset": 188
     },
     {
-      "startMs": 14629,
-      "endOffset": 196
+      "startMs": 13469,
+      "endOffset": 200
     },
     {
-      "startMs": 14830,
-      "endOffset": 201
+      "startMs": 14389,
+      "endOffset": 203
     },
     {
-      "startMs": 15190,
-      "endOffset": 206
+      "startMs": 14709,
+      "endOffset": 208
     },
     {
-      "startMs": 15590,
-      "endOffset": 218
+      "startMs": 15670,
+      "endOffset": 213
+    },
+    {
+      "startMs": 16070,
+      "endOffset": 220
     },
     {
       "startMs": 16470,
-      "endOffset": 221
-    },
-    {
-      "startMs": 17550,
-      "endOffset": 226
-    },
-    {
-      "startMs": 17670,
-      "endOffset": 231
-    },
-    {
-      "startMs": 17950,
-      "endOffset": 238
-    },
-    {
-      "startMs": 18350,
-      "endOffset": 246
+      "endOffset": 228
     }
   ]
 }

@@ -512,6 +512,27 @@ test("unavailable dictation tools return guidance without starting a microphone"
       cwd: directory, encoding: "utf8", env: { ...process.env, PATH: directory },
       input: '{"action":"check"}\n', timeout: 5000,
     });
+
+    test("dictation correction inspection never edits or exposes the real config", async () => {
+      const directory = await mkdtemp(resolve("tests/.dictation-config-"));
+      try {
+        const configDirectory = join(directory, ".config", "voxtype");
+        await mkdir(configDirectory, { recursive: true });
+        const config = join(configDirectory, "config.toml");
+        const secret = '# [text]\n# replacements = { "cube control" = "kubectl" }\napi_key = "do-not-display"\n';
+        await writeFile(config, secret);
+        const result = spawnSync(process.execPath, [resolve("tools/capture-practice.mjs"), "--session", "dictation-corrections"], {
+          cwd: directory, encoding: "utf8", env: { ...process.env, HOME: directory }, input: '{"action":"inspect"}\n',
+        });
+        assert.equal(result.status, 0, result.stderr);
+        const response = JSON.parse(result.stdout);
+        assert.deepEqual(response, { action: "inspect", source: "config", replacementsDocumented: true });
+        assert.equal(await readFile(config, "utf8"), secret);
+        assert.doesNotMatch(result.stdout + result.stderr, /api_key|do-not-display|cube control/);
+      } finally {
+        await rm(directory, { recursive: true, force: true });
+      }
+    });
     assert.equal(result.status, 0, result.stderr);
     const response = JSON.parse(result.stdout);
     assert.match(response.error, /voxtype is unavailable.*skip/);

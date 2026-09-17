@@ -415,7 +415,7 @@ Item {
           root.practiceHintVisible = true
           wait(1)
           compare(fixture.instructionText.text, step.instruction, step.id)
-          verify(fixture.keycaps.visible, step.id)
+          compare(fixture.keycaps.visible, step.keys.length > 0, step.id)
           count++
         }
       }
@@ -571,7 +571,7 @@ Item {
           }
         }
       }
-      compare(checked, 303)
+      compare(checked, 93 * 3)
     }
 
     function test_recoveryIsNeverHiddenByCompactTour() {

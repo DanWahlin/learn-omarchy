@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "9b64d2d0638acfa07762a0e6fc269f1ebe9f173444ed0ed0cbdb901609724331",
+  "text": "When you have inspected the list, press Super and W to close Disk Usage.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 230,
+      "endOffset": 8
+    },
+    {
+      "startMs": 350,
+      "endOffset": 13
+    },
+    {
+      "startMs": 510,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1150,
+      "endOffset": 27
+    },
+    {
+      "startMs": 1270,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1870,
+      "endOffset": 39
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2789,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 65
+    },
+    {
+      "startMs": 4670,
+      "endOffset": 72
+    }
+  ]
+}

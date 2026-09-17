@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "audioHash": "7a06bfdb711284e8d0695f37acf34ac89983682e3d064cc9a79cd0ed0fca618e",
+  "text": "Hold Super and press the key immediately left of Backspace, normally equals, to widen the floating practice terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 350,
+      "endOffset": 10
+    },
+    {
+      "startMs": 950,
+      "endOffset": 14
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 24
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 40
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 45
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 48
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3949,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4470,
+      "endOffset": 76
+    },
+    {
+      "startMs": 5350,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5550,
+      "endOffset": 85
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 89
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 98
+    },
+    {
+      "startMs": 6630,
+      "endOffset": 107
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 117
+    }
+  ]
+}

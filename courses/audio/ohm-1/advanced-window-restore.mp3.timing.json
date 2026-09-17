@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "2fea7f3384183a43effe5ac5c49e209bef9549a7889f9a53cd4af041579f22e8",
+  "text": "Press Super and O again to unpin and retile the practice terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 350,
+      "endOffset": 11
+    },
+    {
+      "startMs": 750,
+      "endOffset": 15
+    },
+    {
+      "startMs": 950,
+      "endOffset": 17
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1590,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2349,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2989,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 56
+    },
+    {
+      "startMs": 3510,
+      "endOffset": 66
+    }
+  ]
+}

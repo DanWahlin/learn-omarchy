@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "21efae69517b2f570bba37ede809ea4dec5ebb06da10323e9be6495ee82fb95b",
+  "text": "The lesson-owned terminal changed width. No existing window was resized.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 16
+    },
+    {
+      "startMs": 870,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1510,
+      "endOffset": 33
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 40
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 43
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 59
+    },
+    {
+      "startMs": 4430,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4630,
+      "endOffset": 72
+    }
+  ]
+}

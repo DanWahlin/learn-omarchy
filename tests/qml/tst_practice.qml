@@ -440,7 +440,7 @@ Item {
     }
     function test_allModesStartIncomplete_data() {
       var rows = []
-      for (var mode of ["compose", "screen-recording", "ocr", "qr", "dictation", "web-app", "transcode", "sharing"]) {
+      for (var mode of ["compose", "screen-recording", "ocr", "qr", "dictation", "dictation-corrections", "notifications", "web-app", "transcode", "sharing"]) {
         rows.push({ tag: mode, mode: mode, width: 760, scale: 1 })
         rows.push({ tag: mode + "-narrow-large", mode: mode, width: 460, scale: 1.3 })
       }
@@ -541,6 +541,41 @@ Item {
       verify(!practice.verified)
       review.clicked()
       verify(practice.verified)
+    }
+    function test_dictationCorrectionUsesMetadataAndA_specificSimulation() {
+      practice.mode = "dictation-corrections"
+      findChild(practice, "inspectDictationCorrections").clicked()
+      compare(taskSpy.signalArguments[0][0], "inspect")
+      practice.handleTaskResult({ action: "inspect", source: "sample", replacementsDocumented: false })
+      var choice = findChild(practice, "dictationCorrectionChoice")
+      choice.currentIndex = 2
+      findChild(practice, "applyDictationCorrection").clicked()
+      verify(!practice.verified)
+      choice.currentIndex = 1
+      findChild(practice, "applyDictationCorrection").clicked()
+      verify(practice.verified)
+      practice.resetExercise()
+      verify(!practice.verified)
+      verify(!practice.correctionApplied)
+      compare(choice.currentIndex, 0)
+    }
+    function test_notificationPracticeRestoresSimulatedQuietMode() {
+      practice.mode = "notifications"
+      findChild(practice, "showSampleNotification").clicked()
+      findChild(practice, "openSampleNotificationHistory").clicked()
+      findChild(practice, "dismissSampleNotification").clicked()
+      var quiet = findChild(practice, "toggleSampleQuiet")
+      quiet.clicked()
+      verify(practice.simulatedQuiet)
+      verify(!practice.verified)
+      quiet.clicked()
+      verify(!practice.simulatedQuiet)
+      verify(practice.verified)
+      compare(taskSpy.count, 0, "Notification practice never calls a host helper")
+      practice.resetExercise()
+      verify(!practice.verified)
+      verify(!practice.simulatedQuiet)
+      verify(!practice.simulatedQuietSeen)
     }
     function test_webAppRequiresPreviewThenRemoval() {
       practice.mode = "web-app"

@@ -15,23 +15,24 @@ test("native course launch commands classify without executing launch-or-focus s
     ["terminal", ["omarchy-launch-terminal"]],
     ["browser", ["omarchy", "launch", "browser"]],
     ["browser", ["omarchy-launch-browser"]],
+    ["activity", ["omarchy", "launch", "tui", "--app-id=org.learn-omarchy.toolbox", "btop"]],
     ["activity", ["omarchy-launch-or-focus-tui", "btop"]],
     ["activity", ["btop"]],
-    ["activity", ["xdg-terminal-exec", "btop"]],
-    ["activity", ["xdg-terminal-exec", "-e", "btop"]],
-    ["activity", ["xdg-terminal-exec", "--app-id=org.learn-omarchy.toolbox", "--title=Learn Omarchy activity", "-e", "btop"]],
+    ["disk-usage", ["omarchy", "launch", "tui", "--app-id=org.learn-omarchy.disk-usage", "dua", "i", "/"]],
   ];
   for (const [kind, command] of forms) {
     assert.equal(classifyLaunchCommand(command), kind);
     const parsed = parseArguments(["--token", token, "--detach", "--", ...command]);
     assert.deepEqual(parsed, { kind, token, detach: true });
     const plan = await prepareLaunch(parsed, dependencies());
-    assert.notEqual(plan.executable, command[0]);
-    if (kind === "activity") assert.deepEqual(plan.args.slice(-2), ["-e", "btop"]);
+    assert.equal(plan.executable, kind === "browser" ? "/opt/google/chrome/chrome" : "omarchy");
+    if (kind === "activity") assert.deepEqual(plan.args, ["launch", "tui", `--app-id=${plan.appId}`, "btop"]);
+    if (kind === "disk-usage") assert.deepEqual(plan.args, ["launch", "tui", `--app-id=${plan.appId}`, "dua", "i", "/"]);
   }
   for (const command of [
     [], ["omarchy", "launch", "files"], ["omarchy-launch-or-focus-tui", "btop; echo unsafe"],
-    ["omarchy-launch-or-focus-tui", "btop", "--other"], ["xdg-terminal-exec", "-e", "sh"],
+    ["omarchy-launch-or-focus-tui", "btop", "--other"], ["xdg-terminal-exec", "-e", "btop"],
+    ["omarchy", "launch", "tui", "--app-id=other", "btop"],
     ["env", "NAME=value", "omarchy", "launch", "terminal"], ["btop", "extra"],
   ]) assert.throws(() => classifyLaunchCommand(command), /Unsupported tutorial launch command/);
   assert.throws(() => parseArguments(["--kind", "browser", "--token", token, "--", "btop"]), /does not match/);
@@ -40,17 +41,29 @@ test("native course launch commands classify without executing launch-or-focus s
 test("the current course activity monitor command uses the safe activity adapter", async () => {
   const course = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
   const monitor = course.lessons.flatMap((lesson: any) => lesson.steps).find((step: any) => step.id === "tools-monitor-open");
+  assert.deepEqual(monitor.help.command, ["omarchy", "launch", "tui", "--app-id=org.learn-omarchy.toolbox", "btop"]);
   assert.equal(classifyLaunchCommand(monitor.help.command), "activity");
 });
 
-function dependencies(terminal = "/usr/bin/ghostty\0--gtk-single-instance=true\0", browser = "/usr/bin/google-chrome-stable %U") {
+test("Disk Usage uses Omarchy's owned TUI launcher with the installed dua command", async () => {
+  const course = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
+  const disk = course.lessons.flatMap((lesson: any) => lesson.steps).find((step: any) => step.id === "tools-disk-usage-open");
+  assert.deepEqual(disk.help.command, [
+    "omarchy", "launch", "tui", "--app-id=org.learn-omarchy.disk-usage", "dua", "i", "/",
+  ]);
+  assert.equal(classifyLaunchCommand(disk.help.command), "disk-usage");
+  const plan = await prepareLaunch({ kind: "disk-usage", token }, dependencies());
+  assert.equal(plan.executable, "omarchy");
+  assert.deepEqual(plan.args, ["launch", "tui", `--app-id=${plan.appId}`, "dua", "i", "/"]);
+});
+
+function dependencies(browser = "/usr/bin/google-chrome-stable %U") {
   const calls: unknown[][] = [];
   return {
     calls,
     env: { HOME: "/home/test user", PATH: "/usr/bin", BROWSER: "untrusted-browser", LEARN_OMARCHY_WINDOW_TOKEN: "older-parent-token" },
     query: (command: string, args: string[], env: Record<string, string>) => {
       calls.push([command, args, env]);
-      if (command === "xdg-terminal-exec") return terminal;
       assert.equal(command, "xdg-settings");
       assert.deepEqual(args, ["get", "default-web-browser"]);
       assert.equal(env.BROWSER, undefined);
@@ -96,32 +109,27 @@ test("desktop Exec parser handles spaces without shell evaluation and rejects am
   ]) assert.throws(() => desktopCommand(entry));
 });
 
-test("Ghostty launches a fresh instance with a unique activity class and usable initial character size", async () => {
+test("terminal and activity launches delegate configured terminal selection to Omarchy", async () => {
   const deps = dependencies();
   const normal = await prepareLaunch(options, deps);
-  assert.equal(normal.executable, "/usr/bin/ghostty");
-  assert.ok(normal.args.includes("--gtk-single-instance=false"));
-  assert.ok(!normal.args.includes("--gtk-single-instance=true"));
+  assert.equal(normal.executable, "omarchy");
   assert.equal(normal.appId, `org.learn-omarchy.terminal.t${token}`);
-  assert.ok(normal.args.includes(`--class=${normal.appId}`));
+  assert.deepEqual(normal.args, ["launch", "terminal"]);
   const monitor = await prepareLaunch({ ...options, kind: "activity" }, deps);
+  assert.equal(monitor.executable, "omarchy");
   assert.equal(monitor.appId, `org.learn-omarchy.activity.t${token}`);
-  assert.ok(monitor.args.includes("--window-width=120"));
-  assert.ok(monitor.args.includes("--window-height=36"));
-  assert.deepEqual(monitor.args.slice(-2), ["-e", "btop"]);
-  assert.deepEqual(deps.calls[0]?.slice(0, 2), ["xdg-terminal-exec", ["--print-cmd=\\0"]]);
+  assert.deepEqual(monitor.args, ["launch", "tui", `--app-id=${monitor.appId}`, "btop"]);
+  assert.deepEqual(deps.calls, []);
   assert.equal(deps.env.LEARN_OMARCHY_WINDOW_TOKEN, "older-parent-token");
 });
 
-test("Foot uses a fresh process, not footclient; unsupported terminal configuration fails closed", async () => {
-  const plan = await prepareLaunch({ ...options, kind: "activity" }, dependencies("/usr/bin/foot\0"));
-  assert.deepEqual(plan.args, [`--app-id=${plan.appId}`, "--title=Learn Omarchy activity", "--window-size-chars=120x36", "btop"]);
-  for (const command of [
-    "/usr/bin/footclient\0", "/usr/bin/foot\0--server\0",
-    "/usr/bin/ghostty\0-e\0sh\0", "/usr/bin/ghostty\0--config-file=/unknown\0",
-    "/usr/bin/unknown-terminal\0", "/usr/bin/ghostty\n--gtk-single-instance=true\n",
-  ]) await assert.rejects(prepareLaunch(options, dependencies(command)), /no supported independent launch adapter/);
-  await assert.rejects(prepareLaunch(options, { ...dependencies(), query: () => { throw new Error("not installed"); } }), /Cannot resolve/);
+test("terminal launches fail explicitly when the Omarchy interface is unavailable", async () => {
+  await assert.rejects(prepareLaunch(options, {
+    ...dependencies(),
+    executable: async command => {
+      throw new Error(`Required executable is unavailable: ${command}`);
+    },
+  }), /unavailable: omarchy/);
 });
 
 test("browser resolves the configured desktop safely and bypasses profile-reusing wrapper scripts", async () => {
@@ -133,7 +141,7 @@ test("browser resolves the configured desktop safely and bypasses profile-reusin
   assert.equal(plan.args.at(-1), "about:blank");
   assert.equal(plan.args.some((arg: string) => arg.startsWith("--user-data-dir")), false);
   assert.ok(deps.calls.some(call => call[1] === "/home/test user/.local/share/applications/google-chrome.desktop"));
-  const chromium = await prepareLaunch({ ...options, kind: "browser" }, dependencies(undefined, "chromium %U"));
+  const chromium = await prepareLaunch({ ...options, kind: "browser" }, dependencies("chromium %U"));
   assert.equal(chromium.executable, "/usr/lib/chromium/chromium");
   await assert.rejects(prepareLaunch({ ...options, kind: "browser" }, {
     ...deps, executable: async () => { throw new Error("Required executable is unavailable"); },
@@ -146,7 +154,7 @@ test("unknown browsers, shell launchers, custom profiles and unsafe desktop IDs 
     "/custom/chromium %U", "chromium --user-data-dir=/home/user/profile",
     "chromium --remote-debugging-port=9222", '"/path with spaces/google-chrome" %U',
     "chromium https://example.com", "sh -c chromium", "chromium %i",
-  ]) await assert.rejects(prepareLaunch({ ...options, kind: "browser" }, dependencies(undefined, browser)), /no supported isolated launch adapter/);
+  ]) await assert.rejects(prepareLaunch({ ...options, kind: "browser" }, dependencies(browser)), /no supported isolated launch adapter/);
   for (const id of ["../evil.desktop", "/etc/evil.desktop", "chrome.desktop\nother.desktop", "chrome.desktop;evil"]) {
     await assert.rejects(prepareLaunch({ ...options, kind: "browser" }, {
       ...dependencies(), query: () => id, readFile: async () => assert.fail("Invalid desktop ID must not read files"),
@@ -197,6 +205,7 @@ test("isolated profiles are private, unique, argument-safe and removed only afte
           assert.equal(spawnOptions.env.LEARN_OMARCHY_WINDOW_TOKEN, token);
           assert.equal(spawnOptions.env.CHROME_USER_FLAGS, undefined);
           const profile = args[0]!.slice("--user-data-dir=".length);
+          assert.equal(args[1], `--learn-omarchy-window-token=${token}`);
           assert.equal(spawnOptions.env.XDG_CONFIG_HOME, profile);
           observed.push(profile);
           const child = new EventEmitter();
@@ -394,11 +403,11 @@ test("a real environment-only IPC worker survives the short launcher parent exit
   });
 });
 
-test("real detached CLI relays an unsupported resolver error without desktop launches", () => {
+test("real detached CLI reports a missing Omarchy interface without desktop launches", () => {
   const child = spawnSync(process.execPath, [
     "tools/tutorial-launch.mjs", "--kind", "terminal", "--token", token, "--detach",
   ], { env: { ...process.env, PATH: "/nonexistent-tutorial-test-bin" }, encoding: "utf8", timeout: 3000 });
   assert.equal(child.status, 2, child.stderr);
   assert.equal(child.stdout, "");
-  assert.match(JSON.parse(child.stderr).error, /Cannot resolve the configured terminal safely/);
+  assert.match(JSON.parse(child.stderr).error, /Required executable is unavailable: omarchy/);
 });

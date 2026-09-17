@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "audioHash": "2346a4f15997babdf60a3b5ad3761cdc0f7ffe7a81be2c9a3d6129fe4a4a2ab9",
+  "text": "You inspected Defaults and closed the menu without changing your settings.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 13
+    },
+    {
+      "startMs": 870,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1830,
+      "endOffset": 33
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2309,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2670,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3030,
+      "endOffset": 59
+    },
+    {
+      "startMs": 3469,
+      "endOffset": 64
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 74
+    }
+  ]
+}

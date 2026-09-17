@@ -1,6 +1,6 @@
 import { spawn } from "node:child_process";
 import { mkdir, mkdtemp, readFile, writeFile, rm, rmdir, stat } from "node:fs/promises";
-import { join, resolve } from "node:path";
+import { isAbsolute, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
 
@@ -70,6 +70,7 @@ export const sessionActions = {
   ocr: ["extract"],
   qr: ["prepare", "extract"],
   dictation: ["check"],
+  "dictation-corrections": ["inspect"],
   "web-app": ["create", "open", "remove"],
   transcode: ["prepare", "convert"],
   sharing: ["prepare"],
@@ -192,6 +193,21 @@ export async function practiceSession(mode) {
         } else if (mode === "dictation") {
           await run("voxtype", ["--version"]);
           result = { available: true };
+        } else if (mode === "dictation-corrections") {
+          const home = process.env.HOME;
+          const config = home && isAbsolute(home) ? join(home, ".config", "voxtype", "config.toml") : "";
+          let source = "sample";
+          let replacementsDocumented = false;
+          try {
+            if (!config) throw Object.assign(new Error("No home directory"), { code: "ENOENT" });
+            const text = await readFile(config, "utf8");
+            source = "config";
+            replacementsDocumented = /^\s*(?:#\s*)?\[text\]\s*$/m.test(text) &&
+              /^\s*(?:#\s*)?replacements\s*=/m.test(text);
+          } catch (error) {
+            if (error.code !== "ENOENT" && error.code !== "ENOTDIR" && error.code !== "EACCES") throw error;
+          }
+          result = { source, replacementsDocumented };
         } else if (mode === "web-app") {
           if (action === "create") {
             await writeFile(path("demo.desktop"), "[Desktop Entry]\nType=Link\nName=Omarchy practice demo\nURL=https://example.org\n", { flag: "wx", mode: 0o600 });

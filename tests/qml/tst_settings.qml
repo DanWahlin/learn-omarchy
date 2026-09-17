@@ -528,7 +528,7 @@ Item {
       var buttons = root.descendants(fixture.controls, function(item) {
         return "icon" in item && item.visible
       })
-      compare(buttons.length, 7)
+      compare(buttons.length, 6)
       for (var button of buttons) {
         verify(button.icon !== "")
         verify(button.label !== "")
@@ -644,9 +644,9 @@ Item {
       compare(root.button("RELEASE KEYS").icon, "keyboard")
       root.keyboardExclusive = false
       compare(root.button("CAPTURE KEYS").icon, "keyboard-off")
-      compare(root.button("PAUSE").icon, "pause")
+      compare(root.button("PAUSE"), null)
       root.phase = "paused"
-      compare(root.button("RESUME").icon, "play")
+      compare(root.button("RESUME"), null)
       root.phase = "settings"
       compare(root.button("DONE").icon, "")
     }

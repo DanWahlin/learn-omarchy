@@ -43,12 +43,12 @@ Item {
     // A session is single-use: a fresh Loader also isolates delayed callbacks.
     if (lifecycle !== "idle") return
     lifecycle = "running"
-    if (["clipboard", "capture", "screen-lock", "compose", "screen-recording", "ocr", "qr", "dictation", "web-app", "transcode", "sharing"].indexOf(mode) === -1) {
+    if (["clipboard", "capture", "screen-lock", "compose", "screen-recording", "ocr", "qr", "dictation", "dictation-corrections", "notifications", "web-app", "transcode", "sharing"].indexOf(mode) === -1) {
       failureMessage = "Unsupported practice activity. Return to your coach and choose another activity."
       closePractice("failed")
       return
     }
-    if (["screen-recording", "ocr", "qr", "dictation", "web-app", "transcode", "sharing"].indexOf(mode) !== -1) {
+    if (["screen-recording", "ocr", "qr", "dictation", "dictation-corrections", "web-app", "transcode", "sharing"].indexOf(mode) !== -1) {
       taskPending = true
       taskProcess.running = true
     }

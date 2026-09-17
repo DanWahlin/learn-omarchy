@@ -12,7 +12,7 @@ const luaAvailable = spawnSync("lua", ["-v"], { encoding: "utf8" }).status === 0
 
 test("workspace moves focus only the owned target and refuse missing or unfocused targets",
   { skip: !luaAvailable }, () => {
-    assert.equal(moves.length, 3);
+    assert.deepEqual(moves.map((step) => step.id), ["workspaces-send", "workspaces-restore"]);
     for (const step of moves) {
       assert.ok(step.help);
       const command = step.help.command[2].replaceAll("{tutorialWindow}", "address:0xaaa");

@@ -142,6 +142,10 @@ function runtime(stepId: string, reducedMotion = true) {
     tourDetailsExpanded: false,
     readingWordsPerMinute: 200,
     narrationRestMs: 900,
+    selectedLessonIndex: lessonIndex,
+    optionalLessonsExpanded: false,
+    coreLessonCount: course.lessons.filter(lesson => !lesson.optional).length,
+    optionalLessonCount: course.lessons.filter(lesson => lesson.optional).length,
     menuWheelRemainder: 0,
     menuPointerX: NaN,
     menuPointerY: NaN,
@@ -891,6 +895,28 @@ test("lesson list uses a fixed draggable scrollbar", () => {
   assert.doesNotMatch(shell, /y: lessonList\.height \* \(lessonList\.contentY/);
 });
 
+test("optional lessons are collapsed behind an accessible section by default", () => {
+  const state = runtime("launch-terminal");
+  state.phase = "menu";
+  assert.equal(state.optionalLessonsExpanded, false);
+  state.selectedLessonIndex = state.coreLessonCount - 1;
+  state.moveMenuSelection(1);
+  assert.equal(state.selectedLessonIndex, state.coreLessonCount - 1);
+  state.setOptionalLessonsExpanded(true);
+  state.moveMenuSelection(1);
+  assert.equal(state.selectedLessonIndex, state.coreLessonCount);
+  state.setOptionalLessonsExpanded(false);
+  assert.equal(state.selectedLessonIndex, state.coreLessonCount - 1);
+  assert.match(shell, /text: "OPTIONAL LESSONS  ·  " \+ root\.optionalLessonCount/);
+  assert.match(shell, /text: root\.optionalLessonsExpanded \? "▾" : "▸"/);
+  assert.match(shell, /selectedLessonIndex === root\.coreLessonCount - 1[\s\S]*?optionalSection\.y \+ optionalSection\.height/);
+  assert.match(shell, /function revealOptionalSection\(\)[\s\S]*?optionalSection\.y \+ optionalSection\.height \+ 12/);
+  assert.match(shell, /event\.key === Qt\.Key_O\) toggleOptionalLessons/);
+  state.toggleOptionalLessons();
+  assert.equal(state.optionalLessonsExpanded, true);
+  assert.equal(state.selectedLessonIndex, state.coreLessonCount);
+});
+
 test("arcade preserves corrupt and newer-version files instead of overwriting them", () => {
   for (const content of ["{bad", "[]", "null", '{"version":99}']) {
     const { state } = arcadeRuntime();
@@ -1606,6 +1632,15 @@ test("a new-window event grants close permission only after process ownership is
   }
 });
 
+test("lesson-owned app launch steps recapture keys before teaching the shortcut", () => {
+  for (const step of ["launch-terminal", "launch-browser"]) {
+    const state = runtime(step);
+    state.keyboardExclusive = false;
+    state.startCurrentStep();
+    assert.equal(state.keyboardExclusive, true, step);
+  }
+});
+
 test("an open event can establish ownership after focus detection started", () => {
   const state = runtime("launch-terminal");
   state.runStepAction("help");
@@ -1762,58 +1797,6 @@ test("each close action targets its declared launch, not the most recent window"
   }
 });
 
-test("finale verifies and closes the terminal and browser independently", () => {
-  const state = runtime("finale-close-terminal");
-  state.rememberTutorialWindow("111", "finale-terminal");
-  state.rememberTutorialWindow("222", "finale-browser");
-  state.runStepAction("help");
-  assert.match(state.helpProcess.command[2], /address:0x111/);
-  state.handleHyprlandEvent({ name: "closewindow", data: "111" });
-  assert.equal(state.layerCompletionFeedbackTimer.running, true);
-  assert.equal(state.tutorialWindowsByStep["finale-terminal"], undefined);
-  assert.equal(state.tutorialWindowsByStep["finale-browser"], "0x222");
-  state.helpProcess.running = false;
-  state.stepIndex += 2;
-  state.startCurrentStep();
-  state.runStepAction("shortcut");
-  assert.match(state.helpProcess.command[2], /address:0x222/);
-  state.handleHyprlandEvent({ name: "closewindow", data: "222" });
-  assert.equal(state.layerCompletionFeedbackTimer.running, true);
-  assert.equal(state.tutorialWindows.length, 0);
-});
-
-test("closing another tutorial window doesn't complete the current activity", () => {
-  const state = runtime("finale-close-terminal");
-  state.rememberTutorialWindow("111", "finale-terminal");
-  state.rememberTutorialWindow("222", "finale-browser");
-  state.armHelpDetection();
-  state.handleHyprlandEvent({ name: "closewindow", data: "222" });
-  assert.equal(state.layerCompletionFeedbackTimer.running, false);
-  assert.equal(state.currentTutorialWindow(), "0x111");
-});
-
-test("missing targets never fall back to another tracked or reused window", () => {
-  const state = runtime("finale-close-terminal");
-  state.rememberTutorialWindow("111", "finale-terminal");
-  state.rememberTutorialWindow("222", "finale-browser");
-  state.forgetTutorialWindow("111");
-  state.rememberTutorialWindow("111", "another-launch");
-  state.runStepAction("help");
-  assert.equal(state.helpProcess.running, false);
-  assert.equal(state.currentTutorialWindow(), "");
-  state.armHelpDetection();
-  state.handleHyprlandEvent({ name: "closewindow", data: "111" });
-  assert.equal(state.layerCompletionFeedbackTimer.running, false);
-});
-
-test("resetting a lesson clears both window ownership indexes", () => {
-  const state = runtime("finale-close-terminal");
-  state.rememberTutorialWindow("111", "finale-terminal");
-  state.resetLessonRuntime();
-  assert.equal(state.tutorialWindows.length, 0);
-  assert.equal(Object.keys(state.tutorialWindowsByStep).length, 0);
-});
-
 test("course reload while Settings is open discards its paused-lesson return target", () => {
   const state = runtime("launch-terminal");
   state.openSettings("settings");
@@ -1958,6 +1941,7 @@ test("highlight timing guarantees dwell from the visible result", () => {
 test("wheel selection advances by lesson, including the final rows and list boundaries", () => {
   const state = runtime("launch-terminal");
   state.phase = "menu";
+  state.optionalLessonsExpanded = true;
   const lastIndex = state.course.lessons.length - 1;
   state.selectedLessonIndex = lastIndex - 3;
   state.scrollMenuSelection(-120, 0);
@@ -2216,6 +2200,52 @@ test("a reference generated after leaving the picker cannot interrupt the lesson
   assert.equal(state.referenceBrowsing, false);
   assert.equal(state.keyboardExclusive, true);
   assert.match(state.retentionNotice, /saved at.*shortcuts\.html/);
+});
+
+test("Display uses standard Qt shortcut keys and waits for the panel to open", () => {
+  const state = runtime("display-panel");
+  Object.assign(state.Qt, {
+    Key_A: 65, Key_Z: 90, Key_Meta: 0x01000022, Key_Control: 0x01000021,
+    NoModifier: 0, MetaModifier: 0x10000000, ControlModifier: 0x04000000,
+    AltModifier: 0x08000000, ShiftModifier: 0x02000000,
+  });
+  state.shortcutInhibitionActive = true;
+  state.startCurrentStep();
+  assert.equal(state.keyboardExclusive, true);
+  const modifiers = state.Qt.MetaModifier | state.Qt.ControlModifier;
+  state.handleKeyPressed({
+    key: state.Qt.Key_Meta, modifiers: state.Qt.MetaModifier, isAutoRepeat: false,
+  });
+  state.handleKeyPressed({
+    key: state.Qt.Key_Control, modifiers, isAutoRepeat: false,
+  });
+  assert.equal(state.helpProcess.running, false, "modifiers alone cannot trigger Display");
+  const event = {
+    key: 68,
+    modifiers,
+    isAutoRepeat: false,
+    accepted: false,
+  };
+  state.handleKeyPressed(event);
+  assert.equal(event.accepted, true);
+  assert.equal(state.activeKeys.SUPER, true);
+  assert.equal(state.activeKeys.CTRL, true);
+  assert.equal(state.activeKeys.D, true);
+  assert.equal(state.keyboardExclusive, true);
+  assert.equal(state.stepAssisted, false);
+  assert.equal(state.helpProcess.running, true);
+  assert.deepEqual(Array.from(state.helpProcess.command),
+    ["omarchy-shell", "shell", "summon", "omarchy.monitor"]);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false,
+    "recognizing the shortcut isn't proof the panel opened");
+  state.updateActiveKeys(event, false);
+  assert.equal(state.activeKeys.D, undefined);
+  state.helpProcess.running = false;
+  state.helpExited(0);
+  assert.equal(state.layerCompletionFeedbackTimer.running, false);
+  state.handleHyprlandEvent({ name: "openlayer", data: "omarchy-keyboard-panel" });
+  assert.equal(state.layerCompletionFeedbackTimer.running, true);
+  assert.equal(state.stepOwnsCleanupSurface, true);
 });
 
 test("resize outcomes require a before snapshot and a real owned-window size change", () => {
@@ -2479,18 +2509,18 @@ test("Back navigates without automatically repeating a desktop action", () => {
 });
 
 test("window recovery returns to the dependent step after the learner relaunches", () => {
-  const state = runtime("finale-close-terminal");
+  const state = runtime("windows-close-one");
   state.startCurrentStep();
-  assert.equal(state.recoveryStepId, "finale-terminal");
+  assert.equal(state.recoveryStepId, "windows-open-second");
   assert.match(state.recoveryMessage, /isn't available/);
   assert.match(shell, /text: root\.recoveryMessage/);
   state.recoverTutorialWindow();
-  assert.equal(state.currentStep.id, "finale-terminal");
+  assert.equal(state.currentStep.id, "windows-open-second");
   assert.equal(state.helpProcess.running, false);
-  state.rememberTutorialWindow("111", "finale-terminal");
+  state.rememberTutorialWindow("111", "windows-open-second");
   state.phase = "highlight";
   state.advance();
-  assert.equal(state.currentStep.id, "finale-close-terminal");
+  assert.equal(state.currentStep.id, "windows-close-one");
   assert.equal(state.currentTutorialWindow(), "0x111");
 });
 
@@ -2526,13 +2556,14 @@ test("mute stops both sound channels immediately and persists the preference", (
 });
 
 test("window state matching requires the intended state, workspace, and focus", () => {
-  const state = runtime("finale-close-terminal");
-  const client = { mapped: true, hidden: false, floating: true, fullscreen: 2, workspace: { id: 2 }, focusHistoryID: 0 };
+  const state = runtime("windows-float");
+  const client = { mapped: true, hidden: false, floating: true, pinned: true, fullscreen: 2, workspace: { id: 2 }, focusHistoryID: 0 };
   state.currentWorkspaceId = () => 2;
   assert.equal(state.matchesWindowState(client, { workspace: 2, focused: true }), true);
   assert.equal(state.matchesWindowState(client, { workspace: 1 }), false);
   assert.equal(state.matchesWindowState(client, { floating: false }), false);
-  assert.equal(state.matchesWindowState(client, { floating: true, fullscreen: true }), true);
+  assert.equal(state.matchesWindowState(client, { floating: true, pinned: true, fullscreen: true }), true);
+  assert.equal(state.matchesWindowState(client, { pinned: false }), false);
   state.currentWorkspaceId = () => 1;
   assert.equal(state.matchesWindowState(client, { workspace: 2, focused: true }), false);
 });
@@ -4419,6 +4450,18 @@ test("cleanup resolves owned targets and refuses a missing target", () => {
   assert.equal(commands.length, 1);
 });
 
+test("leaving a lesson closes only its verified owned windows through the Lua API", () => {
+  const state = runtime("advanced-window-pop");
+  const commands: string[][] = [];
+  state.Quickshell.execDetached = (command: string[]) => commands.push(command);
+  state.tutorialWindows = ["0x111", "not-an-address", "0x222"];
+  state.closeOwnedTutorialWindows();
+  assert.deepEqual(JSON.parse(JSON.stringify(commands)), [
+    ["hyprctl", "eval", 'hl.dispatch(hl.dsp.window.close({ window = "address:0x111" }))'],
+    ["hyprctl", "eval", 'hl.dispatch(hl.dsp.window.close({ window = "address:0x222" }))'],
+  ]);
+});
+
 test("desktop panels complete and clean up only after this activity opens them", () => {
   const state = runtime("open-root-menu");
   const commands: string[][] = [];
@@ -4436,6 +4479,66 @@ test("desktop panels complete and clean up only after this activity opens them",
   assert.equal(state.comboTriggered, true);
   state.runCleanup();
   assert.equal(commands.length, 1);
+});
+
+for (const stepId of [
+  "upkeep-install", "upkeep-remove", "upkeep-defaults", "upkeep-updates", "upkeep-recovery",
+]) {
+  test(`menu inspection cleanup requires ownership: ${stepId}`, () => {
+    for (const cleanup of ["runCleanup", "resetLessonRuntime"]) {
+      const state = runtime(stepId);
+      const commands: string[][] = [];
+      state.Quickshell.execDetached = (command: string[]) => commands.push(command);
+
+      assert.equal(state.stepOwnsCleanupSurface, false);
+      state[cleanup]();
+      assert.equal(commands.length, 0, `${cleanup} must preserve a pre-existing menu`);
+
+      state.runStepAction("help");
+      assert.equal(state.stepOwnsCleanupSurface, true);
+      state[cleanup]();
+      assert.deepEqual(JSON.parse(JSON.stringify(commands)), [
+        ["omarchy", "menu", "close"],
+      ], `${cleanup} must still close a menu opened by the activity`);
+    }
+  });
+}
+
+test("menu inspection completes only after the learner opens and closes the menu", () => {
+  const actionState = runtime("upkeep-install");
+  actionState.runStepAction("help");
+  assert.equal(actionState.keyboardExclusive, false, "menu search must receive the learner's typing");
+  assert.equal(actionState.stepOwnsCleanupSurface, true);
+  assert.ok(actionState.layerCloseReadyAt > Date.now());
+
+  const state = runtime("upkeep-install");
+  const namespace = state.currentStep.completion.namespace;
+
+  state.handleHyprlandEvent({ name: "openlayer", data: namespace });
+  state.handleHyprlandEvent({ name: "closelayer", data: namespace });
+  assert.equal(state.stepOwnsCleanupSurface, false);
+  assert.equal(state.comboTriggered, false);
+
+  state.shortcutArmedUntil = Date.now() + 1000;
+  state.handleHyprlandEvent({ name: "openlayer", data: namespace });
+  assert.equal(state.stepOwnsCleanupSurface, true);
+  assert.equal(state.comboTriggered, false);
+
+  state.handleHyprlandEvent({ name: "closelayer", data: namespace });
+  assert.equal(state.layerCloseCompletionTimer.running, true);
+  assert.equal(state.comboTriggered, false);
+  state.shortcutArmedUntil = 0;
+  state.handleHyprlandEvent({ name: "openlayer", data: namespace });
+  assert.equal(state.layerCloseCompletionTimer.running, false, "a route remap isn't final closure");
+  state.handleHyprlandEvent({ name: "closelayer", data: namespace });
+  const { stepId } = state.layerCloseCompletionTimer;
+  state.layerCloseReadyAt = Date.now() - 1;
+  state.finishLayerCloseCheck(JSON.stringify({
+    monitor: { levels: { "3": [{ namespace: "omarchy-menu" }] } },
+  }), stepId, namespace);
+  assert.equal(state.comboTriggered, false, "a mapped route remains open");
+  state.finishLayerCloseCheck(JSON.stringify({ monitor: { levels: { "3": [] } } }), stepId, namespace);
+  assert.equal(state.comboTriggered, true);
 });
 
 test("the delayed Apps launch notice is dismissed once rather than polled", () => {

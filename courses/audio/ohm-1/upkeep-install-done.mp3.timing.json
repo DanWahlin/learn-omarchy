@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "audioHash": "359e67f9b6e2738d356ebc6fe35856e32f142a13604a26e7fb3a5e802b7ca260",
+  "text": "You inspected Install and closed the menu without changing the system.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 13
+    },
+    {
+      "startMs": 670,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1310,
+      "endOffset": 32
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 36
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 58
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 62
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 70
+    }
+  ]
+}

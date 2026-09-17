@@ -264,6 +264,7 @@ ShellRoot {
     cancelIntro()
     stopAudio()
     runCleanup()
+    closeOwnedTutorialWindows()
   }
 
   CharacterPackStore {
@@ -591,6 +592,10 @@ ShellRoot {
   property var course: null
   property int lessonIndex: -1
   property int selectedLessonIndex: 0
+  property bool optionalLessonsExpanded: false
+  onOptionalLessonsExpandedChanged: {
+    if (phase === "menu") Qt.callLater(lessonList.revealOptionalSection)
+  }
   property real menuWheelRemainder: 0
   property real menuPointerX: NaN
   property real menuPointerY: NaN
@@ -635,6 +640,7 @@ ShellRoot {
   property string pendingActionStepId: ""
   property int pendingActionGeneration: -1
   property bool stepOwnsCleanupSurface: false
+  property double layerCloseReadyAt: 0
   property int actionGeneration: 0
   property int actionProcessGeneration: -1
   property bool keyboardFocused: false
@@ -800,6 +806,7 @@ ShellRoot {
   }
 
   onSelectedLessonIndexChanged: {
+    if (course && selectedLessonIndex >= coreLessonCount) optionalLessonsExpanded = true
     // The picker is a single column now; no lateral hop between cards.
     var nextColumn = 0
     var crossesColumn = nextColumn !== characterMenuColumn
@@ -838,6 +845,7 @@ ShellRoot {
     return count
   }
   readonly property int coreLessonCount: course ? course.lessons.filter(function(lesson) { return !lesson.optional }).length : 0
+  readonly property int optionalLessonCount: course ? course.lessons.length - coreLessonCount : 0
   readonly property int coreCompletedCount: course ? course.lessons.filter(function(lesson) {
     return !lesson.optional && lessonCompleted(lesson)
   }).length : 0
@@ -2331,15 +2339,16 @@ ShellRoot {
     )
   }
 
-  // Steps verified by a generic Hyprland event only count the event once the
-  // taught keys (or Help) have been seen, so unrelated desktop activity
-  // doesn't complete them.
+  // Steps verified by a generic Hyprland event normally require the taught
+  // keys (or Help). Address-bearing events for the exact lesson-owned window
+  // are independently trustworthy when key capture has been released.
   function usesArmedDetection() {
     return Boolean(
       currentStep &&
       currentStep.completion &&
       (currentStep.completion.type === "hyprland-window-activated" ||
         currentStep.completion.type === "hyprland-layer-open" ||
+        currentStep.completion.type === "hyprland-layer-closed" ||
         currentStep.completion.type === "hyprland-event")
     )
   }
@@ -2382,6 +2391,46 @@ ShellRoot {
     comboTriggered = true
     setCharacterState("celebrate", "STEP COMPLETE")
     layerCompletionFeedbackTimer.restart()
+  }
+
+  function finishLayerCloseCompletion(stepId, namespace) {
+    if (phase === "waiting" && currentStep &&
+        currentStep.id === stepId &&
+        currentStep.completion.type === "hyprland-layer-closed" &&
+        currentStep.completion.namespace === namespace &&
+        stepOwnsCleanupSurface) {
+      restoreActionKeyboard()
+      confirmDetectedShortcut()
+    }
+  }
+
+  function finishLayerCloseCheck(raw, stepId, namespace) {
+    if (phase !== "waiting" || !currentStep || currentStep.id !== stepId ||
+        currentStep.completion.type !== "hyprland-layer-closed" ||
+        currentStep.completion.namespace !== namespace || !stepOwnsCleanupSurface) return
+    if (layerCloseReadyAt <= 0) return
+    if (Date.now() < layerCloseReadyAt) {
+      layerCloseCompletionTimer.interval = Math.max(500, layerCloseReadyAt - Date.now())
+      layerCloseCompletionTimer.restart()
+      return
+    }
+    try {
+      var payload = JSON.parse(String(raw || "{}"))
+      for (var monitor in payload) {
+        var levels = payload[monitor] && payload[monitor].levels
+        if (!levels) continue
+        for (var level in levels) {
+          var surfaces = levels[level]
+          if (!Array.isArray(surfaces)) continue
+          for (var i = 0; i < surfaces.length; i++) {
+            if (String(surfaces[i].namespace || "") === namespace) return
+          }
+        }
+      }
+      finishLayerCloseCompletion(stepId, namespace)
+    } catch (error) {
+      console.warn("learn-omarchy: couldn't verify that the desktop panel closed:", error)
+    }
   }
 
   function normalizedWindowAddress(value) {
@@ -2494,7 +2543,9 @@ ShellRoot {
         monitorGeometryProcess.requestGeneration = generation
         monitorGeometryProcess.running = true
       }
-      if (phase === "waiting" && currentStep && actionStepId === currentStep.id &&
+      if (phase === "waiting" && currentStep &&
+          currentStep.completion.type === "hyprland-layer-open" &&
+          actionStepId === currentStep.id &&
           !layerCompletionFeedbackTimer.running) confirmDetectedShortcut()
       return
     }
@@ -2538,6 +2589,7 @@ ShellRoot {
     if (expected.workspace !== undefined &&
         (!client.workspace || Number(client.workspace.id) !== Number(expected.workspace))) return false
     if (expected.floating !== undefined && (typeof client.floating !== "boolean" || client.floating !== expected.floating)) return false
+    if (expected.pinned !== undefined && (typeof client.pinned !== "boolean" || client.pinned !== expected.pinned)) return false
     if (expected.fullscreen !== undefined && (typeof client.fullscreen !== "number" || (client.fullscreen > 0) !== expected.fullscreen)) return false
     if (expected.focused !== undefined && (typeof client.focusHistoryID !== "number" || (client.focusHistoryID === 0) !== expected.focused)) return false
     if (expected.focused === true && expected.workspace !== undefined &&
@@ -3112,10 +3164,7 @@ ShellRoot {
       "personalization": ["background-menu", "theme-menu", "toggle-menu"],
       "clipboard-and-helpers": ["helpers-universal-copy", "clipboard-history", "helpers-emoji", "helpers-reminder"],
       "capture-and-share": ["capture-menu", "share-menu"],
-      "setup-and-install": ["hardware-menu", "display-panel", "system-menu"],
-      "first-real-session": ["finale-intro", "finale-home", "finale-terminal", "finale-browser",
-        "finale-send-browser", "finale-back-to-one", "finale-close-terminal", "finale-to-two",
-        "finale-close-browser", "finale-graduate"]
+      "setup-and-install": ["hardware-menu", "display-panel", "system-menu"]
     }
     return lessons[lessonId] || []
   }
@@ -3180,6 +3229,15 @@ ShellRoot {
   // Common teardown for leaving whatever lesson state is active: outgoing
   // transitions, timers, actions, geometry requests, keys, and narration.
   // Callers then decide where to go (a lesson, the menu, a reload, or an error).
+  function closeOwnedTutorialWindows() {
+    for (var address of tutorialWindows) {
+      var normalized = normalizedWindowAddress(address)
+      if (/^0x[0-9a-f]+$/i.test(normalized))
+        Quickshell.execDetached(["hyprctl", "eval",
+          "hl.dispatch(hl.dsp.window.close({ window = " + JSON.stringify("address:" + normalized) + " }))"])
+    }
+  }
+
   function resetLessonRuntime(preserveMixed) {
     if (!preserveMixed) {
       mixedLessonIds = []
@@ -3191,6 +3249,7 @@ ShellRoot {
     stopAudio()
     resetWindowTarget()
     actionCompletionTimer.stop()
+    layerCloseCompletionTimer.stop()
     completionTimer.stop()
     lessonTransitionAnimation.stop()
     lessonTransitionRunning = false
@@ -3198,6 +3257,7 @@ ShellRoot {
     pendingLessonTransition = ""
     pendingTransitionStepIndex = -1
     clearActiveKeys()
+    closeOwnedTutorialWindows()
     tutorialWindows = []
     tutorialWindowsByStep = {}
     tutorialWindowSnapshots = {}
@@ -3259,6 +3319,7 @@ ShellRoot {
   function startCurrentStep() {
     cancelAction()
     stepOwnsCleanupSurface = false
+    layerCloseReadyAt = 0
     stopAudio()
     lessonReveal.reset()
     clearActiveKeys()
@@ -3284,6 +3345,7 @@ ShellRoot {
       return
     }
     phase = "waiting"
+    if (usesWindowActivation() && !keyboardExclusive) setKeyboardExclusive(true)
     directionalKey = ""
     if (currentStepNeedsDirection) directionPreviewTimer.restart()
     captureWorkspaceStart()
@@ -3357,7 +3419,9 @@ ShellRoot {
   function runCleanup() {
     if (currentStep && Array.isArray(currentStep.cleanup) && currentStep.cleanup.length > 0) {
       var command = currentStep.cleanup
-      if (currentStep.completion && currentStep.completion.type === "hyprland-layer-open" &&
+      if (currentStep.completion &&
+          (currentStep.completion.type === "hyprland-layer-open" ||
+           currentStep.completion.type === "hyprland-layer-closed") &&
           !stepOwnsCleanupSurface) {
         console.info("learn-omarchy: cleanup skipped because this activity did not open the desktop panel")
         return
@@ -3814,7 +3878,12 @@ ShellRoot {
     }
     var changesWorkspace = actionCompletionType === "hyprland-workspace-is" ||
       actionCompletionType === "hyprland-workspace-change"
+    if (actionCompletionType === "hyprland-layer-closed") {
+      stepOwnsCleanupSurface = true
+      layerCloseReadyAt = Date.now() + 4000
+    }
     if (keyboardExclusive && (changesWorkspace ||
+        actionCompletionType === "hyprland-layer-closed" ||
         (currentStep.completion.windowState && currentStep.completion.windowState.focused === true))) {
       restoreKeyboardAfterAction = true
       setKeyboardExclusive(false)
@@ -4035,10 +4104,31 @@ ShellRoot {
       confirmDetectedShortcut()
       return
     }
+    if (
+      completion &&
+      completion.type === "hyprland-layer-closed" &&
+      String(event.data).trim() === completion.namespace
+    ) {
+      if (event.name === "openlayer" && (stepOwnsCleanupSurface || windowDetectionArmed())) {
+        layerCloseCompletionTimer.stop()
+        if (!stepOwnsCleanupSurface) layerCloseReadyAt = Date.now() + 4000
+        stepOwnsCleanupSurface = true
+        requestPanelGeometry(completion.namespace)
+        return
+      }
+      if (event.name === "closelayer" && stepOwnsCleanupSurface) {
+        layerCloseCompletionTimer.stepId = currentStep.id
+        layerCloseCompletionTimer.namespace = completion.namespace
+        layerCloseCompletionTimer.interval = Math.max(500, layerCloseReadyAt - Date.now())
+        layerCloseCompletionTimer.restart()
+        return
+      }
+    }
     if (completion && completion.type === "hyprland-event" && Array.isArray(completion.events)) {
       if (completion.events.indexOf(String(event.name)) === -1) return
       var payload = String(event.data || "")
       if (completion.dataPattern && !(new RegExp(String(completion.dataPattern))).test(payload)) return
+      var eventTargetsOwnedWindow = false
       if (completion.target === "tutorial-window") {
         // Special-workspace events name the workspace, not its window. Verify
         // the owned client snapshot instead; address-bearing events still match exactly.
@@ -4049,8 +4139,9 @@ ShellRoot {
           console.info("learn-omarchy: ignoring", event.name, "for", subject, "because it isn't the window required by this activity")
           return
         }
+        eventTargetsOwnedWindow = !specialWorkspaceEvent && subject === expectedTutorialWindow
       }
-      if (!windowDetectionArmed()) {
+      if (!eventTargetsOwnedWindow && !windowDetectionArmed()) {
         console.info("learn-omarchy: ignoring", event.name, "because no shortcut or Help action is pending")
         return
       }
@@ -4069,7 +4160,20 @@ ShellRoot {
 
   function moveMenuSelection(delta) {
     if (!course) return
-    selectedLessonIndex = Math.max(0, Math.min(course.lessons.length - 1, selectedLessonIndex + delta))
+    var lastVisibleIndex = optionalLessonsExpanded ? course.lessons.length - 1 : coreLessonCount - 1
+    selectedLessonIndex = Math.max(0, Math.min(lastVisibleIndex, selectedLessonIndex + delta))
+  }
+
+  function setOptionalLessonsExpanded(expanded) {
+    if (!expanded && selectedLessonIndex >= coreLessonCount)
+      selectedLessonIndex = Math.max(0, coreLessonCount - 1)
+    optionalLessonsExpanded = Boolean(expanded)
+  }
+
+  function toggleOptionalLessons() {
+    var expand = !optionalLessonsExpanded
+    setOptionalLessonsExpanded(expand)
+    if (expand && optionalLessonCount > 0) selectedLessonIndex = coreLessonCount
   }
 
   function scrollMenuSelection(angleDelta, pixelDelta) {
@@ -4241,6 +4345,7 @@ ShellRoot {
     if (phase === "menu") {
       if (event.key === Qt.Key_Left || event.key === Qt.Key_Up) moveMenuSelection(-1)
       else if (event.key === Qt.Key_Right || event.key === Qt.Key_Down) moveMenuSelection(1)
+      else if (event.key === Qt.Key_O) toggleOptionalLessons()
       else if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) startLesson(selectedLessonIndex)
       else if (event.key === Qt.Key_P) startLesson(selectedLessonIndex, true, false)
       else if (event.key === Qt.Key_A) openArcade()
@@ -4390,6 +4495,7 @@ ShellRoot {
         stepIndex: root.stepIndex,
         lessonId: root.currentLesson ? root.currentLesson.id : "",
         stepId: root.currentStep ? root.currentStep.id : "",
+        completionType: root.currentStep ? root.currentStep.completion.type : "",
         keyboardFocused: root.keyboardFocused,
         shortcutInhibitionActive: root.shortcutInhibitionActive,
         keyboardExclusive: root.keyboardExclusive,
@@ -5295,6 +5401,30 @@ ShellRoot {
     id: actionCompletionTimer
     repeat: false
     onTriggered: root.completeCurrentStep()
+  }
+
+  Timer {
+    id: layerCloseCompletionTimer
+    property string stepId: ""
+    property string namespace: ""
+    interval: 1000
+    repeat: false
+    onTriggered: {
+      layerCloseCheckProcess.stepId = stepId
+      layerCloseCheckProcess.namespace = namespace
+      layerCloseCheckProcess.command = ["hyprctl", "layers", "-j"]
+      layerCloseCheckProcess.running = true
+    }
+  }
+
+  Process {
+    id: layerCloseCheckProcess
+    property string stepId: ""
+    property string namespace: ""
+    stdout: StdioCollector { id: layerCloseCheckOutput }
+    onExited: function(exitCode) {
+      if (exitCode === 0) root.finishLayerCloseCheck(layerCloseCheckOutput.text, stepId, namespace)
+    }
   }
 
   Timer {
@@ -6278,11 +6408,24 @@ ShellRoot {
               }
 
               function revealSelected() {
-                var rowHeight = lessonColumn.rowHeight + lessonColumn.spacing
-                var top = root.selectedLessonIndex * rowHeight
-                var bottom = top + lessonColumn.rowHeight + 12
+                var card = lessonRepeater.itemAt(root.selectedLessonIndex)
+                if (!card || !card.visible) return
+                var top = card.y
+                var bottom = top + card.height + 12
+                if (!root.optionalLessonsExpanded && root.selectedLessonIndex === root.coreLessonCount - 1) {
+                  var optionalSection = lessonRepeater.itemAt(root.coreLessonCount)
+                  if (optionalSection && optionalSection.visible)
+                    bottom = optionalSection.y + optionalSection.height + 12
+                }
                 if (top < contentY) contentY = Math.max(0, top)
                 else if (bottom > contentY + height) contentY = Math.min(contentHeight - height, bottom - height)
+              }
+
+              function revealOptionalSection() {
+                var optionalSection = lessonRepeater.itemAt(root.coreLessonCount)
+                if (!optionalSection || !optionalSection.visible) return
+                var bottom = optionalSection.y + optionalSection.height + 12
+                if (bottom > contentY + height) contentY = Math.min(contentHeight - height, bottom - height)
               }
 
               Connections {
@@ -6311,6 +6454,7 @@ ShellRoot {
                 readonly property int rowHeight: 76
 
                 Repeater {
+                  id: lessonRepeater
                   model: root.course ? root.course.lessons : []
 
                   Rectangle {
@@ -6319,20 +6463,111 @@ ShellRoot {
                     required property var modelData
                     readonly property bool selected: index === root.selectedLessonIndex
                     readonly property bool completed: root.lessonCompleted(modelData)
+                    readonly property bool firstOptional: Boolean(modelData.optional) && index === root.coreLessonCount
 
+                    visible: !modelData.optional || root.optionalLessonsExpanded || firstOptional
                     Layout.fillWidth: true
-                    Layout.preferredHeight: lessonColumn.rowHeight
+                    Layout.preferredHeight: firstOptional
+                      ? (root.optionalLessonsExpanded ? lessonColumn.rowHeight + 54 : 46)
+                      : lessonColumn.rowHeight
                     Layout.rightMargin: 6
-                    color: cardMouse.containsMouse || selected
+                    color: firstOptional ? "transparent"
+                      : cardMouse.containsMouse || selected
                       ? Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, 0.14))
                       : root.subtleFill
-                    border.color: selected ? root.colorWithAlpha(root.accent, 0.8) : root.colorWithAlpha(root.foreground, 0.1)
-                    border.width: 1
+                    border.color: firstOptional ? "transparent"
+                      : selected ? root.colorWithAlpha(root.accent, 0.8) : root.colorWithAlpha(root.foreground, 0.1)
+                    border.width: firstOptional ? 0 : 1
                     radius: 12
                     Behavior on color { ColorAnimation { duration: 120 } }
 
+                    Item {
+                      id: lessonCardTarget
+                      anchors {
+                        left: parent.left
+                        right: parent.right
+                        bottom: parent.bottom
+                      }
+                      height: lessonColumn.rowHeight
+                    }
+
+                    Rectangle {
+                      visible: lessonCard.firstOptional && root.optionalLessonsExpanded
+                      anchors {
+                        left: parent.left
+                        right: parent.right
+                        bottom: parent.bottom
+                      }
+                      height: lessonColumn.rowHeight
+                      radius: 12
+                      color: cardMouse.containsMouse || lessonCard.selected
+                        ? Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, 0.14))
+                        : root.subtleFill
+                      border.color: lessonCard.selected
+                        ? root.colorWithAlpha(root.accent, 0.8)
+                        : root.colorWithAlpha(root.foreground, 0.1)
+                      border.width: 1
+                    }
+
+                    Rectangle {
+                      visible: lessonCard.firstOptional
+                      anchors {
+                        left: parent.left
+                        right: parent.right
+                        top: parent.top
+                      }
+                      height: 46
+                      radius: 10
+                      color: optionalSectionMouse.containsMouse
+                        ? Qt.tint(root.panelColor, root.colorWithAlpha(root.accent, 0.14))
+                        : root.colorWithAlpha(root.foreground, 0.06)
+                      border.color: root.colorWithAlpha(root.foreground, 0.14)
+                      border.width: 1
+
+                      RowLayout {
+                        anchors {
+                          fill: parent
+                          leftMargin: 16
+                          rightMargin: 16
+                        }
+
+                        Text {
+                          text: root.optionalLessonsExpanded ? "▾" : "▸"
+                          color: root.accent
+                          font.family: "sans-serif"
+                          font.pixelSize: 18
+                          font.weight: Font.Bold
+                        }
+                        Text {
+                          Layout.fillWidth: true
+                          text: "OPTIONAL LESSONS  ·  " + root.optionalLessonCount
+                          color: root.foreground
+                          font.family: "monospace"
+                          font.pixelSize: 11
+                          font.weight: Font.Bold
+                          font.letterSpacing: 1
+                        }
+                        Text {
+                          text: (root.optionalLessonsExpanded ? "HIDE" : "SHOW") + "  ·  O"
+                          color: root.accent
+                          font.family: "monospace"
+                          font.pixelSize: 10
+                          font.weight: Font.Bold
+                          font.letterSpacing: 1
+                        }
+                      }
+
+                      MouseArea {
+                        id: optionalSectionMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.toggleOptionalLessons()
+                      }
+                    }
+
                     function syncCharacterTarget() {
-                      if (selected) overlay.updateMenuSelectionTarget(lessonCard, index)
+                      if (selected) overlay.updateMenuSelectionTarget(lessonCardTarget, index)
                     }
 
                     onSelectedChanged: if (selected) Qt.callLater(syncCharacterTarget)
@@ -6355,7 +6590,7 @@ ShellRoot {
                         top: parent.top
                         bottom: parent.bottom
                         margins: 1
-                        topMargin: 12
+                        topMargin: lessonCard.firstOptional ? 66 : 12
                         bottomMargin: 12
                       }
                       width: 4
@@ -6364,8 +6599,10 @@ ShellRoot {
                     }
 
                     RowLayout {
+                      visible: !lessonCard.modelData.optional || root.optionalLessonsExpanded
                       anchors {
                         fill: parent
+                        topMargin: lessonCard.firstOptional ? 54 : 0
                         leftMargin: 20
                         rightMargin: 18
                       }
@@ -6395,7 +6632,7 @@ ShellRoot {
 
                         Text {
                           Layout.fillWidth: true
-                          text: lessonCard.modelData.title + (lessonCard.modelData.optional ? "  (optional)" : "")
+                          text: lessonCard.modelData.title
                           color: lessonCard.selected ? root.instruction : root.foreground
                           font.family: "sans-serif"
                           font.pixelSize: 16
@@ -6464,6 +6701,8 @@ ShellRoot {
                     MouseArea {
                       id: cardMouse
                       anchors.fill: parent
+                      anchors.topMargin: lessonCard.firstOptional ? 54 : 0
+                      enabled: !lessonCard.modelData.optional || root.optionalLessonsExpanded
                       hoverEnabled: true
                       cursorShape: Qt.PointingHandCursor
                       onPositionChanged: function(mouse) {
@@ -7070,14 +7309,6 @@ ShellRoot {
             label: root.audioEnabled ? "MUTE" : "UNMUTE"
             description: "Mute or unmute narration and effects"
             onClicked: root.toggleAudio()
-          }
-
-          UiButton {
-            visible: root.phase === "waiting" || root.phase === "highlight" || root.phase === "paused"
-            compact: true
-            icon: root.phase === "paused" ? "play" : "pause"
-            label: root.phase === "paused" ? "RESUME" : "PAUSE"
-            onClicked: root.phase === "paused" ? root.resumePausedLesson() : root.pauseLesson()
           }
 
           UiButton {

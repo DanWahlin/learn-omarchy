@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "064a49755125c22f2d441344de3d3d6f8568e581a70637bef5d259f4f056b5c6",
+  "text": "You inspected Update, Hardware and closed the menu without restarting a service.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 270,
+      "endOffset": 13
+    },
+    {
+      "startMs": 990,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1750,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2510,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3070,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 50
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 58
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 69
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 80
+    }
+  ]
+}

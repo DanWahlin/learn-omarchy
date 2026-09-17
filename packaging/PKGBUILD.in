@@ -9,7 +9,7 @@ license=(@LICENSES@)
 depends=(
   'bash' 'coreutils' 'sudo' 'hyprland' 'mpv' 'nodejs>=22.6' 'omarchy'
   'quickshell>=0.3' 'qt6-declarative' 'qt6-multimedia' 'qt6-multimedia-ffmpeg' 'xdg-utils'
-  'xdg-terminal-exec' 'nautilus'
+  'nautilus'
   'ttf-liberation' 'noto-fonts-emoji'
   'grim' 'slurp' 'gpu-screen-recorder' 'util-linux' 'ffmpeg'
 )

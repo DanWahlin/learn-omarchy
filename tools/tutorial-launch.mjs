@@ -5,7 +5,7 @@ import { basename, delimiter, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const TOKEN_PATTERN = /^[a-zA-Z0-9-]{16,128}$/;
-const KINDS = new Set(["terminal", "browser", "activity"]);
+const KINDS = new Set(["terminal", "browser", "activity", "disk-usage"]);
 
 export function classifyLaunchCommand(command) {
   if (!Array.isArray(command) || !command.length || command.some(argument => typeof argument !== "string")) {
@@ -16,11 +16,10 @@ export function classifyLaunchCommand(command) {
     ["terminal", ["omarchy-launch-terminal"]],
     ["browser", ["omarchy", "launch", "browser"]],
     ["browser", ["omarchy-launch-browser"]],
+    ["activity", ["omarchy", "launch", "tui", "--app-id=org.learn-omarchy.toolbox", "btop"]],
     ["activity", ["omarchy-launch-or-focus-tui", "btop"]],
     ["activity", ["btop"]],
-    ["activity", ["xdg-terminal-exec", "btop"]],
-    ["activity", ["xdg-terminal-exec", "-e", "btop"]],
-    ["activity", ["xdg-terminal-exec", "--app-id=org.learn-omarchy.toolbox", "--title=Learn Omarchy activity", "-e", "btop"]],
+    ["disk-usage", ["omarchy", "launch", "tui", "--app-id=org.learn-omarchy.disk-usage", "dua", "i", "/"]],
   ];
   for (const [kind, form] of forms) {
     if (command.length === form.length && command.every((argument, index) => argument === form[index])) return kind;
@@ -48,7 +47,7 @@ export function parseArguments(args) {
     const flags = { "--kind": "kind", "--token": "token", "--profile-root": "profileRoot" };
     const key = Object.hasOwn(flags, args[i]) ? flags[args[i]] : undefined;
     if (!key || options[key] !== undefined || !args[i + 1] || args[i + 1].startsWith("--")) {
-      throw new Error("Usage: tutorial-launch.mjs --token TOKEN [--kind terminal|browser|activity] [--check|--detach] [--profile-root DIRECTORY] [-- NATIVE_COMMAND ...]");
+      throw new Error("Usage: tutorial-launch.mjs --token TOKEN [--kind terminal|browser|activity|disk-usage] [--check|--detach] [--profile-root DIRECTORY] [-- NATIVE_COMMAND ...]");
     }
     options[key] = args[++i];
   }
@@ -165,27 +164,32 @@ export async function prepareLaunch(options, dependencies = {}) {
   const runQuery = dependencies.query || query;
   const findExecutable = dependencies.executable || (command => executable(command, env));
   const appId = `org.learn-omarchy.${options.kind}.t${options.token}`;
-  if (options.kind !== "browser") {
-    let command;
-    try {
-      command = runQuery("xdg-terminal-exec", ["--print-cmd=\\0"], env).split("\0");
-      if (command.at(-1) === "") command.pop();
-    } catch {
-      throw new Error("Cannot resolve the configured terminal safely. Open it yourself, or Skip.");
-    }
-    const name = basename(command[0] || "");
-    let args;
-    if (name === "ghostty" && command.slice(1).every(arg => /^--gtk-single-instance=(true|false|detect)$/.test(arg))) {
-      args = ["--gtk-single-instance=false", `--class=${appId}`, "--initial-window=true", "--quit-after-last-window-closed=true"];
-      if (options.kind === "activity") args.push("--title=Learn Omarchy activity", "--window-width=120", "--window-height=36", "-e", "btop");
-    } else if (name === "foot" && command.length === 1) {
-      args = [`--app-id=${appId}`];
-      if (options.kind === "activity") args.push("--title=Learn Omarchy activity", "--window-size-chars=120x36", "btop");
-    } else {
-      throw new Error(`The configured terminal (${name || "unknown"}) has no supported independent launch adapter. Open it yourself, or Skip.`);
-    }
-    if (options.kind === "activity") await findExecutable("btop");
-    return { kind: options.kind, token: options.token, appId, executable: await findExecutable(command[0]), args };
+  if (options.kind === "activity") {
+    return {
+      kind: options.kind,
+      token: options.token,
+      appId,
+      executable: await findExecutable("omarchy"),
+      args: ["launch", "tui", `--app-id=${appId}`, "btop"],
+    };
+  }
+  if (options.kind === "disk-usage") {
+    return {
+      kind: options.kind,
+      token: options.token,
+      appId,
+      executable: await findExecutable("omarchy"),
+      args: ["launch", "tui", `--app-id=${appId}`, "dua", "i", "/"],
+    };
+  }
+  if (options.kind === "terminal") {
+    return {
+      kind: options.kind,
+      token: options.token,
+      appId,
+      executable: await findExecutable("omarchy"),
+      args: ["launch", "terminal"],
+    };
   }
   const command = await defaultBrowser(env, runQuery, dependencies.readFile || readFile);
   const name = basename(command[0]);
@@ -220,6 +224,7 @@ export async function launchPrepared(plan, dependencies = {}) {
   if (plan.kind === "browser") {
     profile = await mkdtemp(join(await realpath(plan.profileRoot), ".learn-omarchy-browser-"));
     profileIdentity = await lstat(profile);
+    args.unshift(`--learn-omarchy-window-token=${plan.token}`);
     args.unshift(`--user-data-dir=${profile}`);
     env.XDG_CONFIG_HOME = profile;
     delete env.CHROME_USER_FLAGS;

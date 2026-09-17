@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "273e3d2d1e492e85e99c250c92a8558d2a5c63247374dc374f51120562bc7eb2",
+  "text": "The disposable terminal is closed. Your other windows and settings remain as they were.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 14
+    },
+    {
+      "startMs": 830,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1630,
+      "endOffset": 34
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 39
+    },
+    {
+      "startMs": 3110,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3389,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 57
+    },
+    {
+      "startMs": 4070,
+      "endOffset": 66
+    },
+    {
+      "startMs": 4710,
+      "endOffset": 73
+    },
+    {
+      "startMs": 5110,
+      "endOffset": 76
+    },
+    {
+      "startMs": 5230,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 87
+    }
+  ]
+}

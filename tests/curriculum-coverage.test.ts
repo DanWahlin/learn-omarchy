@@ -42,7 +42,7 @@ test("specialized capture and productivity tasks remain optional", () => {
   }
 });
 
-test("system orientation introduces maintenance without applying changes", () => {
+test("system upkeep uses safe keyboard exercises without applying changes", () => {
   assert.ok(course);
   const lesson = course.lessons.find(item => item.id === "apps-and-upkeep");
   assert.ok(lesson);
@@ -50,10 +50,11 @@ test("system orientation introduces maintenance without applying changes", () =>
     "upkeep-install", "upkeep-remove", "upkeep-defaults", "upkeep-updates", "upkeep-recovery",
   ]);
   for (const step of lesson.steps) {
-    assert.equal(step.kind, "tour");
-    assert.equal(step.completion.type, "narration-complete");
-    assert.equal(step.help, undefined);
-    assert.equal(step.cleanup, undefined);
+    assert.deepEqual(step.keys, ["SUPER", "+", "SPACE"]);
+    assert.equal(step.completion.type, "hyprland-layer-closed");
+    assert.deepEqual(step.help?.command, ["omarchy", "menu", "summon"]);
+    assert.deepEqual(step.cleanup, ["omarchy", "menu", "close"]);
+    assert.match(`${step.instruction} ${step.note}`, /don't|nothing|unchanged/i);
   }
 });
 
@@ -95,22 +96,36 @@ test("Windows requires resize but permits skipping layout-dependent split exerci
   }
 });
 
-test("advanced windows and notifications are explicit optional introductions without host commands", () => {
+test("advanced windows use owned disposable windows and notifications use isolated practice", () => {
   assert.ok(course);
-  for (const id of ["advanced-windows", "notifications"]) {
-    const lesson = course.lessons.find(item => item.id === id)!;
-    assert.ok(lesson.optional);
-    for (const step of lesson.steps) {
-      assert.equal(step.kind, "tour");
-      assert.equal(step.completion.type, "narration-complete");
-      assert.deepEqual(step.keys, []);
-      assert.equal(step.help, undefined);
-      assert.equal(step.cleanup, undefined);
-      assert.equal(step.audio, "audio/" + step.id + ".mp3");
-      assert.ok(lesson.references?.some(entry => entry.stepIds.includes(step.id)));
-      assert.equal(step.shortcuts, undefined, "reference content has one explicit source");
-    }
+  const advanced = course.lessons.find(item => item.id === "advanced-windows")!;
+  assert.ok(advanced.optional);
+  assert.deepEqual(advanced.steps.map(step => step.id), [
+    "advanced-window-open", "advanced-window-pop", "advanced-window-resize",
+    "advanced-window-restore", "advanced-window-close",
+  ]);
+  for (const step of advanced.steps.slice(1)) {
+    assert.equal(step.windowFromStep, "advanced-window-open");
+    assert.equal(step.completion.type, "hyprland-event");
+    assert.equal(step.completion.target, "tutorial-window");
+    assert.match(step.help!.command.join(" "), /\{tutorialWindow\}/);
   }
+  const pop = advanced.steps.find(step => step.id === "advanced-window-pop")!;
+  const restore = advanced.steps.find(step => step.id === "advanced-window-restore")!;
+  assert.equal(pop.completion.type === "hyprland-event" && pop.completion.windowState?.pinned, true);
+  assert.equal(restore.completion.type === "hyprland-event" && restore.completion.windowState?.pinned, false);
+  assert.match(pop.help!.command.join(" "), /window\.pin/);
+  assert.match(restore.help!.command.join(" "), /window\.pin/);
+  assert.equal(advanced.references?.some(entry => entry.keys.includes("L")), false,
+    "persistent workspace layout switching is not taught as practice");
+
+  const notifications = course.lessons.find(item => item.id === "notifications")!;
+  assert.ok(notifications.optional);
+  assert.equal(notifications.steps.length, 1);
+  assert.equal(notifications.steps[0].kind, "practice");
+  assert.equal(notifications.steps[0].practice, "notifications");
+  assert.equal(notifications.steps[0].completion.type, "practice-result");
+  assert.match(`${notifications.steps[0].instruction} ${notifications.steps[0].detail}`, /controlled sample|never reads/i);
 });
 
 test("new verification and narration metadata fail closed on malformed course content", () => {
@@ -129,7 +144,7 @@ test("new verification and narration metadata fail closed on malformed course co
     assert.ok(validateCourse(altered).length > 0);
   }
   const altered = structuredClone(course);
-  const tour = altered.lessons.flatMap(lesson => lesson.steps).find(step => step.id === "notifications-history")!;
-  delete tour.audio;
-  assert.ok(validateCourse(altered).some(error => error.includes("audio is required")));
+  const resize = altered.lessons.flatMap(lesson => lesson.steps).find(step => step.id === "advanced-window-resize")!;
+  resize.completion = { type: "hyprland-event", events: ["movewindowv2"], target: "tutorial-window", windowState: { resized: false } } as any;
+  assert.ok(validateCourse(altered).some(error => error.includes(".resized must be true")));
 });

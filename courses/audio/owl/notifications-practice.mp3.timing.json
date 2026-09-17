@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "audioHash": "2011b4301f646a677cf07cb0d33aa59f2d6062432404fee49bec92acded63786",
+  "text": "Practice notification history, dismissal, and quiet mode with a controlled sample inside the lesson.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 8
+    },
+    {
+      "startMs": 550,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1390,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 41
+    },
+    {
+      "startMs": 2909,
+      "endOffset": 45
+    },
+    {
+      "startMs": 3190,
+      "endOffset": 51
+    },
+    {
+      "startMs": 3590,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4150,
+      "endOffset": 61
+    },
+    {
+      "startMs": 4350,
+      "endOffset": 63
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 74
+    },
+    {
+      "startMs": 4950,
+      "endOffset": 81
+    },
+    {
+      "startMs": 5590,
+      "endOffset": 88
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 92
+    },
+    {
+      "startMs": 6310,
+      "endOffset": 100
+    }
+  ]
+}

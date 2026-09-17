@@ -29,6 +29,7 @@ export interface Highlight {
 
 export interface WindowState {
   floating?: boolean;
+  pinned?: boolean;
   fullscreen?: boolean;
   workspace?: number;
   focused?: boolean;
@@ -43,6 +44,10 @@ export type Completion =
   | { type: "practice-result" }
   | {
       type: "hyprland-layer-open";
+      namespace: string;
+    }
+  | {
+      type: "hyprland-layer-closed";
       namespace: string;
     }
   | {
@@ -101,7 +106,7 @@ export interface CourseStep {
   note?: string;
   detail?: string;
   kind?: "tour" | "practice";
-  practice?: "app-search" | "clipboard" | "capture" | "screen-lock" | "compose" | "screen-recording" | "ocr" | "qr" | "dictation" | "web-app" | "transcode" | "sharing";
+  practice?: "app-search" | "clipboard" | "capture" | "screen-lock" | "compose" | "screen-recording" | "ocr" | "qr" | "dictation" | "dictation-corrections" | "notifications" | "web-app" | "transcode" | "sharing";
   pose?: "point" | "talk";
   keys: string[];
   actionLabel?: string;
@@ -332,7 +337,7 @@ const validateWindowState = (errors: string[], value: unknown, path: string): vo
       if (value.specialWorkspace !== "scratchpad") errors.push(`${path}.specialVisible requires specialWorkspace`);
     } else if (["swapped", "resized", "splitChanged"].includes(key)) {
       if (state !== true) errors.push(`${path}.${key} must be true`);
-    } else if (["floating", "fullscreen", "focused"].includes(key)) {
+    } else if (["floating", "pinned", "fullscreen", "focused"].includes(key)) {
       if (typeof state !== "boolean") errors.push(`${path}.${key} must be a boolean`);
     } else {
       errors.push(`${path}.${key} is not a supported window state`);
@@ -356,7 +361,7 @@ const validateCompletion = (
   if (value.appIdPattern !== undefined && value.type !== "hyprland-window-activated") {
     errors.push(`${path}.appIdPattern is only valid for "hyprland-window-activated"`);
   }
-  if (value.type === "hyprland-layer-open") {
+  if (value.type === "hyprland-layer-open" || value.type === "hyprland-layer-closed") {
     addStringError(errors, value.namespace, `${path}.namespace`);
     return;
   }
@@ -404,7 +409,7 @@ const validateCompletion = (
     return;
   }
   errors.push(
-    `${path}.type must be "hyprland-layer-open", "hyprland-window-activated", "hyprland-workspace-change", "hyprland-workspace-is", "hyprland-event", "narration-complete", or "action-success"`,
+    `${path}.type must be "hyprland-layer-open", "hyprland-layer-closed", "hyprland-window-activated", "hyprland-workspace-change", "hyprland-workspace-is", "hyprland-event", "narration-complete", or "action-success"`,
   );
 };
 
@@ -502,7 +507,7 @@ const validateStep = (
   validateHighlight(errors, value.highlight, `${path}.highlight`);
   if (value.practice !== undefined && !isPractice) errors.push(`${path}.practice requires kind "practice"`);
   if (isPractice) {
-    if (typeof value.practice !== "string" || !["app-search", "clipboard", "capture", "screen-lock", "compose", "screen-recording", "ocr", "qr", "dictation", "web-app", "transcode", "sharing"].includes(value.practice)) errors.push(`${path}.practice is not supported`);
+    if (typeof value.practice !== "string" || !["app-search", "clipboard", "capture", "screen-lock", "compose", "screen-recording", "ocr", "qr", "dictation", "dictation-corrections", "notifications", "web-app", "transcode", "sharing"].includes(value.practice)) errors.push(`${path}.practice is not supported`);
     if (!Array.isArray(value.keys) || value.keys.length !== 0) errors.push(`${path}.keys must be empty for practice`);
     addStringError(errors, value.actionLabel, `${path}.actionLabel`);
     if (value.help !== undefined || value.cleanup !== undefined || value.pose !== undefined || value.windowFromStep !== undefined || value.swapWithStep !== undefined || value.directionFromStep !== undefined || value.pairWithStep !== undefined) {

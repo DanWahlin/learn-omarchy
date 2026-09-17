@@ -54,7 +54,7 @@ test("all embedded practices and formerly prose-only skills have substantive ref
     ["upkeep-defaults", /default/i],
     ["upkeep-updates", /snapshot[\s\S]*backup/i],
     ["upkeep-recovery", /config|back\s*up/i],
-    ["tools-disk-usage", /inspect|review/i],
+    ["tools-disk-usage-open", /inspect|review/i],
     ["web-app-practice", /[Ii]nstall[\s\S]*[Rr]emove/],
     ["transcode-practice", /original/i],
     ["sharing-practice", /recipient/i],
@@ -77,7 +77,7 @@ test("print descriptions explain real targets, toggles and sensitive actions, no
   assert.match(textFor("dictation-practice"), /Voxtype/);
   assert.match(textFor("sharing-practice"), /nothing|does not send|not send|no.*send/i);
   assert.match(textFor("capture-practice"), /does not.*(saved|image)|unchanged|not.*saved/i);
-  assert.match(textFor("advanced-window-layout"), /persist|save/i);
+  assert.match(textFor("advanced-window-pop"), /disposable|lesson/i);
   for (const id of ["background-menu", "theme-menu"]) {
     assert.match(textFor(id), /Escape clears search text; press again to close, or once if empty/);
     assert.doesNotMatch(textFor(id), /Escape cancels/);

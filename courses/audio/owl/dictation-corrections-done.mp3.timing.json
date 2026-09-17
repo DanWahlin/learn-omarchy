@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "audioHash": "a34aadaf9da2bcbda14573eeca2966334031938680ce9290f81628f78a526c02",
+  "text": "You chose a specific correction and applied it to the sample. Your real Voxtype config was not edited.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 310,
+      "endOffset": 9
+    },
+    {
+      "startMs": 590,
+      "endOffset": 11
+    },
+    {
+      "startMs": 670,
+      "endOffset": 20
+    },
+    {
+      "startMs": 1190,
+      "endOffset": 31
+    },
+    {
+      "startMs": 1950,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2190,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2590,
+      "endOffset": 46
+    },
+    {
+      "startMs": 2710,
+      "endOffset": 49
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 53
+    },
+    {
+      "startMs": 2949,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3989,
+      "endOffset": 66
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 71
+    },
+    {
+      "startMs": 4790,
+      "endOffset": 79
+    },
+    {
+      "startMs": 5430,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6110,
+      "endOffset": 90
+    },
+    {
+      "startMs": 6350,
+      "endOffset": 94
+    },
+    {
+      "startMs": 6670,
+      "endOffset": 102
+    }
+  ]
+}

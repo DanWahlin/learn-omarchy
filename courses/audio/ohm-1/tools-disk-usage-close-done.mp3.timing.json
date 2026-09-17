@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "audioHash": "29e78b705a712e0181a12db5bd82199992c6a8d7a5aa7e01c2711ce9cc5d4c47",
+  "text": "Disk Usage is closed. You completed a real inspection without deleting anything.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 4
+    },
+    {
+      "startMs": 270,
+      "endOffset": 10
+    },
+    {
+      "startMs": 590,
+      "endOffset": 13
+    },
+    {
+      "startMs": 710,
+      "endOffset": 21
+    },
+    {
+      "startMs": 1790,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1990,
+      "endOffset": 35
+    },
+    {
+      "startMs": 2389,
+      "endOffset": 37
+    },
+    {
+      "startMs": 2429,
+      "endOffset": 42
+    },
+    {
+      "startMs": 2750,
+      "endOffset": 53
+    },
+    {
+      "startMs": 3230,
+      "endOffset": 61
+    },
+    {
+      "startMs": 3550,
+      "endOffset": 70
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 80
+    }
+  ]
+}

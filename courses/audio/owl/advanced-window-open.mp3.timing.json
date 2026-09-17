@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "audioHash": "b58ec7a43f20ad14a3023e8623d10209e757e5d3ddd4fc8e4ace22066cdcdd57",
+  "text": "Press Super and Return to open a disposable practice terminal.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 5
+    },
+    {
+      "startMs": 430,
+      "endOffset": 11
+    },
+    {
+      "startMs": 710,
+      "endOffset": 15
+    },
+    {
+      "startMs": 830,
+      "endOffset": 22
+    },
+    {
+      "startMs": 1550,
+      "endOffset": 25
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 30
+    },
+    {
+      "startMs": 2070,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2150,
+      "endOffset": 43
+    },
+    {
+      "startMs": 2829,
+      "endOffset": 52
+    },
+    {
+      "startMs": 3309,
+      "endOffset": 62
+    }
+  ]
+}

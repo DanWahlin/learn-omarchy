@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "audioHash": "2b7af3eba102141144151d15f967d226ca87196c9b9c3452c4dccec5da071d53",
+  "text": "The disposable terminal is floating. Your other windows were not changed.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 3
+    },
+    {
+      "startMs": 190,
+      "endOffset": 14
+    },
+    {
+      "startMs": 830,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 26
+    },
+    {
+      "startMs": 1670,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2869,
+      "endOffset": 41
+    },
+    {
+      "startMs": 3150,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3429,
+      "endOffset": 55
+    },
+    {
+      "startMs": 3909,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4110,
+      "endOffset": 64
+    },
+    {
+      "startMs": 4310,
+      "endOffset": 73
+    }
+  ]
+}

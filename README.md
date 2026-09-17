@@ -16,7 +16,7 @@ local and separate from lesson progress. See [the arcade guide](docs/arcade-prot
 
 ## What you will learn
 
-The bundled course contains 17 lessons and 101 activities covering:
+The bundled course contains 16 lessons and 93 activities covering:
 
 - The Omarchy bar, menus, apps, and everyday desktop navigation
 - Window management, workspaces, and the scratchpad
@@ -42,6 +42,12 @@ adjusted in Settings.
 Resetting progress clears lesson completion, including Welcome. Starting or
 skipping the welcome does not complete it; finishing it does. The separate
 "welcome seen" preference only prevents repeated automatic introductions.
+
+When using a virtual machine, the host can intercept shortcuts before Omarchy
+receives them. For example, Super+Ctrl+D corresponds to macOS's
+Control+Command+D dictionary shortcut. Use your VM viewer's keyboard-capture
+feature to send shortcuts to the guest, or choose Help to demonstrate the
+lesson's action. Learn Omarchy uses the standard Omarchy shortcuts.
 
 ## Requirements
 
@@ -123,6 +129,8 @@ Learn Omarchy is designed to teach without taking ownership of your desktop:
 - Tutorial windows are identified before window-changing actions run.
 - Existing personal windows and browser profiles are not reused as tutorial
   targets.
+- Skipping or leaving a menu activity only closes the menu if that activity
+  opened it.
 - Missing or unsupported tools produce guidance instead of being installed
   automatically.
 

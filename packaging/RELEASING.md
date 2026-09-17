@@ -136,8 +136,8 @@ Required dependencies are encoded in `PKGBUILD.in`:
 - `mpv` for narration; `xdg-utils` for browser resolution using `xdg-settings`
   and `xdg-mime`; `bash` and `coreutils` for the launchers, and `sudo` for
   the explicitly requested terminal-based package removal.
-- `xdg-terminal-exec` resolves the configured terminal for required window
-  lessons; `nautilus` supports the required Files activities.
+- Omarchy's `launch terminal` and `launch tui` interfaces own configured
+  terminal selection; `nautilus` supports the required Files activities.
 - `grim` and `slurp` for required screenshot practice; `gpu-screen-recorder`,
   `util-linux` (`setpriv`), and `ffmpeg` (`ffprobe`) for required recording
   practice and recording validation. These are package dependencies, not
@@ -147,7 +147,8 @@ Optional practice dependencies map directly to commands in
 `tools/capture-practice.mjs` and `tools/tutorial-launch.mjs`:
 `tesseract` with `tesseract-data-eng`, `zbar` (`zbarimg`), `qrencode`,
 `voxtype`, and `btop`. A supported configured browser
-and terminal are used rather than installing/replacing the user's choices.
+and Omarchy's configured terminal are used rather than installing/replacing
+the user's choices.
 Missing optional tools let learners skip the affected exercises.
 Optional transcoding reuses the required `ffmpeg` package.
 

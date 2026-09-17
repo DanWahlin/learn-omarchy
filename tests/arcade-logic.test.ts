@@ -36,12 +36,12 @@ test("normalizes shortcut keys without mutating inputs", () => {
   assert.equal(context.keySignature(null), "");
 });
 
-test("bundled course yields 40 canonical, standalone, course-derived challenges", () => {
+test("bundled course yields 41 canonical, standalone, course-derived challenges", () => {
   const before = structuredClone(course);
   const built = plain(context.buildChallenges(course));
   assert.deepEqual(course, before);
-  assert.equal(built.length, 40);
-  assert.equal(new Set(built.map((challenge: any) => challenge.signature)).size, 40);
+  assert.equal(built.length, 41);
+  assert.equal(new Set(built.map((challenge: any) => challenge.signature)).size, 41);
   assert.equal(built.filter((challenge: any) => challenge.signature === "SUPER+W").length, 1);
   for (const challenge of built) {
     const lesson = course.lessons.find((item: any) => item.id === challenge.lessonId);
@@ -75,8 +75,8 @@ test("canonical coverage matches every playable course combination across all fi
     result[challenge.category] = (result[challenge.category] || 0) + 1;
     return result;
   }, {});
-  assert.deepEqual(counts, { workspaces: 8, system: 13, apps: 8, windows: 9, capture: 2 });
-  assert.equal(new Set(challenges.map((challenge: any) => challenge.action)).size, 40);
+  assert.deepEqual(counts, { workspaces: 8, system: 13, apps: 8, windows: 10, capture: 2 });
+  assert.equal(new Set(challenges.map((challenge: any) => challenge.action)).size, 41);
 });
 
 test("unknown custom course semantics stay unknown and duplicate signatures collapse", () => {
@@ -396,7 +396,7 @@ test("deck keys include scoring version, mode, ordered signatures, IDs and pace"
   assert.equal(context.deckKey("rescue", [{ ...deck[0], signature: "bad" }], "standard"), "");
   const sprint = context.shuffled(challenges, context.seededRandom("fixed"));
   const sprintKey = context.deckKey("sprint", sprint, "standard");
-  assert.equal(JSON.parse(sprintKey.split("|").slice(2).join("|"))[1].length, 40);
+  assert.equal(JSON.parse(sprintKey.split("|").slice(2).join("|"))[1].length, 41);
 });
 
 test("comparable records retain score-run ghost splits while preserving legacy bests", () => {
@@ -574,12 +574,12 @@ test("mastery summary counts unique skills and conservative one-day or seven-day
   stats = recordAttempt(stats, float, {}, NOW - 8 * DAY);
   stats = recordAttempt(stats, float, { sessionId: "second" }, NOW - 7 * DAY);
   const summary = plain(context.masterySummary(stats, [...challenges, ...challenges]));
-  assert.equal(summary.total, 40);
+  assert.equal(summary.total, 41);
   assert.equal(summary.practiced, 2);
   assert.equal(summary.learning + summary.independent + summary.mastered, 2);
   assert.equal(summary.mastered, 1);
   assert.equal(summary.due, 2);
-  assert.equal(summary.byCategory.reduce((sum: number, item: any) => sum + item.total, 0), 40);
+  assert.equal(summary.byCategory.reduce((sum: number, item: any) => sum + item.total, 0), 41);
   assert.deepEqual(plain(context.masterySummary(null, null)),
     { total: 0, practiced: 0, learning: 0, independent: 0, mastered: 0, due: 0, weakIds: [], byCategory: [] });
 });
@@ -643,9 +643,9 @@ test("full adaptive passes and fresh shuffles preserve breadth and captured repl
     saved.map((item: any) => item.signature).sort());
   let stats = recordAttempt(null, saved[0], { hinted: true });
   stats = recordAttempt(stats, saved[1]);
-  const adaptive = plain(context.practiceDeck(challenges, stats, 120, random));
-  for (let start = 0; start < 120; start += 40) {
-    assert.equal(new Set(adaptive.slice(start, start + 40).map((item: any) => item.signature)).size, 40);
+  const adaptive = plain(context.practiceDeck(challenges, stats, 123, random));
+  for (let start = 0; start < 123; start += 41) {
+    assert.equal(new Set(adaptive.slice(start, start + 41).map((item: any) => item.signature)).size, 41);
   }
   for (let i = 1; i < adaptive.length; i++) assert.notEqual(adaptive[i].signature, adaptive[i - 1].signature);
   assert.deepEqual(challenges, before);

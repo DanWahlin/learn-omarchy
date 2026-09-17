@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "audioHash": "78e91329a7ee2e34bdeb56c1783b32cbcf0fecb69c437fab3f52632958fd1fa6",
+  "text": "Choose Open Disk Usage, wait for the scan, then navigate the dua list to inspect which top-level folders use space.",
+  "words": [
+    {
+      "startMs": 70,
+      "endOffset": 6
+    },
+    {
+      "startMs": 510,
+      "endOffset": 11
+    },
+    {
+      "startMs": 910,
+      "endOffset": 16
+    },
+    {
+      "startMs": 1230,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1470,
+      "endOffset": 28
+    },
+    {
+      "startMs": 1710,
+      "endOffset": 32
+    },
+    {
+      "startMs": 2029,
+      "endOffset": 36
+    },
+    {
+      "startMs": 2550,
+      "endOffset": 42
+    },
+    {
+      "startMs": 3349,
+      "endOffset": 47
+    },
+    {
+      "startMs": 3630,
+      "endOffset": 56
+    },
+    {
+      "startMs": 4190,
+      "endOffset": 60
+    },
+    {
+      "startMs": 4390,
+      "endOffset": 64
+    },
+    {
+      "startMs": 4750,
+      "endOffset": 69
+    },
+    {
+      "startMs": 5310,
+      "endOffset": 72
+    },
+    {
+      "startMs": 5470,
+      "endOffset": 80
+    },
+    {
+      "startMs": 6190,
+      "endOffset": 86
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 96
+    },
+    {
+      "startMs": 7070,
+      "endOffset": 104
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 108
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 115
+    }
+  ]
+}

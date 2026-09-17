@@ -47,6 +47,8 @@ Rectangle {
     "ocr": ["Turn pixels into text", "Select only the sample card and extract its words. OCR (optical character recognition) may make mistakes. Copy the extracted sample, paste it below, and compare it with the card. Requires slurp, grim and tesseract."],
     "qr": ["Read a QR code safely", "Create the harmless sample QR code, select it, and decode it. Copy the decoded text and paste it below to inspect the contents. No links are opened. Requires qrencode, slurp, grim and zbarimg."],
     "dictation": ["Try local dictation", "Check availability, then enable the practice field. Use Super+Ctrl+X to start and stop dictation, or hold F9 while speaking. Try “Omarchy practice,” then stop and review the words. You control the microphone; this exercise doesn't start it. Return and skip if dictation isn't available."],
+    "dictation-corrections": ["Practice a dictation correction", "Inspect whether Voxtype's real configuration documents replacements, without displaying or editing it. Then apply a correction to a harmless simulated transcript. If Voxtype or its config is unavailable, the bundled sample teaches the same workflow."],
+    "notifications": ["Practice with sample notifications", "Use this lesson-owned notification sample to open history, dismiss the sample, and turn simulated quiet mode on and back off. No desktop notifications are opened, invoked, or dismissed, and your real silencing preference never changes."],
     "web-app": ["Explore a demo web-app entry", "This isolated demo creates an entry only in the exercise folder, not your Apps menu. Explicitly create it, open its local preview, then remove it. Everyday Omarchy: Install Web App asks for a name and URL; Remove Web App removes a launcher, not your account."],
     "transcode": ["Create a smaller media copy", "Generate a harmless silent sample clip, play the original, choose a lower resolution, and convert a separate MP4 copy. Play the output and compare its size and quality. Requires ffmpeg and ffprobe. No original files are changed."],
     "sharing": ["Review before sharing", "Prepare the sample file, read its contents, and choose the intended demo recipient. This rehearsal doesn't discover real devices or send anything. For a real transfer, check that both devices have LocalSend and can reach each other on the network."]
@@ -67,6 +69,9 @@ Rectangle {
   property bool nativeSamplePasted: false
   property bool captureCopied: false
   property bool captureEdited: false
+  property bool simulatedQuiet: false
+  property bool simulatedQuietSeen: false
+  property bool correctionApplied: false
   onScreenshotChanged: {
     if (mode !== "capture") return
     verified = false
@@ -121,6 +126,9 @@ Rectangle {
     nativeSamplePasted = false
     captureCopied = false
     captureEdited = false
+    simulatedQuiet = false
+    simulatedQuietSeen = false
+    correctionApplied = false
     copiedFirst = false
     copiedSecond = false
     historyOpened = false
@@ -130,6 +138,7 @@ Rectangle {
     destination.text = ""
     recipient.currentIndex = 0
     resolution.currentIndex = 0
+    correctionChoice.currentIndex = 0
     scrollArea.contentItem.contentY = 0
   }
   onModeChanged: resetExercise()
@@ -199,6 +208,14 @@ Rectangle {
       stage = 1
       status = "Voxtype is installed. Availability does not guarantee a configured microphone or running service."
       focusAndReveal(consentDictationButton)
+    } else if (mode === "dictation-corrections" && result.action === "inspect") {
+      stage = 1
+      status = result.source === "config"
+        ? (result.replacementsDocumented
+          ? "Your Voxtype config documents replacements. It was inspected read-only and its contents were not displayed."
+          : "Your Voxtype config exists, but no replacements example was detected. It was not changed; use the bundled sample below.")
+        : "Voxtype's config is unavailable. Using the bundled sample; no real config was created or changed."
+      focusAndReveal(correctionChoice)
     } else if (mode === "web-app") {
       if (result.action === "create" && result.path) {
         artifact = result.path
@@ -557,6 +574,51 @@ Rectangle {
           onClicked: root.requestTask("check")
         }
         PracticeButton {
+          objectName: "inspectDictationCorrections"
+          visible: root.mode === "dictation-corrections"
+          enabled: !root.busy && root.stage === 0
+          text: "Inspect config availability (read only)"
+          onClicked: root.requestTask("inspect")
+        }
+        Text {
+          visible: root.mode === "dictation-corrections" && root.stage >= 1
+          Layout.fillWidth: true
+          text: "Simulated transcript: “Run cube control get pods.”\nChoose the specific recurring correction that would turn only “cube control” into “kubectl”."
+          color: root.foreground
+          wrapMode: Text.WordWrap
+          font.pixelSize: 16 * root.textScale
+        }
+        PracticeComboBox {
+          id: correctionChoice
+          objectName: "dictationCorrectionChoice"
+          visible: root.mode === "dictation-corrections" && root.stage >= 1
+          Layout.fillWidth: true
+          model: ["Choose a replacement", "cube control → kubectl", "control → ctl", "run → execute"]
+          Accessible.name: "Dictation replacement"
+          onCurrentIndexChanged: {
+            if (root.mode === "dictation-corrections") {
+              root.correctionApplied = false
+              root.verified = false
+            }
+          }
+        }
+        PracticeButton {
+          objectName: "applyDictationCorrection"
+          visible: root.mode === "dictation-corrections" && root.stage >= 1
+          enabled: correctionChoice.currentIndex > 0 && !root.correctionApplied
+          text: "Apply to simulated transcript"
+          onClicked: {
+            root.correctionApplied = true
+            if (correctionChoice.currentIndex === 1) {
+              root.verified = true
+              root.status = "Corrected sample: “Run kubectl get pods.” Your real Voxtype config remains unchanged."
+            } else {
+              root.verified = false
+              root.status = "That replacement is too broad or changes the wrong word. Choose the specific recurring phrase."
+            }
+          }
+        }
+        PracticeButton {
           id: consentDictationButton
           objectName: "consentDictation"
           visible: root.mode === "dictation" && root.stage >= 1
@@ -736,6 +798,58 @@ Rectangle {
           enabled: root.stage === 1 && recipient.currentIndex === 1
           text: "I've checked the file and demo recipient. Don't send anything."
           onClicked: { root.verified = true; root.status = "Preparation reviewed. No transfer attempted or delivery confirmed." }
+        }
+        PracticeButton {
+          objectName: "showSampleNotification"
+          visible: root.mode === "notifications"
+          enabled: root.stage === 0
+          text: "Show lesson-owned sample notification"
+          onClicked: { root.stage = 1; root.status = "Sample ready. This is inside the lesson, not your desktop notification service." }
+        }
+        Rectangle {
+          visible: root.mode === "notifications" && root.stage >= 1 && root.stage < 3
+          Layout.fillWidth: true
+          implicitHeight: 86
+          radius: 8
+          color: Qt.tint(root.backgroundColor, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.16))
+          Text {
+            anchors.fill: parent
+            anchors.margins: 12
+            text: "Learn Omarchy sample\nBackup finished — harmless practice message"
+            color: root.foreground
+            wrapMode: Text.WordWrap
+            font.pixelSize: 16 * root.textScale
+          }
+        }
+        PracticeButton {
+          objectName: "openSampleNotificationHistory"
+          visible: root.mode === "notifications"
+          enabled: root.stage === 1
+          text: "Open sample history"
+          onClicked: { root.stage = 2; root.status = "Sample history opened. Your real history was not read." }
+        }
+        PracticeButton {
+          objectName: "dismissSampleNotification"
+          visible: root.mode === "notifications"
+          enabled: root.stage === 2
+          text: "Dismiss only the lesson sample"
+          onClicked: { root.stage = 3; root.status = "Lesson sample dismissed. No real notification was touched." }
+        }
+        PracticeButton {
+          objectName: "toggleSampleQuiet"
+          visible: root.mode === "notifications" && root.stage >= 3
+          enabled: !root.verified
+          text: root.simulatedQuiet ? "Turn simulated quiet mode off" : "Turn simulated quiet mode on"
+          onClicked: {
+            root.simulatedQuiet = !root.simulatedQuiet
+            if (root.simulatedQuiet) {
+              root.simulatedQuietSeen = true
+              root.status = "Simulated quiet mode is on. Your desktop preference is unchanged; now turn the simulation off."
+            } else if (root.simulatedQuietSeen) {
+              root.verified = true
+              root.status = "Simulation restored to alerts on. Your real notification settings never changed."
+            }
+          }
         }
         Text {
           visible: root.artifact !== "" || root.original !== ""
@@ -950,6 +1064,8 @@ Rectangle {
           Layout.fillWidth: true
           text: root.verified ? (root.mode === "sharing" ? "Sharing review complete. Nothing sent; delivery isn't confirmed."
             : root.mode === "dictation" ? "Text review complete. Microphone use wasn't checked."
+            : root.mode === "dictation-corrections" ? "Correction practiced. Your real config was not edited."
+            : root.mode === "notifications" ? "Sample notification workflow complete. Real notification state is unchanged."
             : "Exercise complete. Choose Finish exercise to return to your coach.") : root.status
           color: root.verified ? root.accent : root.foreground
           wrapMode: Text.WordWrap
