@@ -9,6 +9,9 @@ fi
 if [[ "${1:-}" == "--watch-screenshots" ]]; then
   exec node "$app_root/tools/capture-practice.mjs" --watch-screenshots
 fi
+if [[ "${1:-}" == "--watch-recordings" ]]; then
+  exec node "$app_root/tools/capture-practice.mjs" --watch-recordings
+fi
 if [[ "${1:-}" == "--session" ]]; then
   exec node "$app_root/tools/capture-practice.mjs" --session "${2:-}"
 fi

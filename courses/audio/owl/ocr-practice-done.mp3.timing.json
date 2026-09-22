@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "audioHash": "d5a08806377e8da79a9aef98f534a64397193fcd52e56e345a8d49accd39a030",
+  "audioHash": "944261b33aa673b10800ae3f472514be3ac7ea1c852a5bf3f9524617bbe3dd9d",
   "text": "You turned pixels into editable text. Give extracted text a quick proofread before you use it.",
   "words": [
     {
@@ -8,63 +8,63 @@
       "endOffset": 3
     },
     {
-      "startMs": 310,
+      "startMs": 270,
       "endOffset": 10
     },
     {
-      "startMs": 710,
+      "startMs": 590,
       "endOffset": 17
     },
     {
-      "startMs": 1350,
+      "startMs": 1190,
       "endOffset": 22
     },
     {
-      "startMs": 1670,
+      "startMs": 1430,
       "endOffset": 31
     },
     {
-      "startMs": 2230,
+      "startMs": 2029,
       "endOffset": 37
     },
     {
-      "startMs": 3309,
+      "startMs": 3190,
       "endOffset": 42
     },
     {
-      "startMs": 3750,
+      "startMs": 3590,
       "endOffset": 52
     },
     {
-      "startMs": 4590,
+      "startMs": 4470,
       "endOffset": 57
     },
     {
-      "startMs": 5270,
+      "startMs": 5110,
       "endOffset": 59
     },
     {
-      "startMs": 5390,
+      "startMs": 5230,
       "endOffset": 65
     },
     {
-      "startMs": 5670,
+      "startMs": 5510,
       "endOffset": 75
     },
     {
-      "startMs": 6310,
+      "startMs": 6150,
       "endOffset": 82
     },
     {
-      "startMs": 6670,
+      "startMs": 6470,
       "endOffset": 86
     },
     {
-      "startMs": 6830,
+      "startMs": 6790,
       "endOffset": 90
     },
     {
-      "startMs": 7110,
+      "startMs": 6950,
       "endOffset": 94
     }
   ]

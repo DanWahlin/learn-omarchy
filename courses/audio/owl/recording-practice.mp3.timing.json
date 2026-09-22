@@ -1,119 +1,163 @@
 {
   "version": 1,
-  "audioHash": "90b46a156e9acf9178ae296ad06af687d73028b0969544a3b61ae736ffe2783a",
-  "text": "Let's make a short, silent recording of the practice card. Select the card, start recording, stop it, then play the saved clip. Select Start exercise to get started.",
+  "audioHash": "609acc99250cf2e011386b1601a89ff00ea92a46b4dd1fabed5ac72524aff787",
+  "text": "Let's use Omarchy's real screen recorder. Press Super, Control, and C, choose Screenrecord, then With no audio, and drag around the practice card. Open Capture again to stop, then play the saved clip. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
       "endOffset": 5
     },
     {
-      "startMs": 350,
-      "endOffset": 10
+      "startMs": 470,
+      "endOffset": 9
     },
     {
-      "startMs": 590,
-      "endOffset": 12
-    },
-    {
-      "startMs": 630,
+      "startMs": 830,
       "endOffset": 19
     },
     {
-      "startMs": 1310,
-      "endOffset": 26
+      "startMs": 1550,
+      "endOffset": 24
     },
     {
-      "startMs": 1950,
-      "endOffset": 36
+      "startMs": 1870,
+      "endOffset": 31
     },
     {
-      "startMs": 2550,
-      "endOffset": 39
+      "startMs": 2270,
+      "endOffset": 41
     },
     {
-      "startMs": 2670,
-      "endOffset": 43
+      "startMs": 3510,
+      "endOffset": 47
     },
     {
-      "startMs": 2789,
-      "endOffset": 52
+      "startMs": 3909,
+      "endOffset": 54
     },
     {
-      "startMs": 3270,
-      "endOffset": 58
+      "startMs": 4750,
+      "endOffset": 63
     },
     {
-      "startMs": 4470,
-      "endOffset": 65
+      "startMs": 5470,
+      "endOffset": 67
     },
     {
-      "startMs": 4950,
-      "endOffset": 69
+      "startMs": 5710,
+      "endOffset": 70
     },
     {
-      "startMs": 5110,
-      "endOffset": 75
+      "startMs": 5750,
+      "endOffset": 77
     },
     {
-      "startMs": 5910,
-      "endOffset": 81
+      "startMs": 6670,
+      "endOffset": 91
     },
     {
-      "startMs": 6350,
-      "endOffset": 92
-    },
-    {
-      "startMs": 7230,
-      "endOffset": 97
-    },
-    {
-      "startMs": 7710,
-      "endOffset": 101
-    },
-    {
-      "startMs": 7790,
-      "endOffset": 106
-    },
-    {
-      "startMs": 8469,
-      "endOffset": 111
+      "startMs": 8189,
+      "endOffset": 96
     },
     {
       "startMs": 8750,
+      "endOffset": 101
+    },
+    {
+      "startMs": 9030,
+      "endOffset": 104
+    },
+    {
+      "startMs": 9350,
+      "endOffset": 111
+    },
+    {
+      "startMs": 9750,
       "endOffset": 115
     },
     {
-      "startMs": 8870,
-      "endOffset": 121
+      "startMs": 10190,
+      "endOffset": 120
     },
     {
-      "startMs": 9309,
+      "startMs": 10549,
       "endOffset": 127
     },
     {
-      "startMs": 10389,
-      "endOffset": 134
+      "startMs": 10870,
+      "endOffset": 131
     },
     {
       "startMs": 10990,
       "endOffset": 140
     },
     {
-      "startMs": 11510,
-      "endOffset": 149
-    },
-    {
-      "startMs": 12350,
-      "endOffset": 152
-    },
-    {
-      "startMs": 12430,
-      "endOffset": 156
+      "startMs": 11469,
+      "endOffset": 146
     },
     {
       "startMs": 12670,
+      "endOffset": 151
+    },
+    {
+      "startMs": 13149,
+      "endOffset": 159
+    },
+    {
+      "startMs": 13629,
       "endOffset": 165
+    },
+    {
+      "startMs": 14149,
+      "endOffset": 168
+    },
+    {
+      "startMs": 14309,
+      "endOffset": 174
+    },
+    {
+      "startMs": 15069,
+      "endOffset": 179
+    },
+    {
+      "startMs": 15469,
+      "endOffset": 184
+    },
+    {
+      "startMs": 15750,
+      "endOffset": 188
+    },
+    {
+      "startMs": 15870,
+      "endOffset": 194
+    },
+    {
+      "startMs": 16310,
+      "endOffset": 200
+    },
+    {
+      "startMs": 17310,
+      "endOffset": 207
+    },
+    {
+      "startMs": 17910,
+      "endOffset": 213
+    },
+    {
+      "startMs": 18430,
+      "endOffset": 222
+    },
+    {
+      "startMs": 19230,
+      "endOffset": 225
+    },
+    {
+      "startMs": 19350,
+      "endOffset": 229
+    },
+    {
+      "startMs": 19550,
+      "endOffset": 238
     }
   ]
 }

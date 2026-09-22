@@ -31,6 +31,7 @@ Item {
   property bool clipboardSeen: false
   property bool taskPending: false
   property bool capturePending: false
+  property bool recordingPending: false
   property bool lockPending: false
   property bool lockStatusPending: false
   property bool closingQueued: false
@@ -48,13 +49,17 @@ Item {
       closePractice("failed")
       return
     }
-    if (["screen-recording", "ocr", "qr", "dictation", "dictation-corrections", "web-app", "transcode", "sharing"].indexOf(mode) !== -1) {
+    if (["qr", "dictation", "dictation-corrections", "web-app", "transcode", "sharing"].indexOf(mode) !== -1) {
       taskPending = true
       taskProcess.running = true
     }
     if (mode === "capture") {
       capturePending = true
       captureProcess.running = true
+    }
+    if (mode === "screen-recording") {
+      recordingPending = true
+      recordingProcess.running = true
     }
   }
 
@@ -76,11 +81,13 @@ Item {
     lifecycle = "closing"
     content.stopPlayback()
     captureProcess.running = false
+    recordingProcess.running = false
     taskProcess.running = false
     lockProcess.running = false
     lockStatus.running = false
     // A request cancelled before Quickshell's post-reload start has no exit event.
     if (!captureProcess.running) capturePending = false
+    if (!recordingProcess.running) recordingPending = false
     if (!taskProcess.running) taskPending = false
     if (!lockProcess.running) lockPending = false
     if (!lockStatus.running) lockStatusPending = false
@@ -92,7 +99,7 @@ Item {
   function finishClosing() {
     // Process destruction kills children before helper SIGTERM cleanup finishes.
     // Wait for process exit (or failed startup), then let handlers unwind before unloading.
-    if (!closing || closingQueued || taskPending || capturePending || lockPending || lockStatusPending) return
+    if (!closing || closingQueued || taskPending || capturePending || recordingPending || lockPending || lockStatusPending) return
     closingQueued = true
     Qt.callLater(function() {
       if (!root.closing) return
@@ -256,6 +263,40 @@ Item {
       if (root.closing) { root.finishClosing(); return }
       content.busy = false
       content.error = "Screenshot watching is unavailable. Return to your coach and retry."
+    }
+  }
+  Process {
+    id: recordingProcess
+    command: [root.appRoot + "/bin/learn-omarchy-practice", "--watch-recordings"]
+    stdout: SplitParser {
+      onRead: function(data) {
+        if (!root.running) return
+        try {
+          var event = JSON.parse(String(data || "").trim())
+          if (event.event === "started") content.observeRecordingStarted()
+          else if (event.event === "saved" && /^\/.*\/screenrecording-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.mp4$/.test(event.path))
+            content.observeRecordingSaved(event.path)
+          else if (event.event === "already-active")
+            content.error = "A screen recording was already active when this exercise started. Stop it, then start a new recording for this exercise."
+          else content.error = "The screen recording watcher returned an invalid event. Return and retry."
+        } catch (error) {
+          content.error = "The screen recording watcher returned invalid data. Return and retry."
+        }
+      }
+    }
+    onExited: function(code) {
+      root.recordingPending = false
+      if (root.closing) { root.finishClosing(); return }
+      if (!root.running) return
+      content.error = code === 0
+        ? "Screen recording watching stopped. Return and retry the exercise."
+        : "Screen recording watching is unavailable. Return and retry the exercise."
+    }
+    onRunningChanged: {
+      if (running || !root.recordingPending) return
+      root.recordingPending = false
+      if (root.closing) { root.finishClosing(); return }
+      content.error = "Screen recording watching is unavailable. Return to your coach and retry."
     }
   }
   Process {

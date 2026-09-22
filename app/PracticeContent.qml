@@ -45,9 +45,9 @@ Rectangle {
   property string screenshot: ""
   readonly property var exercises: ({
     "compose": ["Type with Compose", "Enter a smile in the first field and a heart in the second. Compose uses separate key presses, not keys held together. Custom mappings may differ; return and skip rather than changing settings."],
-    "screen-recording": ["Record, stop, replay", "Select the animated practice card and check the region before starting. Record for at least one second, stop, then play the saved clip. This recording has no sound or webcam footage and won't stop another recorder."],
-    "ocr": ["Turn pixels into text", "Select only the sample card and extract its words. OCR (optical character recognition) may make mistakes. Copy the extracted sample, paste it below, and compare it with the card. Requires slurp, grim and tesseract."],
-    "qr": ["Read a QR code safely", "Create the harmless sample QR code, select it, and decode it. Copy the decoded text and paste it below to inspect the contents. No links are opened. Requires qrencode, slurp, grim and zbarimg."],
+    "screen-recording": ["Record, stop, replay", "Use Omarchy's real Screenrecording workflow to select the animated card, choose no audio, stop the recording, and play the saved clip."],
+    "ocr": ["Turn pixels into text", "Use Omarchy's real Text capture on the sample card, paste the clipboard result below, and compare it with the source."],
+    "qr": ["Read a QR code safely", "Create the harmless sample, use Omarchy's real QR Code capture, then paste the decoded clipboard result below."],
     "dictation": ["Try local dictation", "Check availability, then enable the practice field. Dictate “Omarchy practice,” stop dictation, and review the words. You control the microphone; this exercise doesn't start it. Return and skip if dictation isn't available."],
     "dictation-corrections": ["Practice a dictation correction", "Inspect whether Voxtype's real configuration documents replacements, without displaying or editing it. Then apply a correction to a harmless simulated transcript. If Voxtype or its config is unavailable, the bundled sample teaches the same workflow."],
     "notifications": ["Practice with sample notifications", "Use this lesson-owned notification sample to open history, dismiss the sample, and turn simulated quiet mode on and back off. No desktop notifications are opened, invoked, or dismissed, and your real silencing preference never changes."],
@@ -59,12 +59,6 @@ Rectangle {
     "compose": [
       { label: "Smile - tap one key at a time", keys: ["CAPS LOCK", "→", "M", "→", "S"] },
       { label: "Heart - tap one key at a time", keys: ["CAPS LOCK", "→", "M", "→", "H"] }
-    ],
-    "ocr": [
-      { label: "Paste the copied text", keys: ["SUPER", "+", "V"] }
-    ],
-    "qr": [
-      { label: "Paste the copied result", keys: ["SUPER", "+", "V"] }
     ],
     "dictation": [
       { label: "Start or stop dictation", keys: ["SUPER", "+", "CTRL", "+", "X"] },
@@ -86,13 +80,26 @@ Rectangle {
         { label: "Choose \"" + sample + "\" (not the entry beginning \"A newer note\")", keys: ["SHIFT", "+", "ENTER"] },
         { label: "Paste the original note into the destination", keys: ["SUPER", "+", "V"] }
       ]
-  readonly property var currentKeyGuides: mode === "clipboard" ? clipboardKeyGuides : keyGuides[mode] || []
+  readonly property var recordingKeyGuides: stage === 1
+    ? [{ label: "Open Capture, then choose Stop Screenrecording", keys: ["SUPER", "+", "CTRL", "+", "C"] }]
+    : stage === 0
+      ? [{ label: "Open Capture, choose Screenrecord, then With no audio", keys: ["SUPER", "+", "CTRL", "+", "C"] }]
+      : []
+  readonly property var nativeTextKeyGuides: mode === "qr" && qrImage === ""
+    ? []
+    : [
+      { label: mode === "ocr" ? "Open Capture, then choose Text" : "Open Capture, then choose QR Code", keys: ["SUPER", "+", "CTRL", "+", "C"] },
+      { label: "Paste the copied result below", keys: ["SUPER", "+", "V"] }
+    ]
+  readonly property var currentKeyGuides: mode === "clipboard" ? clipboardKeyGuides
+    : mode === "screen-recording" ? recordingKeyGuides
+    : mode === "ocr" || mode === "qr" ? nativeTextKeyGuides
+    : keyGuides[mode] || []
   readonly property bool extendedMode: exercises[mode] !== undefined
   property int stage: 0
   property string artifact: ""
   property string original: ""
   property string region: ""
-  property string extracted: ""
   property string qrImage: ""
   property int originalBytes: 0
   property int outputBytes: 0
@@ -146,7 +153,6 @@ Rectangle {
     artifact = ""
     original = ""
     region = ""
-    extracted = ""
     qrImage = ""
     originalBytes = 0
     outputBytes = 0
@@ -202,39 +208,12 @@ Rectangle {
       status = "Selection cancelled. Nothing completed; try again."
       return
     }
-    if (mode === "screen-recording") {
-      if (result.action === "select") {
-        region = result.region
-        stage = 1
-        focusAndReveal(startRecordingButton)
-      }
-      if (result.action === "start" && result.recording) {
-        recording = true
-        stage = 2
-        focusAndReveal(stopRecordingButton)
-      }
-      if (result.action === "stop" && result.path) {
-        recording = false
-        artifact = result.path
-        stage = 3
-        outputPlayed = false
-        focusAndReveal(playOutputButton)
-      }
-    } else if (mode === "ocr" || mode === "qr") {
+    if (mode === "qr") {
       if (result.image) {
         qrImage = result.image
         artifact = result.image
         stage = 1
-        focusAndReveal(extractSampleButton)
-      }
-      if (result.text === "OMARCHY SAFE SAMPLE") {
-        extracted = result.text
-        artifact = result.path || ""
-        nativeSamplePasted = false
-        verified = false
-        exerciseInput.text = ""
-        stage = mode === "qr" ? 2 : 1
-        focusAndReveal(copyExtractedButton)
+        focusAndReveal(exerciseInput)
       }
     } else if (mode === "dictation" && result.available) {
       stage = 1
@@ -281,9 +260,36 @@ Rectangle {
     }
   }
 
+  function observeRecordingStarted() {
+    if (mode !== "screen-recording") return
+    recording = true
+    stage = 1
+    artifact = ""
+    outputPlayed = false
+    verified = false
+    error = ""
+    status = "Recording active. Open Capture and choose Stop Screenrecording when you're done."
+  }
+
+  function observeRecordingSaved(path) {
+    if (mode !== "screen-recording") return
+    recording = false
+    artifact = path
+    stage = 2
+    outputPlayed = false
+    verified = false
+    error = ""
+    status = "Recording saved. Play it to finish the exercise."
+    focusAndReveal(playOutputButton)
+  }
+
   function observeExercisePaste(text) {
-    if ((mode === "ocr" || mode === "qr") && extracted === "OMARCHY SAFE SAMPLE" && text.trim() === extracted)
-      nativeSamplePasted = true
+    if (mode !== "ocr" && mode !== "qr") return
+    nativeSamplePasted = text.trim() === "OMARCHY SAFE SAMPLE"
+    verified = nativeSamplePasted
+    status = nativeSamplePasted
+      ? "The pasted text matches the sample. Choose Finish exercise."
+      : "The pasted text doesn't match the sample. Try the native capture again and select only the card."
   }
 
   function checkCompose() {
@@ -307,7 +313,7 @@ Rectangle {
       if (source.toString() === "file://" + root.original) root.originalPlayed = true
       if (source.toString() === "file://" + root.artifact) {
         root.outputPlayed = true
-        if (root.mode === "screen-recording" && root.stage === 3) root.verified = true
+        if (root.mode === "screen-recording" && root.stage === 2) root.verified = true
       }
     }
     onErrorOccurred: function(error, errorString) { root.error = "Playback failed: " + errorString }
@@ -369,7 +375,8 @@ Rectangle {
     var flickable = scrollArea.contentItem
     var point = control.mapToItem(bodyColumn, 0, 0)
     var nextY = flickable.contentY
-    if (point.y < nextY + 12) nextY = point.y - 12
+    if (control.height > flickable.height - 24) nextY = point.y - 12
+    else if (point.y < nextY + 12) nextY = point.y - 12
     else if (point.y + control.height > nextY + flickable.height - 12) nextY = point.y + control.height - flickable.height + 12
     flickable.contentY = Math.max(0, Math.min(Math.max(0, flickable.contentHeight - flickable.height), nextY))
   }
@@ -401,6 +408,7 @@ Rectangle {
   Shortcut {
     sequence: "Escape"
     enabled: root.enabled && root.visible && root.mode !== "capture"
+      && !(root.mode === "screen-recording" && root.recording)
     onActivated: root.cancelled()
   }
 
@@ -536,14 +544,28 @@ Rectangle {
       id: nativePracticeSample
       objectName: "nativePracticeSample"
       visible: ["screen-recording", "ocr"].indexOf(root.mode) !== -1
+        || (root.mode === "qr" && root.qrImage !== "")
       Layout.fillWidth: true
-      implicitHeight: Math.min(130, root.height / 4)
+      implicitHeight: root.mode === "qr"
+        ? Math.max(64, Math.min(200, root.height / 4))
+        : Math.min(130, root.height / 4)
       color: "white"
       Text {
+        visible: root.mode !== "qr"
         anchors.centerIn: parent
         text: "OMARCHY SAFE SAMPLE"
         color: "black"
         font.pixelSize: 22
+      }
+      Image {
+        objectName: "sampleQr"
+        visible: root.mode === "qr" && root.qrImage !== ""
+        anchors.fill: parent
+        anchors.margins: 8
+        source: root.qrImage ? "file://" + root.qrImage : ""
+        fillMode: Image.PreserveAspectFit
+        smooth: false
+        Accessible.name: "Harmless sample QR code"
       }
       Rectangle {
         visible: root.mode === "screen-recording"
@@ -660,22 +682,16 @@ Rectangle {
             ? "Choose Screenshot, then drag around only the practice card below. Print opens the picker directly on keyboards that have it. Escape cancels region selection."
             : root.mode === "screen-recording"
             ? (root.stage === 0
-              ? "Select the animated practice card below."
+              ? "Choose Screenrecord, then With no audio. Drag around only the animated practice card below."
               : root.stage === 1
-              ? "The region is selected. Start the silent recording when you're ready."
-              : root.stage === 2
-              ? "Record for at least one second, then stop the recording."
+              ? "Your real Omarchy recording is active. Open Capture again and choose Stop Screenrecording."
               : "Play the saved recording to finish.")
             : root.mode === "ocr"
-            ? (root.extracted === ""
-              ? "Select the sample card to extract its text."
-              : "Copy the recognized text, paste it below, and confirm that it matches.")
+            ? "Choose Text, drag around only the sample card, then paste the copied result below."
             : root.mode === "qr"
             ? (root.qrImage === ""
               ? "Create a harmless sample QR code."
-              : root.extracted === ""
-              ? "Select the QR code to decode it."
-              : "Copy the decoded text, paste it below, and confirm that it matches.")
+              : "Choose QR Code, drag around the sample, then paste the copied result below.")
             : root.exercises[root.mode] ? root.exercises[root.mode][1] : root.mode === "clipboard"
             ? ""
             : root.mode === "screen-lock"
@@ -714,44 +730,6 @@ Rectangle {
           enabled: visible && !root.busy && root.qrImage === ""
           text: "Prepare harmless sample"
           onClicked: root.requestTask("prepare")
-        }
-        Image {
-          objectName: "sampleQr"
-          visible: root.mode === "qr" && root.qrImage !== "" && root.extracted === ""
-          Layout.fillWidth: true
-          Layout.preferredHeight: Math.max(64, Math.min(200,
-            scrollArea.availableHeight - extractSampleButton.implicitHeight - bodyColumn.spacing - 24))
-          source: root.qrImage ? "file://" + root.qrImage : ""
-          fillMode: Image.PreserveAspectFit
-          smooth: false
-          Accessible.name: "Harmless sample QR code"
-        }
-        PracticeButton {
-          id: extractSampleButton
-          objectName: "extractSample"
-          visible: (root.mode === "ocr" && root.extracted === "")
-            || (root.mode === "qr" && root.qrImage !== "" && root.extracted === "")
-          enabled: visible && !root.busy
-          primary: true
-          text: root.mode === "ocr" ? "Extract text from the card" : "Decode the QR code"
-          onClicked: root.requestTask("extract")
-        }
-        NoteArea {
-          id: extractedText
-          visible: root.extracted !== ""
-          Layout.fillWidth: true
-          text: root.extracted
-          readOnly: true
-          selectByMouse: true
-          Accessible.name: "Recognized sample text"
-        }
-        PracticeButton {
-          id: copyExtractedButton
-          objectName: "copyExtracted"
-          visible: root.extracted !== ""
-          primary: true
-          text: root.mode === "qr" ? "Copy decoded text" : "Copy recognized text"
-          onClicked: { extractedText.selectAll(); extractedText.copy(); exerciseInput.forceActiveFocus() }
         }
         PracticeButton {
           objectName: "checkDictation"
@@ -817,15 +795,27 @@ Rectangle {
           id: exerciseInput
           objectName: "exerciseInput"
           visible: root.mode === "dictation"
-            || (["ocr", "qr"].indexOf(root.mode) !== -1 && root.extracted !== "")
-          enabled: root.mode === "dictation" ? root.consent : root.extracted !== ""
+            || root.mode === "ocr"
+            || (root.mode === "qr" && root.qrImage !== "")
+          enabled: root.mode === "dictation" ? root.consent : true
           Layout.fillWidth: true
+          Layout.minimumHeight: root.height < 400 && (root.mode === "ocr" || root.mode === "qr")
+            ? 64 * root.textScale
+            : 76 * root.textScale
+          Layout.preferredHeight: Layout.minimumHeight
           wrapMode: TextEdit.Wrap
-          placeholderText: root.mode === "dictation" ? "Dictate: Omarchy practice" : "Paste the recognized sample here"
+          placeholderText: root.mode === "dictation" ? "Dictate: Omarchy practice"
+            : root.mode === "qr" ? "Paste the decoded QR text here"
+            : "Paste the extracted text here"
           Accessible.name: placeholderText
           KeyNavigation.priority: KeyNavigation.BeforeItem
           KeyNavigation.tab: reviewRecognized.enabled ? reviewRecognized : cancelButton
-          onTextChanged: { root.nativeSamplePasted = false; root.verified = false }
+          onTextChanged: {
+            if (root.mode === "ocr" || root.mode === "qr") {
+              root.nativeSamplePasted = false
+              root.verified = false
+            }
+          }
           Keys.priority: Keys.BeforeItem
           Keys.onPressed: function(event) {
             if (event.matches(StandardKey.Paste)) Qt.callLater(function() { root.observeExercisePaste(exerciseInput.text) })
@@ -836,38 +826,11 @@ Rectangle {
           id: reviewRecognized
           objectName: "reviewRecognized"
           visible: root.mode === "dictation"
-            || (["ocr", "qr"].indexOf(root.mode) !== -1 && root.extracted !== "")
           enabled: !root.verified && (root.mode === "dictation"
             ? root.consent && /^omarchy practice[.!]?$/i.test(exerciseInput.text.trim())
-            : root.nativeSamplePasted)
-          text: root.mode === "dictation" ? "I stopped dictation and proofread the words" : "The pasted words match the sample"
+            : false)
+          text: "I stopped dictation and proofread the words"
           onClicked: { root.verified = true; root.status = "Reviewed locally. Nothing sent." }
-        }
-        PracticeButton {
-          objectName: "selectRecording"
-          visible: root.mode === "screen-recording" && root.stage === 0
-          enabled: visible && !root.busy
-          primary: true
-          text: "Select the practice card"
-          onClicked: root.requestTask("select")
-        }
-        PracticeButton {
-          id: startRecordingButton
-          objectName: "startRecording"
-          visible: root.mode === "screen-recording" && root.stage === 1
-          enabled: visible && !root.busy && root.region !== ""
-          primary: true
-          text: "Start recording"
-          onClicked: root.requestTask("start")
-        }
-        PracticeButton {
-          id: stopRecordingButton
-          objectName: "stopRecording"
-          visible: root.mode === "screen-recording" && root.stage === 2
-          enabled: visible && !root.busy && root.recording
-          primary: true
-          text: "Stop recording"
-          onClicked: root.requestTask("stop")
         }
         PracticeButton {
           id: playOriginalButton
@@ -906,7 +869,7 @@ Rectangle {
         PracticeButton {
           id: playOutputButton
           objectName: "playOutput"
-          visible: (root.mode === "screen-recording" && root.stage === 3 && root.artifact !== "")
+          visible: (root.mode === "screen-recording" && root.stage === 2 && root.artifact !== "")
             || root.mode === "transcode"
           enabled: root.artifact !== "" && !root.busy
           primary: root.mode === "screen-recording"
@@ -1222,7 +1185,8 @@ Rectangle {
         id: cancelButton
         objectName: "returnWithoutCompleting"
         Layout.preferredWidth: Math.min(280 * root.textScale, root.width - 32)
-        text: "Return without completing"
+        enabled: !(root.mode === "screen-recording" && root.recording)
+        text: enabled ? "Return without completing" : "Stop recording before returning"
         KeyNavigation.priority: KeyNavigation.BeforeItem
         KeyNavigation.tab: finishButton.enabled ? finishButton : scrollArea
         onClicked: root.cancelled()
@@ -1233,7 +1197,7 @@ Rectangle {
         Layout.preferredWidth: Math.min(280 * root.textScale, root.width - 32)
         primary: true
         text: "Finish exercise"
-        enabled: root.verified && !root.busy
+        enabled: root.verified && !root.busy && !root.recording
         KeyNavigation.priority: KeyNavigation.BeforeItem
         KeyNavigation.backtab: cancelButton
         onClicked: root.finished()

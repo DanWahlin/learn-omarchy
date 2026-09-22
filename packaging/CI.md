@@ -1,9 +1,9 @@
-# CI and draft candidates
+# CI and tagged releases
 
 `ci.yml` runs on branch pushes and pull requests. `release.yml` runs only on
-`v*` tag pushes, calls the same CI, and creates an **unpublished draft
-prerelease** after all checks pass. Even a stable-looking tag remains a draft
-prerelease. There is no automatic publication or stable-promotion path.
+`v*` tag pushes, calls the same CI, and publishes a GitHub release only after
+all checks pass. Pushing a version tag is therefore the explicit publication
+action, not merely a request to prepare a candidate.
 
 ## Isolated checks
 
@@ -72,50 +72,33 @@ The only uploaded directory is `.ci-release/dist/`, artifact name
   downloads because GitHub rewrites asset names beginning with a dot)
 - `BUILD-INFO.txt`, `VERIFICATION.json`, and `RELEASE-NOTES.txt`
 - `RELEASE-NOTES.md`, copied unchanged from the tagged source and used as the
-  draft's release description
+  release description
 - `SHA256SUMS` covering every other file
 
 Build trees, npm modules, private state, and test output directories are not
 uploaded. Pull requests and ordinary branch pushes never upload artifacts.
 The separate release job downloads only this run's verified artifact,
-rechecks SHA256 hashes, and attaches the listed files to a draft prerelease.
+rechecks SHA256 hashes, and attaches the listed files to the published release.
 It then downloads the attached files and verifies the checksums again, catching
 hosting-side filename changes as well as missing or changed uploads.
-It refuses to replace an existing release on reruns. Inspect and explicitly
-remove an obsolete draft before rerunning; never delete a published release
-just to make automation pass.
+It refuses to replace an existing release on reruns. Never move a published
+tag or delete a published release merely to make automation pass.
 
-## Publication stays manual
+## Tagging is publication
 
-Only the final draft job has `contents: write`. Test jobs have read-only
+Only the final release job has `contents: write`. Test jobs have read-only
 permissions, checkout does not persist credentials, and no secrets are passed
 to the reusable workflow. External actions are pinned to verified commit
 SHAs. GitHub token repository settings must allow the narrowly scoped release
 write permission. Restrict tag creation with repository rulesets.
 
-Before publishing a testing prerelease, complete the testing-distribution gates
-in [ACCEPTANCE.md](ACCEPTANCE.md) against the exact source commit and package
-checksum, review [RELEASE-NOTES.md](RELEASE-NOTES.md), and obtain explicit release
-approval. Draft creation is not acceptance or approval. Stable promotion requires
-all stable gates and its own approved exact-source evidence; do not treat a
-green workflow or a version tag as that evidence.
-
-## Preparing rc.5 without publishing
-
-Commit the readiness changes and ensure `package.json` and the lockfile both
-say `0.1.0-rc.5`. Run the full checks, push the commit, then create and push the
-new `v0.1.0-rc.5` tag on that exact commit. Never move an older candidate tag.
-The tag workflow builds fresh assets and creates a new draft; keep it a draft
-and keep the repository private under the current distribution approval.
-
-Verify the uploaded package, checksums, source commit in `BUILD-INFO.txt`, and
-release's draft/prerelease flags before handing it to the owner. An Omarchy
-package-repository PR is a later, separate action. The agent-arcade precedent
-is `omacom/omarchy-pkgs#310`, with a package recipe and upstream-release tracking;
-Learn Omarchy needs an accessible, approved release/version/checksum before
-that submission, not a recipe pointing at a private draft.
+Before pushing any version tag, complete the applicable gates in
+[ACCEPTANCE.md](ACCEPTANCE.md) against the exact source commit, review
+[RELEASE-NOTES.md](RELEASE-NOTES.md), and obtain explicit release approval.
+Do not push release-candidate tags through this workflow unless it is first
+changed to mark those releases as prereleases.
 
 The [Omarchy submission kit](omarchy-pkgs/README.md) supplies release-tracking
 metadata, a PR description template, and a generator that verifies an anonymously
-accessible stable release before producing `pkgbuilds/learn-omarchy/`. Omarchy's
-GitHub tracker excludes prereleases, so publishing rc.5 alone is not sufficient.
+accessible stable release before producing `pkgbuilds/learn-omarchy/`. The
+existing Omarchy package definition tracks later stable releases automatically.

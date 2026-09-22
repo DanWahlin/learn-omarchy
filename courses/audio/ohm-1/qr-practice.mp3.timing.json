@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "dc6d385ed92a08e60477caf1e1af06707a22428e86f6ec7234e287a6a1f63fc7",
-  "text": "Let's read a QR code that's already on screen. Create the sample code, select and decode it, then paste the decoded text. Select Start exercise to get started.",
+  "audioHash": "9f31bdeb2b2125e891b0a8b1d1690fdfd1538c142643234e4535ab9a9c248988",
+  "text": "Let's read a QR code that's already on screen. Create the sample, press Super, Control, and C, choose QR Code, select the code, then paste the copied result below. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
@@ -12,108 +12,136 @@
       "endOffset": 10
     },
     {
-      "startMs": 430,
+      "startMs": 510,
       "endOffset": 12
     },
     {
-      "startMs": 470,
+      "startMs": 550,
       "endOffset": 15
     },
     {
-      "startMs": 790,
+      "startMs": 870,
       "endOffset": 20
     },
     {
-      "startMs": 990,
+      "startMs": 1110,
       "endOffset": 27
     },
     {
-      "startMs": 1270,
+      "startMs": 1350,
       "endOffset": 35
     },
     {
-      "startMs": 1550,
+      "startMs": 1710,
       "endOffset": 38
     },
     {
-      "startMs": 1630,
+      "startMs": 1830,
       "endOffset": 46
     },
     {
-      "startMs": 2429,
+      "startMs": 2630,
       "endOffset": 53
     },
     {
-      "startMs": 2789,
+      "startMs": 3070,
       "endOffset": 57
     },
     {
-      "startMs": 2909,
-      "endOffset": 64
+      "startMs": 3230,
+      "endOffset": 65
     },
     {
-      "startMs": 3270,
-      "endOffset": 70
+      "startMs": 3989,
+      "endOffset": 71
     },
     {
-      "startMs": 3949,
-      "endOffset": 77
+      "startMs": 4390,
+      "endOffset": 78
     },
     {
-      "startMs": 4670,
-      "endOffset": 81
+      "startMs": 5110,
+      "endOffset": 87
     },
     {
-      "startMs": 4830,
-      "endOffset": 88
-    },
-    {
-      "startMs": 5310,
-      "endOffset": 92
-    },
-    {
-      "startMs": 5870,
-      "endOffset": 97
+      "startMs": 5990,
+      "endOffset": 91
     },
     {
       "startMs": 6150,
-      "endOffset": 103
+      "endOffset": 94
     },
     {
-      "startMs": 6510,
-      "endOffset": 107
+      "startMs": 6870,
+      "endOffset": 101
     },
     {
-      "startMs": 6630,
-      "endOffset": 115
+      "startMs": 7270,
+      "endOffset": 104
     },
     {
-      "startMs": 7030,
+      "startMs": 7670,
+      "endOffset": 110
+    },
+    {
+      "startMs": 8229,
+      "endOffset": 117
+    },
+    {
+      "startMs": 8670,
       "endOffset": 121
     },
     {
-      "startMs": 7990,
-      "endOffset": 128
+      "startMs": 8790,
+      "endOffset": 127
     },
     {
-      "startMs": 8590,
-      "endOffset": 134
+      "startMs": 9430,
+      "endOffset": 132
     },
     {
-      "startMs": 8950,
-      "endOffset": 143
+      "startMs": 9790,
+      "endOffset": 138
     },
     {
-      "startMs": 9590,
-      "endOffset": 146
+      "startMs": 10229,
+      "endOffset": 142
     },
     {
-      "startMs": 9709,
-      "endOffset": 150
+      "startMs": 10350,
+      "endOffset": 149
     },
     {
-      "startMs": 9830,
-      "endOffset": 159
+      "startMs": 10790,
+      "endOffset": 156
+    },
+    {
+      "startMs": 11149,
+      "endOffset": 163
+    },
+    {
+      "startMs": 12069,
+      "endOffset": 170
+    },
+    {
+      "startMs": 12670,
+      "endOffset": 176
+    },
+    {
+      "startMs": 13030,
+      "endOffset": 185
+    },
+    {
+      "startMs": 13590,
+      "endOffset": 188
+    },
+    {
+      "startMs": 13709,
+      "endOffset": 192
+    },
+    {
+      "startMs": 13830,
+      "endOffset": 201
     }
   ]
 }

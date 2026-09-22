@@ -44,9 +44,10 @@ Recheck current contribution rules when actually submitting.
 
 First complete the [stable acceptance gates](../ACCEPTANCE.md), obtain separate
 public-distribution approval, and prepare a new stable tag/release through the
-[release procedure](../RELEASING.md). CI always creates a draft prerelease, even
-for a stable-shaped tag: publication **and removing the prerelease flag** remain
-explicit owner-approved actions. Make the repository public only with approval.
+[release procedure](../RELEASING.md). The current tag workflow publishes the
+release after its verification jobs pass, so pushing the stable tag is the
+explicit owner-approved publication action. Make the repository public only
+with approval.
 Keep the release source archive and checksum manifest available permanently.
 
 From the Learn Omarchy checkout, with Node.js and `tar` available:

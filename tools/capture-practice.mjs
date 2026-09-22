@@ -9,13 +9,6 @@ export function validRegion(value) {
   return Boolean(match && match.slice(1).every(part => Number.isSafeInteger(Number(part))));
 }
 
-export function recorderArguments(region, output) {
-  if (!validRegion(region)) throw new Error("Invalid recording region");
-  const [x, y, width, height] = region.match(/-?\d+/g);
-  return ["-w", "region", "-region", `${width}x${height}+${x}+${y}`,
-    "-f", "30", "-k", "h264", "-fallback-cpu-encoding", "yes", "-o", output];
-}
-
 async function artifactDirectory(prefix) {
   const base = resolve(".learn-omarchy-practice");
   await mkdir(base, { recursive: true, mode: 0o700 });
@@ -80,6 +73,21 @@ export async function screenshotDirectory(env = process.env) {
   return resolve(home, "Pictures");
 }
 
+export async function recordingDirectory(env = process.env) {
+  if (env.OMARCHY_SCREENRECORD_DIR) return resolve(env.OMARCHY_SCREENRECORD_DIR);
+  const home = env.HOME || "";
+  if (env.XDG_VIDEOS_DIR)
+    return resolve(env.XDG_VIDEOS_DIR.replace(/\$\{HOME\}|\$HOME/g, home));
+  try {
+    const userDirs = await readFile(join(home, ".config", "user-dirs.dirs"), "utf8");
+    const match = /^XDG_VIDEOS_DIR="([^"]+)"$/m.exec(userDirs);
+    if (match) return resolve(match[1].replace(/\$\{HOME\}|\$HOME/g, home));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  return resolve(home, "Videos");
+}
+
 export async function watchScreenshots() {
   const directory = await screenshotDirectory();
   const observed = new Map();
@@ -130,10 +138,94 @@ export async function watchScreenshots() {
   }
 }
 
+export async function watchRecordings(env = process.env) {
+  const directory = await recordingDirectory(env);
+  const marker = env.OMARCHY_SCREENRECORD_MARKER || "/tmp/omarchy-screenrecord-filename";
+  const observed = new Map();
+  const pending = new Set();
+  const reported = new Map();
+  let stopping = false;
+  let activePath = "";
+  let completedPath = "";
+  let ignoringExistingRecording = false;
+  const stop = () => { stopping = true; };
+  process.on("SIGTERM", stop);
+  process.on("SIGINT", stop);
+
+  async function readMarker() {
+    try {
+      return (await readFile(marker, "utf8")).trim();
+    } catch (error) {
+      if (error.code === "ENOENT") return "";
+      throw error;
+    }
+  }
+
+  async function scan(emitNew, recordingActive) {
+    let names;
+    try {
+      names = await readdir(directory);
+    } catch (error) {
+      if (error.code === "ENOENT") return;
+      throw error;
+    }
+    for (const name of names) {
+      if (!/^screenrecording-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.mp4$/.test(name)) continue;
+      if (emitNew && observed.has(name) && !pending.has(name)) continue;
+      const path = join(directory, name);
+      const info = await stat(path);
+      if (!info.isFile() || info.size === 0) continue;
+      const version = `${info.mtimeMs}:${info.size}`;
+      if (observed.get(name) !== version) {
+        observed.set(name, version);
+        if (!emitNew) reported.set(name, version);
+        else pending.add(name);
+        continue;
+      }
+      if (!emitNew || recordingActive || reported.get(name) === version) continue;
+      if (!completedPath || resolve(path) !== resolve(completedPath)) continue;
+      pending.delete(name);
+      reported.set(name, version);
+      console.log(JSON.stringify({ event: "saved", path }));
+      completedPath = "";
+    }
+  }
+
+  try {
+    activePath = await readMarker();
+    await scan(false, activePath !== "");
+    if (activePath) {
+      ignoringExistingRecording = true;
+      console.log(JSON.stringify({ event: "already-active" }));
+    }
+    while (!stopping) {
+      await new Promise(resolveDelay => setTimeout(resolveDelay, 250));
+      const nextActivePath = await readMarker();
+      if (nextActivePath && !activePath) {
+        if (!ignoringExistingRecording) console.log(JSON.stringify({ event: "started" }));
+        completedPath = "";
+      } else if (!nextActivePath && activePath) {
+        if (ignoringExistingRecording) {
+          ignoringExistingRecording = false;
+          observed.clear();
+          pending.clear();
+          reported.clear();
+          await scan(false, false);
+        } else {
+          completedPath = activePath;
+        }
+      }
+      activePath = nextActivePath;
+      await scan(true, activePath !== "");
+    }
+  } finally {
+    process.off("SIGTERM", stop);
+    process.off("SIGINT", stop);
+  }
+}
+
 export const sessionActions = {
-  "screen-recording": ["select", "start", "stop"],
-  ocr: ["extract"],
-  qr: ["prepare", "extract"],
+  qr: ["prepare"],
   dictation: ["check"],
   "dictation-corrections": ["inspect"],
   "web-app": ["create", "open", "remove"],
@@ -146,7 +238,7 @@ export async function practiceSession(mode) {
   if (!Object.hasOwn(sessionActions, mode)) throw new Error("Unsupported practice session");
   const directory = await artifactDirectory("session.");
   const children = new Set();
-  let recorder = null, recordingDone = null, region = "", stopping = false;
+  let stopping = false;
   const path = name => join(directory, name);
   const emit = result => console.log(JSON.stringify(result));
   function start(command, args) {
@@ -181,7 +273,7 @@ export async function practiceSession(mode) {
     if (stopping) return;
     stopping = true;
     for (const child of children) {
-      child.kill(child === recorder ? "SIGINT" : "SIGTERM");
+      child.kill("SIGTERM");
       const timeout = setTimeout(() => { if (children.has(child)) child.kill("SIGKILL"); }, 3000);
       timeout.unref();
       child.once("close", () => clearTimeout(timeout));
@@ -203,57 +295,10 @@ export async function practiceSession(mode) {
         action = request.action;
         if (stopping || !sessionActions[mode].includes(action)) throw new Error("Action is not allowed in this exercise");
         let result = {};
-        if (mode === "screen-recording") {
-          if (action === "select") {
-            if (recorder) throw new Error("Stop your recording before selecting again");
-            region = "";
-            const selected = await start("slurp", []).done;
-            if (selected.code === 1 && !selected.output) { emit({ action, cancelled: true }); continue; }
-            if (selected.code !== 0 || !validRegion(selected.output)) throw new Error(selected.error || "Invalid region");
-            region = selected.output;
-            result = { region };
-          } else if (action === "start") {
-            if (!region || recorder) throw new Error("Select and review a region first");
-            // The kernel stops this recorder even if the coach force-kills our worker.
-            const job = start("setpriv", ["--pdeathsig", "SIGINT", "--", "gpu-screen-recorder",
-              ...recorderArguments(region, path("recording.mp4"))]);
-            recorder = job.child;
-            recordingDone = job.done;
-            // Report startup failures instead of presenting a running recorder.
-            const early = await Promise.race([job.done, new Promise(resolveWait => setTimeout(() => resolveWait(null), 250))]);
-            if (early) { recorder = null; throw new Error(early.error || "Recorder stopped before starting"); }
-            job.done.then(result => {
-              if (recorder !== job.child || stopping) return;
-              recorder = null;
-              emit({ action: "stop", error: result.error || "Recording stopped unexpectedly. Select a region and retry." });
-            }).catch(() => {});
-            result = { recording: true };
-          } else {
-            if (!recorder) throw new Error("Start a recording first");
-            const ownedRecorder = recorder;
-            recorder = null;
-            ownedRecorder.kill("SIGINT");
-            const timeout = setTimeout(() => ownedRecorder.kill("SIGKILL"), 5000);
-            const stopped = await recordingDone;
-            clearTimeout(timeout);
-            if (stopped.code !== 0 && stopped.signal !== "SIGINT") throw new Error(stopped.error || "Recording failed");
-            result = await inspect("recording.mp4");
-          }
-        } else if (mode === "ocr" || mode === "qr") {
+        if (mode === "qr") {
           if (action === "prepare") {
             await run("qrencode", ["-o", path("sample.png"), "-s", "8", "OMARCHY SAFE SAMPLE"]);
             result = { image: path("sample.png") };
-          } else {
-            const selected = await start("slurp", []).done;
-            if (selected.code === 1 && !selected.output) { emit({ action, cancelled: true }); continue; }
-            if (selected.code !== 0 || !validRegion(selected.output)) throw new Error(selected.error || "Invalid region");
-            await run("grim", ["-g", selected.output, path("selection.png")]);
-            const text = mode === "ocr"
-              ? await run("tesseract", [path("selection.png"), "stdout", "--psm", "6"])
-              : await run("zbarimg", ["--quiet", "--raw", path("selection.png")]);
-            // Never expose arbitrary recognized screen contents in the lesson or logs.
-            if (text.trim() !== "OMARCHY SAFE SAMPLE") throw new Error("The sample wasn't recognized. Select only the sample card and retry.");
-            result = { text, path: path("selection.png") };
           }
         } else if (mode === "dictation") {
           await run("voxtype", ["--version"]);
@@ -302,7 +347,6 @@ export async function practiceSession(mode) {
         }
         emit({ action, ...result });
       } catch (error) {
-        if (action === "start") recorder = null;
         emit({ action, error: error.message });
       }
     }
@@ -318,6 +362,7 @@ export async function practiceSession(mode) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   (process.argv[2] === "--session" ? practiceSession(process.argv[3])
     : process.argv[2] === "--watch-screenshots" ? watchScreenshots()
+    : process.argv[2] === "--watch-recordings" ? watchRecordings()
     : capture()).catch(error => {
     console.error("Practice capture:", error.message);
     process.exitCode = 1;

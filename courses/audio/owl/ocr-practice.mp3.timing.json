@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "audioHash": "39a2ea26a7620bc609256fa123340a0874e0c9f03e62653edc035341a01ab2f3",
-  "text": "An image can contain useful text. Select the sample text on the practice card, extract it, and paste the result. Select Start exercise to get started.",
+  "audioHash": "8a03cddf7bff8ba7f9ef744851fc3a9780a75ff080e7c1ecb7bf28984e97c0ff",
+  "text": "An image can contain useful text. Press Super, Control, and C, choose Text, select the sample card, then paste the copied result below. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
       "endOffset": 2
     },
     {
-      "startMs": 270,
+      "startMs": 230,
       "endOffset": 8
     },
     {
@@ -16,96 +16,108 @@
       "endOffset": 12
     },
     {
-      "startMs": 1070,
+      "startMs": 1150,
       "endOffset": 20
     },
     {
-      "startMs": 1510,
+      "startMs": 1670,
       "endOffset": 27
     },
     {
-      "startMs": 1990,
+      "startMs": 2150,
       "endOffset": 33
     },
     {
-      "startMs": 3190,
-      "endOffset": 40
-    },
-    {
-      "startMs": 3710,
-      "endOffset": 44
+      "startMs": 3510,
+      "endOffset": 39
     },
     {
       "startMs": 3869,
-      "endOffset": 51
+      "endOffset": 46
     },
     {
-      "startMs": 4350,
-      "endOffset": 56
-    },
-    {
-      "startMs": 4790,
-      "endOffset": 59
-    },
-    {
-      "startMs": 4870,
-      "endOffset": 63
-    },
-    {
-      "startMs": 4990,
-      "endOffset": 72
+      "startMs": 4710,
+      "endOffset": 55
     },
     {
       "startMs": 5470,
-      "endOffset": 78
+      "endOffset": 59
     },
     {
-      "startMs": 6190,
-      "endOffset": 86
+      "startMs": 5750,
+      "endOffset": 62
     },
     {
-      "startMs": 6910,
-      "endOffset": 90
+      "startMs": 5790,
+      "endOffset": 69
     },
     {
-      "startMs": 7270,
-      "endOffset": 94
+      "startMs": 6750,
+      "endOffset": 75
     },
     {
-      "startMs": 7550,
-      "endOffset": 100
-    },
-    {
-      "startMs": 7870,
-      "endOffset": 104
+      "startMs": 7310,
+      "endOffset": 82
     },
     {
       "startMs": 7990,
-      "endOffset": 112
+      "endOffset": 86
     },
     {
-      "startMs": 9309,
-      "endOffset": 119
+      "startMs": 8549,
+      "endOffset": 93
     },
     {
-      "startMs": 9950,
-      "endOffset": 125
+      "startMs": 8990,
+      "endOffset": 99
+    },
+    {
+      "startMs": 9629,
+      "endOffset": 104
+    },
+    {
+      "startMs": 10069,
+      "endOffset": 110
     },
     {
       "startMs": 10430,
-      "endOffset": 134
+      "endOffset": 114
     },
     {
-      "startMs": 11229,
-      "endOffset": 137
+      "startMs": 10590,
+      "endOffset": 121
     },
     {
-      "startMs": 11350,
-      "endOffset": 141
+      "startMs": 10950,
+      "endOffset": 128
     },
     {
-      "startMs": 11590,
-      "endOffset": 150
+      "startMs": 11389,
+      "endOffset": 135
+    },
+    {
+      "startMs": 12670,
+      "endOffset": 142
+    },
+    {
+      "startMs": 13389,
+      "endOffset": 148
+    },
+    {
+      "startMs": 13910,
+      "endOffset": 157
+    },
+    {
+      "startMs": 14709,
+      "endOffset": 160
+    },
+    {
+      "startMs": 14830,
+      "endOffset": 164
+    },
+    {
+      "startMs": 15030,
+      "endOffset": 173
     }
   ]
 }

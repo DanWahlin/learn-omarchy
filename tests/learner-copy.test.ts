@@ -219,6 +219,12 @@ test("native recordings describe combined inputs using the actual menu labels", 
   assert.match(steps.get("recording-intro")!.note!, /Webcam includes desktop and microphone audio/);
   assert.match(detail("recording-intro"), /practice recording is silent and limited to a region/);
   assert.doesNotMatch(detail("recording-intro"), /No audio, desktop audio, microphone, and webcam are different choices/);
+  assert.match(instruction("recording-practice"), /Super, Control, and C.*Screenrecord.*With no audio/);
+  assert.match(detail("recording-practice"), /never starts or stops it/);
+  assert.match(instruction("ocr-practice"), /Super, Control, and C.*Text.*paste/);
+  assert.match(detail("ocr-practice"), /real Text capture copies recognized words to the clipboard/);
+  assert.match(instruction("qr-practice"), /Super, Control, and C.*QR Code.*paste/);
+  assert.match(detail("qr-practice"), /real QR Code capture copies the decoded value/);
 });
 
 test("native search cancellation clears entered text before closing", () => {

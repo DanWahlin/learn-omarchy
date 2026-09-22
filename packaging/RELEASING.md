@@ -138,14 +138,14 @@ Required dependencies are encoded in `PKGBUILD.in`:
   the explicitly requested terminal-based package removal.
 - Omarchy's `launch terminal` and `launch tui` interfaces own configured
   terminal selection; `nautilus` supports the required Files activities.
-- `grim` and `slurp` for required screenshot practice; `gpu-screen-recorder`,
-  `util-linux` (`setpriv`), and `ffmpeg` (`ffprobe`) for required recording
-  practice and recording validation. These are package dependencies, not
-  optional extras. The recorder does not use `wf-recorder`.
+- `grim` and `slurp` support Omarchy's required screenshot workflow.
+  `gpu-screen-recorder` and `util-linux` support Omarchy's required native
+  recording workflow, which the course observes without starting or stopping.
+  `ffmpeg` supports media playback checks and the required transcode practice.
+  These are package dependencies, not optional extras.
 
-Optional practice dependencies map directly to commands in
-`tools/capture-practice.mjs` and `tools/tutorial-launch.mjs`:
-`tesseract` with `tesseract-data-eng`, `zbar` (`zbarimg`), `qrencode`,
+Optional practice dependencies support native Omarchy workflows or safe sample
+setup: `tesseract` with `tesseract-data-eng`, `zbar` (`zbarimg`), `qrencode`,
 `voxtype`, and `btop`. A supported configured browser
 and Omarchy's configured terminal are used rather than installing/replacing
 the user's choices.

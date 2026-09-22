@@ -64,10 +64,11 @@ uninstall:
 dev-launcher:
 	install -d "$(USER_DESKTOP_DIR)" "$(USER_ICON_DIR)"
 	install -m 644 share/icons/hicolor/256x256/apps/learn-omarchy.png "$(USER_ICON_DIR)/learn-omarchy.png"
-	sed 's|^Exec=.*|Exec=$(CURDIR)/bin/learn-omarchy|' share/applications/learn-omarchy.desktop > "$(USER_DESKTOP_DIR)/learn-omarchy.desktop"
+	sed -e 's|^Exec=.*|Exec=$(CURDIR)/bin/learn-omarchy|' -e 's|^Name=Learn Omarchy$$|Name=Learn Omarchy Local|' share/applications/learn-omarchy.desktop > "$(USER_DESKTOP_DIR)/learn-omarchy-local.desktop"
+	rm -f "$(USER_DESKTOP_DIR)/learn-omarchy.desktop"
 	-update-desktop-database "$(USER_DESKTOP_DIR)" 2>/dev/null
-	@echo "Installed launcher: $(USER_DESKTOP_DIR)/learn-omarchy.desktop -> $(CURDIR)/bin/learn-omarchy"
+	@echo "Installed launcher: $(USER_DESKTOP_DIR)/learn-omarchy-local.desktop -> $(CURDIR)/bin/learn-omarchy"
 
 dev-launcher-remove:
-	rm -f "$(USER_DESKTOP_DIR)/learn-omarchy.desktop" "$(USER_ICON_DIR)/learn-omarchy.png"
+	rm -f "$(USER_DESKTOP_DIR)/learn-omarchy-local.desktop" "$(USER_DESKTOP_DIR)/learn-omarchy.desktop" "$(USER_ICON_DIR)/learn-omarchy.png"
 	-update-desktop-database "$(USER_DESKTOP_DIR)" 2>/dev/null

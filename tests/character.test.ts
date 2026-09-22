@@ -352,6 +352,12 @@ test("course shares registered character geometry, independent speech and instal
   assert.match(makefile, /install -m 644 experiments\/hexon-lab\/shell\.qml experiments\/hexon-lab\/qmldir/);
 });
 
+test("development and packaged launchers use distinct desktop IDs", () => {
+  const makefile = readFileSync(new URL("../Makefile", import.meta.url), "utf8");
+  assert.match(makefile, /learn-omarchy-local\.desktop/);
+  assert.match(makefile, /rm -f "\$\(USER_DESKTOP_DIR\)\/learn-omarchy\.desktop"/);
+});
+
 test("rocket tour travel stays upright without letting flight facing move the landing target", () => {
   const shell = readFileSync(new URL("../app/shell.qml", import.meta.url), "utf8");
   assert.match(shell, /uprightFlight: Boolean\(root\.characterConfig\.motion &&\s*root\.characterConfig\.motion\.tourFlight === "upright"\)/);

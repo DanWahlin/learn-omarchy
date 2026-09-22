@@ -128,8 +128,8 @@ Item {
           mode: "compose",
           guides: ["CAPS LOCK → M → S", "CAPS LOCK → M → H"]
         },
-        { tag: "ocr", mode: "ocr", guides: ["SUPER + V"] },
-        { tag: "qr", mode: "qr", guides: ["SUPER + V"] },
+        { tag: "recording", mode: "screen-recording", guides: ["SUPER + CTRL + C"] },
+        { tag: "ocr", mode: "ocr", guides: ["SUPER + CTRL + C", "SUPER + V"] },
         {
           tag: "dictation",
           mode: "dictation",
@@ -287,11 +287,8 @@ Item {
     }
     function test_progressiveResultsRevealNextAction_data() {
       var scenarios = [
-        { tag: "recording-selected", mode: "screen-recording", next: "startRecording" },
-        { tag: "recording-started", mode: "screen-recording", next: "stopRecording" },
-        { tag: "recording-stopped", mode: "screen-recording", next: "playOutput" },
-        { tag: "ocr-extracted", mode: "ocr", next: "copyExtracted" },
-        { tag: "qr-prepared", mode: "qr", next: "extractSample" },
+        { tag: "recording-saved", mode: "screen-recording", next: "playOutput" },
+        { tag: "qr-prepared", mode: "qr", next: "exerciseInput" },
         { tag: "dictation-available", mode: "dictation", next: "consentDictation" },
         { tag: "web-app-created", mode: "web-app", next: "openWebApp" },
         { tag: "web-app-opened", mode: "web-app", next: "removeWebApp" },
@@ -327,14 +324,7 @@ Item {
       practice.mode = data.mode
       practice.resetExercise()
 
-      if (data.transition === "recording-started") {
-        practice.region = "0,0 100x100"
-        practice.stage = 1
-      } else if (data.transition === "recording-stopped") {
-        practice.region = "0,0 100x100"
-        practice.stage = 2
-        practice.recording = true
-      } else if (data.transition === "web-app-opened") {
+      if (data.transition === "web-app-opened") {
         practice.stage = 1
       } else if (data.transition === "transcode-finished") {
         practice.original = "/tmp/original.mp4"
@@ -344,14 +334,8 @@ Item {
         findChild(practice, "outputResolution").currentIndex = 1
       }
 
-      if (data.transition === "recording-selected")
-        practice.handleTaskResult({ action: "select", region: "0,0 100x100" })
-      else if (data.transition === "recording-started")
-        practice.handleTaskResult({ action: "start", recording: true })
-      else if (data.transition === "recording-stopped")
-        practice.handleTaskResult({ action: "stop", path: "/tmp/output.mp4" })
-      else if (data.transition === "ocr-extracted")
-        practice.handleTaskResult({ action: "extract", text: "OMARCHY SAFE SAMPLE", path: "/tmp/ocr.txt" })
+      if (data.transition === "recording-saved")
+        practice.observeRecordingSaved("/tmp/output.mp4")
       else if (data.transition === "qr-prepared")
         practice.handleTaskResult({
           action: "prepare",
@@ -373,29 +357,30 @@ Item {
       var next = findChild(practice, data.next)
       tryCompare(next, "activeFocus", true)
       wait(30)
-      verify(isInPracticeViewport(next, findChild(practice, "practiceScroll")),
-        data.next + " must be fully visible after " + data.transition)
+      var viewport = findChild(practice, "practiceScroll")
+      var position = next.mapToItem(viewport, 0, 0)
+      var revealed = next.height <= viewport.height
+        ? isInPracticeViewport(next, viewport)
+        : position.y >= -1 && position.y < viewport.height
+      verify(revealed,
+        data.next + " must be fully visible after " + data.transition
+        + ": y=" + position.y + ", height=" + next.height + ", viewport=" + viewport.height)
     }
-    function test_tabFromScrollReturnsToTheNextEnabledExerciseControl() {
+    function test_activeRecordingCannotBeAbandonedFromTheExercise() {
       practice.mode = "screen-recording"
-      practice.stage = 2
-      practice.recording = true
-      var scroll = findChild(practice, "practiceScroll")
-      scroll.forceActiveFocus()
-      keyClick(Qt.Key_Tab)
-      tryCompare(findChild(practice, "stopRecording"), "activeFocus", true)
+      practice.observeRecordingStarted()
+      verify(practice.recording)
+      verify(!findChild(practice, "returnWithoutCompleting").enabled)
+      compare(findChild(practice, "returnWithoutCompleting").text, "Stop recording before returning")
+      keyClick(Qt.Key_Escape)
+      compare(cancelSpy.count, 0)
     }
-    function test_reviewedSampleCanTabOutToTheFooter() {
+    function test_verifiedNativeTextCanTabOutToTheFooter() {
       practice.mode = "ocr"
-      practice.extracted = "OMARCHY SAFE SAMPLE"
       var input = findChild(practice, "exerciseInput")
-      input.text = practice.extracted
-      practice.nativeSamplePasted = true
-      var review = findChild(practice, "reviewRecognized")
-      verify(review.enabled)
-      review.clicked()
+      input.text = "OMARCHY SAFE SAMPLE"
+      practice.observeExercisePaste(input.text)
       verify(practice.verified)
-      verify(!review.enabled)
       input.forceActiveFocus()
       keyClick(Qt.Key_Tab)
       tryCompare(findChild(practice, "returnWithoutCompleting"), "activeFocus", true)
@@ -426,7 +411,7 @@ Item {
       keyClick(Qt.Key_Tab)
       tryCompare(findChild(practice, "outputResolution"), "activeFocus", true)
     }
-    function test_qrRemainsFullyVisibleWhenDecodeButtonHasFocus() {
+    function test_qrStaysVisibleWhilePasteFieldScrollsIntoView() {
       root.width = 640
       root.height = 320
       practice.mode = "qr"
@@ -434,17 +419,20 @@ Item {
         .toString().replace(/^file:\/\//, "")
       for (var scale of [1, 1.3]) {
         practice.textScale = scale
-        var extract = findChild(practice, "extractSample")
-        extract.forceActiveFocus()
-        practice.scheduleReveal(extract)
+        var input = findChild(practice, "exerciseInput")
+        var sample = findChild(practice, "nativePracticeSample")
+        var before = sample.mapToItem(practice, 0, 0)
+        input.forceActiveFocus()
+        practice.scheduleReveal(input)
         wait(50)
         var scroll = findChild(practice, "practiceScroll")
-        var qr = findChild(practice, "sampleQr")
-        var position = qr.mapToItem(scroll, 0, 0)
-        verify(position.y >= -1, "QR top must not be clipped: " + position.y)
-        verify(position.y + qr.height <= scroll.height + 1, "QR bottom must fit")
-        var buttonPosition = extract.mapToItem(scroll, 0, 0)
-        verify(buttonPosition.y + extract.height <= scroll.height + 1, "Decode button must fit")
+        var after = sample.mapToItem(practice, 0, 0)
+        verify(Math.abs(after.x - before.x) <= 8)
+        verify(Math.abs(after.y - before.y) <= 8)
+        verify(sample.visible && findChild(practice, "sampleQr").visible)
+        var inputPosition = input.mapToItem(scroll, 0, 0)
+        verify(inputPosition.y >= -1 && inputPosition.y < scroll.height,
+          "The focused paste field must start inside the viewport")
       }
     }
     function test_nativeSampleStaysFixedWhileControlsScroll() {
@@ -458,15 +446,11 @@ Item {
         var before = sample.mapToItem(practice, 0, 0)
         var scroll = findChild(practice, "practiceScroll")
         scroll.contentItem.contentY = Math.max(0, scroll.contentItem.contentHeight - scroll.height)
-        if (mode === "screen-recording") {
-          practice.region = "100,100 300x80"
-          practice.stage = 1
-          findChild(practice, "startRecording").forceActiveFocus()
-        }
+        if (mode === "screen-recording") practice.observeRecordingStarted()
         wait(30)
         var after = sample.mapToItem(practice, 0, 0)
         compare(after.x, before.x)
-        compare(after.y, before.y, "Reviewing or starting must not move the selected sample")
+        compare(after.y, before.y, "Native capture progress must not move the selected sample")
         verify(sample.visible && sample.height > 0 && scroll.height > 0)
       }
     }
@@ -656,91 +640,79 @@ Item {
       smile.clear()
       verify(!practice.verified)
     }
-    function test_recordingNeedsSelectionStartStopAndPlayback() {
+    function test_recordingUsesNativeStartStopAndRequiresPlayback() {
       practice.mode = "screen-recording"
-      var select = findChild(practice, "selectRecording")
-      var start = findChild(practice, "startRecording")
-      var stop = findChild(practice, "stopRecording")
       var play = findChild(practice, "playOutput")
-      verify(select.visible)
-      verify(!start.visible)
-      verify(!stop.visible)
       verify(!play.visible)
-      practice.handleTaskResult({ action: "select", cancelled: true })
-      verify(!practice.verified)
-      practice.handleTaskResult({ action: "select", region: "0,0 100x100" })
-      verify(!select.visible)
-      verify(start.visible)
-      verify(!stop.visible)
-      verify(!play.visible)
-      start.clicked()
-      compare(taskSpy.signalArguments[0][0], "start")
-      verify(practice.busy)
-      practice.handleTaskResult({ action: "start", recording: true })
-      verify(!start.visible)
-      verify(stop.visible)
-      verify(stop.enabled)
+      compare(practice.currentKeyGuides[0].label,
+        "Open Capture, choose Screenrecord, then With no audio")
+      practice.observeRecordingStarted()
+      compare(practice.stage, 1)
+      verify(practice.recording)
+      compare(practice.currentKeyGuides[0].label,
+        "Open Capture, then choose Stop Screenrecording")
       verify(!play.visible)
       verify(!practice.verified)
-      stop.clicked()
-      practice.handleTaskResult({ action: "stop", path: "/nonexistent/recording.mp4" })
+      practice.observeRecordingSaved("/nonexistent/recording.mp4")
       verify(!practice.recording)
-      verify(!stop.visible)
       verify(play.visible)
+      compare(practice.currentKeyGuides.length, 0)
       verify(!practice.verified, "A saved path without successful playback is insufficient")
       play.clicked()
       wait(100)
       verify(!practice.verified, "Playback failure never completes")
+      practice.verified = true
+      practice.observeRecordingStarted()
+      verify(!practice.verified, "Starting a retake invalidates the previous playback")
+      verify(!findChild(practice, "finishExercise").enabled)
     }
-    function test_ocrAndQrRevealOnlyTheCurrentAction() {
+    function test_ocrAndQrUseNativeCaptureThenRequirePastedSample() {
       practice.mode = "ocr"
-      verify(findChild(practice, "extractSample").visible)
-      verify(!findChild(practice, "copyExtracted").visible)
-      verify(!findChild(practice, "exerciseInput").visible)
+      var input = findChild(practice, "exerciseInput")
+      verify(input.visible)
+      verify(input.enabled)
       verify(!findChild(practice, "reviewRecognized").visible)
-      practice.handleTaskResult({ action: "extract", text: "OMARCHY SAFE SAMPLE", path: "/tmp/ocr.txt" })
-      verify(!findChild(practice, "extractSample").visible)
-      verify(findChild(practice, "copyExtracted").visible)
-      verify(findChild(practice, "exerciseInput").visible)
-      verify(findChild(practice, "reviewRecognized").visible)
+      compare(practice.currentKeyGuides.length, 2)
+      compare(practice.currentKeyGuides[0].label, "Open Capture, then choose Text")
+      practice.observeExercisePaste("wrong text")
+      verify(!practice.verified)
+      practice.observeExercisePaste("OMARCHY SAFE SAMPLE")
+      verify(practice.verified)
 
       practice.mode = "qr"
       verify(findChild(practice, "prepareSample").visible)
-      verify(!findChild(practice, "extractSample").visible)
       verify(!findChild(practice, "exerciseInput").visible)
+      compare(practice.currentKeyGuides.length, 0)
       practice.handleTaskResult({
         action: "prepare",
         image: Qt.resolvedUrl("../../assets/characters/owl/sprites/owl-idle.png").toString().replace("file://", "")
       })
       verify(!findChild(practice, "prepareSample").visible)
-      verify(findChild(practice, "extractSample").visible)
-      practice.handleTaskResult({ action: "extract", text: "OMARCHY SAFE SAMPLE", path: "/tmp/qr.txt" })
-      verify(!findChild(practice, "extractSample").visible)
-      verify(findChild(practice, "copyExtracted").visible)
       verify(findChild(practice, "exerciseInput").visible)
-      verify(findChild(practice, "reviewRecognized").visible)
+      compare(practice.currentKeyGuides.length, 2)
+      compare(practice.currentKeyGuides[0].label, "Open Capture, then choose QR Code")
     }
-    function test_recognitionRequiresRealPasteAndReview_data() {
+    function test_nativeTextRequiresRealPaste_data() {
       return [{ tag: "ocr", mode: "ocr" }, { tag: "qr", mode: "qr" }]
     }
-    function test_recognitionRequiresRealPasteAndReview(data) {
+    function test_nativeTextRequiresRealPaste(data) {
       practice.mode = data.mode
+      if (data.mode === "qr") {
+        practice.handleTaskResult({
+          action: "prepare",
+          image: Qt.resolvedUrl("../../assets/characters/owl/sprites/owl-idle.png").toString().replace("file://", "")
+        })
+      }
       var input = findChild(practice, "exerciseInput")
-      var review = findChild(practice, "reviewRecognized")
-      practice.handleTaskResult({ action: "extract", text: "wrong sample" })
-      verify(!input.enabled)
-      practice.handleTaskResult({ action: "extract", text: "OMARCHY SAFE SAMPLE" })
-      tryCompare(findChild(practice, "copyExtracted"), "activeFocus", true)
       input.text = "OMARCHY SAFE SAMPLE"
-      verify(!review.enabled, "Typing does not count as a paste")
-      findChild(practice, "copyExtracted").clicked()
+      verify(!practice.verified, "Typing does not count as a paste")
+      clipboardProbe.text = "OMARCHY SAFE SAMPLE"
+      clipboardProbe.selectAll()
+      clipboardProbe.copy()
       input.clear()
       input.forceActiveFocus()
       keyClick(Qt.Key_V, Qt.ControlModifier)
-      tryCompare(review, "enabled", true)
-      verify(!practice.verified, "Proofreading is explicit")
-      review.clicked()
-      verify(practice.verified)
+      tryCompare(practice, "verified", true)
       input.text = "changed"
       verify(!practice.verified)
     }

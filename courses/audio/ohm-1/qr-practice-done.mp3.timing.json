@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "audioHash": "b8f39f7aafc6e7c08414a97861a0c09c2c3f033979d55e931b9df6eacb3dfa0c",
+  "audioHash": "74d63d05c26674b7d1d9a4d620e63415e7167bf933a060a152cba87e3327b4c0",
   "text": "You've read the QR code without reaching for your phone, and checked its contents before acting.",
   "words": [
     {
@@ -20,51 +20,51 @@
       "endOffset": 18
     },
     {
-      "startMs": 870,
+      "startMs": 910,
       "endOffset": 23
     },
     {
-      "startMs": 1110,
+      "startMs": 1150,
       "endOffset": 31
     },
     {
-      "startMs": 1510,
+      "startMs": 1470,
       "endOffset": 40
     },
     {
-      "startMs": 1830,
+      "startMs": 1790,
       "endOffset": 44
     },
     {
-      "startMs": 1950,
+      "startMs": 2029,
       "endOffset": 49
     },
     {
-      "startMs": 2150,
+      "startMs": 2190,
       "endOffset": 56
     },
     {
-      "startMs": 2630,
+      "startMs": 2550,
       "endOffset": 60
     },
     {
-      "startMs": 2789,
+      "startMs": 2710,
       "endOffset": 68
     },
     {
-      "startMs": 3070,
+      "startMs": 3030,
       "endOffset": 72
     },
     {
-      "startMs": 3190,
+      "startMs": 3150,
       "endOffset": 81
     },
     {
-      "startMs": 3670,
+      "startMs": 3590,
       "endOffset": 88
     },
     {
-      "startMs": 3989,
+      "startMs": 3909,
       "endOffset": 96
     }
   ]
