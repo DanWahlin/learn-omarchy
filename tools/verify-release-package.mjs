@@ -59,7 +59,7 @@ export async function verifyPackage(packagePath, sourceRoot) {
   const version = packageVersion(JSON.parse(await readFile(join(sourceRoot, "package.json"), "utf8")).version);
   assert.match(metadata, /^pkgname = learn-omarchy$/m);
   assert.ok(metadata.split("\n").includes(`pkgver = ${version}-1`), "package version matches the source");
-  assert.match(metadata, /^depend = omarchy>=4\.0\.3$/m, "the supported Omarchy dependency floor must remain in the package");
+  assert.match(metadata, /^depend = omarchy$/m, "the Omarchy runtime dependency must remain in the package");
   assert.match(metadata, /^license = MIT$/m);
   assert.match(metadata, /^license = CC-BY-4.0$/m);
   assert.match(metadata, /^license = CC0-1.0$/m);
