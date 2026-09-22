@@ -6,6 +6,9 @@ app_root="${LEARN_OMARCHY_ROOT:-$(cd -- "$script_dir/.." && pwd)}"
 if [[ "${1:-}" == "--capture" ]]; then
   exec node "$app_root/tools/capture-practice.mjs"
 fi
+if [[ "${1:-}" == "--watch-screenshots" ]]; then
+  exec node "$app_root/tools/capture-practice.mjs" --watch-screenshots
+fi
 if [[ "${1:-}" == "--session" ]]; then
   exec node "$app_root/tools/capture-practice.mjs" --session "${2:-}"
 fi

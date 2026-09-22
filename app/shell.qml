@@ -1461,22 +1461,22 @@ ShellRoot {
     property string label: ""
     property bool active: false
     property bool small: false
-    readonly property bool isPlus: label === "+"
+    readonly property bool isSeparator: label === "+" || label === "→"
 
-    implicitWidth: isPlus ? (small ? 14 : 26) : keyText.implicitWidth + (small ? 14 : 36)
+    implicitWidth: isSeparator ? (small ? 14 : 26) : keyText.implicitWidth + (small ? 14 : 36)
     implicitHeight: small ? 22 : 54
     scale: active ? 1.06 : 1
     Behavior on scale { NumberAnimation { duration: 90; easing.type: Easing.OutCubic } }
 
     Rectangle {
       // Keycap edge under the face for a little depth.
-      visible: !keycap.isPlus
+      visible: !keycap.isSeparator
       anchors.fill: parent
       radius: keycap.small ? 5 : 9
       color: keycap.active ? Qt.darker(root.accent, 1.5) : Qt.tint(root.panelColor, root.colorWithAlpha(root.foreground, 0.28))
     }
     Rectangle {
-      visible: !keycap.isPlus
+      visible: !keycap.isSeparator
       anchors.fill: parent
       anchors.bottomMargin: keycap.small ? 2 : 4
       radius: keycap.small ? 5 : 9
@@ -1488,10 +1488,10 @@ ShellRoot {
     Text {
       id: keyText
       anchors.centerIn: parent
-      anchors.verticalCenterOffset: keycap.isPlus ? 0 : -(keycap.small ? 1 : 2)
+      anchors.verticalCenterOffset: keycap.isSeparator ? 0 : -(keycap.small ? 1 : 2)
       text: keycap.label
       textFormat: Text.PlainText
-      color: keycap.isPlus ? root.muted : (keycap.active ? root.controlPalette.highlightedText : root.foreground)
+      color: keycap.isSeparator ? root.muted : (keycap.active ? root.controlPalette.highlightedText : root.foreground)
       font.family: "monospace"
       font.pixelSize: (keycap.small ? 11 : 17) * root.textScale
       font.weight: Font.Bold
@@ -5619,6 +5619,7 @@ ShellRoot {
           Region { item: characterPanel }
           Region { item: packNoticePanel }
           Region { item: teachingContent }
+          Region { item: embeddedPracticeSurface }
           Region { item: controls }
           Region { item: completionPanel }
           Region { item: errorPanel }
@@ -6874,7 +6875,7 @@ ShellRoot {
             ? (overlay.measuredBarTarget && overlay.measuredBarTarget.panel ? overlay.measuredBarTarget : overlay.measuredWindowTarget)
             : null
           readonly property var placement: TeachingLayout.position(overlay.width, overlay.height, width, height, avoidTarget)
-          visible: root.phase === "waiting" || root.phase === "highlight"
+          visible: (root.phase === "waiting" || root.phase === "highlight") && !root.embeddedPracticeRunning
           opacity: root.lessonContentOpacity
           x: placement.x
           y: placement.y
@@ -7221,11 +7222,67 @@ ShellRoot {
               onClicked: { root.stopAudio(); root.advance() }
             }
 
+            Text {
+              visible: root.exerciseRunning && root.inlineAppSearch
+              Layout.fillWidth: true
+              text: "Keys go to your desktop. Close the new terminal to finish, or choose Skip."
+              wrapMode: Text.WordWrap
+              horizontalAlignment: Text.AlignHCenter
+              color: root.foreground
+              font.pixelSize: 14 * root.textScale
+            }
+          }
+        }
+
+        UiPanel {
+          id: embeddedPracticeSurface
+          objectName: "embeddedPracticeSurface"
+          visible: root.embeddedPracticeRunning && root.phase === "waiting"
+          anchors.centerIn: parent
+          width: Math.max(0, Math.min(1120 * root.textScale, parent.width - 48))
+          height: Math.max(0, Math.min(780 * root.textScale, parent.height - 48))
+          z: 110
+          radius: 16
+          stripe: root.instruction
+
+          ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: 24
+            spacing: 12
+
+            Text {
+              Layout.fillWidth: true
+              text: (root.currentLesson ? root.currentLesson.title : "Lesson") + " · Practice"
+              horizontalAlignment: Text.AlignHCenter
+              color: root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 16 * root.textScale
+              font.weight: Font.DemiBold
+              wrapMode: Text.WordWrap
+            }
+
+            Text {
+              visible: Boolean(root.currentStep && root.currentStep.note)
+              Layout.fillWidth: true
+              text: root.currentStep ? root.currentStep.note || "" : ""
+              horizontalAlignment: Text.AlignHCenter
+              color: root.foreground
+              font.family: "sans-serif"
+              font.pixelSize: 15 * root.textScale
+              wrapMode: Text.WordWrap
+            }
+
+            Rectangle {
+              Layout.fillWidth: true
+              implicitHeight: 1
+              color: root.panelBorder
+            }
+
             Item {
               id: embeddedPracticeHost
-              visible: root.embeddedPracticeRunning
+              objectName: "embeddedPracticeHost"
               Layout.fillWidth: true
-              Layout.preferredHeight: Math.min(360 * root.textScale, overlay.height * 0.4)
+              Layout.fillHeight: true
               Component.onCompleted: if (overlay.isFocusedScreen) root.practiceHost = embeddedPracticeHost
               Component.onDestruction: {
                 if (root.practiceHost === embeddedPracticeHost) {
@@ -7239,16 +7296,6 @@ ShellRoot {
                   if (overlay.isFocusedScreen) root.practiceHost = embeddedPracticeHost
                 }
               }
-            }
-
-            Text {
-              visible: root.exerciseRunning && root.inlineAppSearch
-              Layout.fillWidth: true
-              text: "Keys go to your desktop. Close the new terminal to finish, or choose Skip."
-              wrapMode: Text.WordWrap
-              horizontalAlignment: Text.AlignHCenter
-              color: root.foreground
-              font.pixelSize: 14 * root.textScale
             }
           }
         }
@@ -7271,7 +7318,7 @@ ShellRoot {
         GridLayout {
           id: controls
           z: 100
-          visible: !root.referenceBrowsing && root.phase !== "loading" && root.phase !== "settings" && root.phase !== "arcade"
+          visible: !root.referenceBrowsing && !root.embeddedPracticeRunning && root.phase !== "loading" && root.phase !== "settings" && root.phase !== "arcade"
           readonly property bool leftDock: root.phase === "waiting" &&
             root.currentStepIsTour &&
             Boolean(overlay.highlight) &&
@@ -7847,7 +7894,7 @@ ShellRoot {
             }
           }
           width: Math.min(880, overlay.width - 48)
-          height: Math.min(tourCaptionText.implicitHeight + 40, Math.max(100, overlay.height - 48))
+          height: Math.min(tourCaptionContent.height + 40, Math.max(100, overlay.height - 48))
           // Centre under HEXON, but never leave the screen.
           x: Math.round(Math.max(12, Math.min(overlay.width - width - 12,
             hexonCoach.x + (hexonCoach.width / 2) - (width / 2))))
@@ -7862,7 +7909,7 @@ ShellRoot {
             anchors.fill: parent
             anchors.margins: 20
             contentWidth: width
-            contentHeight: tourCaptionText.implicitHeight
+            contentHeight: tourCaptionContent.height
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             flickableDirection: Flickable.VerticalFlick
@@ -7870,28 +7917,80 @@ ShellRoot {
               id: tourScrollBar
               ThemePalette { target: tourScrollBar; colors: appTheme.colors }
             }
-            Text {
-              id: tourCaptionText
+            Column {
+              id: tourCaptionContent
               width: tourCaptionScroll.width
-              text: root.currentStep ? root.captionText(root.characterText(root.currentStep.instruction)) : ""
-              onTextChanged: tourCaptionScroll.contentY = 0
-              textFormat: Text.PlainText
-              horizontalAlignment: Text.AlignLeft
-              wrapMode: Text.Wrap
-              color: root.instruction
-              font.family: "sans-serif"
-              font.pixelSize: 21 * root.textScale
-              lineHeight: 1.2
-              opacity: root.lessonRevealEnd(root.currentStep ? root.characterText(root.currentStep.instruction) : "") >= 0 ? 0 : 1
-            }
-            WordRevealText {
-              reducedMotion: root.reducedMotion
-              width: tourCaptionText.width
-              fullText: tourCaptionText.text
-              revealEnd: root.lessonRevealEnd(root.currentStep ? root.characterText(root.currentStep.instruction) : "")
-              visible: revealEnd >= 0
-              font: tourCaptionText.font
-              color: tourCaptionText.color
+              height: tourCaptionTextFrame.height +
+                (tourCaptionKeyCallouts.visible ? spacing + tourCaptionKeyCallouts.height : 0)
+              spacing: tourCaptionKeyCallouts.visible ? 16 * root.textScale : 0
+
+              Item {
+                id: tourCaptionTextFrame
+                width: parent.width
+                height: tourCaptionText.implicitHeight
+                Text {
+                  id: tourCaptionText
+                  width: parent.width
+                  text: root.currentStep ? root.captionText(root.characterText(root.currentStep.instruction)) : ""
+                  onTextChanged: tourCaptionScroll.contentY = 0
+                  textFormat: Text.PlainText
+                  horizontalAlignment: Text.AlignLeft
+                  wrapMode: Text.Wrap
+                  color: root.instruction
+                  font.family: "sans-serif"
+                  font.pixelSize: 21 * root.textScale
+                  lineHeight: 1.2
+                  opacity: root.lessonRevealEnd(root.currentStep ? root.characterText(root.currentStep.instruction) : "") >= 0 ? 0 : 1
+                }
+                WordRevealText {
+                  reducedMotion: root.reducedMotion
+                  width: tourCaptionText.width
+                  fullText: tourCaptionText.text
+                  revealEnd: root.lessonRevealEnd(root.currentStep ? root.characterText(root.currentStep.instruction) : "")
+                  visible: revealEnd >= 0
+                  font: tourCaptionText.font
+                  color: tourCaptionText.color
+                }
+              }
+
+              Column {
+                id: tourCaptionKeyCallouts
+                objectName: "tourCaptionKeyCallouts"
+                readonly property var groups: root.currentStep && Array.isArray(root.currentStep.keyCallouts)
+                  ? root.currentStep.keyCallouts : []
+                visible: groups.length > 0
+                width: parent.width
+                height: visible ? groups.length * (tourCaption.width < 520 ? 22 : 54) +
+                  Math.max(0, groups.length - 1) * spacing : 0
+                spacing: 10 * root.textScale
+
+                Repeater {
+                  model: tourCaptionKeyCallouts.groups
+                  delegate: Row {
+                    id: keyGroup
+                    required property int index
+                    required property var modelData
+                    objectName: "tourCaptionKeyGroup" + index
+                    readonly property var keys: modelData
+                    width: implicitWidth
+                    height: implicitHeight
+                    x: Math.round((tourCaptionKeyCallouts.width - width) / 2)
+                    spacing: 8 * root.textScale
+                    Accessible.role: Accessible.StaticText
+                    Accessible.name: keys.join(" ")
+                    Repeater {
+                      model: keyGroup.keys
+                      Keycap {
+                        required property string modelData
+                        label: modelData.toUpperCase()
+                        small: tourCaption.width < 520
+                        width: implicitWidth
+                        height: implicitHeight
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -8057,6 +8156,7 @@ ShellRoot {
           readonly property bool targetsWelcomeControls: root.phase === "welcome" &&
             (root.welcomeStage === "controls-flight" || root.welcomeStage === "controls")
           readonly property bool targetsWelcome: root.phase === "welcome" && !targetsIntro
+          readonly property bool targetsPractice: root.embeddedPracticeRunning
           readonly property bool targetsMenu:
             root.characterState === "menu-fly" ||
             root.characterState === "menu-settle" ||
@@ -8082,6 +8182,7 @@ ShellRoot {
             ? Math.max(40, Math.min(bottomY, overlay.tourCenterY - (height / 2)))
             : Math.max(-(height - 192) - 4, overlay.tourPointY - upTipLocalY)
           readonly property bool isFlying:
+            (targetsPractice && (coachTravelX.running || coachTravelY.running)) ||
             root.characterState === "step-fly" ||
             root.characterState === "step-settle" ||
             root.characterState === "help-fly" ||
@@ -8109,6 +8210,13 @@ ShellRoot {
               : teachingContent.y - height - 16
           readonly property real waitingScale: teachingContent.x >= width + 46
             ? 1 : Math.max(0.4, Math.min(1, (teachingContent.y - 100) / height))
+          readonly property real practiceX:
+            Math.max(8, embeddedPracticeSurface.x - width + 52)
+          readonly property real practiceY:
+            Math.max(40, Math.min(bottomY,
+              embeddedPracticeSurface.y + (embeddedPracticeSurface.height - height) / 2))
+          readonly property real practiceScale:
+            Math.max(0.72, Math.min(0.9, overlay.width / 1700))
           readonly property real menuTargetX: overlay.menuSelectionX
           readonly property real menuTargetY: overlay.menuSelectionY
           readonly property real moduleTargetX:
@@ -8120,6 +8228,7 @@ ShellRoot {
             ? Math.max(0.85, Math.min(1, overlay.width / 900))
             : 1
           readonly property real responsiveScale: targetsCompletion ? targetScale
+            : targetsPractice ? practiceScale
             : targetsMenu || targetsTour || targetsIntro || targetsModuleComplete ? 1 : waitingScale
           property real presentationScale: responsiveScale
           readonly property real targetX:
@@ -8133,6 +8242,7 @@ ShellRoot {
             : targetsWelcomeControls ? Math.max(18, Math.min(overlay.width - width - 18,
                 controls.x + controls.width / 2 - upTipLocalX))
             : targetsWelcome ? (overlay.width - width) / 2
+            : targetsPractice ? practiceX
             : targetsMenu
             ? Math.max(18, Math.min(overlay.width - width - 18, menuTargetX - width + 45))
             : targetsTour
@@ -8146,6 +8256,7 @@ ShellRoot {
             ? introPlayer.characterY - (height - 192)
             : targetsWelcomeControls ? Math.max(0, controls.y + controls.height + 16 - upTipLocalY)
             : targetsWelcome ? Math.max(40, (overlay.height - height) / 2 - 40)
+            : targetsPractice ? practiceY
             : targetsMenu
             ? Math.max(50, menuTargetY - (height * 0.55))
             : targetsTour

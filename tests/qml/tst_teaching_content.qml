@@ -125,6 +125,7 @@ Item {
         "import QtQuick\nimport QtQuick.Layouts\nimport \"../../app\"\n"
         + "import \"../../app/TeachingLayout.js\" as TeachingLayout\nItem { anchors.fill: parent\n"
         + "property alias panel: teachingContent\nproperty alias navigation: lessonNavigation\n"
+        + "property alias practicePanel: embeddedPracticeSurface\n"
         + "property alias instructionText: teachingInstruction\n"
         + "property alias note: teachingNote\nproperty alias details: teachingDetails\n"
         + "property alias keycaps: instructionKeys\nproperty alias actionButton: stepActionButton\n"
@@ -222,7 +223,7 @@ Item {
       }
     }
 
-    function test_embeddedPracticeKeepsNormalNavigationAndItsSafetyNote() {
+    function test_embeddedPracticeUsesDedicatedSurfaceWithItsSafetyNote() {
       root.stepIndex = 0
       root.currentStepIsTour = false
       root.currentStep = { instruction: "Start the exercise.", keys: [], practice: "clipboard",
@@ -230,17 +231,15 @@ Item {
       root.practiceSessionActive = true
       root.exerciseRunning = true
       wait(30)
-      verify(fixture.panel.visible)
-      verify(fixture.navigation.visible)
-      verify(fixture.note.visible)
+      verify(!fixture.panel.visible)
+      verify(fixture.practicePanel.visible)
+      verify(fixture.practicePanel.height >= root.height - 48)
       verify(root.practiceHost.visible && root.practiceHost.height > 0)
       verify(!fixture.actionButton.visible)
       verify(!fixture.instructionText.visible)
-      verify(root.buttons(fixture).some(function(button) { return button.label === "SKIP →" }))
-      var back = root.buttons(fixture).find(function(button) { return button.label === "BACK" })
-      verify(!back.enabled)
-      compare(back.opacity, 1)
-      compare(back.color.a, 1)
+      verify(!root.buttons(fixture).some(function(button) { return button.label === "SKIP →" }))
+      verify(findChild(fixture.practicePanel, "embeddedPracticeHost").height >
+        360 * root.textScale)
       root.stepIndex = 1
     }
 

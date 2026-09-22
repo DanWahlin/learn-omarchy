@@ -76,7 +76,7 @@ test("print descriptions explain real targets, toggles and sensitive actions, no
   assert.match(textFor("clipboard-practice"), /without.*past|copy.only/i);
   assert.match(textFor("dictation-practice"), /Voxtype/);
   assert.match(textFor("sharing-practice"), /nothing|does not send|not send|no.*send/i);
-  assert.match(textFor("capture-practice"), /does not.*(saved|image)|unchanged|not.*saved/i);
+  assert.match(textFor("capture-practice"), /nothing is uploaded/i);
   assert.match(textFor("advanced-window-pop"), /disposable|lesson/i);
   for (const id of ["background-menu", "theme-menu"]) {
     assert.match(textFor(id), /Escape clears search text; press again to close, or once if empty/);

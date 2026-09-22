@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "598204e892755eb67acfde63e34f24e79fa06da0cc1c67b1b56ed3170185cfe3",
-  "text": "An image can contain useful text. Select the sample text on the practice card, extract it, and paste the result.",
+  "audioHash": "8594d0aeaa42efd149774489f5bc426fe544635e8cfec6f7a8a9e9aabe0ece6d",
+  "text": "An image can contain useful text. Select the sample text on the practice card, extract it, and paste the result. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
@@ -12,76 +12,100 @@
       "endOffset": 8
     },
     {
-      "startMs": 430,
+      "startMs": 510,
       "endOffset": 12
     },
     {
-      "startMs": 590,
+      "startMs": 670,
       "endOffset": 20
     },
     {
-      "startMs": 990,
+      "startMs": 1070,
       "endOffset": 27
     },
     {
-      "startMs": 1350,
+      "startMs": 1430,
       "endOffset": 33
     },
     {
-      "startMs": 2230,
+      "startMs": 2309,
       "endOffset": 40
     },
     {
-      "startMs": 2630,
+      "startMs": 2750,
       "endOffset": 44
     },
     {
-      "startMs": 2789,
+      "startMs": 2869,
       "endOffset": 51
     },
     {
-      "startMs": 3150,
+      "startMs": 3230,
       "endOffset": 56
     },
     {
-      "startMs": 3469,
+      "startMs": 3550,
       "endOffset": 59
     },
     {
-      "startMs": 3550,
+      "startMs": 3630,
       "endOffset": 63
     },
     {
-      "startMs": 3670,
+      "startMs": 3750,
       "endOffset": 72
     },
     {
-      "startMs": 4070,
+      "startMs": 4110,
       "endOffset": 78
     },
     {
-      "startMs": 4670,
+      "startMs": 4790,
       "endOffset": 86
     },
     {
-      "startMs": 5590,
+      "startMs": 5390,
       "endOffset": 90
     },
     {
-      "startMs": 5670,
+      "startMs": 5790,
       "endOffset": 94
     },
     {
-      "startMs": 5790,
+      "startMs": 5990,
       "endOffset": 100
     },
     {
-      "startMs": 6030,
+      "startMs": 6190,
       "endOffset": 104
     },
     {
-      "startMs": 6150,
+      "startMs": 6310,
       "endOffset": 112
+    },
+    {
+      "startMs": 7190,
+      "endOffset": 119
+    },
+    {
+      "startMs": 7710,
+      "endOffset": 125
+    },
+    {
+      "startMs": 8069,
+      "endOffset": 134
+    },
+    {
+      "startMs": 8750,
+      "endOffset": 137
+    },
+    {
+      "startMs": 8830,
+      "endOffset": 141
+    },
+    {
+      "startMs": 8990,
+      "endOffset": 150
     }
   ]
 }

@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "579ae1d7c542911aaaccbe56b797ce6d4aa3de63a07cc740e58e55ee9d56d4f2",
-  "text": "Let's read a QR code that's already on screen. Capture the sample code, then paste the decoded text.",
+  "audioHash": "dc6d385ed92a08e60477caf1e1af06707a22428e86f6ec7234e287a6a1f63fc7",
+  "text": "Let's read a QR code that's already on screen. Create the sample code, select and decode it, then paste the decoded text. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
@@ -20,60 +20,100 @@
       "endOffset": 15
     },
     {
-      "startMs": 830,
+      "startMs": 790,
       "endOffset": 20
     },
     {
-      "startMs": 1070,
+      "startMs": 990,
       "endOffset": 27
     },
     {
-      "startMs": 1310,
+      "startMs": 1270,
       "endOffset": 35
     },
     {
-      "startMs": 1670,
+      "startMs": 1550,
       "endOffset": 38
     },
     {
-      "startMs": 1750,
+      "startMs": 1630,
       "endOffset": 46
     },
     {
-      "startMs": 2670,
-      "endOffset": 54
+      "startMs": 2429,
+      "endOffset": 53
     },
     {
-      "startMs": 3110,
-      "endOffset": 58
+      "startMs": 2789,
+      "endOffset": 57
     },
     {
-      "startMs": 3230,
-      "endOffset": 65
+      "startMs": 2909,
+      "endOffset": 64
     },
     {
-      "startMs": 3590,
-      "endOffset": 71
+      "startMs": 3270,
+      "endOffset": 70
     },
     {
-      "startMs": 4190,
-      "endOffset": 76
+      "startMs": 3949,
+      "endOffset": 77
     },
     {
-      "startMs": 4470,
-      "endOffset": 82
+      "startMs": 4670,
+      "endOffset": 81
     },
     {
-      "startMs": 4790,
-      "endOffset": 86
+      "startMs": 4830,
+      "endOffset": 88
     },
     {
-      "startMs": 4910,
-      "endOffset": 94
+      "startMs": 5310,
+      "endOffset": 92
     },
     {
-      "startMs": 5270,
-      "endOffset": 100
+      "startMs": 5870,
+      "endOffset": 97
+    },
+    {
+      "startMs": 6150,
+      "endOffset": 103
+    },
+    {
+      "startMs": 6510,
+      "endOffset": 107
+    },
+    {
+      "startMs": 6630,
+      "endOffset": 115
+    },
+    {
+      "startMs": 7030,
+      "endOffset": 121
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 128
+    },
+    {
+      "startMs": 8590,
+      "endOffset": 134
+    },
+    {
+      "startMs": 8950,
+      "endOffset": 143
+    },
+    {
+      "startMs": 9590,
+      "endOffset": 146
+    },
+    {
+      "startMs": 9709,
+      "endOffset": 150
+    },
+    {
+      "startMs": 9830,
+      "endOffset": 159
     }
   ]
 }

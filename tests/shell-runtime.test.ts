@@ -825,6 +825,14 @@ test("arcade has no lesson toolbar and entering it always captures shortcuts", (
   assert.doesNotMatch(shell, /label: "SHORTCUT ARCADE"/);
 });
 
+test("dedicated practice raises the coach beside the exercise surface", () => {
+  assert.match(shell, /readonly property bool targetsPractice: root\.embeddedPracticeRunning/);
+  assert.match(shell, /targetsPractice \? practiceX/);
+  assert.match(shell, /targetsPractice \? practiceY/);
+  assert.match(shell, /targetsPractice \? practiceScale/);
+  assert.match(shell, /targetsPractice && \(coachTravelX\.running \|\| coachTravelY\.running\)/);
+});
+
 test("arcade wallpaper is preloaded and retained between visits", () => {
   assert.match(shell, /OmarchyTheme \{ id: appTheme; wallpaperEnabled: true \}/);
   assert.match(shell, /ArcadePanel \{[\s\S]*?appRoot: root\.appRoot/);

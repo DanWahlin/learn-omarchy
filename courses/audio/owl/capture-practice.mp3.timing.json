@@ -1,83 +1,135 @@
 {
   "version": 1,
-  "audioHash": "149672e37f744ac8250122af555dd82fa6f438be70ebca6ffb0adfef2fe3d505",
-  "text": "Capture the practice card, inspect the saved image, copy its file path, and add a label to the preview.",
+  "audioHash": "6dcbd31de750f9d536a78c3e30d1fb56104960b902f5c1fb96bf1c4233a29736",
+  "text": "Practice the real screenshot workflow. Press Super, Control, and C, choose Screenshot, then drag around only the practice card. When the preview appears, select Finish exercise. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
-      "endOffset": 7
+      "endOffset": 8
     },
     {
-      "startMs": 470,
-      "endOffset": 11
+      "startMs": 510,
+      "endOffset": 12
     },
     {
-      "startMs": 590,
-      "endOffset": 20
+      "startMs": 710,
+      "endOffset": 17
     },
     {
       "startMs": 1030,
-      "endOffset": 26
+      "endOffset": 28
     },
     {
-      "startMs": 1630,
-      "endOffset": 34
-    },
-    {
-      "startMs": 2230,
+      "startMs": 1830,
       "endOffset": 38
     },
     {
-      "startMs": 2349,
+      "startMs": 2949,
       "endOffset": 44
     },
     {
-      "startMs": 2750,
+      "startMs": 3670,
       "endOffset": 51
     },
     {
-      "startMs": 3510,
-      "endOffset": 56
-    },
-    {
-      "startMs": 3829,
+      "startMs": 4150,
       "endOffset": 60
     },
     {
-      "startMs": 4070,
-      "endOffset": 65
-    },
-    {
-      "startMs": 4430,
-      "endOffset": 71
-    },
-    {
       "startMs": 4990,
-      "endOffset": 75
+      "endOffset": 64
     },
     {
       "startMs": 5230,
-      "endOffset": 79
+      "endOffset": 67
     },
     {
-      "startMs": 5550,
-      "endOffset": 81
+      "startMs": 5270,
+      "endOffset": 74
     },
     {
-      "startMs": 5590,
-      "endOffset": 87
+      "startMs": 5950,
+      "endOffset": 86
     },
     {
-      "startMs": 6030,
-      "endOffset": 90
+      "startMs": 6470,
+      "endOffset": 91
     },
     {
-      "startMs": 6150,
-      "endOffset": 94
+      "startMs": 6870,
+      "endOffset": 96
     },
     {
-      "startMs": 6270,
+      "startMs": 7510,
       "endOffset": 103
+    },
+    {
+      "startMs": 7830,
+      "endOffset": 108
+    },
+    {
+      "startMs": 7990,
+      "endOffset": 112
+    },
+    {
+      "startMs": 8109,
+      "endOffset": 121
+    },
+    {
+      "startMs": 8709,
+      "endOffset": 127
+    },
+    {
+      "startMs": 10870,
+      "endOffset": 132
+    },
+    {
+      "startMs": 11110,
+      "endOffset": 136
+    },
+    {
+      "startMs": 11229,
+      "endOffset": 144
+    },
+    {
+      "startMs": 11709,
+      "endOffset": 153
+    },
+    {
+      "startMs": 12469,
+      "endOffset": 160
+    },
+    {
+      "startMs": 13030,
+      "endOffset": 167
+    },
+    {
+      "startMs": 13469,
+      "endOffset": 177
+    },
+    {
+      "startMs": 14790,
+      "endOffset": 184
+    },
+    {
+      "startMs": 15350,
+      "endOffset": 190
+    },
+    {
+      "startMs": 15870,
+      "endOffset": 199
+    },
+    {
+      "startMs": 16670,
+      "endOffset": 202
+    },
+    {
+      "startMs": 16790,
+      "endOffset": 206
+    },
+    {
+      "startMs": 16990,
+      "endOffset": 215
     }
   ]
 }

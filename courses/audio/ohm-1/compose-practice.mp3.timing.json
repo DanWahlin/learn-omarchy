@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "d8f42e94a0eb5a71b49e7903b42e59bb5eb47e1a10986bfe7ee740e8b281b3b6",
-  "text": "Let's type a smile and a heart without opening the emoji picker. Follow the keys in order, one at a time.",
+  "audioHash": "e1fa0a33d130aebf9f008f335712b984dd078006f391b08052d768e84aa65022",
+  "text": "Let's type a smile and a heart without opening the emoji picker. Follow the keys in order, one at a time. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
@@ -20,72 +20,96 @@
       "endOffset": 18
     },
     {
-      "startMs": 1030,
+      "startMs": 950,
       "endOffset": 22
     },
     {
-      "startMs": 1150,
+      "startMs": 1110,
       "endOffset": 24
     },
     {
-      "startMs": 1270,
+      "startMs": 1190,
       "endOffset": 30
     },
     {
-      "startMs": 1750,
+      "startMs": 1590,
       "endOffset": 38
     },
     {
-      "startMs": 2150,
+      "startMs": 1910,
       "endOffset": 46
     },
     {
-      "startMs": 2510,
+      "startMs": 2309,
       "endOffset": 50
     },
     {
-      "startMs": 2630,
+      "startMs": 2429,
       "endOffset": 56
     },
     {
-      "startMs": 3030,
+      "startMs": 2789,
       "endOffset": 64
     },
     {
-      "startMs": 3710,
+      "startMs": 3510,
       "endOffset": 71
     },
     {
-      "startMs": 4110,
+      "startMs": 3829,
       "endOffset": 75
     },
     {
-      "startMs": 4230,
+      "startMs": 3949,
       "endOffset": 80
     },
     {
-      "startMs": 4430,
+      "startMs": 4190,
       "endOffset": 83
     },
     {
-      "startMs": 4510,
+      "startMs": 4270,
       "endOffset": 90
     },
     {
-      "startMs": 5150,
+      "startMs": 4830,
       "endOffset": 94
     },
     {
-      "startMs": 5630,
+      "startMs": 5070,
       "endOffset": 97
     },
     {
-      "startMs": 5790,
+      "startMs": 5190,
       "endOffset": 99
     },
     {
-      "startMs": 5830,
+      "startMs": 5230,
       "endOffset": 105
+    },
+    {
+      "startMs": 5990,
+      "endOffset": 112
+    },
+    {
+      "startMs": 6470,
+      "endOffset": 118
+    },
+    {
+      "startMs": 6830,
+      "endOffset": 127
+    },
+    {
+      "startMs": 7430,
+      "endOffset": 130
+    },
+    {
+      "startMs": 7550,
+      "endOffset": 134
+    },
+    {
+      "startMs": 7670,
+      "endOffset": 143
     }
   ]
 }

@@ -6,9 +6,14 @@ import { once } from "node:events";
 import { resolve, join } from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { pathToFileURL } from "node:url";
-import { validRegion, recorderArguments, sessionActions } from "../tools/capture-practice.mjs";
+import { validRegion, recorderArguments, screenshotDirectory, sessionActions } from "../tools/capture-practice.mjs";
 
 const practiceSource = await readFile(new URL("../app/PracticeSession.qml", import.meta.url), "utf8");
+
+test("capture verification is not reset after the preview starts loading", () => {
+  assert.doesNotMatch(practiceSource, /content\.screenshot = path\s+content\.verified = false/);
+});
+
 function lockRuntime() {
   const context = createContext({
     lifecycle: "running", outcome: "cancelled", closingQueued: false,
@@ -40,6 +45,33 @@ test("lock practice requires compositor-secured locking followed by a real unloc
   assert.equal(state.content.verified, true);
   assert.equal(state.lockCheckTimer.running, false);
   assert.match(practiceSource, /command: \["omarchy-shell", "lock", "status"\]/);
+});
+
+test("screenshot watcher reports only new native Omarchy screenshots", async () => {
+  const directory = await mkdtemp(resolve("tests/.screenshot-watch-"));
+  const existing = join(directory, "screenshot-2026-09-21_23-00-00.png");
+  const created = join(directory, "screenshot-2026-09-21_23-00-01.png");
+  await writeFile(existing, "existing");
+  assert.equal(await screenshotDirectory({ HOME: directory, OMARCHY_SCREENSHOT_DIR: directory }), directory);
+
+  const watcher = spawn(process.execPath, ["tools/capture-practice.mjs", "--watch-screenshots"], {
+    env: { ...process.env, OMARCHY_SCREENSHOT_DIR: directory },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let output = "";
+  watcher.stdout.setEncoding("utf8").on("data", data => { output += data; });
+  try {
+    await new Promise(resolveDelay => setTimeout(resolveDelay, 400));
+    assert.equal(output, "");
+    await writeFile(created, "new screenshot");
+    for (let attempt = 0; attempt < 20 && !output.includes(created); attempt++)
+      await new Promise(resolveDelay => setTimeout(resolveDelay, 100));
+    assert.equal(output.trim(), created);
+  } finally {
+    watcher.kill("SIGTERM");
+    await once(watcher, "exit");
+    await rm(directory, { recursive: true, force: true });
+  }
 });
 
 test("unavailable or malformed lock reporting never completes an exercise", () => {
@@ -501,6 +533,150 @@ setInterval(() => {}, 1000);
   } finally {
     unrelated.kill("SIGTERM");
     await unrelatedExited;
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("screen recording exercise completes end to end through the embedded session", async () => {
+  const directory = await mkdtemp(resolve("tests/.recording-exercise-"));
+  try {
+    const sample = join(directory, "sample.mp4");
+    const generated = spawnSync("ffmpeg", [
+      "-nostdin", "-v", "error", "-f", "lavfi", "-i",
+      "color=blue:size=320x180:rate=15", "-t", "1.5", "-an", "-c:v", "libx264", sample,
+    ], { encoding: "utf8" });
+    assert.equal(generated.status, 0, generated.stderr);
+
+    await writeFile(join(directory, "gpu-screen-recorder"), `#!${process.execPath}
+import { copyFileSync } from "node:fs";
+const output = process.argv[process.argv.indexOf("-o") + 1];
+process.on("SIGINT", () => {
+  copyFileSync(${JSON.stringify(sample)}, output);
+  process.exit(0);
+});
+setInterval(() => {}, 1000);
+`, { mode: 0o700 });
+
+    const fixture = join(directory, "shell.qml");
+    await writeFile(fixture, `import QtQuick
+import Quickshell
+import ${JSON.stringify(pathToFileURL(resolve("app")).href)} as App
+ShellRoot {
+  id: root
+  property int phase: 0
+  property double recordingStartedAt: 0
+  function check(ok, message) {
+    if (!ok) {
+      console.error("RECORDING_EXERCISE_FAILURE: " + message)
+      Qt.quit()
+    }
+  }
+  function findObject(item, name) {
+    if (!item) return null
+    if (item.objectName === name) return item
+    for (var index = 0; index < item.children.length; index++) {
+      var found = findObject(item.children[index], name)
+      if (found) return found
+    }
+    return null
+  }
+  App.PracticeSession {
+    id: session
+    mode: "screen-recording"
+    autoStart: false
+    width: 960
+    height: 720
+    onCompleted: {
+      root.check(root.phase === 5, "session completed before every learner action")
+      console.log("RECORDING_EXERCISE_COMPLETE")
+      Qt.quit()
+    }
+    onFailed: function(message) {
+      console.error("RECORDING_EXERCISE_FAILURE: " + message)
+      Qt.quit()
+    }
+  }
+  Timer {
+    interval: 25
+    running: true
+    repeat: true
+    onTriggered: {
+      if (!session.running) return
+      var content = root.findObject(session, "practiceContent")
+      var select = root.findObject(content, "selectRecording")
+      var start = root.findObject(content, "startRecording")
+      var stop = root.findObject(content, "stopRecording")
+      var play = root.findObject(content, "playOutput")
+      var finish = root.findObject(content, "finishExercise")
+      if (!content || !select || !start || !stop || !play || !finish) return
+
+      if (root.phase === 0 && select.enabled) {
+        root.check(select.visible && !start.visible && !stop.visible && !play.visible,
+          "selection must be the only recording action shown first")
+        select.clicked()
+        root.phase = 1
+      } else if (root.phase === 1 && content.stage === 1 && start.enabled) {
+        root.check(!select.visible && start.visible && !stop.visible && !play.visible,
+          "start must replace selection")
+        start.clicked()
+        root.phase = 2
+      } else if (root.phase === 2 && content.stage === 2 && content.recording && stop.enabled) {
+        root.check(!select.visible && !start.visible && stop.visible && !play.visible,
+          "stop must be the only action while recording")
+        if (root.recordingStartedAt === 0) root.recordingStartedAt = Date.now()
+        if (Date.now() - root.recordingStartedAt >= 1100) {
+          stop.clicked()
+          root.phase = 3
+        }
+      } else if (root.phase === 3 && content.stage === 3 && play.enabled) {
+        root.check(!select.visible && !start.visible && !stop.visible && play.visible,
+          "play must replace stop after saving")
+        play.clicked()
+        root.phase = 4
+      } else if (root.phase === 4 && session.verified && finish.enabled) {
+        root.check(content.outputPlayed, "real playback must verify the exercise")
+        root.phase = 5
+        finish.clicked()
+      }
+    }
+  }
+  Timer {
+    interval: 15000
+    running: true
+    onTriggered: {
+      console.error("RECORDING_EXERCISE_FAILURE: timed out in phase " + root.phase
+        + " with status " + session.status())
+      Qt.quit()
+    }
+  }
+  Component.onCompleted: session.start()
+}
+`);
+
+    const env = captureEnv(directory, "success");
+    const result = spawnSync("qs", ["--no-color", "--path", fixture], {
+      encoding: "utf8",
+      timeout: 20000,
+      env: {
+        ...env,
+        PATH: directory + ":" + env.PATH,
+        LEARN_OMARCHY_ROOT: resolve("."),
+        QT_QPA_PLATFORM: "offscreen",
+        QT_QUICK_BACKEND: "software",
+        QT_QPA_PLATFORMTHEME: "generic",
+        QT_QUICK_CONTROLS_STYLE: "Basic",
+        XDG_CONFIG_HOME: join(directory, "config"),
+        XDG_CACHE_HOME: join(directory, "cache"),
+        HYPRLAND_INSTANCE_SIGNATURE: "learn-no-compositor",
+        WAYLAND_DISPLAY: "",
+        DBUS_SESSION_BUS_ADDRESS: `unix:path=${directory}/no-bus`,
+      },
+    });
+    const output = result.stdout + result.stderr;
+    assert.equal(result.status, 0, output);
+    assert.match(output, /RECORDING_EXERCISE_COMPLETE/);
+    assert.doesNotMatch(output, /RECORDING_EXERCISE_FAILURE|Failed to load configuration|ReferenceError|TypeError/);
+  } finally {
     await rm(directory, { recursive: true, force: true });
   }
 });

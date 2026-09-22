@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "e4b462871498018ccd739d7f148694efb6d0f05348a6ef790ff65a024413e6b8",
-  "text": "Omarchy uses Caps Lock as the Compose key by default, instead of toggling capital letters. Tap and release Caps Lock, then m, then s for a smile. These are separate presses, not a shortcut you hold together.",
+  "audioHash": "ca7faf6d98b98db56c325622b09373e21ecfc4feeecd62faee54be3b497f4dad",
+  "text": "Omarchy uses Caps Lock as the Compose key by default, instead of toggling capital letters. Tap and release Caps Lock, then m, then the letter s for a smile. These are separate presses, not a shortcut you hold together.",
   "words": [
     {
       "startMs": 70,
@@ -12,55 +12,55 @@
       "endOffset": 12
     },
     {
-      "startMs": 870,
+      "startMs": 910,
       "endOffset": 17
     },
     {
-      "startMs": 1310,
+      "startMs": 1350,
       "endOffset": 22
     },
     {
-      "startMs": 1550,
+      "startMs": 1630,
       "endOffset": 25
     },
     {
-      "startMs": 1670,
+      "startMs": 1750,
       "endOffset": 29
     },
     {
-      "startMs": 1790,
+      "startMs": 1870,
       "endOffset": 37
     },
     {
-      "startMs": 2270,
+      "startMs": 2389,
       "endOffset": 41
     },
     {
-      "startMs": 2510,
+      "startMs": 2590,
       "endOffset": 44
     },
     {
-      "startMs": 2670,
+      "startMs": 2750,
       "endOffset": 53
     },
     {
-      "startMs": 3429,
+      "startMs": 3349,
       "endOffset": 61
     },
     {
-      "startMs": 3750,
+      "startMs": 3670,
       "endOffset": 64
     },
     {
-      "startMs": 3829,
+      "startMs": 3750,
       "endOffset": 73
     },
     {
-      "startMs": 4310,
+      "startMs": 4190,
       "endOffset": 81
     },
     {
-      "startMs": 4670,
+      "startMs": 4590,
       "endOffset": 90
     },
     {
@@ -76,80 +76,88 @@
       "endOffset": 106
     },
     {
-      "startMs": 6510,
+      "startMs": 6470,
       "endOffset": 111
     },
     {
-      "startMs": 6830,
+      "startMs": 6870,
       "endOffset": 117
     },
     {
-      "startMs": 7430,
+      "startMs": 7390,
       "endOffset": 122
     },
     {
-      "startMs": 7830,
+      "startMs": 7790,
       "endOffset": 125
     },
     {
-      "startMs": 8389,
+      "startMs": 8430,
       "endOffset": 130
     },
     {
-      "startMs": 8629,
-      "endOffset": 132
+      "startMs": 8590,
+      "endOffset": 134
     },
     {
-      "startMs": 8830,
-      "endOffset": 136
-    },
-    {
-      "startMs": 9030,
-      "endOffset": 138
+      "startMs": 8709,
+      "endOffset": 141
     },
     {
       "startMs": 9069,
-      "endOffset": 145
+      "endOffset": 143
     },
     {
-      "startMs": 9870,
-      "endOffset": 151
+      "startMs": 9270,
+      "endOffset": 147
     },
     {
-      "startMs": 10110,
-      "endOffset": 155
+      "startMs": 9430,
+      "endOffset": 149
     },
     {
-      "startMs": 10229,
-      "endOffset": 164
+      "startMs": 9469,
+      "endOffset": 156
     },
     {
-      "startMs": 10629,
-      "endOffset": 173
+      "startMs": 10430,
+      "endOffset": 162
     },
     {
-      "startMs": 11309,
-      "endOffset": 177
+      "startMs": 10709,
+      "endOffset": 166
     },
     {
-      "startMs": 11549,
-      "endOffset": 179
+      "startMs": 10830,
+      "endOffset": 175
     },
     {
-      "startMs": 11590,
+      "startMs": 11270,
+      "endOffset": 184
+    },
+    {
+      "startMs": 11870,
       "endOffset": 188
     },
     {
-      "startMs": 12069,
-      "endOffset": 192
+      "startMs": 12149,
+      "endOffset": 190
     },
     {
       "startMs": 12190,
-      "endOffset": 197
+      "endOffset": 199
     },
     {
-      "startMs": 12350,
-      "endOffset": 207
+      "startMs": 12709,
+      "endOffset": 203
+    },
+    {
+      "startMs": 12830,
+      "endOffset": 208
+    },
+    {
+      "startMs": 12990,
+      "endOffset": 218
     }
   ]
 }

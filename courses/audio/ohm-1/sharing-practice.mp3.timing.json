@@ -1,99 +1,123 @@
 {
   "version": 1,
-  "audioHash": "b88b4fe3e3045d2e148033a1485c3a96c4c529d42f56df05a650dbf2252e98e1",
-  "text": "LocalSend shares files with nearby devices. In this rehearsal, review a sample file and choose an intended demo recipient. Nothing will be sent.",
+  "audioHash": "21e5daa98fea05331b1ff9720705fe91cac52658a63cac7278ab474b6d279f31",
+  "text": "LocalSend shares files with nearby devices. In this rehearsal, review a sample file and choose an intended demo recipient. Nothing will be sent. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
       "endOffset": 9
     },
     {
-      "startMs": 630,
+      "startMs": 590,
       "endOffset": 16
     },
     {
-      "startMs": 990,
+      "startMs": 950,
       "endOffset": 22
     },
     {
-      "startMs": 1350,
+      "startMs": 1310,
       "endOffset": 27
     },
     {
-      "startMs": 1510,
+      "startMs": 1470,
       "endOffset": 34
     },
     {
-      "startMs": 1830,
+      "startMs": 1750,
       "endOffset": 43
     },
     {
-      "startMs": 3190,
+      "startMs": 2750,
       "endOffset": 46
     },
     {
-      "startMs": 3389,
+      "startMs": 2949,
       "endOffset": 51
     },
     {
-      "startMs": 3590,
+      "startMs": 3150,
       "endOffset": 62
     },
     {
-      "startMs": 4190,
+      "startMs": 3869,
       "endOffset": 69
     },
     {
-      "startMs": 4590,
+      "startMs": 4230,
       "endOffset": 71
     },
     {
-      "startMs": 4630,
+      "startMs": 4310,
       "endOffset": 78
     },
     {
-      "startMs": 5070,
+      "startMs": 4670,
       "endOffset": 83
     },
     {
-      "startMs": 5510,
+      "startMs": 5190,
       "endOffset": 87
     },
     {
-      "startMs": 5710,
+      "startMs": 5390,
       "endOffset": 94
     },
     {
-      "startMs": 5950,
+      "startMs": 5670,
       "endOffset": 97
     },
     {
-      "startMs": 6030,
+      "startMs": 5750,
       "endOffset": 106
     },
     {
-      "startMs": 6510,
+      "startMs": 6190,
       "endOffset": 111
     },
     {
-      "startMs": 6790,
+      "startMs": 6510,
       "endOffset": 122
     },
     {
-      "startMs": 7990,
+      "startMs": 7430,
       "endOffset": 130
     },
     {
-      "startMs": 8309,
+      "startMs": 7830,
       "endOffset": 135
     },
     {
-      "startMs": 8469,
+      "startMs": 7990,
       "endOffset": 138
     },
     {
-      "startMs": 8549,
+      "startMs": 8069,
       "endOffset": 144
+    },
+    {
+      "startMs": 8790,
+      "endOffset": 151
+    },
+    {
+      "startMs": 9270,
+      "endOffset": 157
+    },
+    {
+      "startMs": 9709,
+      "endOffset": 166
+    },
+    {
+      "startMs": 10430,
+      "endOffset": 169
+    },
+    {
+      "startMs": 10549,
+      "endOffset": 173
+    },
+    {
+      "startMs": 10709,
+      "endOffset": 182
     }
   ]
 }

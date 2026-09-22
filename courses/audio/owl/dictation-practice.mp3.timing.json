@@ -1,14 +1,14 @@
 {
   "version": 1,
-  "audioHash": "130880727ff51a91f38a2c866804751293b90b1498f78151a5fdda6ceb6ce541",
-  "text": "If local dictation is installed, try speaking into a text field. Super, Control, and X starts and stops dictation, so you don't need an F9 key. You control the microphone.",
+  "audioHash": "9e6763711dacaabd793a286eba7070c9492ee890863cd61ed43a0c2d9abac2d3",
+  "text": "If local dictation is installed, try speaking into a text field. Super, Control, and X starts and stops dictation, so you don't need an F9 key. You control the microphone. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
       "endOffset": 2
     },
     {
-      "startMs": 230,
+      "startMs": 270,
       "endOffset": 8
     },
     {
@@ -16,11 +16,11 @@
       "endOffset": 18
     },
     {
-      "startMs": 1270,
+      "startMs": 1230,
       "endOffset": 21
     },
     {
-      "startMs": 1390,
+      "startMs": 1350,
       "endOffset": 32
     },
     {
@@ -36,7 +36,7 @@
       "endOffset": 50
     },
     {
-      "startMs": 3349,
+      "startMs": 3389,
       "endOffset": 52
     },
     {
@@ -48,15 +48,15 @@
       "endOffset": 64
     },
     {
-      "startMs": 4790,
+      "startMs": 4710,
       "endOffset": 71
     },
     {
-      "startMs": 5470,
+      "startMs": 5430,
       "endOffset": 80
     },
     {
-      "startMs": 6270,
+      "startMs": 6230,
       "endOffset": 84
     },
     {
@@ -64,39 +64,39 @@
       "endOffset": 86
     },
     {
-      "startMs": 7110,
+      "startMs": 7070,
       "endOffset": 93
     },
     {
-      "startMs": 7670,
+      "startMs": 7590,
       "endOffset": 97
     },
     {
-      "startMs": 7830,
+      "startMs": 7750,
       "endOffset": 103
     },
     {
-      "startMs": 8229,
+      "startMs": 8149,
       "endOffset": 114
     },
     {
-      "startMs": 9149,
+      "startMs": 9069,
       "endOffset": 117
     },
     {
-      "startMs": 9389,
+      "startMs": 9309,
       "endOffset": 121
     },
     {
-      "startMs": 9549,
+      "startMs": 9469,
       "endOffset": 127
     },
     {
-      "startMs": 9790,
+      "startMs": 9709,
       "endOffset": 132
     },
     {
-      "startMs": 10110,
+      "startMs": 10030,
       "endOffset": 135
     },
     {
@@ -104,24 +104,48 @@
       "endOffset": 138
     },
     {
-      "startMs": 10950,
+      "startMs": 10910,
       "endOffset": 143
     },
     {
-      "startMs": 11830,
+      "startMs": 11629,
       "endOffset": 147
     },
     {
-      "startMs": 12270,
+      "startMs": 11910,
       "endOffset": 155
     },
     {
-      "startMs": 12790,
+      "startMs": 12389,
       "endOffset": 159
     },
     {
-      "startMs": 12910,
+      "startMs": 12510,
       "endOffset": 171
+    },
+    {
+      "startMs": 13870,
+      "endOffset": 178
+    },
+    {
+      "startMs": 14590,
+      "endOffset": 184
+    },
+    {
+      "startMs": 15110,
+      "endOffset": 193
+    },
+    {
+      "startMs": 15910,
+      "endOffset": 196
+    },
+    {
+      "startMs": 16030,
+      "endOffset": 200
+    },
+    {
+      "startMs": 16270,
+      "endOffset": 209
     }
   ]
 }

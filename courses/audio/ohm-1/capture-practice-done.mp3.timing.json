@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "7fc789eeea4299778d4d0f7baf2137cfaabfc572025d53659720dd52e659fc33",
-  "text": "You've captured and reviewed an image, copied its path, and labeled the preview. The saved image itself is unchanged.",
+  "audioHash": "f0555f1a0aaab971946f91831db117ecd1d07c1ed9b078a22ed83d2b80ae304f",
+  "text": "You've captured and reviewed an image using Omarchy's real screenshot workflow.",
   "words": [
     {
       "startMs": 70,
@@ -12,72 +12,40 @@
       "endOffset": 15
     },
     {
-      "startMs": 710,
+      "startMs": 750,
       "endOffset": 19
     },
     {
-      "startMs": 830,
+      "startMs": 910,
       "endOffset": 28
     },
     {
-      "startMs": 1190,
+      "startMs": 1270,
       "endOffset": 31
     },
     {
-      "startMs": 1310,
-      "endOffset": 38
+      "startMs": 1350,
+      "endOffset": 37
     },
     {
-      "startMs": 1870,
-      "endOffset": 45
+      "startMs": 1670,
+      "endOffset": 43
     },
     {
-      "startMs": 2230,
-      "endOffset": 49
+      "startMs": 2029,
+      "endOffset": 53
     },
     {
-      "startMs": 2429,
-      "endOffset": 55
+      "startMs": 2750,
+      "endOffset": 58
     },
     {
-      "startMs": 2909,
-      "endOffset": 59
+      "startMs": 3030,
+      "endOffset": 69
     },
     {
-      "startMs": 3110,
-      "endOffset": 67
-    },
-    {
-      "startMs": 3389,
-      "endOffset": 71
-    },
-    {
-      "startMs": 3510,
-      "endOffset": 80
-    },
-    {
-      "startMs": 4470,
-      "endOffset": 84
-    },
-    {
-      "startMs": 4670,
-      "endOffset": 90
-    },
-    {
-      "startMs": 4990,
-      "endOffset": 96
-    },
-    {
-      "startMs": 5230,
-      "endOffset": 103
-    },
-    {
-      "startMs": 5670,
-      "endOffset": 106
-    },
-    {
-      "startMs": 5790,
-      "endOffset": 117
+      "startMs": 3590,
+      "endOffset": 79
     }
   ]
 }

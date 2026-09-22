@@ -36,23 +36,57 @@ Rectangle {
   property bool copiedFirst: false
   property bool copiedSecond: false
   property bool historyOpened: false
+  property bool clipboardPasteMismatch: false
+  property string clipboardFeedback: ""
   property bool verified: false
   property bool busy: false
   property string status: ""
   property string error: ""
   property string screenshot: ""
   readonly property var exercises: ({
-    "compose": ["Type with Compose", "Tap and release Caps Lock, then m, then s for 😄. In the second field, tap Caps Lock, m, h for ❤️. Do not hold the keys together. Custom Compose mappings may differ; return and skip rather than changing settings."],
+    "compose": ["Type with Compose", "Enter a smile in the first field and a heart in the second. Compose uses separate key presses, not keys held together. Custom mappings may differ; return and skip rather than changing settings."],
     "screen-recording": ["Record, stop, replay", "Select the animated practice card and check the region before starting. Record for at least one second, stop, then play the saved clip. This recording has no sound or webcam footage and won't stop another recorder."],
     "ocr": ["Turn pixels into text", "Select only the sample card and extract its words. OCR (optical character recognition) may make mistakes. Copy the extracted sample, paste it below, and compare it with the card. Requires slurp, grim and tesseract."],
     "qr": ["Read a QR code safely", "Create the harmless sample QR code, select it, and decode it. Copy the decoded text and paste it below to inspect the contents. No links are opened. Requires qrencode, slurp, grim and zbarimg."],
-    "dictation": ["Try local dictation", "Check availability, then enable the practice field. Use Super+Ctrl+X to start and stop dictation, or hold F9 while speaking. Try “Omarchy practice,” then stop and review the words. You control the microphone; this exercise doesn't start it. Return and skip if dictation isn't available."],
+    "dictation": ["Try local dictation", "Check availability, then enable the practice field. Dictate “Omarchy practice,” stop dictation, and review the words. You control the microphone; this exercise doesn't start it. Return and skip if dictation isn't available."],
     "dictation-corrections": ["Practice a dictation correction", "Inspect whether Voxtype's real configuration documents replacements, without displaying or editing it. Then apply a correction to a harmless simulated transcript. If Voxtype or its config is unavailable, the bundled sample teaches the same workflow."],
     "notifications": ["Practice with sample notifications", "Use this lesson-owned notification sample to open history, dismiss the sample, and turn simulated quiet mode on and back off. No desktop notifications are opened, invoked, or dismissed, and your real silencing preference never changes."],
     "web-app": ["Explore a demo web-app entry", "This isolated demo creates an entry only in the exercise folder, not your Apps menu. Explicitly create it, open its local preview, then remove it. Everyday Omarchy: Install Web App asks for a name and URL; Remove Web App removes a launcher, not your account."],
     "transcode": ["Create a smaller media copy", "Generate a harmless silent sample clip, play the original, choose a lower resolution, and convert a separate MP4 copy. Play the output and compare its size and quality. Requires ffmpeg and ffprobe. No original files are changed."],
     "sharing": ["Review before sharing", "Prepare the sample file, read its contents, and choose the intended demo recipient. This rehearsal doesn't discover real devices or send anything. For a real transfer, check that both devices have LocalSend and can reach each other on the network."]
   })
+  readonly property var keyGuides: ({
+    "compose": [
+      { label: "Smile - tap one key at a time", keys: ["CAPS LOCK", "→", "M", "→", "S"] },
+      { label: "Heart - tap one key at a time", keys: ["CAPS LOCK", "→", "M", "→", "H"] }
+    ],
+    "ocr": [
+      { label: "Paste the copied text", keys: ["SUPER", "+", "V"] }
+    ],
+    "qr": [
+      { label: "Paste the copied result", keys: ["SUPER", "+", "V"] }
+    ],
+    "dictation": [
+      { label: "Start or stop dictation", keys: ["SUPER", "+", "CTRL", "+", "X"] },
+      { label: "Or hold to talk, then release", keys: ["F9"] }
+    ],
+    "screen-lock": [
+      { label: "Lock your screen", keys: ["SUPER", "+", "CTRL", "+", "L"] }
+    ],
+    "capture": [
+      { label: "Open Capture, then choose Screenshot", keys: ["SUPER", "+", "CTRL", "+", "C"] }
+    ]
+  })
+  readonly property var clipboardKeyGuides: !copiedFirst
+    ? [{ label: "Copy the selected original note", keys: ["SUPER", "+", "C"] }]
+    : !copiedSecond
+      ? [{ label: "Copy the selected newer note", keys: ["SUPER", "+", "C"] }]
+      : [
+        { label: "Open clipboard history", keys: ["SUPER", "+", "CTRL", "+", "V"] },
+        { label: "Choose \"" + sample + "\" (not the entry beginning \"A newer note\")", keys: ["SHIFT", "+", "ENTER"] },
+        { label: "Paste the original note into the destination", keys: ["SUPER", "+", "V"] }
+      ]
+  readonly property var currentKeyGuides: mode === "clipboard" ? clipboardKeyGuides : keyGuides[mode] || []
   readonly property bool extendedMode: exercises[mode] !== undefined
   property int stage: 0
   property string artifact: ""
@@ -67,20 +101,14 @@ Rectangle {
   property bool originalPlayed: false
   property bool outputPlayed: false
   property bool nativeSamplePasted: false
-  property bool captureCopied: false
-  property bool captureEdited: false
   property bool simulatedQuiet: false
   property bool simulatedQuietSeen: false
   property bool correctionApplied: false
   onScreenshotChanged: {
     if (mode !== "capture") return
     verified = false
-    captureCopied = false
-    captureEdited = false
-    if (captureAnnotation) captureAnnotation.text = ""
   }
   signal taskRequested(string action, var options)
-  signal captureRequested()
   signal lockRequested()
   signal finished()
   signal cancelled()
@@ -91,7 +119,10 @@ Rectangle {
 
   function focusPractice() {
     if (mode === "compose") smile.forceActiveFocus()
-    else if (mode === "clipboard") first.forceActiveFocus()
+    else if (mode === "clipboard") {
+      first.forceActiveFocus()
+      first.selectAll()
+    }
     else if (exerciseInput.visible && exerciseInput.enabled) exerciseInput.forceActiveFocus()
     else {
       for (var child of bodyColumn.children) {
@@ -124,14 +155,14 @@ Rectangle {
     originalPlayed = false
     outputPlayed = false
     nativeSamplePasted = false
-    captureCopied = false
-    captureEdited = false
     simulatedQuiet = false
     simulatedQuietSeen = false
     correctionApplied = false
     copiedFirst = false
     copiedSecond = false
     historyOpened = false
+    clipboardPasteMismatch = false
+    clipboardFeedback = ""
     smile.text = ""
     heart.text = ""
     exerciseInput.text = ""
@@ -193,6 +224,7 @@ Rectangle {
       if (result.image) {
         qrImage = result.image
         artifact = result.image
+        stage = 1
         focusAndReveal(extractSampleButton)
       }
       if (result.text === "OMARCHY SAFE SAMPLE") {
@@ -201,7 +233,7 @@ Rectangle {
         nativeSamplePasted = false
         verified = false
         exerciseInput.text = ""
-        stage = 1
+        stage = mode === "qr" ? 2 : 1
         focusAndReveal(copyExtractedButton)
       }
     } else if (mode === "dictation" && result.available) {
@@ -286,6 +318,8 @@ Rectangle {
       copiedFirst = true
       copiedSecond = false
       historyOpened = false
+      clipboardPasteMismatch = false
+      clipboardFeedback = ""
       verified = false
       Qt.callLater(function() {
         second.forceActiveFocus()
@@ -296,9 +330,11 @@ Rectangle {
     if (!first && copiedFirst && selected === secondSample) {
       copiedSecond = true
       historyOpened = false
+      clipboardPasteMismatch = false
+      clipboardFeedback = ""
       verified = false
       Qt.callLater(function() {
-        Qt.callLater(function() { root.revealControl(clipboardHistoryInstructions) })
+        Qt.callLater(function() { root.revealControlFromTop(practiceKeyGuideList) })
       })
     }
   }
@@ -306,7 +342,24 @@ Rectangle {
     if (copiedSecond) historyOpened = true
   }
   function observePaste(text) {
-    if (copiedFirst && copiedSecond && historyOpened && text === sample) verified = true
+    if (!copiedFirst || !copiedSecond || !historyOpened) return
+    if (text === sample) {
+      clipboardPasteMismatch = false
+      clipboardFeedback = ""
+      verified = true
+      return
+    }
+
+    clipboardPasteMismatch = true
+    clipboardFeedback = text === secondSample
+      ? "The newer note was pasted. Reopen clipboard history and choose \"" + sample + "\" instead."
+      : "That isn't the complete original note. Use the three highlighted steps, then paste again."
+    verified = false
+    Qt.callLater(function() {
+      destination.forceActiveFocus()
+      destination.selectAll()
+      root.revealControl(clipboardFeedbackText)
+    })
   }
 
   function revealControl(control) {
@@ -319,6 +372,13 @@ Rectangle {
     if (point.y < nextY + 12) nextY = point.y - 12
     else if (point.y + control.height > nextY + flickable.height - 12) nextY = point.y + control.height - flickable.height + 12
     flickable.contentY = Math.max(0, Math.min(Math.max(0, flickable.contentHeight - flickable.height), nextY))
+  }
+
+  function revealControlFromTop(control) {
+    var flickable = scrollArea.contentItem
+    var point = control.mapToItem(bodyColumn, 0, 0)
+    flickable.contentY = Math.max(0, Math.min(Math.max(0, flickable.contentHeight - flickable.height),
+      point.y + 20 * root.textScale))
   }
 
   function scheduleReveal(control) {
@@ -340,7 +400,7 @@ Rectangle {
 
   Shortcut {
     sequence: "Escape"
-    enabled: root.enabled && root.visible
+    enabled: root.enabled && root.visible && root.mode !== "capture"
     onActivated: root.cancelled()
   }
 
@@ -377,16 +437,56 @@ Rectangle {
     PracticePalette { target: control }
     onActiveFocusChanged: if (activeFocus) root.scheduleReveal(control)
     font.pixelSize: 16 * root.textScale
-    padding: 12
+    implicitHeight: Math.max(76 * root.textScale, contentHeight + topPadding + bottomPadding)
+    Layout.minimumHeight: 76 * root.textScale
+    leftPadding: 16 * root.textScale
+    rightPadding: 16 * root.textScale
+    topPadding: 14 * root.textScale
+    bottomPadding: 14 * root.textScale
     color: enabled ? controlPalette.text : controlPalette.disabled.text
     placeholderTextColor: controlPalette.placeholderText
     selectionColor: root.accent
     selectedTextColor: controlPalette.highlightedText
     background: Rectangle {
+      radius: 10
+      color: Qt.tint(controlPalette.base, Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.04))
+      border.width: control.activeFocus ? 3 : 2
+      border.color: control.activeFocus ? root.accent : Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.68)
+    }
+  }
+
+  component PracticeKeycap: Item {
+    id: keycap
+    required property string label
+    readonly property bool separator: label === "+" || label === "→"
+
+    implicitWidth: separator ? 20 * root.textScale : keyText.implicitWidth + 24 * root.textScale
+    implicitHeight: separator ? 42 * root.textScale : 46 * root.textScale
+
+    Rectangle {
+      visible: !keycap.separator
+      anchors.fill: parent
       radius: 8
-      color: controlPalette.base
-      border.width: control.activeFocus ? 2 : 1
-      border.color: control.activeFocus ? root.accent : Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.4)
+      color: Qt.tint(root.backgroundColor, Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.28))
+    }
+    Rectangle {
+      visible: !keycap.separator
+      anchors.fill: parent
+      anchors.bottomMargin: 4 * root.textScale
+      radius: 8
+      color: controlPalette.button
+      border.width: 1
+      border.color: Qt.rgba(root.foreground.r, root.foreground.g, root.foreground.b, 0.24)
+    }
+    Text {
+      id: keyText
+      anchors.centerIn: parent
+      anchors.verticalCenterOffset: keycap.separator ? 0 : -2 * root.textScale
+      text: keycap.label
+      color: keycap.separator ? root.muted : root.foreground
+      font.family: "monospace"
+      font.pixelSize: (keycap.separator ? 18 : 14) * root.textScale
+      font.bold: true
     }
   }
 
@@ -487,26 +587,110 @@ Rectangle {
         id: bodyColumn
         width: scrollArea.availableWidth
         spacing: 12
-    Text {
-      objectName: "exerciseInstructions"
-      Layout.fillWidth: true
-      text: root.extendedMode ? root.exercises[root.mode][1] : root.mode === "clipboard"
-        ? "Copy the first note, then the newer note. Open history with Super+Ctrl+V, choose the first note, and press Shift+Enter. Paste it into the destination field with Super+V."
-        : root.mode === "capture"
-        ? "Select only the practice card below. Inspect the saved image, copy its file path, and add a label to the preview. The label appears here only; it doesn't change the saved image. Nothing is uploaded. Escape cancels the selection."
-        : root.mode === "screen-lock"
-        ? "Super+Ctrl+L locks your computer; it doesn't suspend it. Save your work and make sure you know your password. Lock now is optional and requires your explicit click. After unlocking, return here."
-        : "Return to your coach and choose another activity."
-      color: root.muted
-      wrapMode: Text.WordWrap
-      font.pixelSize: 16 * root.textScale
-    }
+        ColumnLayout {
+          id: practiceKeyGuideList
+          objectName: "practiceKeyGuideList"
+          visible: root.currentKeyGuides.length > 0
+          Layout.fillWidth: true
+          spacing: 8 * root.textScale
+
+          Text {
+            Layout.fillWidth: true
+            text: "KEYS YOU'LL USE"
+            color: root.accent
+            font.pixelSize: 13 * root.textScale
+            font.bold: true
+            font.letterSpacing: 1.2 * root.textScale
+          }
+          ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 8 * root.textScale
+
+            Repeater {
+              model: root.currentKeyGuides.length
+              delegate: Rectangle {
+                id: keyGuide
+                required property int index
+                readonly property var modelData: root.currentKeyGuides[index]
+                objectName: "practiceKeyGuide" + index
+                readonly property string guideLabel: modelData.label
+                readonly property var guideKeys: modelData.keys
+                Layout.fillWidth: true
+                implicitHeight: keyGuideContent.implicitHeight + 20 * root.textScale
+                radius: 10
+                color: Qt.tint(root.backgroundColor, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.12))
+                border.width: 1
+                border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.42)
+                Accessible.role: Accessible.StaticText
+                Accessible.name: guideLabel + ": " + guideKeys.join(" ")
+
+                ColumnLayout {
+                  id: keyGuideContent
+                  anchors.fill: parent
+                  anchors.margins: 10 * root.textScale
+                  spacing: 7 * root.textScale
+                  Text {
+                    Layout.fillWidth: true
+                    text: keyGuide.guideLabel
+                    color: root.foreground
+                    font.pixelSize: 15 * root.textScale
+                    font.bold: true
+                    wrapMode: Text.WordWrap
+                  }
+                  Row {
+                    spacing: 5 * root.textScale
+                    Repeater {
+                      model: keyGuide.guideKeys
+                      PracticeKeycap {
+                        required property string modelData
+                        label: modelData
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        Text {
+          objectName: "exerciseInstructions"
+          visible: root.mode !== "clipboard"
+          Layout.fillWidth: true
+          text: root.mode === "capture"
+            ? "Choose Screenshot, then drag around only the practice card below. Print opens the picker directly on keyboards that have it. Escape cancels region selection."
+            : root.mode === "screen-recording"
+            ? (root.stage === 0
+              ? "Select the animated practice card below."
+              : root.stage === 1
+              ? "The region is selected. Start the silent recording when you're ready."
+              : root.stage === 2
+              ? "Record for at least one second, then stop the recording."
+              : "Play the saved recording to finish.")
+            : root.mode === "ocr"
+            ? (root.extracted === ""
+              ? "Select the sample card to extract its text."
+              : "Copy the recognized text, paste it below, and confirm that it matches.")
+            : root.mode === "qr"
+            ? (root.qrImage === ""
+              ? "Create a harmless sample QR code."
+              : root.extracted === ""
+              ? "Select the QR code to decode it."
+              : "Copy the decoded text, paste it below, and confirm that it matches.")
+            : root.exercises[root.mode] ? root.exercises[root.mode][1] : root.mode === "clipboard"
+            ? ""
+            : root.mode === "screen-lock"
+            ? "Locking doesn't suspend your computer. Save your work and make sure you know your password. Lock now is optional and requires your explicit click. After unlocking, return here."
+            : "Return to your coach and choose another activity."
+          color: root.muted
+          wrapMode: Text.WordWrap
+          font.pixelSize: (root.mode === "capture" ? 14 : 16) * root.textScale
+        }
         NoteArea {
           id: smile
           objectName: "composeSmile"
           visible: root.mode === "compose"
           Layout.fillWidth: true
-          placeholderText: "Caps Lock → m → s (smile)"
+          placeholderText: "Smile appears here"
           Accessible.name: "Compose a smile"
           KeyNavigation.priority: KeyNavigation.BeforeItem
           KeyNavigation.tab: heart
@@ -517,7 +701,7 @@ Rectangle {
           objectName: "composeHeart"
           visible: root.mode === "compose"
           Layout.fillWidth: true
-          placeholderText: "Caps Lock → m → h (heart)"
+          placeholderText: "Heart appears here"
           Accessible.name: "Compose a heart"
           KeyNavigation.priority: KeyNavigation.BeforeItem
           KeyNavigation.tab: cancelButton
@@ -526,14 +710,14 @@ Rectangle {
         }
         PracticeButton {
           objectName: "prepareSample"
-          visible: ["qr", "transcode", "sharing"].indexOf(root.mode) !== -1
-          enabled: !root.busy && root.stage === 0 && root.qrImage === ""
+          visible: ["qr", "transcode", "sharing"].indexOf(root.mode) !== -1 && root.stage === 0
+          enabled: visible && !root.busy && root.qrImage === ""
           text: "Prepare harmless sample"
           onClicked: root.requestTask("prepare")
         }
         Image {
           objectName: "sampleQr"
-          visible: root.mode === "qr" && root.qrImage !== ""
+          visible: root.mode === "qr" && root.qrImage !== "" && root.extracted === ""
           Layout.fillWidth: true
           Layout.preferredHeight: Math.max(64, Math.min(200,
             scrollArea.availableHeight - extractSampleButton.implicitHeight - bodyColumn.spacing - 24))
@@ -545,9 +729,11 @@ Rectangle {
         PracticeButton {
           id: extractSampleButton
           objectName: "extractSample"
-          visible: root.mode === "ocr" || root.mode === "qr"
-          enabled: !root.busy && (root.mode === "ocr" || root.qrImage !== "")
-          text: root.mode === "ocr" ? "Select sample and extract text" : "Select sample and decode QR"
+          visible: (root.mode === "ocr" && root.extracted === "")
+            || (root.mode === "qr" && root.qrImage !== "" && root.extracted === "")
+          enabled: visible && !root.busy
+          primary: true
+          text: root.mode === "ocr" ? "Extract text from the card" : "Decode the QR code"
           onClicked: root.requestTask("extract")
         }
         NoteArea {
@@ -563,7 +749,8 @@ Rectangle {
           id: copyExtractedButton
           objectName: "copyExtracted"
           visible: root.extracted !== ""
-          text: "Copy recognized sample"
+          primary: true
+          text: root.mode === "qr" ? "Copy decoded text" : "Copy recognized text"
           onClicked: { extractedText.selectAll(); extractedText.copy(); exerciseInput.forceActiveFocus() }
         }
         PracticeButton {
@@ -629,7 +816,8 @@ Rectangle {
         NoteArea {
           id: exerciseInput
           objectName: "exerciseInput"
-          visible: ["ocr", "qr", "dictation"].indexOf(root.mode) !== -1
+          visible: root.mode === "dictation"
+            || (["ocr", "qr"].indexOf(root.mode) !== -1 && root.extracted !== "")
           enabled: root.mode === "dictation" ? root.consent : root.extracted !== ""
           Layout.fillWidth: true
           wrapMode: TextEdit.Wrap
@@ -647,7 +835,8 @@ Rectangle {
         PracticeButton {
           id: reviewRecognized
           objectName: "reviewRecognized"
-          visible: ["ocr", "qr", "dictation"].indexOf(root.mode) !== -1
+          visible: root.mode === "dictation"
+            || (["ocr", "qr"].indexOf(root.mode) !== -1 && root.extracted !== "")
           enabled: !root.verified && (root.mode === "dictation"
             ? root.consent && /^omarchy practice[.!]?$/i.test(exerciseInput.text.trim())
             : root.nativeSamplePasted)
@@ -656,33 +845,28 @@ Rectangle {
         }
         PracticeButton {
           objectName: "selectRecording"
-          visible: root.mode === "screen-recording"
-          enabled: !root.busy && !root.recording && root.stage < 2
-          text: "Select recording region"
+          visible: root.mode === "screen-recording" && root.stage === 0
+          enabled: visible && !root.busy
+          primary: true
+          text: "Select the practice card"
           onClicked: root.requestTask("select")
-        }
-        Text {
-          visible: root.mode === "screen-recording" && root.region !== ""
-          Layout.fillWidth: true
-          text: "Review selected region: " + root.region + ". Only start if it contains the practice card."
-          wrapMode: Text.WordWrap
-          color: root.foreground
-          font.pixelSize: 16 * root.textScale
         }
         PracticeButton {
           id: startRecordingButton
           objectName: "startRecording"
-          visible: root.mode === "screen-recording"
-          enabled: !root.busy && root.stage === 1 && root.region !== ""
-          text: "Start silent recording of reviewed region"
+          visible: root.mode === "screen-recording" && root.stage === 1
+          enabled: visible && !root.busy && root.region !== ""
+          primary: true
+          text: "Start recording"
           onClicked: root.requestTask("start")
         }
         PracticeButton {
           id: stopRecordingButton
           objectName: "stopRecording"
-          visible: root.mode === "screen-recording"
-          enabled: !root.busy && root.recording
-          text: "Stop my recording"
+          visible: root.mode === "screen-recording" && root.stage === 2
+          enabled: visible && !root.busy && root.recording
+          primary: true
+          text: "Stop recording"
           onClicked: root.requestTask("stop")
         }
         PracticeButton {
@@ -722,9 +906,11 @@ Rectangle {
         PracticeButton {
           id: playOutputButton
           objectName: "playOutput"
-          visible: ["screen-recording", "transcode"].indexOf(root.mode) !== -1
+          visible: (root.mode === "screen-recording" && root.stage === 3 && root.artifact !== "")
+            || root.mode === "transcode"
           enabled: root.artifact !== "" && !root.busy
-          text: "Play saved output"
+          primary: root.mode === "screen-recording"
+          text: root.mode === "screen-recording" ? "Play recording" : "Play saved output"
           onClicked: root.playMedia(root.artifact)
         }
         Text {
@@ -859,7 +1045,6 @@ Rectangle {
           color: root.muted
           font.pixelSize: 14 * root.textScale
         }
-        Text { visible: root.mode === "clipboard" && !root.copiedFirst; Layout.fillWidth: true; wrapMode: Text.WordWrap; text: "1. Select this note, then Super+C"; color: root.accent; font.pixelSize: 16 * root.textScale }
         NoteArea {
           id: first
           objectName: "firstNote"
@@ -869,7 +1054,7 @@ Rectangle {
           readOnly: true
           selectByMouse: true
           wrapMode: TextEdit.Wrap
-          Accessible.name: "First practice note"
+          Accessible.name: "Original practice note"
           Keys.priority: Keys.BeforeItem
           Keys.onPressed: function(event) {
             if (event.matches(StandardKey.Copy)) {
@@ -879,19 +1064,13 @@ Rectangle {
             event.accepted = false
           }
         }
-        PracticeButton {
-          visible: root.mode === "clipboard" && !root.copiedFirst
-          text: "Select first note"
-          onClicked: { first.forceActiveFocus(); first.selectAll() }
-        }
         Text {
           visible: root.mode === "clipboard" && root.copiedFirst
           Layout.fillWidth: true
-          text: "✓ First note copied"
+          text: "✓ Original note copied"
           color: root.foreground
           font.pixelSize: 15 * root.textScale
         }
-        Text { visible: root.mode === "clipboard" && root.copiedFirst && !root.copiedSecond; Layout.fillWidth: true; wrapMode: Text.WordWrap; text: "2. Copy this newer note with Super+C"; color: root.accent; font.pixelSize: 16 * root.textScale }
         NoteArea {
           id: second
           objectName: "secondNote"
@@ -912,13 +1091,6 @@ Rectangle {
             event.accepted = false
           }
         }
-        PracticeButton {
-          id: selectNewerButton
-          visible: root.mode === "clipboard" && root.copiedFirst && !root.copiedSecond
-          enabled: root.copiedFirst
-          text: "Select newer note"
-          onClicked: { second.forceActiveFocus(); second.selectAll() }
-        }
         Text {
           visible: root.mode === "clipboard" && root.copiedSecond
           Layout.fillWidth: true
@@ -926,34 +1098,37 @@ Rectangle {
           color: root.foreground
           font.pixelSize: 15 * root.textScale
         }
-        Text {
-          id: clipboardHistoryInstructions
-          objectName: "clipboardHistoryInstructions"
-          visible: root.mode === "clipboard" && root.copiedSecond
-          Layout.fillWidth: true
-          text: "3. Open history with Super+Ctrl+V. Use the arrows to highlight the FIRST note, then Shift+Enter to copy it without pasting."
-          wrapMode: Text.WordWrap
-          color: root.accent
-          font.pixelSize: 16 * root.textScale
-        }
         NoteArea {
           id: destination
           objectName: "pasteDestination"
           visible: root.mode === "clipboard" && root.copiedSecond
           enabled: root.copiedSecond
           Layout.fillWidth: true
-          placeholderText: "4. Click here, then Super+V to paste the first note"
+          placeholderText: "Paste the original note here"
           selectByMouse: true
           wrapMode: TextEdit.Wrap
-          Accessible.name: "Paste the first note after copying it with Shift+Enter"
+          Accessible.name: "Paste the original note after copying it with Shift+Enter"
           KeyNavigation.priority: KeyNavigation.BeforeItem
           KeyNavigation.tab: cancelButton
-          KeyNavigation.backtab: selectNewerButton
+          KeyNavigation.backtab: scrollArea
           Keys.priority: Keys.BeforeItem
           Keys.onPressed: function(event) {
             if (event.matches(StandardKey.Paste)) Qt.callLater(function() { root.observePaste(destination.text) })
             event.accepted = false
           }
+        }
+        Text {
+          id: clipboardFeedbackText
+          objectName: "clipboardFeedback"
+          visible: root.mode === "clipboard" && root.clipboardFeedback !== ""
+          Layout.fillWidth: true
+          text: root.clipboardFeedback
+          color: root.errorColor
+          font.pixelSize: 15 * root.textScale
+          font.weight: Font.DemiBold
+          wrapMode: Text.WordWrap
+          Accessible.role: Accessible.AlertMessage
+          Accessible.name: text
         }
         Rectangle {
           id: captureCard
@@ -972,13 +1147,6 @@ Rectangle {
             font.pixelSize: 21 * root.textScale
           }
         }
-        PracticeButton {
-          objectName: "selectRegion"
-          visible: root.mode === "capture"
-          enabled: !root.busy
-          text: "Select a region"
-          onClicked: root.captureRequested()
-        }
         Image {
           id: preview
           Accessible.name: "Captured practice card"
@@ -989,70 +1157,15 @@ Rectangle {
           fillMode: Image.PreserveAspectFit
           onStatusChanged: {
             if (status === Image.Ready && sourceSize.width > 0 && sourceSize.height > 0) {
-              root.status = "Image loaded. Try the copy-path and preview annotation controls."
-              root.focusAndReveal(copyCaptureButton)
+              root.verified = true
+              root.status = "Screenshot captured. Choose Finish exercise to return to your coach."
+              root.focusAndReveal(finishButton)
             }
             if (status === Image.Error) {
               root.verified = false
               root.error = "The capture couldn't be opened. Select a region again."
             }
           }
-          Rectangle {
-            anchors.bottom: parent.bottom
-            width: parent.width
-            height: annotationLabel.implicitHeight + 12
-            visible: captureAnnotation.text.trim() !== ""
-            color: root.backgroundColor
-            Text {
-              id: annotationLabel
-              anchors.centerIn: parent
-              width: parent.width - 12
-              text: captureAnnotation.text
-              color: root.foreground
-              font.pixelSize: 14 * root.textScale
-              wrapMode: Text.WordWrap
-            }
-          }
-        }
-        NoteArea {
-          id: capturePath
-          visible: false
-          text: root.screenshot
-        }
-        PracticeButton {
-          id: copyCaptureButton
-          objectName: "copyCapture"
-          visible: root.mode === "capture"
-          enabled: preview.status === Image.Ready
-          text: "Copy saved image path"
-          onClicked: {
-            capturePath.selectAll()
-            capturePath.copy()
-            root.captureCopied = true
-            root.verified = root.captureEdited
-          }
-        }
-        NoteArea {
-          id: captureAnnotation
-          objectName: "captureAnnotation"
-          visible: root.mode === "capture" && preview.status === Image.Ready
-          Layout.fillWidth: true
-          placeholderText: "Add a preview annotation (original image stays unchanged)"
-          Accessible.name: "Local preview annotation"
-          KeyNavigation.priority: KeyNavigation.BeforeItem
-          KeyNavigation.tab: cancelButton
-          onTextChanged: {
-            root.captureEdited = text.trim().length > 0
-            if (root.mode === "capture") root.verified = root.captureCopied && root.captureEdited
-          }
-        }
-        Text {
-          visible: root.screenshot !== ""
-          Layout.fillWidth: true
-          text: root.screenshot
-          font.pixelSize: 14 * root.textScale
-          wrapMode: Text.WrapAnywhere
-          color: root.muted
         }
         PracticeButton {
           visible: root.mode === "screen-lock"
@@ -1061,6 +1174,7 @@ Rectangle {
           onClicked: root.lockRequested()
         }
         Text {
+          visible: !(root.mode === "capture" && root.verified)
           Layout.fillWidth: true
           text: root.verified ? (root.mode === "sharing" ? "Sharing review complete. Nothing sent; delivery isn't confirmed."
             : root.mode === "dictation" ? "Text review complete. Microphone use wasn't checked."
@@ -1081,16 +1195,33 @@ Rectangle {
         }
       }
     }
-    GridLayout {
-      visible: root.showFooter
+    Text {
+      id: captureCompletionStatus
+      objectName: "captureCompletionStatus"
+      visible: root.mode === "capture" && root.verified
       Layout.fillWidth: true
-      columns: width < 440 * root.textScale ? 1 : 2
+      Layout.minimumHeight: visible ? implicitHeight : 0
+      text: "Screenshot captured. Select Finish exercise."
+      color: root.accent
+      horizontalAlignment: Text.AlignHCenter
+      wrapMode: Text.WordWrap
+      font.pixelSize: 15 * root.textScale
+      font.weight: Font.DemiBold
+      Accessible.role: Accessible.AlertMessage
+      Accessible.name: text
+    }
+    GridLayout {
+      id: footerActions
+      objectName: "practiceFooterActions"
+      visible: root.showFooter
+      Layout.alignment: Qt.AlignHCenter
+      columns: root.width < 620 * root.textScale ? 1 : 2
       columnSpacing: 12
       rowSpacing: 10
       PracticeButton {
         id: cancelButton
         objectName: "returnWithoutCompleting"
-        Layout.fillWidth: true
+        Layout.preferredWidth: Math.min(280 * root.textScale, root.width - 32)
         text: "Return without completing"
         KeyNavigation.priority: KeyNavigation.BeforeItem
         KeyNavigation.tab: finishButton.enabled ? finishButton : scrollArea
@@ -1099,7 +1230,7 @@ Rectangle {
       PracticeButton {
         id: finishButton
         objectName: "finishExercise"
-        Layout.fillWidth: true
+        Layout.preferredWidth: Math.min(280 * root.textScale, root.width - 32)
         primary: true
         text: "Finish exercise"
         enabled: root.verified && !root.busy

@@ -18,6 +18,7 @@ Item {
       var source = xhr.responseText
       var start = source.indexOf("        Rectangle {\n          id: tourCaption")
       var end = source.indexOf("        IntroPlayer {", start)
+      var keycap = source.slice(source.indexOf("  component Keycap:"), source.indexOf("  function setCharacterState("))
       verify(start >= 0 && end > start)
       fixture = Qt.createQmlObject(
         "import QtQuick\nimport QtQuick.Controls as Controls\nimport \"../../app\"\nItem { id: root; width: 1200; height: 800\n"
@@ -26,11 +27,15 @@ Item {
         + "property bool introActive: false\nproperty bool reducedMotion: false\nproperty real textScale: 1\n"
         + "property string characterState: 'tour-fly'\nproperty string tourRestingState: 'tour-talk'\n"
         + "property real lessonContentOpacity: 1\nproperty color panelColor: 'black'\n"
-        + "property color instruction: 'white'\nproperty var currentStep: ({instruction: 'Welcome'})\n"
+        + "property color instruction: 'white'\nproperty color accent: '#7aa2f7'\n"
+        + "property color foreground: '#c0caf5'\nproperty color muted: '#a0a9c9'\n"
+        + "property color keyFace: '#1a1b26'\nproperty Palette controlPalette: Palette { highlightedText: 'black' }\n"
+        + "property var currentStep: ({instruction: 'Welcome'})\n"
         + "function characterText(text) { return text }\nfunction colorWithAlpha(color, alpha) { return color }\n"
         + "property int revealEnd: -1\nfunction lessonRevealEnd(message) { return revealEnd }\n"
         + source.match(/^  function captionText\([^\n]*\) \{[\s\S]*?^  \}/m)[0] + "\n"
         + "property alias captionTextItem: tourCaptionText\n"
+        + "property alias keyCallouts: tourCaptionKeyCallouts\n"
         + "property var lineWidths: []\n"
         + "FontMetrics { id: captionMetrics; font: tourCaptionText.font }\n"
         + "function textWidth(text) { return captionMetrics.advanceWidth(text) }\n"
@@ -45,7 +50,7 @@ Item {
         + "QtObject { id: coachTravelY; property bool running: false }\n"
         + "QtObject { id: characterMouse; property bool pressed: false }\n"
         + "QtObject { id: fallAnimation; property bool running: false }\n"
-        + source.slice(start, end) + "\n}", harness)
+        + keycap + source.slice(start, end) + "\n}", harness)
     }
 
     function init() {
@@ -174,6 +179,35 @@ Item {
       }
       compare(fixture.captionText("First paragraph ends here.\n\nSecond paragraph stays together."),
         "First paragraph ends\u00a0here.\n\nSecond paragraph stays\u00a0together.")
+    }
+
+    function test_shortcutsMentionedInTheBubbleUseLessonKeycaps() {
+      fixture.reducedMotion = true
+      fixture.characterState = "tour-talk"
+      fixture.currentStep = {
+        instruction: "Use Super and C to copy, then Super and V to paste.",
+        keyCallouts: [["SUPER", "+", "C"], ["SUPER", "+", "V"]]
+      }
+      tryCompare(fixture.caption, "opacity", 1)
+      verify(fixture.keyCallouts.visible)
+      compare(fixture.keyCallouts.groups.length, 2)
+      var firstGroup = findChild(fixture, "tourCaptionKeyGroup0")
+      var secondGroup = findChild(fixture, "tourCaptionKeyGroup1")
+      compare(firstGroup.keys.join(" "), "SUPER + C")
+      compare(secondGroup.keys.join(" "), "SUPER + V")
+      verify(fixture.caption.height > fixture.captionTextItem.implicitHeight + 40,
+        "caption=" + fixture.caption.height + ", text=" + fixture.captionTextItem.implicitHeight +
+        ", callouts=" + fixture.keyCallouts.height + "/" + fixture.keyCallouts.implicitHeight +
+        ", group=" + firstGroup.width + "x" + firstGroup.height + "/" +
+        firstGroup.implicitWidth + "x" + firstGroup.implicitHeight + ", children=" + firstGroup.children.length)
+
+      fixture.width = 360
+      fixture.height = 480
+      fixture.textScale = 1.3
+      wait(30)
+      verify(fixture.caption.x >= 0 && fixture.caption.x + fixture.caption.width <= fixture.width)
+      verify(fixture.caption.y >= 0 && fixture.caption.y + fixture.caption.height <= fixture.height)
+      verify(fixture.keyCallouts.childrenRect.width <= fixture.keyCallouts.width + 1)
     }
   }
 }

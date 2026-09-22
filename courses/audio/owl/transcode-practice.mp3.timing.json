@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "9b376302ceb11d48ecddb4b1dc2075dcaee890dec8289b6fc39e2c0543ccbf9c",
-  "text": "A recording can be too large to share comfortably. Let's create a smaller copy of a harmless practice clip and inspect the result.",
+  "audioHash": "749637490d9ea617d584f754a2fb20f9561a14d0d9f62b3bf2371defccfbca96",
+  "text": "A recording can be too large to share comfortably. Let's create a smaller copy of a harmless practice clip and inspect the result. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
@@ -12,88 +12,112 @@
       "endOffset": 11
     },
     {
-      "startMs": 750,
+      "startMs": 910,
       "endOffset": 15
     },
     {
-      "startMs": 910,
+      "startMs": 1150,
       "endOffset": 18
     },
     {
-      "startMs": 1070,
+      "startMs": 1310,
       "endOffset": 22
     },
     {
-      "startMs": 1350,
+      "startMs": 1630,
       "endOffset": 28
     },
     {
-      "startMs": 1790,
+      "startMs": 2110,
       "endOffset": 31
     },
     {
-      "startMs": 1910,
+      "startMs": 2230,
       "endOffset": 37
     },
     {
-      "startMs": 2270,
+      "startMs": 2590,
       "endOffset": 50
     },
     {
-      "startMs": 3550,
+      "startMs": 3909,
       "endOffset": 56
     },
     {
-      "startMs": 3909,
+      "startMs": 4310,
       "endOffset": 63
     },
     {
-      "startMs": 4350,
+      "startMs": 4750,
       "endOffset": 65
     },
     {
-      "startMs": 4390,
+      "startMs": 4830,
       "endOffset": 73
     },
     {
-      "startMs": 4830,
+      "startMs": 5350,
       "endOffset": 78
     },
     {
-      "startMs": 5150,
+      "startMs": 5750,
       "endOffset": 81
     },
     {
-      "startMs": 5230,
+      "startMs": 5830,
       "endOffset": 83
     },
     {
-      "startMs": 5430,
+      "startMs": 5950,
       "endOffset": 92
     },
     {
-      "startMs": 5950,
+      "startMs": 6470,
       "endOffset": 101
     },
     {
-      "startMs": 6430,
+      "startMs": 6990,
       "endOffset": 106
     },
     {
-      "startMs": 7030,
+      "startMs": 7550,
       "endOffset": 110
     },
     {
-      "startMs": 7310,
+      "startMs": 7790,
       "endOffset": 118
     },
     {
-      "startMs": 7790,
+      "startMs": 8350,
       "endOffset": 122
     },
     {
-      "startMs": 7910,
+      "startMs": 8469,
       "endOffset": 130
+    },
+    {
+      "startMs": 9709,
+      "endOffset": 137
+    },
+    {
+      "startMs": 10350,
+      "endOffset": 143
+    },
+    {
+      "startMs": 10910,
+      "endOffset": 152
+    },
+    {
+      "startMs": 11750,
+      "endOffset": 155
+    },
+    {
+      "startMs": 11870,
+      "endOffset": 159
+    },
+    {
+      "startMs": 12069,
+      "endOffset": 168
     }
   ]
 }

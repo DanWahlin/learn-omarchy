@@ -1,195 +1,219 @@
 {
   "version": 1,
-  "audioHash": "19b62c907c45badf9df9400d48994ce88a369ab375c932d6a45991524a6bb755",
-  "text": "Alt and Print opens recording choices, or stops a recording that's already running. Without a Print key, use the Capture menu. Microphone includes desktop audio; webcam includes both. Keep private content and other people's voices out. Watch the recording indicator, and know how to stop before starting.",
+  "audioHash": "20d835124dbe83e773a473c55468ebce7b530f1d75b67bb86357a5fb67b9659b",
+  "text": "To record on any keyboard, press Super, Control, and C, then choose Screenrecording. If your keyboard has a Print key, Alt and Print opens the same choices or stops an active recording. Microphone includes desktop audio; webcam includes both. Keep private content and other people's voices out. Know how to stop before starting.",
   "words": [
     {
       "startMs": 70,
-      "endOffset": 3
+      "endOffset": 2
     },
     {
-      "startMs": 390,
-      "endOffset": 7
+      "startMs": 190,
+      "endOffset": 9
     },
     {
-      "startMs": 550,
-      "endOffset": 13
+      "startMs": 670,
+      "endOffset": 12
     },
     {
-      "startMs": 1070,
-      "endOffset": 19
+      "startMs": 830,
+      "endOffset": 16
     },
     {
-      "startMs": 1550,
-      "endOffset": 29
+      "startMs": 1150,
+      "endOffset": 26
     },
     {
-      "startMs": 2150,
-      "endOffset": 38
+      "startMs": 1950,
+      "endOffset": 32
     },
     {
-      "startMs": 2869,
-      "endOffset": 41
+      "startMs": 2349,
+      "endOffset": 39
     },
     {
-      "startMs": 3070,
-      "endOffset": 47
+      "startMs": 3190,
+      "endOffset": 48
     },
     {
-      "startMs": 3550,
-      "endOffset": 49
+      "startMs": 3989,
+      "endOffset": 52
     },
     {
-      "startMs": 3590,
-      "endOffset": 59
+      "startMs": 4230,
+      "endOffset": 55
     },
     {
-      "startMs": 4190,
-      "endOffset": 66
+      "startMs": 4950,
+      "endOffset": 60
     },
     {
-      "startMs": 4430,
-      "endOffset": 74
+      "startMs": 5310,
+      "endOffset": 67
     },
     {
-      "startMs": 4830,
-      "endOffset": 83
+      "startMs": 5670,
+      "endOffset": 84
     },
     {
-      "startMs": 5910,
-      "endOffset": 91
+      "startMs": 7430,
+      "endOffset": 87
     },
     {
-      "startMs": 6430,
-      "endOffset": 93
+      "startMs": 7750,
+      "endOffset": 92
     },
     {
-      "startMs": 6510,
-      "endOffset": 99
+      "startMs": 7910,
+      "endOffset": 101
     },
     {
-      "startMs": 6870,
-      "endOffset": 104
+      "startMs": 8350,
+      "endOffset": 105
     },
     {
-      "startMs": 7390,
-      "endOffset": 108
+      "startMs": 8549,
+      "endOffset": 107
     },
     {
-      "startMs": 7710,
-      "endOffset": 112
+      "startMs": 8670,
+      "endOffset": 113
     },
     {
-      "startMs": 7830,
-      "endOffset": 120
+      "startMs": 8990,
+      "endOffset": 118
     },
     {
-      "startMs": 8309,
+      "startMs": 9590,
+      "endOffset": 122
+    },
+    {
+      "startMs": 10110,
       "endOffset": 126
     },
     {
-      "startMs": 9350,
-      "endOffset": 137
+      "startMs": 10309,
+      "endOffset": 132
     },
     {
-      "startMs": 10149,
-      "endOffset": 146
+      "startMs": 10870,
+      "endOffset": 138
     },
     {
-      "startMs": 11030,
-      "endOffset": 154
+      "startMs": 11350,
+      "endOffset": 142
     },
     {
-      "startMs": 11870,
-      "endOffset": 161
+      "startMs": 11469,
+      "endOffset": 147
     },
     {
-      "startMs": 12430,
-      "endOffset": 168
+      "startMs": 11830,
+      "endOffset": 155
     },
     {
-      "startMs": 13149,
-      "endOffset": 177
+      "startMs": 12510,
+      "endOffset": 158
     },
     {
-      "startMs": 13750,
-      "endOffset": 183
+      "startMs": 12670,
+      "endOffset": 164
     },
     {
-      "startMs": 14910,
-      "endOffset": 188
+      "startMs": 13190,
+      "endOffset": 167
     },
     {
-      "startMs": 15149,
+      "startMs": 13309,
+      "endOffset": 174
+    },
+    {
+      "startMs": 13790,
+      "endOffset": 185
+    },
+    {
+      "startMs": 15190,
       "endOffset": 196
     },
     {
-      "startMs": 15670,
-      "endOffset": 204
+      "startMs": 15990,
+      "endOffset": 205
     },
     {
-      "startMs": 16350,
-      "endOffset": 208
+      "startMs": 16630,
+      "endOffset": 213
     },
     {
-      "startMs": 16590,
-      "endOffset": 214
+      "startMs": 17150,
+      "endOffset": 220
     },
     {
-      "startMs": 16870,
-      "endOffset": 223
+      "startMs": 17910,
+      "endOffset": 227
     },
     {
-      "startMs": 17230,
-      "endOffset": 230
+      "startMs": 18630,
+      "endOffset": 236
     },
     {
-      "startMs": 17670,
-      "endOffset": 235
+      "startMs": 19230,
+      "endOffset": 242
     },
     {
-      "startMs": 18420,
-      "endOffset": 241
+      "startMs": 20230,
+      "endOffset": 247
     },
     {
-      "startMs": 18820,
-      "endOffset": 245
-    },
-    {
-      "startMs": 18940,
+      "startMs": 20590,
       "endOffset": 255
     },
     {
-      "startMs": 19420,
-      "endOffset": 266
+      "startMs": 21150,
+      "endOffset": 263
     },
     {
-      "startMs": 20380,
-      "endOffset": 270
+      "startMs": 21870,
+      "endOffset": 267
     },
     {
-      "startMs": 20579,
-      "endOffset": 275
+      "startMs": 22070,
+      "endOffset": 273
     },
     {
-      "startMs": 20820,
-      "endOffset": 279
-    },
-    {
-      "startMs": 20979,
+      "startMs": 22390,
       "endOffset": 282
     },
     {
-      "startMs": 21099,
-      "endOffset": 287
+      "startMs": 22750,
+      "endOffset": 289
     },
     {
-      "startMs": 21700,
+      "startMs": 23190,
       "endOffset": 294
     },
     {
-      "startMs": 22139,
-      "endOffset": 304
+      "startMs": 24010,
+      "endOffset": 299
+    },
+    {
+      "startMs": 24330,
+      "endOffset": 303
+    },
+    {
+      "startMs": 24490,
+      "endOffset": 306
+    },
+    {
+      "startMs": 24650,
+      "endOffset": 311
+    },
+    {
+      "startMs": 25170,
+      "endOffset": 318
+    },
+    {
+      "startMs": 25610,
+      "endOffset": 328
     }
   ]
 }

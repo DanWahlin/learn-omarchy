@@ -247,6 +247,28 @@ const loadStep = async (id: string) => {
   return { course, step };
 };
 
+test("tour narration key callouts are explicit and use canonical labels", async () => {
+  for (const [id, expected] of new Map<string, string[][]>([
+    ["helpers-universal-copy", [["SUPER", "+", "C"], ["SUPER", "+", "V"]]],
+    ["compose-intro", [["CAPS LOCK", "→", "M", "→", "S"]]],
+    ["capture-native-workflow", [["SUPER", "+", "CTRL", "+", "C"]]],
+    ["recording-intro", [["SUPER", "+", "CTRL", "+", "C"]]],
+  ])) {
+    const { step } = await loadStep(id);
+    assert.deepEqual(step.keyCallouts, expected, id);
+  }
+
+  for (const keyCallouts of [[], [[]], [["super", "+", "C"]], [["F1"]], [[""]]]) {
+    const { course, step } = await loadStep("helpers-universal-copy");
+    step.keyCallouts = keyCallouts;
+    assert.ok(validateCourse(course).some(error => error.includes("keyCallouts")));
+  }
+
+  const { course, step } = await loadStep("open-root-menu");
+  step.keyCallouts = [["SUPER", "+", "SPACE"]];
+  assert.ok(validateCourse(course).some(error => error.includes("only valid for tour")));
+});
+
 test("fallback reference viewports require finite positive dimensions", async () => {
   const { course } = await loadStep("tour-welcome");
   for (const value of [null, [], {}, { width: 0, height: 720 }, { width: 1280, height: -1 },
@@ -497,6 +519,11 @@ test("hands-on tasks are verified exercises and optional activities don't block 
     assert.equal(step.completion.type, "practice-result");
     assert.deepEqual(step.keys, []);
     assert.equal(step.help, undefined);
+  }
+  const startExercises = practices.filter(step => step.actionLabel === "Start exercise");
+  assert.equal(startExercises.length, 10);
+  for (const step of startExercises) {
+    assert.match(step.instruction, /\bSelect Start exercise to get started\.$/, step.id);
   }
   assert.equal(practices.find(step => step.practice === "screen-lock")?.optional, true);
   assert.equal(practices.find(step => step.practice === "compose")?.optional, true);

@@ -52,6 +52,10 @@ Item {
       taskPending = true
       taskProcess.running = true
     }
+    if (mode === "capture") {
+      capturePending = true
+      captureProcess.running = true
+    }
   }
 
   function cancel() {
@@ -165,17 +169,6 @@ Item {
     showFooter: root.showFooter
     onCancelled: root.cancel()
     onFinished: root.finish()
-    onCaptureRequested: {
-      if (!root.running || root.capturePending) return
-      verified = false
-      error = ""
-      screenshot = ""
-      captureCopied = false
-      captureEdited = false
-      busy = true
-      root.capturePending = true
-      captureProcess.running = true
-    }
     onLockRequested: {
       if (!root.running || root.lockPending || root.lockStatusPending) return
       error = ""
@@ -237,27 +230,32 @@ Item {
   }
   Process {
     id: captureProcess
-    command: [root.appRoot + "/bin/learn-omarchy-practice", "--capture"]
-    stdout: StdioCollector { id: captureOutput }
+    command: [root.appRoot + "/bin/learn-omarchy-practice", "--watch-screenshots"]
+    stdout: SplitParser {
+      onRead: function(data) {
+        if (!root.running) return
+        var path = String(data || "").trim()
+        if (!/^\/.*\/screenshot-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.png$/.test(path)) {
+          content.error = "The screenshot watcher returned an invalid file. Return and retry."
+          return
+        }
+        content.screenshot = path
+      }
+    }
     onExited: function(code) {
       root.capturePending = false
       if (root.closing) { root.finishClosing(); return }
       if (!root.running) return
-      content.busy = false
-      if (code === 2) { content.status = "Selection cancelled. Nothing was completed; try again when ready."; return }
-      var path = captureOutput.text.trim()
-      if (code !== 0 || !/^\/.*\/learn-omarchy-capture\.[A-Za-z0-9]+\/practice\.png$/.test(path)) {
-        content.error = "Capture failed. Try selecting a region again."
-        return
-      }
-      content.screenshot = path
+      content.error = code === 0
+        ? "The screenshot watcher stopped. Return and retry the exercise."
+        : "The screenshot watcher is unavailable. Return and retry the exercise."
     }
     onRunningChanged: {
       if (running || !root.capturePending) return
       root.capturePending = false
       if (root.closing) { root.finishClosing(); return }
       content.busy = false
-      content.error = "Capture helper unavailable. Return to your coach and retry."
+      content.error = "Screenshot watching is unavailable. Return to your coach and retry."
     }
   }
   Process {

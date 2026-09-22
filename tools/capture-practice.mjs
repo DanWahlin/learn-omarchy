@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { mkdir, mkdtemp, readFile, writeFile, rm, rmdir, stat } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, writeFile, rm, rmdir, stat } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
@@ -62,6 +62,71 @@ async function capture() {
     }
     process.off("SIGTERM", cancel);
     process.off("SIGINT", cancel);
+  }
+}
+
+export async function screenshotDirectory(env = process.env) {
+  if (env.OMARCHY_SCREENSHOT_DIR) return resolve(env.OMARCHY_SCREENSHOT_DIR);
+  const home = env.HOME || "";
+  if (env.XDG_PICTURES_DIR)
+    return resolve(env.XDG_PICTURES_DIR.replace(/\$\{HOME\}|\$HOME/g, home));
+  try {
+    const userDirs = await readFile(join(home, ".config", "user-dirs.dirs"), "utf8");
+    const match = /^XDG_PICTURES_DIR="([^"]+)"$/m.exec(userDirs);
+    if (match) return resolve(match[1].replace(/\$\{HOME\}|\$HOME/g, home));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  return resolve(home, "Pictures");
+}
+
+export async function watchScreenshots() {
+  const directory = await screenshotDirectory();
+  const observed = new Map();
+  const pending = new Set();
+  const reported = new Map();
+  let stopping = false;
+  const stop = () => { stopping = true; };
+  process.on("SIGTERM", stop);
+  process.on("SIGINT", stop);
+
+  async function scan(emitNew) {
+    let names;
+    try {
+      names = await readdir(directory);
+    } catch (error) {
+      if (error.code === "ENOENT") return;
+      throw error;
+    }
+    for (const name of names) {
+      if (!/^screenshot-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.png$/.test(name)) continue;
+      if (emitNew && observed.has(name) && !pending.has(name)) continue;
+      const path = join(directory, name);
+      const info = await stat(path);
+      if (!info.isFile() || info.size === 0) continue;
+      const version = `${info.mtimeMs}:${info.size}`;
+      if (observed.get(name) !== version) {
+        observed.set(name, version);
+        if (!emitNew) reported.set(name, version);
+        else pending.add(name);
+        continue;
+      }
+      if (!emitNew || reported.get(name) === version) continue;
+      pending.delete(name);
+      reported.set(name, version);
+      console.log(path);
+    }
+  }
+
+  try {
+    await scan(false);
+    while (!stopping) {
+      await new Promise(resolveDelay => setTimeout(resolveDelay, 250));
+      await scan(true);
+    }
+  } finally {
+    process.off("SIGTERM", stop);
+    process.off("SIGINT", stop);
   }
 }
 
@@ -251,7 +316,9 @@ export async function practiceSession(mode) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  (process.argv[2] === "--session" ? practiceSession(process.argv[3]) : capture()).catch(error => {
+  (process.argv[2] === "--session" ? practiceSession(process.argv[3])
+    : process.argv[2] === "--watch-screenshots" ? watchScreenshots()
+    : capture()).catch(error => {
     console.error("Practice capture:", error.message);
     process.exitCode = 1;
   });

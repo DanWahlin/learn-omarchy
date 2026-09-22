@@ -65,7 +65,7 @@ test("rehearsals and preview tools describe what they actually do", () => {
   assert.match(instruction("web-app-practice"), /doesn't add anything to your Apps menu/);
   assert.match(detail("dictation-practice"), /doesn't start your microphone/);
   assert.match(detail("dictation-practice"), /not whether dictation produced it/);
-  assert.match(completion("capture-practice"), /saved image itself is unchanged/);
+  assert.match(completion("capture-practice"), /real screenshot workflow/);
   assert.match(completion("display-panel"), /apply immediately/);
   assert.doesNotMatch(completion("display-panel"), /before you commit/);
   assert.equal(steps.get("apps-search-practice")!.actionLabel, "Start search");
@@ -132,7 +132,11 @@ test("scratchpad restoration first reveals and focuses the window that native sh
 
 test("essential cautions and keyboard alternatives are in the spoken instruction", () => {
   assert.match(instruction("open-apps"), /Alt is the Option key/);
-  assert.match(instruction("capture-native-workflow"), /No Print key/);
+  assert.match(instruction("capture-native-workflow"), /on any keyboard/);
+  assert.match(instruction("capture-native-workflow"), /If your keyboard has a Print key/);
+  assert.match(instruction("recording-intro"), /on any keyboard/);
+  assert.match(instruction("recording-intro"), /If your keyboard has a Print key/);
+  assert.doesNotMatch(instruction("recording-practice"), /explicitly/i);
   assert.match(instruction("dictation-practice"), /don't need an F9 key/);
   assert.match(instruction("upkeep-install"), /don't install anything/);
   assert.match(instruction("upkeep-defaults"), /don't change one/);
@@ -255,7 +259,7 @@ test("Display lists actual conditional controls and separates resolution configu
 
 test("Compose replaces normal Caps Lock behavior while retaining sequential presses", () => {
   assert.match(instruction("compose-intro"), /Caps Lock as the Compose key by default, instead of toggling capital letters/);
-  assert.match(instruction("compose-intro"), /Tap and release Caps Lock, then m, then s/);
+  assert.match(instruction("compose-intro"), /Tap and release Caps Lock, then m, then the letter s/);
   assert.match(instruction("compose-intro"), /separate presses/);
   assert.doesNotMatch(instruction("compose-intro"), /second job/);
 });

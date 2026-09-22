@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "b0c5fdd23537c981ff144547da565443012a0a4b125071db6e457cefcf0e5c1e",
-  "text": "Let's make clipboard history useful. Copy two sample notes. Find the older one in history, use Shift and Enter to copy it without pasting, then paste it into the exercise.",
+  "audioHash": "47f1a0d469409b29394a1d1bfe90acb8eed64a143808bb58099bd299c9a05da4",
+  "text": "Let's make clipboard history useful. Copy two sample notes. Find the older one in history, use Shift and Enter to copy it without pasting, then paste it into the exercise. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
@@ -12,15 +12,15 @@
       "endOffset": 10
     },
     {
-      "startMs": 750,
+      "startMs": 670,
       "endOffset": 20
     },
     {
-      "startMs": 1270,
+      "startMs": 1230,
       "endOffset": 28
     },
     {
-      "startMs": 1830,
+      "startMs": 1790,
       "endOffset": 36
     },
     {
@@ -28,11 +28,11 @@
       "endOffset": 41
     },
     {
-      "startMs": 3429,
+      "startMs": 3389,
       "endOffset": 45
     },
     {
-      "startMs": 3750,
+      "startMs": 3710,
       "endOffset": 52
     },
     {
@@ -40,88 +40,112 @@
       "endOffset": 59
     },
     {
-      "startMs": 5430,
+      "startMs": 5230,
       "endOffset": 64
     },
     {
-      "startMs": 5830,
+      "startMs": 5670,
       "endOffset": 68
     },
     {
-      "startMs": 5990,
+      "startMs": 5790,
       "endOffset": 74
     },
     {
-      "startMs": 6230,
+      "startMs": 6070,
       "endOffset": 78
     },
     {
-      "startMs": 6510,
+      "startMs": 6390,
       "endOffset": 81
     },
     {
-      "startMs": 6670,
+      "startMs": 6510,
       "endOffset": 90
     },
     {
-      "startMs": 7670,
+      "startMs": 7430,
       "endOffset": 94
     },
     {
-      "startMs": 7990,
+      "startMs": 7710,
       "endOffset": 100
     },
     {
-      "startMs": 8430,
+      "startMs": 8149,
       "endOffset": 104
     },
     {
-      "startMs": 8629,
+      "startMs": 8309,
       "endOffset": 110
     },
     {
-      "startMs": 9149,
+      "startMs": 8750,
       "endOffset": 113
     },
     {
-      "startMs": 9309,
+      "startMs": 8910,
       "endOffset": 118
     },
     {
-      "startMs": 9709,
+      "startMs": 9309,
       "endOffset": 121
     },
     {
-      "startMs": 9870,
+      "startMs": 9469,
       "endOffset": 129
     },
     {
-      "startMs": 10270,
+      "startMs": 9870,
       "endOffset": 138
     },
     {
-      "startMs": 11190,
+      "startMs": 10750,
       "endOffset": 143
     },
     {
-      "startMs": 11549,
+      "startMs": 11149,
       "endOffset": 149
     },
     {
-      "startMs": 11950,
+      "startMs": 11549,
       "endOffset": 152
     },
     {
-      "startMs": 12030,
+      "startMs": 11629,
       "endOffset": 157
     },
     {
-      "startMs": 12270,
+      "startMs": 11870,
       "endOffset": 161
     },
     {
-      "startMs": 12389,
+      "startMs": 11990,
       "endOffset": 171
+    },
+    {
+      "startMs": 13309,
+      "endOffset": 178
+    },
+    {
+      "startMs": 13990,
+      "endOffset": 184
+    },
+    {
+      "startMs": 14469,
+      "endOffset": 193
+    },
+    {
+      "startMs": 15309,
+      "endOffset": 196
+    },
+    {
+      "startMs": 15430,
+      "endOffset": 200
+    },
+    {
+      "startMs": 15670,
+      "endOffset": 209
     }
   ]
 }

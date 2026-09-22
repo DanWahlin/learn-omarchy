@@ -8,7 +8,6 @@ Item {
   height: 740
   App.PracticeContent { id: practice; anchors.fill: parent; mode: "clipboard" }
   TextEdit { id: clipboardProbe; visible: false }
-  SignalSpy { id: captureSpy; target: practice; signalName: "captureRequested" }
   SignalSpy { id: lockSpy; target: practice; signalName: "lockRequested" }
   SignalSpy { id: cancelSpy; target: practice; signalName: "cancelled" }
   SignalSpy { id: taskSpy; target: practice; signalName: "taskRequested" }
@@ -41,9 +40,10 @@ Item {
       practice.copiedFirst = false
       practice.copiedSecond = false
       practice.historyOpened = false
+      practice.clipboardPasteMismatch = false
+      practice.clipboardFeedback = ""
       practice.verified = false
       findChild(practice, "pasteDestination").text = ""
-      captureSpy.clear()
       lockSpy.clear()
       cancelSpy.clear()
       taskSpy.clear()
@@ -64,9 +64,45 @@ Item {
       verify(!practice.copiedFirst)
       verify(!practice.copiedSecond)
       verify(!practice.historyOpened)
+      verify(!practice.clipboardPasteMismatch)
+      compare(practice.clipboardFeedback, "")
       compare(findChild(practice, "pasteDestination").text, "")
       verify(findChild(practice, "firstNote").visible)
       verify(!findChild(practice, "secondNote").visible)
+    }
+    function test_clipboardAutomaticallySelectsTheActiveNote() {
+      practice.mode = "clipboard"
+      practice.focusPractice()
+      var first = findChild(practice, "firstNote")
+      tryCompare(first, "activeFocus", true)
+      compare(first.selectedText, practice.sample)
+      compare(root.button(practice, "Select first note"), null)
+
+      practice.observeCopy(true, practice.sample)
+      var second = findChild(practice, "secondNote")
+      tryCompare(second, "activeFocus", true)
+      compare(second.selectedText, practice.secondSample)
+      compare(root.button(practice, "Select newer note"), null)
+    }
+    function test_footerActionsAreEqualAndCompact() {
+      var cancel = findChild(practice, "returnWithoutCompleting")
+      var finish = findChild(practice, "finishExercise")
+
+      root.width = 1200
+      root.height = 740
+      wait(20)
+      compare(cancel.width, finish.width)
+      verify(cancel.width < root.width / 3)
+      compare(cancel.y, finish.y)
+
+      root.width = 460
+      root.height = 520
+      practice.textScale = 1.3
+      wait(20)
+      compare(cancel.width, finish.width)
+      verify(finish.y >= cancel.y + cancel.height)
+      verify(cancel.x >= 0 && cancel.x + cancel.width <= practice.width)
+      verify(finish.x >= 0 && finish.x + finish.width <= practice.width)
     }
     function test_disabledFinishIsVisiblyInactive() {
       var finish = findChild(practice, "finishExercise")
@@ -79,6 +115,104 @@ Item {
       practice.busy = true
       verify(!finish.enabled)
       compare(finish.background.color, practice.backgroundColor)
+    }
+    function test_keyboardPracticeShowsConsistentKeyGuides_data() {
+      return [
+        {
+          tag: "clipboard",
+          mode: "clipboard",
+          guides: ["SUPER + C"]
+        },
+        {
+          tag: "compose",
+          mode: "compose",
+          guides: ["CAPS LOCK → M → S", "CAPS LOCK → M → H"]
+        },
+        { tag: "ocr", mode: "ocr", guides: ["SUPER + V"] },
+        { tag: "qr", mode: "qr", guides: ["SUPER + V"] },
+        {
+          tag: "dictation",
+          mode: "dictation",
+          guides: ["SUPER + CTRL + X", "F9"]
+        },
+        { tag: "screen-lock", mode: "screen-lock", guides: ["SUPER + CTRL + L"] },
+        { tag: "capture", mode: "capture", guides: ["SUPER + CTRL + C"] }
+      ]
+    }
+    function test_keyboardPracticeShowsConsistentKeyGuides(data) {
+      practice.mode = data.mode
+      wait(30)
+      var list = findChild(practice, "practiceKeyGuideList")
+      compare(list.visible, data.guides.length > 0)
+      compare(practice.currentKeyGuides.length, data.guides.length)
+      for (var index = 0; index < data.guides.length; index++) {
+        var guide = findChild(practice, "practiceKeyGuide" + index)
+        verify(guide && guide.visible)
+        compare(guide.guideKeys.join(" "), data.guides[index])
+      }
+    }
+    function test_clipboardKeyGuideFollowsTheCurrentStep() {
+      function compareGuides(expected) {
+        compare(practice.currentKeyGuides.length, expected.length)
+        wait(20)
+        for (var index = 0; index < expected.length; index++) {
+          var guide = findChild(practice, "practiceKeyGuide" + index)
+          verify(guide && guide.visible)
+          compare(guide.guideLabel, expected[index][0])
+          compare(guide.guideKeys.join(" "), expected[index][1])
+        }
+      }
+
+      practice.mode = "clipboard"
+      verify(!findChild(practice, "exerciseInstructions").visible)
+      compareGuides([["Copy the selected original note", "SUPER + C"]])
+
+      practice.observeCopy(true, practice.sample)
+      compareGuides([["Copy the selected newer note", "SUPER + C"]])
+
+      practice.observeCopy(false, practice.secondSample)
+      compareGuides([
+        ["Open clipboard history", "SUPER + CTRL + V"],
+        ["Choose \"" + practice.sample + "\" (not the entry beginning \"A newer note\")", "SHIFT + ENTER"],
+        ["Paste the original note into the destination", "SUPER + V"]
+      ])
+
+      practice.observeHistory()
+      compareGuides([
+        ["Open clipboard history", "SUPER + CTRL + V"],
+        ["Choose \"" + practice.sample + "\" (not the entry beginning \"A newer note\")", "SHIFT + ENTER"],
+        ["Paste the original note into the destination", "SUPER + V"]
+      ])
+      verify(findChild(practice, "pasteDestination").placeholderText.indexOf("Super") === -1)
+    }
+    function test_supportingCopyDoesNotRepeatHighlightedShortcuts() {
+      for (var mode of ["compose", "dictation", "screen-lock"]) {
+        practice.mode = mode
+        wait(10)
+        var text = findChild(practice, "exerciseInstructions").text
+        verify(text.indexOf("Super+") === -1, mode)
+        verify(text.indexOf("Caps Lock →") === -1, mode)
+        verify(text.indexOf("F9") === -1, mode)
+      }
+      practice.mode = "compose"
+      verify(findChild(practice, "composeSmile").placeholderText.indexOf("Caps Lock") === -1)
+      verify(findChild(practice, "composeHeart").placeholderText.indexOf("Caps Lock") === -1)
+    }
+    function test_textAreasAreProminentLearningControls() {
+      root.width = 460
+      root.height = 320
+      practice.mode = "compose"
+      practice.textScale = 1.3
+      var smile = findChild(practice, "composeSmile")
+      var heart = findChild(practice, "composeHeart")
+      for (var field of [smile, heart]) {
+        verify(field.implicitHeight >= 76 * practice.textScale)
+        compare(field.background.border.width, 2)
+      }
+      smile.forceActiveFocus()
+      tryCompare(smile, "activeFocus", true)
+      compare(smile.background.border.width, 3)
+      verify(isInPracticeViewport(smile, findChild(practice, "practiceScroll")))
     }
     function test_compactWorkbenchKeepsFooterAndFocusedFieldsVisible() {
       root.width = 640
@@ -101,9 +235,6 @@ Item {
       verify(footer.y + finish.height <= practice.height)
       practice.showFooter = false
       verify(!finish.visible)
-      practice.mode = "capture"
-      practice.focusPractice()
-      tryCompare(findChild(practice, "selectRegion"), "activeFocus", true)
     }
     function test_clipboardProgressRevealsEachNextStep_data() {
       return [
@@ -118,10 +249,8 @@ Item {
       var scroll = findChild(practice, "practiceScroll")
       var first = findChild(practice, "firstNote")
       var second = findChild(practice, "secondNote")
-      var history = findChild(practice, "clipboardHistoryInstructions")
       verify(first.visible)
       verify(!second.visible)
-      verify(!history.visible)
 
       practice.observeCopy(true, practice.sample)
       tryCompare(second, "visible", true)
@@ -132,11 +261,29 @@ Item {
         "Second note must be fully visible after copying the first")
 
       practice.observeCopy(false, practice.secondSample)
-      tryCompare(history, "visible", true)
       wait(30)
+      var history = findChild(practice, "practiceKeyGuide0")
+      compare(history.guideKeys.join(" "), "SUPER + CTRL + V")
       var historyPoint = history.mapToItem(scroll, 0, 0)
       verify(historyPoint.y >= 0 && historyPoint.y + history.height <= scroll.height,
-        "History instructions must be fully visible after copying the second")
+        "The current history shortcut must be fully visible after copying the second: y=" +
+        historyPoint.y + ", height=" + history.height + ", viewport=" + scroll.height)
+    }
+    function test_clipboardFinalStepFitsDedicatedPracticeSurface() {
+      root.width = 1100
+      root.height = 680
+      practice.textScale = 1
+      practice.observeCopy(true, practice.sample)
+      practice.observeCopy(false, practice.secondSample)
+      wait(30)
+
+      var scroll = findChild(practice, "practiceScroll")
+      var firstGuide = findChild(practice, "practiceKeyGuide0")
+      var secondGuide = findChild(practice, "practiceKeyGuide1")
+      var thirdGuide = findChild(practice, "practiceKeyGuide2")
+      verify(firstGuide.y < secondGuide.y)
+      verify(secondGuide.y < thirdGuide.y)
+      verify(isInPracticeViewport(findChild(practice, "pasteDestination"), scroll))
     }
     function test_progressiveResultsRevealNextAction_data() {
       var scenarios = [
@@ -336,9 +483,34 @@ Item {
       practice.observePaste(practice.sample)
       verify(practice.verified)
     }
+    function test_wrongClipboardPasteExplainsAndPreparesRecovery() {
+      practice.observeCopy(true, practice.sample)
+      practice.observeCopy(false, practice.secondSample)
+      practice.observeHistory()
+
+      var destination = findChild(practice, "pasteDestination")
+      destination.text = practice.secondSample
+      practice.observePaste(destination.text)
+
+      verify(!practice.verified)
+      verify(practice.clipboardPasteMismatch)
+      verify(practice.clipboardFeedback.includes("newer note"))
+      tryCompare(destination, "selectedText", practice.secondSample)
+      compare(practice.currentKeyGuides.length, 3)
+      compare(findChild(practice, "practiceKeyGuide0").guideLabel, "Open clipboard history")
+      compare(findChild(practice, "practiceKeyGuide1").guideLabel,
+              "Choose \"" + practice.sample + "\" (not the entry beginning \"A newer note\")")
+      compare(findChild(practice, "practiceKeyGuide2").guideLabel,
+              "Paste the original note into the destination")
+      verify(findChild(practice, "clipboardFeedback").visible)
+
+      destination.text = practice.sample
+      practice.observePaste(destination.text)
+      verify(practice.verified)
+      verify(!practice.clipboardPasteMismatch)
+      compare(practice.clipboardFeedback, "")
+    }
     function test_nativeCopyAndPaste() {
-      verify(findChild(practice, "exerciseInstructions").text.indexOf("press Shift+Enter") !== -1)
-      verify(findChild(practice, "clipboardHistoryInstructions").text.indexOf("Shift+Enter") !== -1)
       var first = findChild(practice, "firstNote")
       var second = findChild(practice, "secondNote")
       var destination = findChild(practice, "pasteDestination")
@@ -387,11 +559,8 @@ Item {
     }
     function test_explicitActions_data() {
       return [
-        { tag: "capture-desktop", mode: "capture", width: 760 },
-        { tag: "capture-narrow", mode: "capture", width: 460 },
         { tag: "lock-desktop", mode: "screen-lock", width: 760 },
         { tag: "lock-narrow", mode: "screen-lock", width: 460 },
-        { tag: "capture-large-text", mode: "capture", width: 460, scale: 1.3 },
         { tag: "lock-large-text", mode: "screen-lock", width: 460, scale: 1.3 }
       ]
     }
@@ -401,7 +570,6 @@ Item {
       practice.mode = data.mode
       practice.textScale = data.scale || 1
       wait(50)
-      compare(captureSpy.count, 0)
       compare(lockSpy.count, 0)
       verify(!root.button(practice, "Finish exercise").enabled)
       for (var label of ["Return without completing", "Finish exercise"]) {
@@ -410,33 +578,45 @@ Item {
         verify(point.x >= 0 && point.x + control.width <= practice.width)
         verify(point.y >= 0 && point.y + control.height <= practice.height)
       }
-      var action = root.button(practice, data.mode === "capture" ? "Select a region" : "Lock this computer now")
+      var action = root.button(practice, "Lock this computer now")
       action.forceActiveFocus()
       wait(30)
       mouseClick(action)
-      compare(data.mode === "capture" ? captureSpy.count : lockSpy.count, 1)
+      compare(lockSpy.count, 1)
       verify(!practice.verified)
       keyClick(Qt.Key_Escape)
       compare(cancelSpy.count, 1)
     }
-    function test_captureRequiresImageCopyAndAnnotation() {
+    function test_captureStartsWithTheHardwareNeutralScreenshotShortcut() {
+      practice.mode = "capture"
+      compare(practice.currentKeyGuides.length, 1)
+      compare(practice.currentKeyGuides[0].label, "Open Capture, then choose Screenshot")
+      compare(practice.currentKeyGuides[0].keys.join(" "), "SUPER + CTRL + C")
+      compare(root.button(practice, "Select screenshot region"), null)
+      keyClick(Qt.Key_Escape)
+      compare(cancelSpy.count, 0)
+    }
+    function test_captureCompletesWhenTheScreenshotLoads() {
       root.width = 460
       root.height = 320
       practice.textScale = 1.3
       practice.mode = "capture"
       verify(!practice.verified)
       practice.screenshot = Qt.resolvedUrl("../../assets/characters/owl/sprites/owl-idle.png").toString().replace("file://", "")
-      var copy = findChild(practice, "copyCapture")
-      tryCompare(copy, "enabled", true)
-      tryCompare(copy, "activeFocus", true)
-      wait(30)
-      verify(isInPracticeViewport(copy, findChild(practice, "practiceScroll")),
-        "Capture review controls must be revealed after selecting a region")
-      verify(!practice.verified)
-      copy.clicked()
-      verify(!practice.verified)
-      findChild(practice, "captureAnnotation").text = "My practice capture"
       tryCompare(practice, "verified", true)
+      var finish = findChild(practice, "finishExercise")
+      tryCompare(finish, "enabled", true)
+      tryCompare(finish, "activeFocus", true)
+      wait(30)
+      var success = findChild(practice, "captureCompletionStatus")
+      verify(success.visible)
+      var successPoint = success.mapToItem(practice, 0, 0)
+      var finishPoint = finish.mapToItem(practice, 0, 0)
+      verify(successPoint.y >= 0 && successPoint.y + success.height <= finishPoint.y)
+      verify(finish.y + finish.height <= practice.height)
+      compare(findChild(practice, "confirmCapture"), null)
+      compare(root.button(practice, "Copy saved image path"), null)
+      compare(findChild(practice, "captureAnnotation"), null)
     }
     function test_allModesStartIncomplete_data() {
       var rows = []
@@ -478,24 +658,67 @@ Item {
     }
     function test_recordingNeedsSelectionStartStopAndPlayback() {
       practice.mode = "screen-recording"
-      verify(!findChild(practice, "startRecording").enabled)
-      verify(!findChild(practice, "stopRecording").enabled)
+      var select = findChild(practice, "selectRecording")
+      var start = findChild(practice, "startRecording")
+      var stop = findChild(practice, "stopRecording")
+      var play = findChild(practice, "playOutput")
+      verify(select.visible)
+      verify(!start.visible)
+      verify(!stop.visible)
+      verify(!play.visible)
       practice.handleTaskResult({ action: "select", cancelled: true })
       verify(!practice.verified)
       practice.handleTaskResult({ action: "select", region: "0,0 100x100" })
-      findChild(practice, "startRecording").clicked()
+      verify(!select.visible)
+      verify(start.visible)
+      verify(!stop.visible)
+      verify(!play.visible)
+      start.clicked()
       compare(taskSpy.signalArguments[0][0], "start")
       verify(practice.busy)
       practice.handleTaskResult({ action: "start", recording: true })
-      verify(findChild(practice, "stopRecording").enabled)
+      verify(!start.visible)
+      verify(stop.visible)
+      verify(stop.enabled)
+      verify(!play.visible)
       verify(!practice.verified)
-      findChild(practice, "stopRecording").clicked()
+      stop.clicked()
       practice.handleTaskResult({ action: "stop", path: "/nonexistent/recording.mp4" })
       verify(!practice.recording)
+      verify(!stop.visible)
+      verify(play.visible)
       verify(!practice.verified, "A saved path without successful playback is insufficient")
-      findChild(practice, "playOutput").clicked()
+      play.clicked()
       wait(100)
       verify(!practice.verified, "Playback failure never completes")
+    }
+    function test_ocrAndQrRevealOnlyTheCurrentAction() {
+      practice.mode = "ocr"
+      verify(findChild(practice, "extractSample").visible)
+      verify(!findChild(practice, "copyExtracted").visible)
+      verify(!findChild(practice, "exerciseInput").visible)
+      verify(!findChild(practice, "reviewRecognized").visible)
+      practice.handleTaskResult({ action: "extract", text: "OMARCHY SAFE SAMPLE", path: "/tmp/ocr.txt" })
+      verify(!findChild(practice, "extractSample").visible)
+      verify(findChild(practice, "copyExtracted").visible)
+      verify(findChild(practice, "exerciseInput").visible)
+      verify(findChild(practice, "reviewRecognized").visible)
+
+      practice.mode = "qr"
+      verify(findChild(practice, "prepareSample").visible)
+      verify(!findChild(practice, "extractSample").visible)
+      verify(!findChild(practice, "exerciseInput").visible)
+      practice.handleTaskResult({
+        action: "prepare",
+        image: Qt.resolvedUrl("../../assets/characters/owl/sprites/owl-idle.png").toString().replace("file://", "")
+      })
+      verify(!findChild(practice, "prepareSample").visible)
+      verify(findChild(practice, "extractSample").visible)
+      practice.handleTaskResult({ action: "extract", text: "OMARCHY SAFE SAMPLE", path: "/tmp/qr.txt" })
+      verify(!findChild(practice, "extractSample").visible)
+      verify(findChild(practice, "copyExtracted").visible)
+      verify(findChild(practice, "exerciseInput").visible)
+      verify(findChild(practice, "reviewRecognized").visible)
     }
     function test_recognitionRequiresRealPasteAndReview_data() {
       return [{ tag: "ocr", mode: "ocr" }, { tag: "qr", mode: "qr" }]

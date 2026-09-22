@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "e2fd56288f905a7b34537f5b3aa7490faa1b75adca000c0bd2c09291286e1291",
-  "text": "A web app gives a website its own launcher. Create a local demo entry, preview it, then remove it. This practice doesn't add anything to your Apps menu.",
+  "audioHash": "28757b33279731898d417a465108e64e4edb55d13a466c2273b41a462a83eabe",
+  "text": "A web app gives a website its own launcher. Create a local demo entry, preview it, then remove it. This practice doesn't add anything to your Apps menu. Select Start exercise to get started.",
   "words": [
     {
       "startMs": 70,
@@ -16,7 +16,7 @@
       "endOffset": 9
     },
     {
-      "startMs": 790,
+      "startMs": 750,
       "endOffset": 15
     },
     {
@@ -28,7 +28,7 @@
       "endOffset": 25
     },
     {
-      "startMs": 1750,
+      "startMs": 1710,
       "endOffset": 29
     },
     {
@@ -36,27 +36,27 @@
       "endOffset": 33
     },
     {
-      "startMs": 2110,
+      "startMs": 2150,
       "endOffset": 43
     },
     {
-      "startMs": 3230,
+      "startMs": 3309,
       "endOffset": 50
     },
     {
-      "startMs": 3789,
+      "startMs": 3829,
       "endOffset": 52
     },
     {
-      "startMs": 3829,
+      "startMs": 3869,
       "endOffset": 58
     },
     {
-      "startMs": 4270,
+      "startMs": 4310,
       "endOffset": 63
     },
     {
-      "startMs": 4630,
+      "startMs": 4710,
       "endOffset": 70
     },
     {
@@ -68,23 +68,23 @@
       "endOffset": 82
     },
     {
-      "startMs": 6230,
+      "startMs": 5990,
       "endOffset": 87
     },
     {
-      "startMs": 6470,
+      "startMs": 6390,
       "endOffset": 94
     },
     {
-      "startMs": 6910,
+      "startMs": 6790,
       "endOffset": 98
     },
     {
-      "startMs": 7790,
+      "startMs": 7670,
       "endOffset": 103
     },
     {
-      "startMs": 8149,
+      "startMs": 8069,
       "endOffset": 112
     },
     {
@@ -92,28 +92,52 @@
       "endOffset": 120
     },
     {
-      "startMs": 9110,
+      "startMs": 9149,
       "endOffset": 124
     },
     {
-      "startMs": 9389,
+      "startMs": 9430,
       "endOffset": 133
     },
     {
-      "startMs": 9910,
+      "startMs": 9950,
       "endOffset": 136
     },
     {
-      "startMs": 9990,
+      "startMs": 10030,
       "endOffset": 141
     },
     {
-      "startMs": 10190,
+      "startMs": 10229,
       "endOffset": 146
     },
     {
-      "startMs": 10549,
+      "startMs": 10590,
       "endOffset": 152
+    },
+    {
+      "startMs": 11590,
+      "endOffset": 159
+    },
+    {
+      "startMs": 12350,
+      "endOffset": 165
+    },
+    {
+      "startMs": 12870,
+      "endOffset": 174
+    },
+    {
+      "startMs": 13670,
+      "endOffset": 177
+    },
+    {
+      "startMs": 13790,
+      "endOffset": 181
+    },
+    {
+      "startMs": 14030,
+      "endOffset": 190
     }
   ]
 }

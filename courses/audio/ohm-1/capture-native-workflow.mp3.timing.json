@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "audioHash": "a3e1f063dc5aa1a2d76160ddea58b5f055c569ea0613682e42c366e092389fe3",
-  "text": "To take a screenshot, press Print. No Print key? Search Screenshot in the Omarchy menu instead. Drag over the area you want to capture. Escape cancels.",
+  "audioHash": "f2cd9e55a85288e1187bdc4a5a08fbb8ce4c6cf8e68b99a7dea8158437573f62",
+  "text": "To take a screenshot on any keyboard, press Super, Control, and C to open Capture, then choose Screenshot. If your keyboard has a Print key, that opens the picker directly. Drag over the area you want to capture. Escape cancels.",
   "words": [
     {
       "startMs": 70,
@@ -17,95 +17,151 @@
     },
     {
       "startMs": 390,
-      "endOffset": 21
+      "endOffset": 20
     },
     {
-      "startMs": 1110,
+      "startMs": 950,
+      "endOffset": 23
+    },
+    {
+      "startMs": 1070,
       "endOffset": 27
     },
     {
-      "startMs": 1430,
-      "endOffset": 34
-    },
-    {
-      "startMs": 2389,
+      "startMs": 1350,
       "endOffset": 37
     },
     {
-      "startMs": 2670,
+      "startMs": 2029,
       "endOffset": 43
     },
     {
-      "startMs": 2909,
-      "endOffset": 48
+      "startMs": 2389,
+      "endOffset": 50
     },
     {
-      "startMs": 3670,
-      "endOffset": 55
+      "startMs": 2989,
+      "endOffset": 59
     },
     {
-      "startMs": 4110,
-      "endOffset": 66
+      "startMs": 3710,
+      "endOffset": 63
     },
     {
-      "startMs": 4710,
-      "endOffset": 69
+      "startMs": 3949,
+      "endOffset": 65
     },
     {
-      "startMs": 4790,
+      "startMs": 4430,
+      "endOffset": 68
+    },
+    {
+      "startMs": 4550,
       "endOffset": 73
     },
     {
-      "startMs": 4950,
-      "endOffset": 81
+      "startMs": 4910,
+      "endOffset": 82
     },
     {
-      "startMs": 5470,
-      "endOffset": 86
+      "startMs": 5590,
+      "endOffset": 87
     },
     {
-      "startMs": 5790,
-      "endOffset": 95
+      "startMs": 5870,
+      "endOffset": 94
     },
     {
-      "startMs": 6790,
-      "endOffset": 100
+      "startMs": 6190,
+      "endOffset": 106
     },
     {
-      "startMs": 7230,
-      "endOffset": 105
-    },
-    {
-      "startMs": 7430,
+      "startMs": 7310,
       "endOffset": 109
     },
     {
-      "startMs": 7630,
+      "startMs": 7470,
       "endOffset": 114
     },
     {
-      "startMs": 7910,
-      "endOffset": 118
-    },
-    {
-      "startMs": 8029,
+      "startMs": 7630,
       "endOffset": 123
     },
     {
-      "startMs": 8189,
-      "endOffset": 126
+      "startMs": 7950,
+      "endOffset": 127
     },
     {
-      "startMs": 8270,
+      "startMs": 8069,
+      "endOffset": 129
+    },
+    {
+      "startMs": 8189,
       "endOffset": 135
     },
     {
-      "startMs": 9309,
-      "endOffset": 142
+      "startMs": 8469,
+      "endOffset": 140
     },
     {
-      "startMs": 9709,
+      "startMs": 8830,
+      "endOffset": 145
+    },
+    {
+      "startMs": 9069,
       "endOffset": 151
+    },
+    {
+      "startMs": 9389,
+      "endOffset": 155
+    },
+    {
+      "startMs": 9549,
+      "endOffset": 162
+    },
+    {
+      "startMs": 9830,
+      "endOffset": 172
+    },
+    {
+      "startMs": 10709,
+      "endOffset": 177
+    },
+    {
+      "startMs": 11110,
+      "endOffset": 182
+    },
+    {
+      "startMs": 11270,
+      "endOffset": 186
+    },
+    {
+      "startMs": 11430,
+      "endOffset": 191
+    },
+    {
+      "startMs": 11750,
+      "endOffset": 195
+    },
+    {
+      "startMs": 11870,
+      "endOffset": 200
+    },
+    {
+      "startMs": 12030,
+      "endOffset": 203
+    },
+    {
+      "startMs": 12110,
+      "endOffset": 212
+    },
+    {
+      "startMs": 12990,
+      "endOffset": 219
+    },
+    {
+      "startMs": 13350,
+      "endOffset": 228
     }
   ]
 }

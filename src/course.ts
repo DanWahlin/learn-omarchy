@@ -109,6 +109,7 @@ export interface CourseStep {
   practice?: "app-search" | "clipboard" | "capture" | "screen-lock" | "compose" | "screen-recording" | "ocr" | "qr" | "dictation" | "dictation-corrections" | "notifications" | "web-app" | "transcode" | "sharing";
   pose?: "point" | "talk";
   keys: string[];
+  keyCallouts?: string[][];
   actionLabel?: string;
   audio?: string | null;
   shortcuts?: { keys: string[]; action: string; caution?: string }[];
@@ -193,6 +194,9 @@ const namedKeyLabels = new Set([
 
 const isSupportedKeyLabel = (value: string): boolean =>
   value === "+" || namedKeyLabels.has(value) || /^[A-Z0-9]$/.test(value);
+
+const isSupportedCalloutKeyLabel = (value: string): boolean =>
+  value === "→" || value === "CAPS LOCK" || value === "PRINT" || isSupportedKeyLabel(value);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -492,6 +496,30 @@ const validateStep = (
           errors.push(`${shortcutPath}.keys must be non-empty labels`);
         addStringError(errors, shortcut.action, `${shortcutPath}.action`);
         if (shortcut.caution !== undefined) addStringError(errors, shortcut.caution, `${shortcutPath}.caution`);
+      });
+    }
+  }
+  if (value.keyCallouts !== undefined) {
+    if (!isTour) {
+      errors.push(`${path}.keyCallouts is only valid for tour steps`);
+    } else if (!Array.isArray(value.keyCallouts) || value.keyCallouts.length === 0) {
+      errors.push(`${path}.keyCallouts must be a non-empty array`);
+    } else {
+      value.keyCallouts.forEach((group, groupIndex) => {
+        const groupPath = `${path}.keyCallouts[${groupIndex}]`;
+        if (!Array.isArray(group) || group.length === 0) {
+          errors.push(`${groupPath} must contain key labels`);
+          return;
+        }
+        group.forEach((key, keyIndex) => {
+          if (typeof key !== "string" || !key.trim()) {
+            errors.push(`${groupPath}[${keyIndex}] must be a non-empty key label`);
+          } else if (key !== "→" && key !== key.toUpperCase()) {
+            errors.push(`${groupPath}[${keyIndex}] must use its canonical uppercase label`);
+          } else if (!isSupportedCalloutKeyLabel(key)) {
+            errors.push(`${groupPath}[${keyIndex}] "${key}" is not supported`);
+          }
+        });
       });
     }
   }

@@ -2462,6 +2462,10 @@
           "instruction": "Omarchy provides shared copy and paste shortcuts: Super and C to copy, and Super and V to paste. They work across supported apps, including the terminal, where the usual shortcuts can differ.",
           "detail": "Select text before copying, then choose where to paste it. Custom bindings and individual apps can affect these shortcuts.",
           "keys": [],
+          "keyCallouts": [
+            ["SUPER", "+", "C"],
+            ["SUPER", "+", "V"]
+          ],
           "audio": "audio/helpers-universal-copy.mp3",
           "completion": {
             "type": "narration-complete",
@@ -2535,7 +2539,7 @@
           "kind": "practice",
           "practice": "clipboard",
           "optional": false,
-          "instruction": "Let's make clipboard history useful. Copy two sample notes. Find the older one in history, use Shift and Enter to copy it without pasting, then paste it into the exercise.",
+          "instruction": "Let's make clipboard history useful. Copy two sample notes. Find the older one in history, use Shift and Enter to copy it without pasting, then paste it into the exercise. Select Start exercise to get started.",
           "detail": "The exercise uses harmless text, but it replaces the current clipboard. Keys go to the exercise window until you finish or close it.",
           "keys": [],
           "actionLabel": "Start exercise",
@@ -2559,9 +2563,12 @@
           "id": "compose-intro",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Omarchy uses Caps Lock as the Compose key by default, instead of toggling capital letters. Tap and release Caps Lock, then m, then s for a smile. These are separate presses, not a shortcut you hold together.",
+          "instruction": "Omarchy uses Caps Lock as the Compose key by default, instead of toggling capital letters. Tap and release Caps Lock, then m, then the letter s for a smile. These are separate presses, not a shortcut you hold together.",
           "detail": "Compose uses separate key presses, not keys held together. Use lowercase letters without Shift. We'll practice a smile and a heart next. Custom keyboard settings may use a different Compose key.",
           "keys": [],
+          "keyCallouts": [
+            ["CAPS LOCK", "→", "M", "→", "S"]
+          ],
           "audio": "audio/compose-intro.mp3",
           "completion": {
             "type": "narration-complete",
@@ -2586,7 +2593,7 @@
           "kind": "practice",
           "practice": "compose",
           "optional": true,
-          "instruction": "Let's type a smile and a heart without opening the emoji picker. Follow the keys in order, one at a time.",
+          "instruction": "Let's type a smile and a heart without opening the emoji picker. Follow the keys in order, one at a time. Select Start exercise to get started.",
           "detail": "The normal text field receives Compose input. The exercise checks the resulting emojis. If Caps Lock has been remapped, use the picker in everyday work and skip this exercise rather than changing your keyboard settings.",
           "keys": [],
           "actionLabel": "Start exercise",
@@ -2611,17 +2618,18 @@
     {
       "id": "capture-and-share",
       "references": [
-        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "C"], "action": "Open Capture for screenshots, recordings, color picking and text extraction. Use the menu if your keyboard has no Print key.", "stepIds": ["capture-menu"], "sourceIds": ["utility-bindings", "capture"] },
+        { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "C"], "action": "Open Capture for screenshots, recordings, color picking and text extraction. This menu works on keyboards without a Print key.", "stepIds": ["capture-menu", "recording-intro"], "sourceIds": ["utility-bindings", "capture"] },
         { "kind": "chord", "keys": ["PRINT"], "action": "Start a screenshot with the frozen-screen picker; drag over the desired region. Alternatively search Screenshot in the Omarchy menu.", "caution": "Inspect for private content first. Screenshots save to the configured Pictures directory and clipboard.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture"] },
         { "kind": "sequence", "keys": ["TAB", "→", "ENTER"], "action": "In the screenshot picker, use Tab to select a window, then Enter to capture the selected window.", "caution": "These are sequential presses in the picker, not a held chord. Check the selected window before capturing.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture"] },
         { "kind": "chord", "keys": ["CTRL", "+", "ENTER"], "action": "In the screenshot picker, capture the focused monitor.", "caution": "Includes visible private windows and notifications on that monitor; inspect before capturing.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture"] },
         { "kind": "chord", "keys": ["ESCAPE"], "action": "Cancel screenshot region selection without taking a capture.", "stepIds": ["capture-native-workflow", "capture-practice"], "sourceIds": ["capture", "course-practice"] },
         { "kind": "workflow", "keys": ["Screenshot notification > Edit"], "action": "Click the screenshot notification to open the captured image for editing.", "caution": "Verify it is the intended screenshot notification before invoking its action.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture"] },
         { "kind": "chord", "keys": ["SUPER", "+", "ALT", "+", "COMMA"], "action": "Invoke the latest notification's action; when it is the screenshot notification, open the screenshot editor.", "caution": "A different notification may launch an app or follow a link. Inspect the latest notification first.", "stepIds": ["capture-native-workflow"], "sourceIds": ["capture", "utility-bindings"] },
-        { "kind": "workflow", "keys": ["COURSE: Capture practice"], "action": "Select only the harmless card, inspect the saved image, copy its file path and add a label to the preview.", "caution": "The course uses its own capture tools. Preview annotation does not alter the saved image; nothing is uploaded.", "stepIds": ["capture-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "workflow", "keys": ["SUPER + CTRL + C > Screenshot"], "action": "In COURSE practice, open Capture, choose Screenshot and drag around only the harmless card. When the preview appears, finish the exercise.", "caution": "The screenshot is saved to your normal Pictures location and clipboard. Nothing is uploaded.", "stepIds": ["capture-practice"], "sourceIds": ["capture", "course-practice"] },
         { "kind": "chord", "keys": ["ALT", "+", "PRINT"], "action": "Open recording options, or stop an active recording. Choices: no audio; desktop audio; desktop + microphone audio; or desktop + microphone audio + webcam when available. Saved clips go to the configured Videos directory.", "caution": "Microphone includes desktop audio; webcam includes both. Review the region and recording indicator, know how to stop, and get permission before recording other people's voices or private content.", "stepIds": ["recording-intro"], "sourceIds": ["capture", "utility-bindings"] },
-        { "kind": "workflow", "keys": ["COURSE: Record > Stop > Replay"], "action": "Select and review the animated card's region. Explicitly start a silent recording, record at least one second, stop your recording, then play the saved clip.", "caution": "This course-specific recorder uses no microphone or webcam and owns only its recording; it does not stop an existing recorder. This is separate from native recording options.", "stepIds": ["recording-practice"], "sourceIds": ["course-practice"] },
+        { "kind": "workflow", "keys": ["COURSE: Select > Record > Stop > Play"], "action": "Select the animated card, start a silent recording, record at least one second, stop, then play the saved clip.", "caution": "This course-specific recorder uses no microphone or webcam and owns only its recording; it does not stop an existing recorder. This is separate from native recording options.", "stepIds": ["recording-practice"], "sourceIds": ["course-practice"] },
         { "kind": "chord", "keys": ["SUPER", "+", "CTRL", "+", "PRINT"], "action": "Extract text from a selected screen region with OCR (optical character recognition).", "caution": "Recognition can make mistakes. Proofread against the source before using the text; avoid private regions.", "stepIds": ["ocr-practice"], "sourceIds": ["text-tools", "utility-bindings"] },
+        { "kind": "workflow", "keys": ["SUPER + CTRL + C > Text extraction"], "action": "Open Capture and choose text extraction on a keyboard without a Print key.", "caution": "Recognition can make mistakes. Proofread against the source before using the text; avoid private regions.", "stepIds": ["ocr-practice"], "sourceIds": ["capture", "text-tools"] },
         { "kind": "workflow", "keys": ["COURSE: OCR practice"], "action": "Select the sample text card, extract it, copy the recognized sample and paste it into the destination. Compare every word with the original.", "caution": "Requires slurp, grim and tesseract; course verification is a reviewed sample, not a guarantee of general OCR accuracy.", "stepIds": ["ocr-practice"], "sourceIds": ["course-practice"] },
         { "kind": "workflow", "keys": ["Omarchy menu > QR Code"], "action": "Search QR Code to select and decode a code already on screen, then inspect the decoded text.", "caution": "Decoding is not permission to open an unknown link.", "stepIds": ["qr-practice"], "sourceIds": ["capture", "text-tools"] },
         { "kind": "workflow", "keys": ["COURSE: QR practice"], "action": "Prepare the harmless QR sample, select and decode it, copy the result and paste it below to compare with the sample.", "caution": "The sample contains text, not a website; no link is opened. Requires qrencode, slurp, grim and zbarimg.", "stepIds": ["qr-practice"], "sourceIds": ["course-practice"] }
@@ -2682,9 +2690,12 @@
           "id": "capture-native-workflow",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "To take a screenshot, press Print. No Print key? Search Screenshot in the Omarchy menu instead. Drag over the area you want to capture. Escape cancels.",
+          "instruction": "To take a screenshot on any keyboard, press Super, Control, and C to open Capture, then choose Screenshot. If your keyboard has a Print key, that opens the picker directly. Drag over the area you want to capture. Escape cancels.",
           "detail": "The native picker freezes the screen. Tab selects a window and Enter captures it; Control+Enter captures the focused monitor, not the entire multi-monitor desktop. Screenshots save to your configured Pictures directory and clipboard. Click the screenshot notification to edit it, or use Super+Alt+Comma while it's the latest actionable notification. Avoid private content before capturing.",
           "keys": [],
+          "keyCallouts": [
+            ["SUPER", "+", "CTRL", "+", "C"]
+          ],
           "audio": "audio/capture-native-workflow.mp3",
           "completion": {
             "type": "narration-complete",
@@ -2712,8 +2723,8 @@
           "kind": "practice",
           "practice": "capture",
           "optional": false,
-          "instruction": "Capture the practice card, inspect the saved image, copy its file path, and add a label to the preview.",
-          "detail": "Only capture the sample card, not private windows or notifications. The exercise uses its own capture tools. Preview labels don't alter the saved image, and nothing is uploaded.",
+          "instruction": "Practice the real screenshot workflow. Press Super, Control, and C, choose Screenshot, then drag around only the practice card. When the preview appears, select Finish exercise. Select Start exercise to get started.",
+          "detail": "The exercise watches for a new Omarchy screenshot but doesn't open the picker for you. The screenshot is saved to your normal Pictures location and clipboard, and nothing is uploaded.",
           "keys": [],
           "actionLabel": "Start exercise",
           "audio": "audio/capture-practice.mp3",
@@ -2729,22 +2740,25 @@
             "height": 120,
             "borderWidth": 3
           },
-          "completionMessage": "You've captured and reviewed an image, copied its path, and labeled the preview. The saved image itself is unchanged.",
+          "completionMessage": "You've captured and reviewed an image using Omarchy's real screenshot workflow.",
           "completionAudio": "audio/capture-practice-done.mp3"
         },
         {
           "id": "recording-intro",
           "kind": "tour",
           "pose": "talk",
-          "instruction": "Alt and Print opens recording choices, or stops a recording that's already running. Without a Print key, use the Capture menu. Microphone includes desktop audio; webcam includes both. Keep private content and other people's voices out. Watch the recording indicator, and know how to stop before starting.",
+          "instruction": "To record on any keyboard, press Super, Control, and C, then choose Screenrecording. If your keyboard has a Print key, Alt and Print opens the same choices or stops an active recording. Microphone includes desktop audio; webcam includes both. Keep private content and other people's voices out. Know how to stop before starting.",
           "detail": "The choices are \"With no audio\", \"With desktop audio\", \"With desktop + microphone audio\", and, when a webcam is available, \"With desktop + microphone audio + webcam\". Native recordings go to your configured Videos directory. Never include someone else's voice, private windows, or notifications without permission. Our practice recording is silent and limited to a region you choose.",
           "note": "Webcam includes desktop and microphone audio; our practice recording is silent.",
           "keys": [],
+          "keyCallouts": [
+            ["SUPER", "+", "CTRL", "+", "C"]
+          ],
           "audio": "audio/recording-intro.mp3",
           "completion": {
             "type": "narration-complete",
             "delayMs": 900,
-            "durationMs": 18060
+            "durationMs": 27400
           },
           "highlight": {
             "shape": "circle",
@@ -2767,7 +2781,7 @@
           "kind": "practice",
           "practice": "screen-recording",
           "optional": false,
-          "instruction": "Let's make a short, silent recording of the practice card. Start explicitly, stop it yourself, then play the saved clip.",
+          "instruction": "Let's make a short, silent recording of the practice card. Select the card, start recording, stop it, then play the saved clip. Select Start exercise to get started.",
           "detail": "No microphone or webcam is enabled. The exercise owns only its recorder and output. It must not stop an existing recording. Review the selected region before starting.",
           "keys": [],
           "actionLabel": "Start exercise",
@@ -2793,8 +2807,8 @@
           "kind": "practice",
           "practice": "ocr",
           "optional": true,
-          "instruction": "An image can contain useful text. Select the sample text on the practice card, extract it, and paste the result.",
-          "detail": "OCR means optical character recognition. Super+Ctrl+Print opens text capture. Recognition can make mistakes, so compare the pasted words with the original. This optional exercise uses only a harmless sample.",
+          "instruction": "An image can contain useful text. Select the sample text on the practice card, extract it, and paste the result. Select Start exercise to get started.",
+          "detail": "OCR means optical character recognition. Open Capture with Super+Ctrl+C and choose text extraction; Super+Ctrl+Print is the direct shortcut on keyboards that have a Print key. Recognition can make mistakes, so compare the pasted words with the original. This optional exercise uses only a harmless sample.",
           "keys": [],
           "actionLabel": "Start exercise",
           "audio": "audio/ocr-practice.mp3",
@@ -2819,7 +2833,7 @@
           "kind": "practice",
           "practice": "qr",
           "optional": true,
-          "instruction": "Let's read a QR code that's already on screen. Capture the sample code, then paste the decoded text.",
+          "instruction": "Let's read a QR code that's already on screen. Create the sample code, select and decode it, then paste the decoded text. Select Start exercise to get started.",
           "detail": "Search QR Code in the Omarchy menu for the everyday tool. Our sample contains harmless text, not a website. Decoding a QR code isn't a reason to open an unfamiliar link automatically.",
           "keys": [],
           "actionLabel": "Start exercise",
@@ -3398,7 +3412,7 @@
           "kind": "practice",
           "practice": "dictation",
           "optional": true,
-          "instruction": "If local dictation is installed, try speaking into a text field. Super, Control, and X starts and stops dictation, so you don't need an F9 key. You control the microphone.",
+          "instruction": "If local dictation is installed, try speaking into a text field. Super, Control, and X starts and stops dictation, so you don't need an F9 key. You control the microphone. Select Start exercise to get started.",
           "detail": "You can also hold F9 for push-to-talk with Voxtype. The exercise checks availability and the sample text you enter and review, not whether dictation produced it. It doesn't start your microphone. Skip if dictation isn't available.",
           "keys": [],
           "actionLabel": "Start exercise",
@@ -3674,7 +3688,7 @@
           "kind": "practice",
           "practice": "web-app",
           "optional": true,
-          "instruction": "A web app gives a website its own launcher. Create a local demo entry, preview it, then remove it. This practice doesn't add anything to your Apps menu.",
+          "instruction": "A web app gives a website its own launcher. Create a local demo entry, preview it, then remove it. This practice doesn't add anything to your Apps menu. Select Start exercise to get started.",
           "detail": "In everyday Omarchy, Install Web App asks for a name and website address; Remove Web App removes its launcher. This exercise uses a temporary local preview and makes no network request.",
           "keys": [],
           "actionLabel": "Start exercise",
@@ -3700,7 +3714,7 @@
           "kind": "practice",
           "practice": "transcode",
           "optional": true,
-          "instruction": "A recording can be too large to share comfortably. Let's create a smaller copy of a harmless practice clip and inspect the result.",
+          "instruction": "A recording can be too large to share comfortably. Let's create a smaller copy of a harmless practice clip and inspect the result. Select Start exercise to get started.",
           "detail": "Transcoding means converting media. Keep the original, choose a sensible resolution, and compare the output before sharing. MP4 suits longer clips; GIF can be convenient for short, silent loops but isn't always smaller.",
           "keys": [],
           "actionLabel": "Start exercise",
@@ -3773,7 +3787,7 @@
           "kind": "practice",
           "practice": "sharing",
           "optional": true,
-          "instruction": "LocalSend shares files with nearby devices. In this rehearsal, review a sample file and choose an intended demo recipient. Nothing will be sent.",
+          "instruction": "LocalSend shares files with nearby devices. In this rehearsal, review a sample file and choose an intended demo recipient. Nothing will be sent. Select Start exercise to get started.",
           "detail": "Real transfers need LocalSend on both devices and a network connection between them. Check both the file and recipient before sending. This exercise doesn't discover devices or confirm delivery.",
           "keys": [],
           "actionLabel": "Start exercise",
