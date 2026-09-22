@@ -178,8 +178,8 @@
     </div>
 
     <div class="container hero-stats" aria-label="Course summary">
-      <div><strong>17</strong><span>lessons</span></div>
-      <div><strong>101</strong><span>activities</span></div>
+      <div><strong>16</strong><span>lessons</span></div>
+      <div><strong>93</strong><span>activities</span></div>
       <div><strong>2</strong><span>guides</span></div>
       <div><strong>0</strong><span>config changes</span></div>
     </div>
@@ -341,7 +341,7 @@
             </ul>
           </div>
         </div>
-        <p class="curriculum-note">The welcome and notifications lessons complete the seventeen.</p>
+        <p class="curriculum-note">Together, these sections cover all sixteen lessons.</p>
       </div>
     </section>
 
@@ -349,7 +349,7 @@
       <div class="container">
         <div class="section-heading">
           <h2>Install</h2>
-          <p>One package includes both guides, all narration, and desktop integration. Requires an up-to-date Omarchy desktop.</p>
+          <p>One Omarchy package includes both guides, all narration, and desktop integration.</p>
         </div>
 
         <div class="install-grid">
@@ -357,32 +357,17 @@
             <li class="install-step">
               <span class="step-num">01</span>
               <div>
-                <h3>Download the package</h3>
-                <p>Download the <code>.pkg.tar.zst</code> file from the latest GitHub release. Use <code>SHA256SUMS</code> to verify it if you like.</p>
-                <a class="button button-primary button-small" href="https://github.com/DanWahlin/learn-omarchy/releases" target="_blank" rel="noopener noreferrer">Open Releases →</a>
+                <h3>Update Omarchy and install</h3>
+                <p>Run these commands in a terminal. Omarchy installs Learn Omarchy and its required dependencies.</p>
+                <div class="terminal">
+                  <div class="terminal-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><small>install</small><button class="copy" type="button" data-copy="omarchy update&#10;omarchy pkg add learn-omarchy">Copy</button></div>
+                  <pre><code><span>$</span> omarchy update
+<span>$</span> omarchy pkg add learn-omarchy</code></pre>
+                </div>
               </div>
             </li>
             <li class="install-step">
               <span class="step-num">02</span>
-              <div>
-                <h3>Install with pacman</h3>
-                <p>Install the package and its dependencies.</p>
-                <div class="terminal">
-                  <div class="terminal-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><small>install</small><button class="copy" type="button" data-copy="sudo pacman -U ./learn-omarchy-*.pkg.tar.zst">Copy</button></div>
-                  <pre><code><span>$</span> sudo pacman -U ./learn-omarchy-*.pkg.tar.zst</code></pre>
-                </div>
-                <details class="optional-verify">
-                  <summary>Optional: verify the checksum first</summary>
-                  <p>Confirms the download matches the release before installing.</p>
-                  <div class="terminal">
-                    <div class="terminal-bar"><span class="term-dots" aria-hidden="true"><i></i><i></i><i></i></span><small>verify</small><button class="copy" type="button" data-copy="sha256sum --check --ignore-missing SHA256SUMS">Copy</button></div>
-                    <pre><code><span>$</span> sha256sum --check --ignore-missing SHA256SUMS</code></pre>
-                  </div>
-                </details>
-              </div>
-            </li>
-            <li class="install-step">
-              <span class="step-num">03</span>
               <div>
                 <h3>Launch Learn Omarchy</h3>
                 <p>Open it from Apps or a terminal, choose your guide, and start the welcome lesson.</p>
@@ -395,7 +380,7 @@
           </ol>
           <aside class="install-side">
             <dl class="install-facts">
-              <div><dt>Update</dt><dd>Download the next release and run <code>sudo pacman -U</code> again.</dd></div>
+              <div><dt>Update</dt><dd><code>omarchy update</code> installs future Learn Omarchy releases with your other system updates.</dd></div>
               <div><dt>Remove</dt><dd><code>learn-omarchy --uninstall</code> removes the package and its managed integration. Progress is kept.</dd></div>
             </dl>
           </aside>

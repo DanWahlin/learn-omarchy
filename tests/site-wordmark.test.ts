@@ -103,3 +103,12 @@ test("the homepage presents Arcade clearly and exposes mobile theme controls", a
   assert.match(source, /nextBtn\.addEventListener\('click'/);
   assert.match(css, /@media \(max-width: 720px\)[\s\S]*\.theme-controls \{ display: flex; \}/);
 });
+
+test("the homepage installs through Omarchy's package manager", async () => {
+  const html = await readFile(new URL("../docs/index.html", import.meta.url), "utf8");
+  assert.match(html, /omarchy pkg add learn-omarchy/);
+  assert.match(html, /omarchy update/);
+  assert.doesNotMatch(html, /sudo pacman -U/);
+  assert.match(html, /<strong>16<\/strong><span>lessons<\/span>/);
+  assert.match(html, /<strong>93<\/strong><span>activities<\/span>/);
+});
