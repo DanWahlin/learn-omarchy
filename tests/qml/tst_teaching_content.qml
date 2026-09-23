@@ -92,6 +92,7 @@ Item {
     property bool isFocusedScreen: true
     property var measuredBarTarget: null
     property var measuredWindowTarget: null
+    property var estimatedTarget: null
     property bool targetIsEstimated: false
   }
   QtObject { id: tourCaption; property bool ready: true }
@@ -144,6 +145,7 @@ Item {
       root.practiceSessionActive = false
       overlay.measuredBarTarget = null
       overlay.measuredWindowTarget = null
+      overlay.estimatedTarget = null
       root.practiceHintVisible = false
       root.stepAssisted = false
       root.width = 1200
@@ -188,7 +190,7 @@ Item {
         note: "Read only: selecting an entry executes its shortcut.",
         completionMessage: "Read the guide without executing a shortcut.",
         completion: { type: "hyprland-layer-open" }, highlight: { target: "panel" } }
-      overlay.measuredBarTarget = { x: 500, y: 50, width: 200, height: 700, panel: true }
+      overlay.estimatedTarget = { x: 500, y: 50, width: 200, height: 700, estimated: true }
       root.phase = "highlight"
       wait(30)
       verify(fixture.note.visible)

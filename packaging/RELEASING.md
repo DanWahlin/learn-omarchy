@@ -1,13 +1,12 @@
 # One-package distribution
 
-The package contains the application **and** its Omarchy geometry companion.
-Install the package and open Learn Omarchy; no second plugin package, Enable
-button, download, or privileged post-install hook is needed. The launcher
-manages only the current user's bundled integration. Package installation and
-removal never scan users' home directories or delete learning progress.
-Startup verifies that the service is enabled and answers its capability IPC.
-Omarchy's plugin-list `active` field denotes the selected bar, not service
-readiness, so it isn't used to judge the companion.
+The package contains the whole application. Install it and open Learn Omarchy;
+no plugin, download, or privileged post-install hook is needed. Package
+installation and removal never scan users' home directories or delete learning
+progress. Releases before 0.2.4 installed a per-user `learn-omarchy.geometry`
+shell plugin. Omarchy 4.0.3+ no longer gives third-party plugins the bar and
+menu objects it measured. The plugin is inert, so it's left in place until
+`learn-omarchy --uninstall`, which removes an unchanged managed copy.
 
 ## Approved licensing and the release gate
 
@@ -125,9 +124,9 @@ Required dependencies are encoded in `PKGBUILD.in`:
   `--experimental-strip-types`, introduced in Node 22.6. No runtime npm
   modules or speech-service credentials are needed.
 - Quickshell **0.3+**, Hyprland, and **Omarchy 4.0.3+**: `Quickshell`, `.Io`, `.Wayland`,
-  `.Hyprland`, `qs`, `hyprctl`, and the Omarchy companion API. A compatible
-  running Omarchy shell is needed for desktop geometry; failure does not
-  prevent the course from opening.
+  `.Hyprland`, `qs`, `hyprctl`, and `omarchy-shell shell debugBarGeometry` for
+  bar measurements. Failure falls back to estimates and doesn't prevent the
+  course from opening.
 - `qt6-declarative` for QtQuick/Controls/Layouts and **`qt6-multimedia`** for
   `PracticeContent.qml`'s `QtMultimedia` import, even before a media lesson.
   `qt6-multimedia-ffmpeg` supplies the playback backend.
@@ -167,17 +166,11 @@ make install DESTDIR="$PWD/local-stage" PREFIX=/usr
 make uninstall DESTDIR="$PWD/local-stage" PREFIX=/usr
 ```
 
-`make install` never activates the companion. The normal launcher performs
-that per-user work on first open. To uninstall the Arch package, run
-`learn-omarchy --uninstall` from a terminal as the regular user. It retains
-pacman's normal confirmation and runs current-user integration cleanup from
-a private staged helper only after package removal succeeds. Cancelling
-package removal leaves the integration unchanged.
-
-`learn-omarchy --remove-integration` remains available for explicit cleanup
-with source installations or other removal workflows. Modified integrations
-are preserved, as are state/settings, external character packs, and practice
-recordings. There are no root hooks to disable plugins or clean other users'
-configuration. Removing only the package through a package manager may leave
-a registered per-user companion copy; launch-time setup updates intact managed
-copies on reinstall.
+`make install` never touches user configuration. To uninstall the Arch
+package, run `learn-omarchy --uninstall` from a terminal as the regular user.
+It retains pacman's normal confirmation and, only after package removal
+succeeds, removes an unchanged legacy `learn-omarchy.geometry` plugin from a
+private staged helper. Cancelling package removal changes nothing. Modified
+plugin copies are preserved, as are state/settings, external character packs,
+and practice recordings. There are no root hooks to disable plugins or clean
+other users' configuration.

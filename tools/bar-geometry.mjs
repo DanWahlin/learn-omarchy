@@ -25,8 +25,10 @@ export function measuredBarSnapshot(widgets, monitors, layers) {
   const bars = Object.values(levels || {}).flat().filter(layer => layer?.namespace === "omarchy-bar");
   if (bars.length !== 1) throw new Error("No unambiguous measured Omarchy bar layer.");
   const bar = bars[0];
-  if (!["x", "y", "w", "h", "alpha"].every(key => Number.isFinite(bar[key])) ||
-      bar.w <= 0 || bar.h <= 0 || bar.alpha <= 0 ||
+  // Omarchy disables bar layer animations, so Hyprland reports its alpha as 0;
+  // a hidden bar is instead moved off its output.
+  if (!["x", "y", "w", "h"].every(key => Number.isFinite(bar[key])) ||
+      bar.w <= 0 || bar.h <= 0 ||
       bar.x < monitor.x || bar.y < monitor.y ||
       bar.x + bar.w > monitor.x + width || bar.y + bar.h > monitor.y + height)
     throw new Error("The bar layer is hidden or outside its output.");

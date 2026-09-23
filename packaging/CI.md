@@ -61,7 +61,7 @@ is used. `--nodeps` does not remove dependencies from the package.
 `tools/verify-release-package.mjs` verifies the real Omarchy dependency,
 installed payload bytes/modes, and extracted offline validators against the
 same source before any upload. Neither this nor offscreen tests establishes
-real Omarchy installation, companion behavior, or graphical acceptance.
+real Omarchy installation or graphical acceptance.
 
 The only uploaded directory is `.ci-release/dist/`, artifact name
 `release-candidate`, retained for 14 days:

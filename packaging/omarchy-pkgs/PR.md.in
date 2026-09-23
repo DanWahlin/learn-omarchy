@@ -10,9 +10,9 @@ I'm the upstream author and will maintain this package.
 ### Packaging and updates
 
 This is a source package, not a `-bin` repackaging. The release archive includes
-the QML/JavaScript application, course material, recordings, artwork, and Omarchy
-geometry companion. `make install` stages the payload without npm downloads,
-cloud credentials, audio generation, or a separate companion package.
+the QML/JavaScript application, course material, recordings, and artwork.
+`make install` stages the payload without npm downloads, cloud credentials, or
+audio generation.
 
 The recipe preserves the upstream package name `learn-omarchy`, so users of the
 upstream Arch package can upgrade normally. `arch=('any')` describes the
@@ -36,8 +36,8 @@ identified recordings/example assets retain CC0-1.0. The archive contains the
 notices and full license texts, and installs them under
 `/usr/share/licenses/learn-omarchy`. A duplicate local LICENSE source is not needed.
 There is no package install hook or privileged scan of users' home directories.
-The launcher manages its bundled integration only for the user running the app;
-package removal does not delete course progress.
+The app installs nothing into users' Omarchy configuration; package removal
+does not delete course progress.
 
 ### Validation to complete before submitting
 

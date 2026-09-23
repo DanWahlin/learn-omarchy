@@ -212,7 +212,6 @@ function runtime(stepId: string, reducedMotion = true) {
     barGeometry: [],
     barGeometryAvailable: true,
     barGeometryTopology: "",
-    geometryProviderAvailable: true,
     barGeometryRequested: false,
     targetGeometryRequested: false,
     windowGeometryRefreshing: false,
@@ -2451,19 +2450,17 @@ test("the coach follows workspace estimates and measured popups, not unrelated b
   const coachTarget = shell.match(/readonly property bool hasCoachCompletionTarget: ([\s\S]*?)\n        readonly property real fittedHighlightWidth/)?.[1];
   const follows = shell.match(/readonly property bool targetsCompletion:\s*([\s\S]*?)\n          readonly property bool targetsTour/)?.[1];
   assert.ok(estimated && reliable && coachTarget && follows);
-  for (const [target, windowMeasured, widgetMeasured, panelMeasured, expected, widgetEstimated = false,
+  for (const [target, windowMeasured, widgetMeasured, expected, widgetEstimated = false,
     surfaceOwned = false] of [
-    ["panel", false, true, false, false],
-    ["panel", false, true, false, true, false, true],
-    ["panel", false, true, true, true],
-    ["panel", true, false, false, true],
-    ["panel", false, false, false, false],
-    ["window", true, false, false, true],
-    ["window", false, true, false, false],
-    ["workspace", false, true, false, true],
-    ["workspace", false, true, false, true, true],
-    ["workspace", false, false, false, false, true],
+    ["panel", false, true, false],
     ["panel", false, true, true, false, true],
+    ["panel", true, false, true],
+    ["panel", false, false, false],
+    ["window", true, false, true],
+    ["window", false, true, false],
+    ["workspace", false, true, true],
+    ["workspace", false, true, true, true],
+    ["workspace", false, false, false, true],
   ] as const) {
     for (const state of ["target-fly", "target-settle", "target-point"]) {
       const context = createContext({
@@ -2472,7 +2469,7 @@ test("the coach follows workspace estimates and measured popups, not unrelated b
         highlight: { target },
         usesWindowTarget: windowMeasured,
         measuredBarTarget: widgetMeasured ? { x: 100, y: 20, width: 40, height: 30,
-          panel: panelMeasured, estimated: widgetEstimated } : null,
+          estimated: widgetEstimated } : null,
         targetIsEstimated: false,
         overlay: { highlight: { target }, usesWindowTarget: windowMeasured, hasReliableCompletionTarget: false,
           hasCoachCompletionTarget: false },
@@ -2688,7 +2685,7 @@ test("opening tour highlights the measured span from menu to system controls on 
         { id: "omarchy.menu", x: 9, y: 1170, width: 32, height: 30, visible: true, itemVisible: true },
         { id: "omarchy.power", x: 1847, y: 1170, width: 64, height: 30, visible: true, itemVisible: true },
       ];
-    assert.equal(state.parseProviderGeometry(JSON.stringify({ version: 1, screens: [{ ...screen, widgets }] }),
+    assert.equal(state.parseBarGeometry(JSON.stringify({ version: 1, screens: [{ ...screen, widgets }] }),
       state.geometryScreens()), true);
     const target = state.barTargetGeometry(state.currentStep.highlight, 0);
     assert.deepEqual(JSON.parse(JSON.stringify(target)), vertical
@@ -2700,12 +2697,12 @@ test("opening tour highlights the measured span from menu to system controls on 
 test("measured bar geometry distinguishes the workspace group from individual numbers", () => {
   const state = runtime("tour-workspaces");
   state.Hyprland = { workspaces: { values: [{ id: 6 }] } };
-  state.parseBarGeometry(JSON.stringify([
+  state.parseBarGeometry(JSON.stringify({ version: 1, screens: [{ ...state.geometryScreens()[0], widgets: [
     { id: "omarchy.menu", x: 9, y: 0, width: 32, height: 30, visible: true, itemVisible: true },
     { id: "omarchy.workspaces", x: 41, y: 0, width: 145, height: 30, visible: true, itemVisible: true },
-  ]));
+  ] }] }), state.geometryScreens());
   const group = state.barTargetGeometry(state.currentStep.highlight, 0);
-  assert.deepEqual(JSON.parse(JSON.stringify(group)), { x: 9, y: 0, width: 177, height: 30, estimated: true });
+  assert.deepEqual(JSON.parse(JSON.stringify(group)), { x: 9, y: 0, width: 177, height: 30 });
   const workspace = state.barTargetGeometry({ target: "workspace" }, 1);
   assert.equal(workspace.x, 41 + 145 / 6);
   assert.ok(Math.abs(workspace.width - 145 / 6) < 0.000001);
@@ -2715,20 +2712,28 @@ test("measured bar geometry distinguishes the workspace group from individual nu
   assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0), null);
 });
 
-test("the menu-opening result targets only its center card, while the following stop targets the icon", () => {
+test("the menu-opening result uses its center-card estimate, while the following stop targets the icon", () => {
   const state = runtime("tour-omarchy-menu");
   const screen = state.geometryScreens()[0];
   const widgets = [{ id: "omarchy.menu", x: 9, y: 0, width: 32, height: 30, visible: true, itemVisible: true }];
-  const update = () => assert.equal(state.parseProviderGeometry(
+  assert.equal(state.parseBarGeometry(
     JSON.stringify({ version: 1, screens: [{ ...screen, widgets }] }), state.geometryScreens()), true);
-  update();
   assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0), null);
-  widgets.push({ id: "panel:omarchy-menu", x: 785, y: 248, width: 350, height: 705, visible: true, itemVisible: true });
-  update();
-  assert.deepEqual(JSON.parse(JSON.stringify(state.barTargetGeometry(state.currentStep.highlight, 0))),
-    { x: 785, y: 248, width: 350, height: 705, panel: true });
   const icon = state.currentLesson.steps.find((step: any) => step.id === "tour-menu-icon");
   assert.equal(state.barTargetGeometry(icon.highlight, 0).x, 9);
+});
+
+test("an opened menu is targeted instead of the bar button that opened it", () => {
+  const state = runtime("open-root-menu");
+  const screen = state.geometryScreens()[0];
+  const widgets = [{ id: "omarchy.menu", x: 9, y: 0, width: 32, height: 30, visible: true, itemVisible: true }];
+  assert.equal(state.parseBarGeometry(
+    JSON.stringify({ version: 1, screens: [{ ...screen, widgets }] }), state.geometryScreens()), true);
+  assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0).x, 9);
+  state.stepOwnsCleanupSurface = true;
+  state.targetLayerNamespace = "omarchy-menu";
+  assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0), null,
+    "an open menu falls back to its centered estimate");
 });
 
 test("monitor-tagged measurements select the right output even with identical monitor sizes", () => {
@@ -2740,7 +2745,7 @@ test("monitor-tagged measurements select the right output even with identical mo
     widgets: [{ id: "omarchy.clock", x: screen.name === "DP-1" ? 1200 : 800, y: 6,
       width: 100, height: 30, visible: true, itemVisible: true }],
   })) };
-  assert.equal(state.parseProviderGeometry(JSON.stringify(snapshot), outputs), true);
+  assert.equal(state.parseBarGeometry(JSON.stringify(snapshot), outputs), true);
   const external = state.Quickshell.screens[1];
   const internal = state.Quickshell.screens[0];
   assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0, internal).x, 800);
@@ -2749,57 +2754,37 @@ test("monitor-tagged measurements select the right output even with identical mo
   assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0, external, 960, 600).x, 600);
 });
 
-test("exact workspace cells don't assume uniform spacing or count", () => {
-  const state = runtime("workspaces-home");
-  const screens = state.geometryScreens();
-  state.parseProviderGeometry(JSON.stringify({ version: 1, screens: [{
-    ...screens[0], widgets: [
-      { id: "omarchy.workspaces", x: 40, y: 5, width: 300, height: 30, visible: true, itemVisible: true },
-      { id: "workspace.2", workspaceId: 2, x: 110, y: 6, width: 35, height: 27, visible: true, itemVisible: true },
-    ],
-  }] }), screens);
-  const target = state.barTargetGeometry({ target: "workspace", workspaceId: 2 }, 1);
-  assert.deepEqual(JSON.parse(JSON.stringify(target)), { x: 110, y: 6, width: 35, height: 27 });
-});
-
 test("bar caches and in-flight results are rejected after output resize or topology change", () => {
   const state = runtime("tour-clock");
   const screens = state.geometryScreens();
-  const raw = JSON.stringify([{ id: "omarchy.clock", x: 800, y: 0, width: 100, height: 30, visible: true, itemVisible: true }]);
+  const rawFor = (output: object) => JSON.stringify({ version: 1, screens: [{ ...output,
+    widgets: [{ id: "omarchy.clock", x: 800, y: 0, width: 100, height: 30, visible: true, itemVisible: true }] }] });
+  const raw = rawFor(screens[0]);
   state.parseBarGeometry(raw, screens);
   assert.ok(state.barTargetGeometry(state.currentStep.highlight, 0));
   state.Quickshell.screens[0].width = 1280;
   assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0), null);
-  state.finishBarGeometry(0, raw, screens, false);
+  state.finishBarGeometry(0, raw, screens);
   assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0), null);
-  state.parseBarGeometry(raw, state.geometryScreens());
+  assert.equal(state.parseBarGeometry(raw, state.geometryScreens()), false, "stale output sizes are rejected");
+  state.parseBarGeometry(rawFor(state.geometryScreens()[0]), state.geometryScreens());
   assert.ok(state.barTargetGeometry(state.currentStep.highlight, 0));
   state.Quickshell.screens.push({ name: "DP-1", width: 1920, height: 1080, x: 1280, y: 0 });
   assert.equal(state.barTargetGeometry(state.currentStep.highlight, 0, state.Quickshell.screens[0]), null);
-  state.parseBarGeometry(raw, state.geometryScreens());
-  assert.equal(state.barGeometry.length, 0);
 });
 
-test("an unavailable provider falls back without guessing a multi-monitor association", () => {
+test("bar measurements never guess a multi-monitor association", () => {
   const state = runtime("tour-clock");
-  state.finishBarGeometry(1, "", state.geometryScreens(), true);
-  assert.equal(state.geometryProviderAvailable, false);
   state.requestBarGeometry();
   state.flushGeometryRequests();
-  assert.deepEqual(Array.from(state.barGeometryProcess.command), ["node", "/app/tools/bar-geometry.mjs"]);
+  assert.equal(state.barGeometryProcess.running, true);
+  assert.match(shell, /id: barGeometryProcess[\s\S]*?command: \["node", root\.appRoot \+ "\/tools\/bar-geometry\.mjs"\]/);
   state.barGeometryProcess.running = false;
   state.Quickshell.screens.push({ name: "DP-1", x: 1920, y: 0, width: 1920, height: 1200 });
   state.requestBarGeometry();
   state.flushGeometryRequests();
   assert.equal(state.barGeometryProcess.running, false);
-  state.handleGeometryEvent({ name: "configreloaded", data: "" });
-  state.flushGeometryRequests();
-  assert.equal(state.geometryProviderAvailable, false, "unsupported providers are not retried on a timer or event");
-  assert.equal(state.barGeometryProcess.running, false);
-  state.geometryProviderAvailable = true;
-  state.requestBarGeometry();
-  state.flushGeometryRequests();
-  assert.deepEqual(Array.from(state.barGeometryProcess.command), ["omarchy-shell", "learnGeometry", "snapshot"]);
+  assert.match(state.integrationNotice, /single monitor/);
 });
 
 test("geometry refreshes have no repeating timers or timed provider retries", () => {
@@ -2818,7 +2803,6 @@ test("geometry refreshes have no repeating timers or timed provider retries", ()
 
 test("event bursts coalesce and keep only one follow-up measurement in flight", () => {
   const state = runtime("tour-clock");
-  state.geometryProviderAvailable = false;
   const callbacks = new Set<() => void>();
   state.Qt.callLater = (callback: () => void) => callbacks.add(callback);
   const drain = () => {
@@ -2845,11 +2829,11 @@ test("event bursts coalesce and keep only one follow-up measurement in flight", 
   drain();
   assert.equal(starts, 1, "events never start parallel measurements");
   state.barGeometryProcess.running = false;
-  state.finishBarGeometry(0, raw, screens, false);
+  state.finishBarGeometry(0, raw, screens);
   drain();
   assert.equal(starts, 2, "one follow-up covers all events received while busy");
   state.barGeometryProcess.running = false;
-  state.finishBarGeometry(0, raw, screens, false);
+  state.finishBarGeometry(0, raw, screens);
   drain();
   assert.equal(starts, 2);
   assert.equal(callbacks.size, 0, "an idle desktop schedules no more work");
@@ -2886,11 +2870,10 @@ test("irrelevant events and inactive screens do not request geometry", () => {
 
 test("failed geometry waits for a new event instead of retrying at idle", () => {
   const state = runtime("tour-clock");
-  state.geometryProviderAvailable = false;
   state.requestBarGeometry();
   state.flushGeometryRequests();
   state.barGeometryProcess.running = false;
-  state.finishBarGeometry(1, "", state.geometryScreens(), false);
+  state.finishBarGeometry(1, "", state.geometryScreens());
   for (let i = 0; i < 10; i++) state.flushGeometryRequests();
   assert.equal(state.barGeometryProcess.running, false);
   assert.equal(state.barGeometryRequested, false);
@@ -2903,7 +2886,8 @@ test("failed geometry waits for a new event instead of retrying at idle", () => 
 test("display changes invalidate cached geometry and remeasure after old requests finish", () => {
   const state = runtime("tour-clock");
   const screens = state.geometryScreens();
-  const raw = JSON.stringify([{ id: "omarchy.clock", x: 800, y: 0, width: 100, height: 30, visible: true, itemVisible: true }]);
+  const raw = JSON.stringify({ version: 1, screens: [{ ...screens[0],
+    widgets: [{ id: "omarchy.clock", x: 800, y: 0, width: 100, height: 30, visible: true, itemVisible: true }] }] });
   state.parseBarGeometry(raw, screens);
   state.requestBarGeometry();
   state.flushGeometryRequests();
@@ -2914,7 +2898,7 @@ test("display changes invalidate cached geometry and remeasure after old request
   state.flushGeometryRequests();
   assert.equal(state.barGeometryRequested, true, "a changed display is queued behind the active request");
   state.barGeometryProcess.running = false;
-  state.finishBarGeometry(0, raw, screens, true);
+  state.finishBarGeometry(0, raw, screens);
   assert.equal(state.barGeometry.length, 0, "old output coordinates are not applied");
   state.flushGeometryRequests();
   assert.equal(state.barGeometryProcess.requestScreens[0].width, 1280);
@@ -4359,27 +4343,17 @@ test("welcome ambience rejects stale cues and respects effects, mute, and motion
   }
 });
 
-test("geometry status distinguishes working fallback from unavailable measurements", () => {
+test("geometry status distinguishes working bar measurements from unavailable ones", () => {
   const state = runtime("tour-workspaces");
-  state.integrationNotice = "Precise pointing couldn't be prepared.";
   state.geometryScreens = () => [];
   state.parseBarGeometry = () => true;
-  state.parseProviderGeometry = () => false;
-  state.finishBarGeometry(0, "{}", [], false);
+  state.finishBarGeometry(0, "{}", []);
   assert.match(state.integrationNotice, /Bar measurements are available/);
-  assert.equal(state.geometryProviderAvailable, false, "working fallback is not full provider capability");
   state.parseBarGeometry = () => false;
-  state.finishBarGeometry(0, "{}", [], false);
+  state.finishBarGeometry(0, "{}", []);
   assert.match(state.integrationNotice, /could not be measured/);
-  state.finishBarGeometry(0, "{}", [], true);
-  assert.notEqual(state.integrationNotice, "", "invalid provider output doesn't clear the warning");
-  state.parseProviderGeometry = () => true;
-  state.finishBarGeometry(0, "{}", [], true);
-  assert.equal(state.integrationNotice, "");
-  assert.equal(state.geometryProviderAvailable, true);
-  state.finishBarGeometry(1, "", [], false);
+  state.finishBarGeometry(1, "", []);
   assert.match(state.integrationNotice, /could not be measured/);
-  assert.equal(state.geometryProviderAvailable, false);
   assert.equal(state.barGeometryAvailable, false);
 });
 

@@ -10,7 +10,6 @@
   "scripts": {
     "package:prepare": "node tools/prepare-checkout-package.mjs",
     "cheatsheet": "node --experimental-strip-types tools/generate-cheat-sheet.mjs",
-    "geometry:install": "node tools/install-geometry-provider.mjs",
     "audio:generate": "node --experimental-strip-types tools/generate-course-audio.ts courses/omarchy-basics.json",
     "audio:normalize": "node --experimental-strip-types tools/normalize-course-audio.ts courses/audio",
     "audio:check": "node --experimental-strip-types tools/validate-course-audio.ts courses/omarchy-basics.json",

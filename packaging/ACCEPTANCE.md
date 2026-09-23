@@ -25,9 +25,9 @@ behavior after fixes. Never mark a gate passed based on an older package.
 | Gate | Evidence required before a stable release |
 | --- | --- |
 | Exact artifact | Tests and license/audio checks pass on the tagged source; packaged files match that source; retain source/package checksums. |
-| Clean Omarchy install | Install the candidate on a fresh supported Omarchy desktop without the repository, development dependencies, or pre-existing companion. Opening the app must prepare precise pointing automatically. |
+| Clean Omarchy install | Install the candidate on a fresh supported Omarchy desktop without the repository or development dependencies. Opening the app measures bar items without installing a plugin. |
 | Offline use | Disconnect the test environment from the network after installation. Both coaches, captions, narration, and local exercises still work. |
-| Upgrade/removal | Reopening leaves the companion untouched; upgrading updates only managed files. Cancelled uninstall leaves it available. Successful uninstall preserves progress and user changes. |
+| Upgrade/removal | Upgrading from 0.2.3 leaves user configuration untouched. Cancelled uninstall changes nothing. Successful uninstall removes an unchanged legacy geometry plugin and preserves progress and user changes. |
 | Welcome | Both coaches complete their entrance and controls explanation. Mute stops speech; unmute doesn't replay or rewind the current line. Birds fade out after about ten seconds. |
 | Practice | Complete Workspaces, choose Practice, and verify every task states its goal. H/Details reveals the shortcut without executing it. |
 | Windows | Terminal/browser launch, workspace/scratchpad, and finale chains work while personal windows remain open and untouched. |

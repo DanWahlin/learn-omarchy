@@ -96,17 +96,6 @@ Item {
       compare(fixture.overlay.hasReliableCompletionTarget, false)
     }
 
-    function test_realPopupBoundsTakePrecedenceOverItsLayerSurface() {
-      fixture.targetMonitorGeometry = {id:1,x:1920,y:0,width:1920,height:1200,scale:1,transform:0}
-      fixture.targetWindowGeometry = {at:[1920,0],size:[1920,1200]}
-      fixture.widgetRect = {x:800,y:200,width:340,height:700,panel:true}
-      compare(fixture.overlay.usesWindowTarget, false)
-      compare(fixture.overlay.targetIsEstimated, false)
-      compare(fixture.overlay.targetBoundsX, 800)
-      compare(fixture.overlay.fittedHighlightWidth, 340)
-      compare(fixture.overlay.targetPointX, 800)
-    }
-
     function test_estimatedCellsRemainDistinctFromMeasuredCells() {
       fixture.currentStep = {completion:{type:"hyprland-workspace-is"},
         highlight:{target:"workspace",shape:"rectangle",anchor:"top-left",x:0,y:0,width:28,height:30}}
@@ -135,8 +124,6 @@ Item {
         "an opened full-screen layer may guide the coach to the course's fitted panel estimate")
       compare(fixture.overlay.hasReliableCompletionTarget, false,
         "estimated popup guidance must not become an exact marker")
-      fixture.widgetRect = {x:1470,y:38,width:440,height:264,panel:true}
-      compare(fixture.overlay.hasReliableCompletionTarget, true)
     }
 
     function test_estimateBadgeStaysVisibleEvenWhenTheAreaFillsTheScreen() {

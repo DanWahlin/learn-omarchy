@@ -257,7 +257,7 @@ ShellRoot {
   readonly property string characterDisplayName: String(characterConfig.displayName || "Coach")
   readonly property bool characterFlames: Boolean(characterConfig.effects && characterConfig.effects.thrusters)
   readonly property string characterNotice: characterStore.notice
-  property string integrationNotice: Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR") || ""
+  property string integrationNotice: ""
   property string introNotice: ""
   Component.onDestruction: {
     interactionAudio.stop()
@@ -667,7 +667,6 @@ ShellRoot {
   property var barGeometry: []
   property bool barGeometryAvailable: false
   property string barGeometryTopology: ""
-  property bool geometryProviderAvailable: !Quickshell.env("LEARN_OMARCHY_INTEGRATION_ERROR")
   property bool barGeometryRequested: false
   property bool targetGeometryRequested: false
   property bool windowGeometryRefreshing: false
@@ -1626,14 +1625,10 @@ ShellRoot {
     if (!needsTargetGeometryRefresh()) targetGeometryRequested = false
     if (barGeometryRequested && !barGeometryProcess.running) {
       barGeometryRequested = false
-      if (!geometryProviderAvailable && Quickshell.screens.length !== 1) {
-        integrationNotice = "Detailed geometry is unavailable. The supported bar fallback requires a single monitor."
+      if (Quickshell.screens.length !== 1) {
+        integrationNotice = "Bar measurements require a single monitor. Some lesson highlights use estimates."
       } else {
         barGeometryProcess.requestScreens = geometryScreens()
-        barGeometryProcess.providerRequest = geometryProviderAvailable
-        barGeometryProcess.command = geometryProviderAvailable
-          ? ["omarchy-shell", "learnGeometry", "snapshot"]
-          : ["node", appRoot + "/tools/bar-geometry.mjs"]
         barGeometryProcess.running = true
       }
     }
@@ -1686,32 +1681,17 @@ ShellRoot {
     }).sort(function(a, b) { return String(a.name).localeCompare(String(b.name)) })
   }
 
-  function finishBarGeometry(exitCode, raw, screens, provider) {
+  function finishBarGeometry(exitCode, raw, screens) {
     Qt.callLater(flushGeometryRequests)
     if (JSON.stringify(screens) !== JSON.stringify(geometryScreens())) {
       requestBarGeometry()
       return
     }
-    if (provider) {
-      if (exitCode === 0 && parseProviderGeometry(raw, screens)) {
-        geometryProviderAvailable = true
-        integrationNotice = ""
-        return
-      }
-      geometryProviderAvailable = false
-      integrationNotice = "Detailed desktop geometry is unavailable; trying supported bar measurements."
-      barGeometry = []
-      barGeometryAvailable = false
-      requestBarGeometry()
-    } else if (exitCode === 0) {
-      geometryProviderAvailable = false
-      if (parseBarGeometry(raw, screens)) {
-        integrationNotice = "Bar measurements are available. Individual workspace buttons and some popup positions may still be approximate."
-      } else {
-        integrationNotice = "Desktop target positions could not be measured. Some lesson highlights use estimates."
-      }
+    if (exitCode === 0) {
+      integrationNotice = parseBarGeometry(raw, screens)
+        ? "Bar measurements are available. Individual workspace buttons and open panels use estimates."
+        : "Desktop target positions could not be measured. Some lesson highlights use estimates."
     } else {
-      geometryProviderAvailable = false
       barGeometry = []
       barGeometryAvailable = false
       integrationNotice = "Desktop target positions could not be measured. Some lesson highlights use estimates."
@@ -1737,7 +1717,7 @@ ShellRoot {
       }) && widget.width >= 0 && widget.height >= 0
   }
 
-  function parseProviderGeometry(raw, screens) {
+  function parseBarGeometry(raw, screens) {
     try {
       var snapshot = JSON.parse(raw)
       if (!snapshot || snapshot.version !== 1 || !Array.isArray(snapshot.screens) ||
@@ -1751,48 +1731,11 @@ ShellRoot {
         seen[output.name] = true
         for (var widget of output.widgets) {
           if (!validMeasuredWidget(widget)) throw new Error("invalid measured widget")
-          if (widget.workspaceId !== undefined && (!Number.isInteger(widget.workspaceId) || widget.workspaceId < 1)) {
-            throw new Error("invalid measured workspace")
-          }
           widgets.push(Object.assign({}, widget, { screenName: output.name }))
         }
       }
       if (widgets.length === 0) throw new Error("geometry snapshot contains no widgets")
       barGeometry = widgets
-      barGeometryTopology = JSON.stringify(screens)
-      barGeometryAvailable = true
-      return true
-    } catch (error) {
-      barGeometry = []
-      barGeometryAvailable = false
-      console.warn("learn-omarchy: monitor-aware geometry unavailable:", error)
-      return false
-    }
-  }
-
-  function parseBarGeometry(raw, requestScreens) {
-    try {
-      var widgets = JSON.parse(raw)
-      if (widgets && widgets.version === 1) {
-        if (!parseProviderGeometry(raw, requestScreens || geometryScreens()))
-          throw new Error("bar layer measurement doesn't match this desktop")
-        return true
-      }
-      if (!Array.isArray(widgets) || widgets.length === 0) throw new Error("bar geometry wasn't a nonempty list")
-      var screens = requestScreens || geometryScreens()
-      if (screens.length !== 1 || JSON.stringify(screens) !== JSON.stringify(geometryScreens())) {
-        barGeometry = []
-        barGeometryAvailable = false
-        return false
-      }
-      for (var widget of widgets) {
-        if (!validMeasuredWidget(widget)) throw new Error("invalid bar widget geometry")
-      }
-      // Legacy records omit the bar window's screen-edge offset (notably on
-      // bottom/right bars), so don't promote these coordinates to exact targets.
-      barGeometry = widgets.map(function(widget) {
-        return Object.assign({}, widget, { screenName: screens[0].name, estimated: true })
-      })
       barGeometryTopology = JSON.stringify(screens)
       barGeometryAvailable = true
       return true
@@ -1806,28 +1749,21 @@ ShellRoot {
 
   function barTargetGeometry(highlight, slot, requestedScreen, viewportWidth, viewportHeight) {
     if (!highlight || barGeometryTopology !== JSON.stringify(geometryScreens())) return null
+    // Once a panel is open, point at its estimate rather than the bar button that opened it.
+    if (highlight.target === "panel" && stepOwnsCleanupSurface && targetLayerNamespace !== "") return null
     var screen = requestedScreen || (Quickshell.screens.length === 1 ? Quickshell.screens[0] : null)
     if (!screen) return null
     var screenWidgets = barGeometry.filter(function(widget) {
       return widget.screenName === screen.name && widget.visible && widget.itemVisible && widget.width > 0 && widget.height > 0
     })
-    var exactWorkspace = highlight.target === "workspace" ? screenWidgets.find(function(widget) {
-      return widget.workspaceId === (highlight.workspaceId || currentWorkspaceId())
-    }) : null
-    var panelId = highlight.target === "panel" && currentStep && currentStep.completion.namespace
-      ? "panel:" + currentStep.completion.namespace : ""
-    var exactPanel = panelId !== "" ? screenWidgets.find(function(widget) { return widget.id === panelId }) : null
     var ids = highlight.target === "workspace" ? ["omarchy.workspaces"] : highlight.barWidgets
-    var widgets = exactPanel ? [exactPanel] : exactWorkspace ? [exactWorkspace] : screenWidgets.filter(function(widget) {
-      return ids && ids.indexOf(widget.id) !== -1
-    })
+    var widgets = screenWidgets.filter(function(widget) { return ids && ids.indexOf(widget.id) !== -1 })
     if (!widgets.length) return null
     var left = Math.min.apply(null, widgets.map(function(widget) { return widget.x }))
     var top = Math.min.apply(null, widgets.map(function(widget) { return widget.y }))
     var right = Math.max.apply(null, widgets.map(function(widget) { return widget.x + widget.width }))
     var bottom = Math.max.apply(null, widgets.map(function(widget) { return widget.y + widget.height }))
-    var interpolateWorkspace = highlight.target === "workspace" && !exactWorkspace
-    var estimated = interpolateWorkspace || widgets.some(function(widget) { return widget.estimated === true })
+    var interpolateWorkspace = highlight.target === "workspace"
     if (interpolateWorkspace) {
       var cell = (right - left) / barWorkspaceCount()
       var size = Math.min(cell, bottom - top)
@@ -1839,8 +1775,7 @@ ShellRoot {
     var rect = projectWindowGeometry({ at: [left, top], size: [right - left, bottom - top] },
       { x: 0, y: 0, width: screen.width, height: screen.height, scale: 1, transform: 0 },
       viewportWidth || screen.width, viewportHeight || screen.height)
-    if (rect && estimated) rect.estimated = true
-    if (rect && exactPanel) rect.panel = true
+    if (rect && interpolateWorkspace) rect.estimated = true
     if (rect && ["top", "bottom", "left", "right"].indexOf(widgets[0].barEdge) !== -1 &&
         widgets.every(function(widget) { return widget.barEdge === widgets[0].barEdge }))
       rect.barEdge = widgets[0].barEdge
@@ -4478,7 +4413,6 @@ ShellRoot {
         integrationNotice: root.integrationNotice,
         retentionNotice: root.retentionNotice,
         referenceBrowsing: root.referenceBrowsing,
-        geometryProviderAvailable: root.geometryProviderAvailable,
         barGeometry: root.barGeometry,
         introActive: root.introActive,
         introGeneration: root.introGeneration,
@@ -5087,10 +5021,10 @@ ShellRoot {
   Process {
     id: barGeometryProcess
     property var requestScreens: []
-    property bool providerRequest: false
+    command: ["node", root.appRoot + "/tools/bar-geometry.mjs"]
     stdout: StdioCollector { id: barGeometryOutput }
     onExited: function(exitCode) {
-      root.finishBarGeometry(exitCode, barGeometryOutput.text, requestScreens, providerRequest)
+      root.finishBarGeometry(exitCode, barGeometryOutput.text, requestScreens)
     }
   }
 
@@ -5497,7 +5431,7 @@ ShellRoot {
             root.currentStep.highlight.target === "panel") &&
           windowOnThisMonitor
             ? root.projectWindowGeometry(root.targetWindowGeometry, root.targetMonitorGeometry, width, height) : null
-        readonly property bool usesWindowTarget: measuredWindowTarget !== null && !(measuredBarTarget && measuredBarTarget.panel)
+        readonly property bool usesWindowTarget: measuredWindowTarget !== null
         readonly property real minimumLeftPointX: 213
         readonly property real windowTargetX: usesWindowTarget ? measuredWindowTarget.x : 0
         readonly property real windowTargetY: usesWindowTarget ? measuredWindowTarget.y : 0
@@ -5513,7 +5447,7 @@ ShellRoot {
             : !usesWindowTarget && (!measuredBarTarget || measuredBarTarget.estimated === true))
         readonly property bool hasReliableCompletionTarget: !root.currentStepHasNoVisibleTarget &&
           Boolean(highlight) && !targetIsEstimated &&
-          (highlight.target !== "panel" || usesWindowTarget || Boolean(measuredBarTarget && measuredBarTarget.panel))
+          (highlight.target !== "panel" || usesWindowTarget)
         readonly property bool hasCoachCompletionTarget: hasReliableCompletionTarget ||
           (!root.currentStepHasNoVisibleTarget && Boolean(highlight) &&
             ((highlight.target === "workspace" && measuredBarTarget !== null) ||
@@ -5536,8 +5470,7 @@ ShellRoot {
           if (usesWindowTarget) {
             value = leftEdgePointX(windowTargetX, windowTargetWidth)
           } else if (measuredBarTarget) {
-            value = measuredBarTarget.panel ? leftEdgePointX(targetBoundsX, fittedHighlightWidth)
-              : targetBoundsX + fittedHighlightWidth / 2
+            value = targetBoundsX + fittedHighlightWidth / 2
           } else if (highlight) {
             value = highlight.shape === "circle" || highlight.target === "workspace"
               ? targetBoundsX + (fittedHighlightWidth / 2)
@@ -6866,7 +6799,7 @@ ShellRoot {
           readonly property bool detailsExpanded: root.tourDetailsExpanded
           readonly property var avoidTarget: root.phase === "highlight" && root.currentStep &&
             root.currentStep.highlight && root.currentStep.highlight.target === "panel"
-            ? (overlay.measuredBarTarget && overlay.measuredBarTarget.panel ? overlay.measuredBarTarget : overlay.measuredWindowTarget)
+            ? overlay.measuredWindowTarget || overlay.estimatedTarget
             : null
           readonly property var placement: TeachingLayout.position(overlay.width, overlay.height, width, height, avoidTarget)
           visible: (root.phase === "waiting" || root.phase === "highlight") && !root.embeddedPracticeRunning
@@ -7728,8 +7661,7 @@ ShellRoot {
                 if (!root.currentStep || !overlay.highlight) return ""
                 if (overlay.highlight.target === "workspace") return "Workspace " + (overlay.highlight.workspaceId || root.currentWorkspaceId()) +
                   (overlay.targetIsEstimated ? " (estimated)" : "")
-                if (overlay.highlight.target === "panel") return overlay.usesWindowTarget ||
-                  (overlay.measuredBarTarget && overlay.measuredBarTarget.panel) ? "Panel opened" : "Panel button"
+                if (overlay.highlight.target === "panel") return overlay.usesWindowTarget ? "Panel opened" : "Panel button"
                 var events = root.currentStep.completion.events || []
                 return events.indexOf("closewindow") !== -1 ? "Window closed" : "Tutorial window"
               }

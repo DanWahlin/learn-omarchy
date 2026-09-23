@@ -31,8 +31,8 @@ function fixture() {
   for (const id of ["ohm-1", "owl"]) files[`assets/characters/${id}/character.json`] = JSON.stringify({
     author: { status: "declared", name: "Synthetic fixture" }, license: { status: "declared", identifier: "LicenseRef-TestArt" },
   });
-  for (const file of ["Makefile", "bin/learn-omarchy", "app/shell.qml", "tools/install-geometry-provider.mjs", "tools/prepare-release.mjs",
-    ...["manifest.json", "Service.qml", "SnapshotProvider.qml", "Geometry.js"].map(name => `integrations/omarchy/learn-omarchy.geometry/${name}`)])
+  for (const file of ["Makefile", "bin/learn-omarchy", "app/shell.qml", "tools/remove-legacy-integration.mjs",
+    "tools/bar-geometry.mjs", "tools/prepare-release.mjs"])
     files[file] = "Synthetic payload";
   return files;
 }
@@ -358,9 +358,9 @@ test("archive approval is checked rather than trusting the working checkout", as
   try {
     const files = fixture();
     files["assets/splash/provenance.json"] = JSON.stringify({ license: { status: "unresolved" } });
-    delete files["tools/install-geometry-provider.mjs"];
+    delete files["tools/remove-legacy-integration.mjs"];
     const archive = await archiveFixture(directory, files);
-    await assert.rejects(prepareRelease(archive, join(directory, "blocked")), /Release blocked:[\s\S]*splash[\s\S]*install-geometry-provider/);
+    await assert.rejects(prepareRelease(archive, join(directory, "blocked")), /Release blocked:[\s\S]*splash[\s\S]*remove-legacy-integration/);
     assert.ok(!(await readdir(directory)).includes("blocked"));
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
@@ -394,7 +394,7 @@ test("makepkg builds a single staged archive with the companion using synthetic 
     files["tools/prepare-release.mjs"] = await readFile(new URL("../tools/prepare-release.mjs", import.meta.url));
     files["Makefile"] = `install:
 \tmkdir -p "$(DESTDIR)$(PREFIX)/share/learn-omarchy"
-\tcp -R app tools integrations "$(DESTDIR)$(PREFIX)/share/learn-omarchy/"
+\tcp -R app tools "$(DESTDIR)$(PREFIX)/share/learn-omarchy/"
 `;
     const archive = await archiveFixture(directory, files);
     const output = join(directory, "prepared");
@@ -421,7 +421,7 @@ SRCEXT=.src.tar.gz
     assert.deepEqual(packages, ["learn-omarchy-1.2.3-1-any.pkg.tar.gz"]);
     const contents = spawnSync("tar", ["-tzf", join(output, packages[0])], { encoding: "utf8" });
     assert.equal(contents.status, 0, contents.stderr);
-    for (const file of ["tools/install-geometry-provider.mjs", "integrations/omarchy/learn-omarchy.geometry/manifest.json"])
+    for (const file of ["tools/remove-legacy-integration.mjs", "tools/bar-geometry.mjs"])
       assert.ok(contents.stdout.includes(`usr/share/learn-omarchy/${file}`), file);
     assert.ok(!contents.stdout.split("\n").includes(".INSTALL"));
     const firstBuild = await readFile(join(output, packages[0]));

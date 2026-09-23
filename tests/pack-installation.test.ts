@@ -81,11 +81,7 @@ test("the package install includes shared pack code and pack-owned intro assets"
       "src/character-packs.ts", "src/intro-sequence.ts", "tools/character-packs.ts",
       "tools/validate-course-audio.ts", "tools/audio-coverage.ts", "tools/audio-production.ts",
       "tools/validate-course.ts", "tools/capture-practice.mjs", "tools/verify-window-owner.mjs",
-      "tools/install-geometry-provider.mjs",
-      "integrations/omarchy/learn-omarchy.geometry/manifest.json",
-      "integrations/omarchy/learn-omarchy.geometry/Service.qml",
-      "integrations/omarchy/learn-omarchy.geometry/SnapshotProvider.qml",
-      "integrations/omarchy/learn-omarchy.geometry/Geometry.js",
+      "tools/remove-legacy-integration.mjs",
       "docs/character-packs.md", "docs/character-intros.md", "experiments/hexon-lab/shell.qml",
       "experiments/hexon-lab/qmldir",
       "assets/characters/ohm-1/intro/sequence.json", "assets/characters/owl/intro/sequence.json",
@@ -105,9 +101,8 @@ test("the package install includes shared pack code and pack-owned intro assets"
     assert.deepEqual((await readdir(join(root, "tools"))).sort(),
       ["audio-coverage.ts", "audio-production.ts", "bar-geometry.mjs", "capture-practice.mjs", "character-packs.ts",
         "generate-cheat-sheet.mjs", "generate-interaction-sounds.mjs",
-        "install-geometry-provider.mjs",
         "play-timed-speech.mjs", "prepare-intro-pixels.mjs", "prepare-splash-poster.mjs",
-        "tutorial-launch.mjs", "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
+        "remove-legacy-integration.mjs", "tutorial-launch.mjs", "validate-course-audio.ts", "validate-course.ts", "verify-window-owner.mjs"]);
     const audioCheck = spawnSync(process.execPath, ["--experimental-strip-types",
       join(root, "tools/validate-course-audio.ts"), join(root, "courses/omarchy-basics.json")],
     { encoding: "utf8" });
@@ -126,7 +121,7 @@ test("the package install includes shared pack code and pack-owned intro assets"
     assert.match(help.stdout, /user data directory/);
     const removed = spawnSync("make", ["uninstall", `DESTDIR=${directory}`, "PREFIX=/usr"], { encoding: "utf8", env });
     assert.equal(removed.status, 0, removed.stderr);
-    await assert.rejects(readFile(join(root, "tools/install-geometry-provider.mjs")), /ENOENT/);
+    await assert.rejects(readFile(join(root, "tools/remove-legacy-integration.mjs")), /ENOENT/);
     assert.equal(await readFile(progress, "utf8"), '{"completed":["first-lesson"]}');
     assert.equal(await readFile(editedIntegration, "utf8"), "// user-owned changes");
   } finally {

@@ -5,7 +5,7 @@ import { collectBarGeometry, measuredBarSnapshot } from "../tools/bar-geometry.m
 const monitor = { name: "eDP-1", x: 100, y: 50, width: 3072, height: 1920, scale: 1.6, transform: 0 };
 const widget = { id: "custom.clock", x: 10, y: 2, width: 35, height: 24, visible: true, itemVisible: true };
 const layers = (x = 100, y = 50, w = 1920, h = 30) => ({
-  "eDP-1": { levels: { "2": [{ namespace: "omarchy-bar", x, y, w, h, alpha: 1 }] } },
+  "eDP-1": { levels: { "2": [{ namespace: "omarchy-bar", x, y, w, h, alpha: 0 }] } },
 });
 
 test("measured bar widgets use live layer offsets on every screen edge", () => {

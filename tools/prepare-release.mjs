@@ -116,9 +116,8 @@ export async function prepareRelease(archive, output) {
   catch (error) { problems.push(error.message); }
   if (archVersion !== inspected.version) problems.push("package.json version does not match the archive directory.");
   for (const path of [
-    "Makefile", "bin/learn-omarchy", "app/shell.qml", "tools/install-geometry-provider.mjs",
-    "tools/prepare-release.mjs", "packaging/PKGBUILD.in",
-    ...["manifest.json", "Service.qml", "SnapshotProvider.qml", "Geometry.js"].map(name => `integrations/omarchy/learn-omarchy.geometry/${name}`),
+    "Makefile", "bin/learn-omarchy", "app/shell.qml", "tools/remove-legacy-integration.mjs",
+    "tools/bar-geometry.mjs", "tools/prepare-release.mjs", "packaging/PKGBUILD.in",
   ]) {
     try { await inspected.read(path); } catch { problems.push(`Missing one-package runtime/build payload: ${path}`); }
   }

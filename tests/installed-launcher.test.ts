@@ -1,17 +1,38 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, readFile, writeFile, rm, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-test("one installed package automatically prepares and updates its integration without the checkout", async () => {
+const revision = "a".repeat(64);
+const sha256 = (content: string) => createHash("sha256").update(content).digest("hex");
+
+// Recreates the managed plugin copy that releases before 0.2.4 installed.
+async function installLegacyIntegration(target: string) {
+  const files: Record<string, string> = {
+    "manifest.json": JSON.stringify({ id: "learn-omarchy.geometry", schemaVersion: 1, kinds: ["service"],
+      entryPoints: { service: `releases/${revision}/Service.qml` } }),
+    [`releases/${revision}/Service.qml`]: "import QtQuick\nItem {}\n",
+    [`releases/${revision}/Geometry.js`]: "function snapshot() {}\n",
+  };
+  await mkdir(join(target, "releases", revision), { recursive: true });
+  for (const [name, content] of Object.entries(files)) await writeFile(join(target, name), content);
+  await writeFile(join(target, ".learn-omarchy-owner.json"), JSON.stringify({ id: "learn-omarchy.geometry",
+    installer: "learn-omarchy", version: 1,
+    files: Object.fromEntries(Object.entries(files).map(([name, content]) => [name, sha256(content)])) }));
+  return join(target, `releases/${revision}/Service.qml`);
+}
+
+test("the installed launcher leaves desktop plugins alone and uninstall retires the old integration", async () => {
   const directory = await mkdtemp(join(tmpdir(), "learn-installed-launcher-"));
   const home = join(directory, "home");
   const mocks = join(directory, "commands");
   const root = join(directory, "usr/share/learn-omarchy");
   const launcher = join(directory, "usr/bin/learn-omarchy");
-  const target = join(home, ".config/omarchy/plugins/learn-omarchy.geometry");
+  const plugins = join(home, ".config/omarchy/plugins");
+  const target = join(plugins, "learn-omarchy.geometry");
   const log = join(directory, "commands.jsonl");
   const started = join(directory, "started.json");
   try {
@@ -31,8 +52,7 @@ const target = home + "/.config/omarchy/plugins/learn-omarchy.geometry";
 fs.appendFileSync(process.env.MOCK_LOG, JSON.stringify([name, ...args]) + "\\n");
 if (name === "qs") {
   fs.writeFileSync(process.env.MOCK_STARTED, JSON.stringify({
-    args, root: process.env.LEARN_OMARCHY_ROOT, course: process.env.LEARN_OMARCHY_COURSE,
-    error: process.env.LEARN_OMARCHY_INTEGRATION_ERROR
+    args, root: process.env.LEARN_OMARCHY_ROOT, course: process.env.LEARN_OMARCHY_COURSE
   }));
 } else if (name === "mpv") {
   process.exit(0);
@@ -43,133 +63,73 @@ if (name === "qs") {
   if (args.join(" ") === "-Q learn-omarchy") process.exit(0);
   if (args.join(" ") !== "-R learn-omarchy") process.exit(11);
   if (fs.existsSync(home + "/cancel-uninstall")) process.exit(1);
-  fs.rmSync(process.env.MOCK_APP_ROOT + "/tools/install-geometry-provider.mjs");
+  fs.rmSync(process.env.MOCK_APP_ROOT + "/tools/remove-legacy-integration.mjs");
   fs.writeFileSync(home + "/package-removed", "yes");
-} else if (fs.existsSync(home + "/unavailable")) {
-  console.error("Desktop integration is temporarily unavailable");
-  process.exit(7);
 } else if (args.join(" ") === "plugin list --json") {
-  const enabled = fs.existsSync(home + "/enabled");
-  console.log(JSON.stringify(fs.existsSync(home + "/discovered") && fs.existsSync(target) ?
-    [{id:"learn-omarchy.geometry", kinds:["service"], firstParty:false, enabled, active:false}] : []));
-} else if (args.join(" ") === "learnGeometry capabilities") {
-  const limited = fs.existsSync(home + "/limited");
-  console.log(JSON.stringify({shellAvailable:true, barAvailable:true, manifestId:limited ? "" : "omarchy.bar",
-    slotsAvailable:!limited, windowMappingAvailable:!limited}));
-} else if (args.join(" ") === "plugin --help") {
-  console.log("omarchy plugin enable\\nomarchy plugin list");
-} else if (args[0] === "plugin" && args[1] === "validate") {
-  const manifest = JSON.parse(fs.readFileSync(path.join(args[2], "manifest.json"), "utf8"));
-  if (!fs.existsSync(path.join(args[2], manifest.entryPoints.service))) process.exit(8);
-} else if (args.join(" ") === "shell rescanPlugins") {
-  fs.writeFileSync(home + "/discovered", "yes");
-} else if (args.join(" ") === "plugin enable learn-omarchy.geometry") {
-  if (!fs.existsSync(home + "/discovered")) process.exit(9);
-  fs.writeFileSync(home + "/enabled", "yes");
+  console.log(JSON.stringify(fs.existsSync(target) ?
+    [{id:"learn-omarchy.geometry", kinds:["service"], firstParty:false, enabled:true, active:false}] : []));
 } else if (args.join(" ") === "plugin remove learn-omarchy.geometry --yes") {
   fs.renameSync(target, path.dirname(target) + "/.removed-integration-" + Date.now());
-  fs.rmSync(home + "/enabled", {force:true});
 } else {
   console.error("Unexpected mock command");
   process.exit(10);
 }
 `;
-    for (const command of ["omarchy", "omarchy-shell", "qs", "mpv", "sudo", "pacman"])
+    for (const command of ["omarchy", "qs", "mpv", "sudo", "pacman"])
       await writeFile(join(mocks, command), mock, { mode: 0o755 });
     const env: NodeJS.ProcessEnv = { ...process.env, HOME: home, XDG_STATE_HOME: join(home, "state"),
       XDG_CONFIG_HOME: join(home, ".config"), PATH: `${mocks}:${process.env.PATH}`,
       MOCK_LOG: log, MOCK_STARTED: started, MOCK_APP_ROOT: root, TMPDIR: directory };
-    delete env.LEARN_OMARCHY_ROOT;
-    delete env.LEARN_OMARCHY_COURSE;
-    delete env.LEARN_OMARCHY_COURSE_DIR;
-    delete env.LEARN_OMARCHY_CHARACTER;
-    delete env.LEARN_OMARCHY_INTEGRATION_ERROR;
+    for (const name of ["LEARN_OMARCHY_ROOT", "LEARN_OMARCHY_COURSE", "LEARN_OMARCHY_COURSE_DIR", "LEARN_OMARCHY_CHARACTER"])
+      delete env[name];
     const launch = (...args: string[]) => spawnSync(launcher, args, {
       env, cwd: directory, encoding: "utf8", timeout: 30000,
     });
+    const calls = async () => (await readFile(log, "utf8").catch(() => "")).trim().split("\n").filter(Boolean)
+      .map(line => JSON.parse(line).slice(0, 3));
+
     assert.equal(launch("--help").status, 0);
-    assert.deepEqual(await readdir(home), [], "help doesn't configure the desktop");
-    const first = launch();
-    assert.equal(first.status, 0, first.stderr);
-    assert.equal(await readFile(join(home, "enabled"), "utf8"), "yes");
-    const firstStart = JSON.parse(await readFile(started, "utf8"));
-    assert.deepEqual(firstStart.args, ["--no-duplicate", "--path", join(root, "app")]);
-    assert.equal(firstStart.root, root);
-    assert.equal(firstStart.course, join(root, "courses/omarchy-basics.json"));
-    assert.equal(firstStart.error, "");
-    const entry = async () => JSON.parse(await readFile(join(target, "manifest.json"), "utf8")).entryPoints.service;
-    const initialEntry = await entry();
-    const calls = async () => (await readFile(log, "utf8")).trim().split("\n").map(line => JSON.parse(line));
-    const before = (await calls()).length;
-    assert.equal(launch().status, 0);
-    assert.deepEqual((await calls()).slice(before).map(call => call.slice(0, 3)),
-      [["omarchy", "plugin", "list"], ["omarchy-shell", "learnGeometry", "capabilities"],
-        ["qs", "--no-duplicate", "--path"]],
-      "normal reopening doesn't reinstall, reload, or re-enable the service");
+    assert.deepEqual(await readdir(home), [], "help doesn't touch the desktop");
+    assert.equal(launch("--remove-integration").status, 2, "the retired option is rejected");
 
-    await writeFile(join(home, "limited"), "yes");
-    const beforeLimited = (await calls()).length;
-    const limited = launch();
-    assert.equal(limited.status, 0, "restricted host APIs do not block the application");
-    assert.match(JSON.parse(await readFile(started, "utf8")).error, /does not expose detailed widget geometry/);
-    assert.deepEqual((await calls()).slice(beforeLimited).map(call => call.slice(0, 3)),
-      [["omarchy", "plugin", "list"], ["omarchy-shell", "learnGeometry", "capabilities"],
-        ["qs", "--no-duplicate", "--path"]],
-      "an incompatible unchanged host does not trigger desktop reconfiguration");
-    await rm(join(home, "limited"));
-    assert.equal(launch().status, 0);
-    assert.equal(JSON.parse(await readFile(started, "utf8")).error, "", "restored capabilities clear the diagnostic");
-
-    const bundled = join(root, "integrations/omarchy/learn-omarchy.geometry/Geometry.js");
-    await writeFile(bundled, await readFile(bundled, "utf8") + "\n// Installed package update.\n");
+    const progress = join(home, "state/learn-omarchy/progress.json");
+    await installLegacyIntegration(target);
     const upgraded = launch();
     assert.equal(upgraded.status, 0, upgraded.stderr);
-    const updatedEntry = await entry();
-    assert.notEqual(updatedEntry, initialEntry);
-    assert.match(await readFile(join(target, updatedEntry.replace("Service.qml", "Geometry.js")), "utf8"),
-      /Installed package update/);
-
-    await writeFile(join(home, "unavailable"), "yes");
-    const unavailable = launch();
-    assert.equal(unavailable.status, 0, "the application still starts with fallback geometry");
-    assert.match(unavailable.stderr, /temporarily unavailable/);
-    assert.match(JSON.parse(await readFile(started, "utf8")).error, /temporarily unavailable/);
-    await rm(join(home, "unavailable"));
-    assert.equal(launch().status, 0);
-    assert.equal(JSON.parse(await readFile(started, "utf8")).error, "", "successful retry clears the startup error");
-
-    const service = join(target, updatedEntry);
-    const managed = await readFile(service);
-    await writeFile(service, "// User customization\n");
-    assert.equal(launch().status, 0);
-    assert.match(JSON.parse(await readFile(started, "utf8")).error, /locally modified/);
-    assert.notEqual(launch("--remove-integration").status, 0);
-    assert.equal(await readFile(service, "utf8"), "// User customization\n");
-    await writeFile(service, managed);
-    const progress = join(home, "state/learn-omarchy/progress.json");
+    const start = JSON.parse(await readFile(started, "utf8"));
+    assert.deepEqual(start.args, ["--no-duplicate", "--path", join(root, "app")]);
+    assert.equal(start.root, root);
+    assert.equal(start.course, join(root, "courses/omarchy-basics.json"));
+    assert.deepEqual(await calls(), [["qs", "--no-duplicate", "--path"]],
+      "launching never queries or changes desktop plugins");
+    assert.ok((await readdir(plugins)).includes("learn-omarchy.geometry"), "an old integration stays until uninstall");
     await writeFile(progress, '{"saved":"progress"}');
-    const removed = launch("--remove-integration");
-    assert.equal(removed.status, 0, removed.stderr);
-    assert.equal(await readFile(progress, "utf8"), '{"saved":"progress"}');
-    assert.equal(launch("--remove-integration").status, 0);
-    assert.equal(launch().status, 0);
-    assert.match(launch("--uninstall").stderr, /from a terminal/, "unattended removal cannot partially modify the integration");
+
+    assert.match(launch("--uninstall").stderr, /from a terminal/, "unattended removal changes nothing");
     const command = "'" + launcher.replace(/'/g, "'\\''") + "' --uninstall";
     const uninstall = () => spawnSync("script", ["--quiet", "--return", "--command", command, "/dev/null"],
       { env, cwd: directory, encoding: "utf8", timeout: 30000 });
     await writeFile(join(home, "cancel-uninstall"), "yes");
-    const cancelled = uninstall();
-    assert.notEqual(cancelled.status, 0);
-    assert.equal(await readFile(join(home, "enabled"), "utf8"), "yes", "cancelling package removal leaves integration active");
+    assert.notEqual(uninstall().status, 0);
+    assert.ok((await readdir(plugins)).includes("learn-omarchy.geometry"), "cancelling package removal changes nothing");
     await rm(join(home, "cancel-uninstall"));
     const uninstalled = uninstall();
     assert.equal(uninstalled.status, 0, uninstalled.stdout + uninstalled.stderr);
     assert.equal(await readFile(join(home, "package-removed"), "utf8"), "yes");
     assert.equal(await readFile(progress, "utf8"), '{"saved":"progress"}');
-    assert.ok(!(await readdir(join(home, ".config/omarchy/plugins"))).includes("learn-omarchy.geometry"),
-      "cleanup still works after the package removes its original helper");
+    assert.ok(!(await readdir(plugins)).includes("learn-omarchy.geometry"),
+      "cleanup works after the package removes its original helper");
     assert.ok(!(await readdir(directory)).some(name => name.startsWith("learn-omarchy-uninstall.")),
-      "the private cleanup copy is removed on both cancellation and success");
+      "the private cleanup copy is removed");
+
+    const service = await installLegacyIntegration(target);
+    await writeFile(service, "// User customization\n");
+    await writeFile(join(root, "tools/remove-legacy-integration.mjs"),
+      await readFile(new URL("../tools/remove-legacy-integration.mjs", import.meta.url)));
+    const modified = uninstall();
+    assert.equal(modified.status, 0, "a modified old integration never blocks uninstalling");
+    assert.match(modified.stdout + modified.stderr, /locally modified/);
+    assert.equal(await readFile(service, "utf8"), "// User customization\n", "user changes are preserved");
   } finally {
     await rm(directory, { recursive: true, force: true });
   }

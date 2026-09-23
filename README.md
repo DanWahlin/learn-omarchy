@@ -76,15 +76,15 @@ learn-omarchy
 See [GitHub Releases](https://github.com/DanWahlin/learn-omarchy/releases) for
 release notes and downloadable artifacts.
 
-The package includes the application, both guides, narration, course content,
-and the desktop integration used for precise pointing.
+The package includes the application, both guides, narration, and course
+content. It doesn't install anything into your Omarchy configuration.
 
-On Omarchy versions that restrict plugin access to live widget geometry,
-the app uses supported bar measurements on single-monitor desktops instead.
-Individual workspace buttons and some popup positions may still be approximate.
-Only affected lesson targets show contextual guidance; persistent integration
-diagnostics are in Settings, not a banner over lessons or Arcade. Multi-monitor
-fallback does not guess which output contains a widget.
+Guides point at bar items using Omarchy's supported bar measurements on
+single-monitor desktops. Omarchy doesn't expose the position of open menus,
+panels, or individual workspace buttons, so those targets use layout estimates.
+Only affected lesson targets show contextual guidance; persistent geometry
+diagnostics are in Settings, not a banner over lessons or Arcade. On
+multi-monitor desktops, the app doesn't guess which output contains a widget.
 Background measurements do not hide existing guidance or interrupt a tour
 caption after the guide has arrived.
 Top-bar pointing uses each guide's registered fingertip position to stay close
@@ -111,8 +111,10 @@ Run the following as your regular user:
 learn-omarchy --uninstall
 ```
 
-The package and its unchanged managed desktop integration are removed. Learning
-progress, backups, user-edited files, and unrelated plugins are preserved.
+The package is removed. Learning progress, backups, user-edited files, and
+unrelated plugins are preserved. Releases before 0.2.4 installed a
+`learn-omarchy.geometry` shell plugin; `--uninstall` also removes an unchanged
+copy.
 
 ## Safety and privacy
 
@@ -204,7 +206,6 @@ Detailed authoring documentation:
 | `app/` | Quickshell/QML interface and course runtime |
 | `assets/characters/` | Bundled character packs |
 | `courses/` | Course content and narration |
-| `integrations/` | Managed read-only desktop integration |
 | `src/` | TypeScript schemas and validation |
 | `tests/` | Runtime, metadata, safety, and UI tests |
 | `tools/` | Validation, packaging, and content tooling |
