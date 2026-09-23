@@ -16,6 +16,9 @@ function run(command, args, options = {}) {
   return result.stdout;
 }
 
+// The packaged launcher must describe its supported removal path.
+export const launcherHelpPattern = /--uninstall removes the Arch package/;
+
 export function validatePackagePaths(entries) {
   const seen = new Set();
   for (const entry of entries) {
@@ -88,7 +91,7 @@ export async function verifyPackage(packagePath, sourceRoot) {
     run(process.execPath, ["--experimental-strip-types", join(app, "tools/validate-course-audio.ts"),
       join(app, "courses/omarchy-basics.json"), "--require-word-timings"], { cwd: directory, env });
     const help = run(join(extracted, "usr/bin/learn-omarchy"), ["--help"], { cwd: directory, env });
-    assert.match(help, /prepared automatically/);
+    assert.match(help, launcherHelpPattern);
     assert.deepEqual(await readdir(home), [], "offline inspection must not modify user configuration");
     return { version, installedFiles: actualFiles.size,
       sha256: createHash("sha256").update(await readFile(packagePath)).digest("hex") };

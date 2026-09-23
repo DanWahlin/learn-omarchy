@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import test from "node:test";
-import { validatePackagePaths } from "../tools/verify-release-package.mjs";
+import { launcherHelpPattern, validatePackagePaths } from "../tools/verify-release-package.mjs";
 
 test("release packages contain only application installation paths and package metadata", () => {
   assert.doesNotThrow(() => validatePackagePaths([
@@ -13,4 +14,10 @@ test("release packages contain only application installation paths and package m
     "usr/share/.learn-omarchy-practice/session/recording.mp4", ".INSTALL", "home/user/settings.json",
   ]) assert.throws(() => validatePackagePaths([path]), undefined, path);
   assert.throws(() => validatePackagePaths(["usr/", "usr"]));
+});
+
+test("package verification expects the launcher's current help text", () => {
+  const help = spawnSync("bin/learn-omarchy", ["--help"], { encoding: "utf8" });
+  assert.equal(help.status, 0, help.stderr);
+  assert.match(help.stdout, launcherHelpPattern);
 });
