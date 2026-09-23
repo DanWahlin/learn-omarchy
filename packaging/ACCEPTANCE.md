@@ -1,6 +1,6 @@
 # Release acceptance
 
-The current release is **0.2.3** (Arch version **0.2.3-1**), a stable public
+The current release is **0.2.4** (Arch version **0.2.4-1**), a stable public
 release published by the tag workflow. CI and packaging checks do not establish
 that every desktop, hardware device, or installed Omarchy version behaves
 correctly.
@@ -37,17 +37,17 @@ behavior after fixes. Never mark a gate passed based on an older package.
 
 ## Current evidence and limitations
 
-The 0.2.3 development cycle was exercised on an installed Omarchy desktop on
-2026-09-22. Screenshot, screen-recording, OCR, and QR lessons were reviewed
-against the installed native Capture menu and commands. The course now observes
-native outputs instead of starting or stopping those tools for the learner.
-The packaged 0.2.2 upgrade and Apps launcher were also verified locally.
+The 0.2.4 development cycle was exercised on an installed Omarchy 4.0.4
+desktop on 2026-09-22. The Menus and apps lesson was checked live with the
+root and Apps menus open, supported bar measurement was confirmed against the
+running bar, and removal of an unchanged legacy geometry plugin was verified
+on a real installation. 0.2.3 reviewed the native Capture workflows.
 
 The release gates validate all 16 lessons, 93 activities, both bundled character
 packs, 394 narration recordings and word timings, printable-reference freshness,
 release licensing metadata, native recording watcher transitions and retakes,
 real MP4 playback, and normal/compact QML layouts. The final working-tree run
-passed 564 Node tests and 456 QML tests with 4 platform-dependent skips. Record
+passed 552 Node tests and 447 QML tests with 4 platform-dependent skips. Record
 the exact release commit and packaged-artifact checks in the tagged workflow
 evidence.
 
