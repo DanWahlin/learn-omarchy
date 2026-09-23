@@ -59,25 +59,22 @@ dependencies when the package is installed.
 
 ## Install
 
-The current public build is a testing prerelease. Review its compatibility and
-known limitations in the
-[release notes](packaging/RELEASE-NOTES.md).
-
-1. Download the package and `SHA256SUMS` from
-   [GitHub Releases](https://github.com/DanWahlin/learn-omarchy/releases).
-2. Open a terminal in the download directory.
-3. Verify and install the package:
+Update Omarchy, then install Learn Omarchy from the package repository:
 
 ```bash
-sha256sum --check --ignore-missing SHA256SUMS &&
-  sudo pacman -U ./learn-omarchy-*.pkg.tar.zst
+omarchy update
+omarchy pkg add learn-omarchy
 ```
 
-Open **Learn Omarchy** from the Apps menu or run:
+Press **Super + Space**, type **Learn Omarchy**, and press Enter. You can also
+launch it from a terminal:
 
 ```bash
 learn-omarchy
 ```
+
+See [GitHub Releases](https://github.com/DanWahlin/learn-omarchy/releases) for
+release notes and downloadable artifacts.
 
 The package includes the application, both guides, narration, course content,
 and the desktop integration used for precise pointing.
@@ -103,8 +100,8 @@ Short, bounded retries while a newly launched window is appearing remain.
 
 ### Update
 
-Download the package from the next release and install it with `pacman -U`
-again. Your progress and preferences are retained.
+Run `omarchy update` to install new releases. Your progress and preferences
+are retained.
 
 ### Remove
 

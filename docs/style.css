@@ -814,7 +814,7 @@ footer { border-top: 1px solid var(--line); padding: 32px 0; background: var(--b
   .mini-wordmark { background: none; -webkit-text-fill-color: CanvasText; }
 }
 
-.optional-launch { margin-top: 14px; padding: 2px 14px; border: 1px dashed var(--line-2); border-radius: 6px; }
+.optional-launch { margin-top: 28px; padding: 2px 14px; border: 1px dashed var(--line-2); border-radius: 6px; }
 .optional-launch summary { cursor: pointer; padding: 10px 0; font-size: 0.88rem; color: var(--ink-2); }
 .optional-launch summary:hover { color: var(--brand-text); }
 .optional-launch .terminal { margin-bottom: 12px; }

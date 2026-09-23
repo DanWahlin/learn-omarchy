@@ -111,7 +111,7 @@ test("the homepage installs through Omarchy's package manager", async () => {
   assert.doesNotMatch(html, /sudo pacman -U/);
   assert.match(html, /<strong>16<\/strong><span>lessons<\/span>/);
   assert.match(html, /<strong>93<\/strong><span>activities<\/span>/);
-  assert.match(html, /Press Super plus Alt plus Space/);
-  assert.match(html, /<kbd>Super<\/kbd><span>\+<\/span><kbd>Alt<\/kbd><span>\+<\/span><kbd>Space<\/kbd>/);
+  assert.match(html, /Press Super plus Space/);
+  assert.match(html, /<kbd>Super<\/kbd><span>\+<\/span><kbd>Space<\/kbd>/);
   assert.match(html, /Or launch it from a terminal/);
 });
