@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { spawn, spawnSync } from "node:child_process";
-import { copyFile, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { once } from "node:events";
 import { resolve, join } from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { pathToFileURL } from "node:url";
-import { validRegion, recordingDirectory, screenshotDirectory, sessionActions } from "../tools/capture-practice.mjs";
+import { recordingDirectory, screenshotDirectory, sessionActions } from "../tools/capture-practice.mjs";
 
 const practiceSource = await readFile(new URL("../app/PracticeSession.qml", import.meta.url), "utf8");
 
@@ -302,71 +302,6 @@ ShellRoot {
       assert.match(output, /STARTUP_CANCELLED/);
     }
   } finally { await rm(directory, { recursive: true, force: true }); }
-});
-
-test("capture accepts only explicit nonempty regions", () => {
-  for (const region of ["0,0 400x300", "-1920,10 800x600"]) assert.equal(validRegion(region), true);
-  for (const region of ["", "0,0 0x100", "fullscreen", "1,2 20x30; echo nope", "0,0 9e3x50", "9007199254740992,0 20x30"]) assert.equal(validRegion(region), false);
-});
-
-function captureEnv(directory: string, mode: string) {
-  return {
-    ...process.env,
-    PATH: resolve("tests/fixtures/capture") + ":" + process.env.PATH,
-    XDG_RUNTIME_DIR: directory,
-    LEARN_CAPTURE_TEST_DIR: directory,
-    LEARN_CAPTURE_TEST_MODE: mode,
-  };
-}
-
-test("capture keeps a real image, distinguishes errors, and removes cancelled output", async () => {
-  const directory = await mkdtemp(resolve("tests/.learn-capture-test-"));
-  try {
-    for (const mode of ["cancel", "error", "success"]) {
-      const result = spawnSync(process.execPath, ["tools/capture-practice.mjs"], {
-        env: captureEnv(directory, mode), encoding: "utf8",
-      });
-      assert.equal(result.status, mode === "cancel" ? 2 : mode === "error" ? 1 : 0, result.stderr);
-      if (mode === "success") {
-        const path = result.stdout.trim();
-        assert.ok(path.startsWith(directory + "/learn-omarchy-capture."));
-        const image = await readFile(path);
-        assert.equal(image.subarray(1, 4).toString(), "PNG");
-      } else {
-        assert.deepEqual(await readdir(directory), []);
-        assert.equal(result.stdout, "");
-        if (mode === "error") assert.match(result.stderr, /Capture protocol unavailable/);
-      }
-    }
-  } finally {
-    await rm(directory, { recursive: true, force: true });
-  }
-});
-
-test("cancelling capture terminates its selector and cleans only its temporary directory", async () => {
-  const directory = await mkdtemp(resolve("tests/.learn-capture-test-"));
-  const capture = spawn(process.execPath, ["tools/capture-practice.mjs"], {
-    env: captureEnv(directory, "wait"), stdio: "ignore",
-  });
-  const exited = once(capture, "exit");
-  try {
-    for (let i = 0; i < 100 && !(await readdir(directory)).includes("selector.pid"); i++) {
-      await new Promise(resolve => setTimeout(resolve, 20));
-    }
-    const selectorPid = Number(await readFile(join(directory, "selector.pid"), "utf8"));
-    assert.ok(selectorPid > 0);
-    capture.kill("SIGTERM");
-    const [code] = await exited;
-    assert.equal(code, 2);
-    assert.throws(() => process.kill(selectorPid, 0), { code: "ESRCH" });
-    assert.deepEqual(await readdir(directory), ["selector.pid"]);
-  } finally {
-    if (capture.exitCode === null && capture.signalCode === null) {
-      capture.kill("SIGTERM");
-      await exited;
-    }
-    await rm(directory, { recursive: true, force: true });
-  }
 });
 
 test("practice launcher rejects unsupported modes without opening a window", () => {

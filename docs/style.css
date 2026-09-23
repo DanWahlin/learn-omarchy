@@ -119,8 +119,6 @@ pre { margin: 0; font-family: var(--mono); }
 .button-primary:hover { background: var(--pink); }
 .nav-links a.button-primary:hover,
 .nav-links a.button-primary.active { color: var(--brand-ink); }
-.button-secondary { background: transparent; color: var(--ink); border-color: var(--line-2); }
-.button-secondary:hover { border-color: var(--brand); color: var(--brand-text); }
 .button-small { min-height: 34px; padding: 0 14px; font-size: 0.82rem; }
 
 /* ---------- Hero ---------- */
@@ -190,8 +188,7 @@ h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0
 .ws { min-width: 1.6em; padding: 0 0.2em; text-align: center; color: var(--dim); border-radius: 2px; }
 .ws.active { color: var(--brand-ink); background: var(--brand); }
 .bar-center { color: var(--ink); text-align: center; }
-.bar-right { justify-self: end; }
-.bar-right { gap: 0.85em; color: var(--ink-2); }
+.bar-right { justify-self: end; gap: 0.85em; color: var(--ink-2); }
 .bar-right svg { width: 1.15em; height: 1.15em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .bar-batt { color: var(--green-text); }
 
@@ -221,7 +218,7 @@ h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0
 .term-body, .code-body { padding: 0.9em 1.1em; line-height: 1.55; white-space: pre; overflow: hidden; }
 .term-body b, .code-body b { font-weight: 500; }
 .c-blue { color: var(--blue-text); } .c-cyan { color: var(--sky-text); } .c-green { color: var(--green-text); }
-.c-mag { color: var(--magenta-text); } .c-orange { color: var(--orange-text); } .c-dim { color: var(--dim); } .c-red { color: var(--red-text); }
+.c-mag { color: var(--magenta-text); } .c-orange { color: var(--orange-text); } .c-dim { color: var(--dim); }
 .cursor { display: inline-block; width: 0.6em; height: 1.1em; vertical-align: -0.15em; background: var(--ink); animation: caret 1s steps(2) infinite; }
 
 .files-body { padding: 0.9em 1.1em; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em 1.4em; color: var(--ink-2); }
@@ -470,10 +467,9 @@ h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0
   border: 1px solid color-mix(in srgb, var(--arcade-accent) 40%, var(--line));
   border-radius: 6px;
 }
-.arcade-card.rescue { --arcade-accent: var(--green); --arcade-text: var(--green-text); }
+.arcade-card.rescue { --arcade-accent: var(--green); --arcade-text: var(--green-text); border-width: 2px; }
 .arcade-card.sprint { --arcade-accent: var(--orange); --arcade-text: var(--orange-text); }
 .arcade-card.keyfall { --arcade-accent: var(--pink); --arcade-text: var(--pink-text); }
-.arcade-card.rescue { border-width: 2px; }
 .arcade-tag {
   margin-bottom: 12px;
   color: var(--arcade-text);

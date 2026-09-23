@@ -41,7 +41,7 @@ Item {
             player.reducedMotion = false
             player.sequence = null
             player.assetRoot = ""
-            player.palette = ({})
+            player.introColors = ({})
             coach.config = ({})
             scene.cancelOnSound = false
             scene.width = 1000
@@ -155,7 +155,7 @@ Item {
             player.sequence = simple(1000)
             player.play()
             var token = player.generation
-            player.palette = { foreground: "#123456", instruction: Qt.rgba(1, 0, 0, 1),
+            player.introColors = { foreground: "#123456", instruction: Qt.rgba(1, 0, 0, 1),
                 background: "not-a-color", secret: "#abcdef" }
             compare(player.resolveColor("theme:foreground"), "#123456")
             compare(player.resolveColor("theme:instruction"), "#ff0000")
@@ -177,7 +177,7 @@ Item {
             var background = findChild(player, "introCueBackground")
             verify(background !== null)
             for (var themeBackground of ["#1a1b26", "#f5f5f5"]) {
-                player.palette = { background: themeBackground }
+                player.introColors = { background: themeBackground }
                 compare(background.color.a, 1)
                 compare(background.color, themeBackground)
             }

@@ -394,20 +394,6 @@ function shuffled(items, random) {
     return result;
 }
 
-function seededRandom(seed) {
-    var text = typeof seed === "string" || (typeof seed === "number" && isFinite(seed)) ? String(seed) : "arcade";
-    var state = 2166136261;
-    for (var i = 0; i < text.length; i++) {
-        state ^= text.charCodeAt(i);
-        state = (state + (state << 1) + (state << 4) + (state << 7) +
-            (state << 8) + (state << 24)) >>> 0;
-    }
-    return function() {
-        state = (1664525 * state + 1013904223) >>> 0;
-        return state / 4294967296;
-    };
-}
-
 function scoreAnswer(mode, elapsedMs, streak, hinted, wrongAttempts) {
     if (hinted) return 0;
     var wrong = wrongAttempts === undefined ? 0 :
@@ -651,17 +637,6 @@ function recordRun(stats, run, nowMs) {
     return mergeStats(result);
 }
 
-// Compatibility for old callers only: these scores remain in the legacy namespace.
-function recordResult(stats, mode, score, streak, cleared) {
-    var result = mergeStats(stats);
-    if (ARCADE_MODES.indexOf(mode) < 0) return result;
-    result[mode].plays = Math.min(ARCADE_MAX_COUNT, result[mode].plays + 1);
-    if (cleared === true) result[mode].clears = Math.min(ARCADE_MAX_COUNT, result[mode].clears + 1);
-    result[mode].bestScore = Math.max(result[mode].bestScore, arcadeInteger(score));
-    result[mode].bestStreak = Math.max(result[mode].bestStreak, arcadeInteger(streak));
-    return result;
-}
-
 function arcadeWeak(skill) {
     if (!skill || !skill.attempts) return false;
     var latest = skill.history.length ? skill.history[skill.history.length - 1] : null;
@@ -800,12 +775,6 @@ function chooseRescueMission(challenges, random, excludedId) {
     });
     var nextRandom = typeof random === "function" ? random : Math.random;
     return alternatives[Math.floor(arcadeRandom(nextRandom) * alternatives.length)];
-}
-
-function rescueDeck(challenges, missionId) {
-    var missions = rescueMissions(challenges);
-    var mission = missions.filter(function(item) { return !missionId || item.id === missionId; })[0];
-    return mission ? mission.steps.map(function(step) { return step.challenge; }) : [];
 }
 
 function recommendedPractice(challenges, stats) {

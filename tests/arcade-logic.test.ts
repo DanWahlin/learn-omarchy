@@ -11,6 +11,23 @@ class Clock extends Date {
 const context = vm.createContext({ Date: Clock });
 vm.runInContext(await readFile(new URL("../app/ArcadeLogic.js", import.meta.url), "utf8"), context);
 const plain = (value: any): any => JSON.parse(JSON.stringify(value));
+// Deterministic FNV-1a seeded LCG so shuffles and mission choices are reproducible in tests.
+function seededRandom(seed: unknown) {
+  const text = typeof seed === "string" || (typeof seed === "number" && Number.isFinite(seed)) ? String(seed) : "arcade";
+  let state = 2166136261;
+  for (let i = 0; i < text.length; i++) {
+    state ^= text.charCodeAt(i);
+    state = (state + (state << 1) + (state << 4) + (state << 7) + (state << 8) + (state << 24)) >>> 0;
+  }
+  return () => {
+    state = (1664525 * state + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+}
+function rescueDeck(source: any, missionId?: string) {
+  const mission = context.rescueMissions(source).find((item: any) => !missionId || item.id === missionId);
+  return mission ? mission.steps.map((step: any) => step.challenge) : [];
+}
 const course = JSON.parse(await readFile(new URL("../courses/omarchy-basics.json", import.meta.url), "utf8"));
 const challenges = plain(context.buildChallenges(course));
 const challengeFor = (action: string) => challenges.find((challenge: any) => challenge.action === action);
@@ -21,7 +38,7 @@ const attempt = (overrides: object = {}) => ({
 });
 const run = (overrides: object = {}) => ({
   mode: "rescue", score: 510, streak: 6, clean: 6, total: 6, elapsedMs: 6000,
-  deckKey: context.deckKey("rescue", context.rescueDeck(challenges), "standard"),
+  deckKey: context.deckKey("rescue", rescueDeck(challenges), "standard"),
   splits: [1000, 2000, 3000, 4000, 5000, 6000], competitive: true, ...overrides,
 });
 const recordAttempt = (stats: any, challenge = terminal, overrides: object = {}, now = NOW) =>
@@ -107,7 +124,7 @@ test("unknown custom course semantics stay unknown and duplicate signatures coll
   });
   assert.equal(built[1].prompt, "Focus the document editor");
   assert.equal(built[1].category, "general", "lesson names must not silently infer action semantics");
-  assert.deepEqual(plain(context.rescueDeck(built)), []);
+  assert.deepEqual(plain(rescueDeck(built)), []);
   assert.deepEqual(plain(context.buildChallenges(null)), []);
   assert.deepEqual(plain(context.buildChallenges({ lessons: "bad" })), []);
 });
@@ -161,7 +178,7 @@ test("Rescue offers six complete missions built from canonical course shortcuts"
     }
   }
 
-  const terminalMission = plain(context.rescueDeck(challenges, "terminal-workspace"));
+  const terminalMission = plain(rescueDeck(challenges, "terminal-workspace"));
   assert.deepEqual(terminalMission.map((challenge: any) => challenge.action),
     ["launch-terminal", "float", "widen", "fullscreen", "send-workspace-2", "workspace-2"]);
   assert.deepEqual(terminalMission.map((challenge: any) => challenge.signature),
@@ -174,10 +191,10 @@ test("Rescue offers six complete missions built from canonical course shortcuts"
   assert.equal(next.id, "layout-triage");
   assert.notEqual(next.id, first.id);
   assert.equal(context.rescueMissions(challenges.filter((item: any) => item.action !== "float")).length, 4);
-  assert.deepEqual(plain(context.rescueDeck(challenges, "missing")), []);
+  assert.deepEqual(plain(rescueDeck(challenges, "missing")), []);
   assert.equal(context.chooseRescueMission([], () => 0, ""), null);
   assert.deepEqual(plain(context.rescueMissions(null)), []);
-  assert.deepEqual(plain(context.rescueDeck(null)), []);
+  assert.deepEqual(plain(rescueDeck(null)), []);
 });
 
 test("every rescue mission has executable window and workspace preconditions", () => {
@@ -272,7 +289,7 @@ test("every rescue mission has executable window and workspace preconditions", (
 
 test("random rescue selection reaches every mission and never immediately repeats when alternatives exist", () => {
   const missions = plain(context.rescueMissions(challenges));
-  const random = context.seededRandom("rescue-rotation");
+  const random = seededRandom("rescue-rotation");
   const seen = new Set<string>();
   let previous = "";
   for (let i = 0; i < 300; i++) {
@@ -284,10 +301,10 @@ test("random rescue selection reaches every mission and never immediately repeat
   assert.deepEqual([...seen].sort(), missions.map((mission: any) => mission.id).sort());
   for (const [index, mission] of missions.entries()) {
     assert.equal(context.chooseRescueMission(challenges, () => (index + 0.5) / missions.length).id, mission.id);
-    const savedDeck = plain(context.rescueDeck(challenges, mission.id));
+    const savedDeck = plain(rescueDeck(challenges, mission.id));
     const savedKey = context.deckKey("rescue", savedDeck, "standard");
     context.chooseRescueMission(challenges, random, mission.id);
-    assert.deepEqual(plain(context.rescueDeck(challenges, mission.id)), savedDeck);
+    assert.deepEqual(plain(rescueDeck(challenges, mission.id)), savedDeck);
     assert.equal(context.deckKey("rescue", savedDeck, "standard"), savedKey);
   }
   const singleMissionPool = challenges.filter((challenge: any) =>
@@ -297,23 +314,15 @@ test("random rescue selection reaches every mission and never immediately repeat
   assert.equal(context.chooseRescueMission(singleMissionPool, () => 0.999, "workspace-sort").id, "workspace-sort");
 });
 
-test("seeded random and shuffles are reproducible and do not mutate their source", () => {
+test("shuffles are reproducible and do not mutate their source", () => {
   const source = [1, 2, 3, 4];
   const values = [0.5, 0.25, 0];
   assert.deepEqual(plain(context.shuffled(source, () => values.shift())), [2, 4, 1, 3]);
   assert.deepEqual(source, [1, 2, 3, 4]);
   assert.deepEqual(plain(context.shuffled(source, () => Number.NaN)), [2, 3, 4, 1]);
   assert.deepEqual(plain(context.shuffled("bad")), []);
-  for (const seed of ["daily-2026-09-12", 42, "", null]) {
-    const a = context.seededRandom(seed);
-    const b = context.seededRandom(seed);
-    const outputs = Array.from({ length: 100 }, () => a());
-    assert.deepEqual(outputs, Array.from({ length: 100 }, () => b()));
-    assert.ok(outputs.every(value => value >= 0 && value < 1));
-  }
-  assert.notEqual(context.seededRandom("a")(), context.seededRandom("b")());
-  assert.deepEqual(plain(context.shuffled(challenges, context.seededRandom("sprint"))),
-    plain(context.shuffled(challenges, context.seededRandom("sprint"))));
+  assert.deepEqual(plain(context.shuffled(challenges, seededRandom("sprint"))),
+    plain(context.shuffled(challenges, seededRandom("sprint"))));
 });
 
 test("scoring rewards clean recall and retries never receive streak or speed bonuses", () => {
@@ -370,18 +379,8 @@ test("v1 migration preserves legacy totals without turning them into comparable 
   assert.deepEqual(future.skills, {});
 });
 
-test("legacy recordResult remains immutable and cannot create v2 records", () => {
-  const stats = context.mergeStats({ version: 1, sprint: { bestScore: 200, bestStreak: 4, plays: 2, clears: 1 } });
-  const before = plain(stats);
-  const result = plain(context.recordResult(stats, "sprint", 150, 7, true));
-  assert.deepEqual(plain(stats), before);
-  assert.deepEqual(result.sprint, { bestScore: 200, bestStreak: 7, plays: 3, clears: 2 });
-  assert.deepEqual(result.records, {});
-  assert.deepEqual(plain(context.recordResult(stats, "unknown", 999, 999, true)), before);
-});
-
 test("deck keys include scoring version, mode, ordered signatures, IDs and pace", () => {
-  const deck = plain(context.rescueDeck(challenges));
+  const deck = plain(rescueDeck(challenges));
   const key = context.deckKey("rescue", deck, "standard");
   assert.match(key, /^arcade-v2\|rescue\|/);
   assert.equal(key, context.deckKey("rescue", structuredClone(deck), "standard"));
@@ -394,7 +393,7 @@ test("deck keys include scoring version, mode, ordered signatures, IDs and pace"
   assert.equal(context.deckKey("unknown", deck, "standard"), "");
   assert.equal(context.deckKey("rescue", [], "standard"), "");
   assert.equal(context.deckKey("rescue", [{ ...deck[0], signature: "bad" }], "standard"), "");
-  const sprint = context.shuffled(challenges, context.seededRandom("fixed"));
+  const sprint = context.shuffled(challenges, seededRandom("fixed"));
   const sprintKey = context.deckKey("sprint", sprint, "standard");
   assert.equal(JSON.parse(sprintKey.split("|").slice(2).join("|"))[1].length, 41);
 });
@@ -417,7 +416,7 @@ test("comparable records retain score-run ghost splits while preserving legacy b
   best.splits[0] = 9999;
   assert.equal(context.bestForDeck(stats, run().deckKey).splits[0], 500);
   assert.deepEqual(plain(context.mergeStats(JSON.parse(JSON.stringify(stats)))), stats);
-  assert.deepEqual(plain(context.bestForDeck(stats, context.deckKey("rescue", context.rescueDeck(challenges), "relaxed"))), emptyRecord);
+  assert.deepEqual(plain(context.bestForDeck(stats, context.deckKey("rescue", rescueDeck(challenges), "relaxed"))), emptyRecord);
 });
 
 test("noncompetitive and malformed runs cannot establish comparable personal bests", () => {
@@ -441,7 +440,7 @@ test("noncompetitive and malformed runs cannot establish comparable personal bes
 
 test("partial or extended Rescue and Keyfall runs cannot compete against a different deck length", () => {
   for (const mode of ["rescue", "keyfall"]) {
-    const deckKey = context.deckKey(mode, context.rescueDeck(challenges), "standard");
+    const deckKey = context.deckKey(mode, rescueDeck(challenges), "standard");
     for (const total of [1, 5, 7]) {
       const stats = context.recordRun(null, run({
         mode, deckKey, total, clean: total, streak: total,
@@ -592,7 +591,7 @@ test("adaptive practice balances weak, new and familiar skills without signature
   let stats = recordAttempt(null, weak, { hinted: true });
   stats = recordAttempt(stats, familiar);
   const before = structuredClone(stats);
-  const deck = plain(context.practiceDeck([...pool, weak, weak], stats, 12, context.seededRandom("practice"), "all"));
+  const deck = plain(context.practiceDeck([...pool, weak, weak], stats, 12, seededRandom("practice"), "all"));
   assert.deepEqual(stats, before);
   assert.equal(deck.length, 12);
   assert.equal(deck[0].signature, weak.signature);
@@ -601,19 +600,19 @@ test("adaptive practice balances weak, new and familiar skills without signature
   assert.equal(new Set(deck.slice(0, 3).map((item: any) => item.signature)).size, 3);
   for (let i = 1; i < deck.length; i++) assert.notEqual(deck[i].signature, deck[i - 1].signature);
   for (const item of pool) assert.equal(deck.filter((entry: any) => entry.signature === item.signature).length, 4);
-  assert.deepEqual(deck, plain(context.practiceDeck([...pool, weak], stats, 12, context.seededRandom("practice"), "all")));
+  assert.deepEqual(deck, plain(context.practiceDeck([...pool, weak], stats, 12, seededRandom("practice"), "all")));
 });
 
 test("due review wins the first slot and category filtering is strict", () => {
   let stats = recordAttempt(null, terminal, {}, NOW - DAY);
   stats = recordAttempt(stats, challengeFor("float"));
-  const deck = plain(context.practiceDeck(challenges, stats, 20, context.seededRandom("due")));
+  const deck = plain(context.practiceDeck(challenges, stats, 20, seededRandom("due")));
   assert.equal(deck[0].id, terminal.id);
   assert.equal(new Set(deck.map((item: any) => item.signature)).size, 20);
-  const windows = plain(context.practiceDeck(challenges, stats, 30, context.seededRandom("windows"), "windows"));
+  const windows = plain(context.practiceDeck(challenges, stats, 30, seededRandom("windows"), "windows"));
   assert.ok(windows.every((item: any) => item.category === "windows"));
   for (let i = 1; i < windows.length; i++) assert.notEqual(windows[i].signature, windows[i - 1].signature);
-  const starter = context.practiceDeck(challenges, null, 1, context.seededRandom("new"))[0];
+  const starter = context.practiceDeck(challenges, null, 1, seededRandom("new"))[0];
   assert.equal(starter.difficulty, "starter");
 });
 
@@ -621,7 +620,7 @@ test("fresh adaptive runs explore every category and signature without requiring
   const seen = new Set<string>();
   const orders = new Set<string>();
   for (let seed = 0; seed < 200; seed++) {
-    const deck = plain(context.practiceDeck(challenges, null, 12, context.seededRandom(`fresh-${seed}`)));
+    const deck = plain(context.practiceDeck(challenges, null, 12, seededRandom(`fresh-${seed}`)));
     assert.equal(deck.length, 12);
     assert.equal(new Set(deck.map((challenge: any) => challenge.signature)).size, 12);
     assert.equal(deck[0].difficulty, "starter");
@@ -634,7 +633,7 @@ test("fresh adaptive runs explore every category and signature without requiring
 
 test("full adaptive passes and fresh shuffles preserve breadth and captured replay order", () => {
   const before = structuredClone(challenges);
-  const random = context.seededRandom("fresh-runs");
+  const random = seededRandom("fresh-runs");
   const saved = plain(context.shuffled(challenges, random));
   const savedKey = context.deckKey("sprint", saved, "standard");
   const fresh = plain(context.shuffled(challenges, random));
@@ -744,12 +743,12 @@ test("attempt history, successful sessions and deck records remain bounded", () 
   assert.equal(skill.successfulSessions[0].at, NOW - 80 * DAY);
   assert.equal(context.masterySummary(stats, challenges).mastered, 1);
   for (let i = 0; i < 110; i++) {
-    const key = context.deckKey("rescue", context.rescueDeck(challenges), `pace-${i}`);
+    const key = context.deckKey("rescue", rescueDeck(challenges), `pace-${i}`);
     stats = plain(context.recordRun(stats, run({ deckKey: key }), NOW));
   }
   assert.equal(Object.keys(stats.records).length, 100);
-  assert.equal(context.bestForDeck(stats, context.deckKey("rescue", context.rescueDeck(challenges), "pace-0")).plays, 0);
-  assert.equal(context.bestForDeck(stats, context.deckKey("rescue", context.rescueDeck(challenges), "pace-109")).plays, 1);
+  assert.equal(context.bestForDeck(stats, context.deckKey("rescue", rescueDeck(challenges), "pace-0")).plays, 0);
+  assert.equal(context.bestForDeck(stats, context.deckKey("rescue", rescueDeck(challenges), "pace-109")).plays, 1);
   assert.deepEqual(plain(context.mergeStats(stats)), stats);
 });
 

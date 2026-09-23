@@ -22,7 +22,6 @@ Item {
   property var pressedKeys: []
   property string storageNotice: ""
   property string guideName: "Ohm1"
-  property url guideSource: ""
   property var guidePack: null
   property string appRoot: ""
   property url wallpaperSource: ""
@@ -142,7 +141,6 @@ Item {
   readonly property color raisedColor: Qt.tint(surfaceColor, Qt.rgba(accentColor.r, accentColor.g, accentColor.b, 0.09))
   readonly property color lineColor: Qt.tint(surfaceColor, Qt.rgba(foregroundColor.r, foregroundColor.g, foregroundColor.b, 0.22))
   readonly property color inkAccent: backgroundColor.hslLightness > 0.6 ? Qt.darker(accentColor, 1.8) : accentColor
-  readonly property color buttonInk: accentColor.hslLightness > 0.6 ? "#131820" : "#ffffff"
   readonly property color modeAccent: screen === "hub" ? accentColor : colorForMode(mode)
   readonly property color modeInk: inkForColor(modeAccent)
   readonly property color modeButtonInk: modeAccent.hslLightness > 0.6 ? "#131820" : "#ffffff"

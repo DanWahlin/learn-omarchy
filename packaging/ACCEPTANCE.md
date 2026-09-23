@@ -1,20 +1,20 @@
 # Release acceptance
 
-The current release is **0.2.2** (Arch version **0.2.2**), an early public
-release. CI and packaging checks do not establish that every
-desktop, hardware device, or installed Omarchy version behaves correctly.
+The current release is **0.2.3** (Arch version **0.2.3-1**), a stable public
+release published by the tag workflow. CI and packaging checks do not establish
+that every desktop, hardware device, or installed Omarchy version behaves
+correctly.
 
-## Testing-prerelease distribution gates
+## Publication gates
 
-Before publishing a **testing prerelease**, require green exact-tag CI,
-license/audio checks, verified package contents, downloadable assets with
-matching checksums, current installation/removal instructions, and explicit
-compatibility/known-limitations notes. Confirm intended repository access:
-an unpublished draft or private repository is not a public download.
+Every pushed `vX.Y.Z` tag publishes a stable GitHub release, which the Omarchy
+package repository picks up after its 24-hour quarantine. Before tagging,
+require green CI, license/audio checks, verified package contents, current
+installation/removal instructions, and explicit compatibility/known-limitations
+notes in the release notes.
 
-Graphical/hardware gates below may remain pending for an explicitly labeled
-testing prerelease only when those limitations are disclosed. Publishing a
-candidate does not approve stable promotion or the Omarchy package PR.
+Graphical/hardware gates below may remain pending only when those limitations
+are disclosed in the release notes.
 
 ## Stable-release gates
 

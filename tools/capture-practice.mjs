@@ -1,61 +1,13 @@
 import { spawn } from "node:child_process";
-import { mkdir, mkdtemp, readFile, readdir, writeFile, rm, rmdir, stat } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, writeFile, rm, stat } from "node:fs/promises";
 import { isAbsolute, join, resolve } from "node:path";
 import { createInterface } from "node:readline";
 import { fileURLToPath } from "node:url";
-
-export function validRegion(value) {
-  const match = /^(-?\d+),(-?\d+) ([1-9]\d*)x([1-9]\d*)$/.exec(value);
-  return Boolean(match && match.slice(1).every(part => Number.isSafeInteger(Number(part))));
-}
 
 async function artifactDirectory(prefix) {
   const base = resolve(".learn-omarchy-practice");
   await mkdir(base, { recursive: true, mode: 0o700 });
   return mkdtemp(join(base, prefix));
-}
-
-async function capture() {
-  let child;
-  let cancelled = false;
-  const cancel = () => { cancelled = true; if (child) child.kill("SIGTERM"); };
-  process.on("SIGTERM", cancel);
-  process.on("SIGINT", cancel);
-  const directory = process.env.XDG_RUNTIME_DIR
-    ? await mkdtemp(join(process.env.XDG_RUNTIME_DIR, "learn-omarchy-capture."))
-    : await artifactDirectory("learn-omarchy-capture.");
-  const path = join(directory, "practice.png");
-  let saved = false;
-  const run = (command, args) => new Promise((resolveRun, reject) => {
-    if (cancelled) { resolveRun({ code: 2, output: "", error: "" }); return; }
-    child = spawn(command, args, { stdio: ["ignore", "pipe", "pipe"] });
-    let output = "", error = "";
-    child.stdout.setEncoding("utf8").on("data", data => { output += data; });
-    child.stderr.setEncoding("utf8").on("data", data => { error += data; });
-    child.on("error", reject);
-    child.on("close", code => { child = null; resolveRun({ code, output: output.trim(), error: error.trim() }); });
-  });
-  try {
-    const selection = await run("slurp", []);
-    if (cancelled || (selection.code === 1 && (!selection.error || selection.error === "selection cancelled"))) {
-      process.exitCode = 2;
-      return;
-    }
-    if (selection.code !== 0 || !validRegion(selection.output)) throw new Error(selection.error || "Invalid capture region");
-    const result = await run("grim", ["-g", selection.output, path]);
-    if (cancelled) { process.exitCode = 2; return; }
-    if (result.code !== 0) throw new Error(result.error || "Screenshot capture failed");
-    if ((await stat(path)).size === 0) throw new Error("Screenshot is empty");
-    saved = true;
-    console.log(path);
-  } finally {
-    if (!saved) {
-      await rm(path, { force: true });
-      await rmdir(directory);
-    }
-    process.off("SIGTERM", cancel);
-    process.off("SIGINT", cancel);
-  }
 }
 
 export async function screenshotDirectory(env = process.env) {
@@ -363,7 +315,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   (process.argv[2] === "--session" ? practiceSession(process.argv[3])
     : process.argv[2] === "--watch-screenshots" ? watchScreenshots()
     : process.argv[2] === "--watch-recordings" ? watchRecordings()
-    : capture()).catch(error => {
+    : Promise.reject(new Error("expected --session, --watch-screenshots, or --watch-recordings"))).catch(error => {
     console.error("Practice capture:", error.message);
     process.exitCode = 1;
   });

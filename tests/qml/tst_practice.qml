@@ -40,7 +40,6 @@ Item {
       practice.copiedFirst = false
       practice.copiedSecond = false
       practice.historyOpened = false
-      practice.clipboardPasteMismatch = false
       practice.clipboardFeedback = ""
       practice.verified = false
       findChild(practice, "pasteDestination").text = ""
@@ -64,7 +63,6 @@ Item {
       verify(!practice.copiedFirst)
       verify(!practice.copiedSecond)
       verify(!practice.historyOpened)
-      verify(!practice.clipboardPasteMismatch)
       compare(practice.clipboardFeedback, "")
       compare(findChild(practice, "pasteDestination").text, "")
       verify(findChild(practice, "firstNote").visible)
@@ -477,7 +475,6 @@ Item {
       practice.observePaste(destination.text)
 
       verify(!practice.verified)
-      verify(practice.clipboardPasteMismatch)
       verify(practice.clipboardFeedback.includes("newer note"))
       tryCompare(destination, "selectedText", practice.secondSample)
       compare(practice.currentKeyGuides.length, 3)
@@ -491,7 +488,6 @@ Item {
       destination.text = practice.sample
       practice.observePaste(destination.text)
       verify(practice.verified)
-      verify(!practice.clipboardPasteMismatch)
       compare(practice.clipboardFeedback, "")
     }
     function test_nativeCopyAndPaste() {

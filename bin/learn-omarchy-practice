@@ -3,9 +3,6 @@ set -euo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 app_root="${LEARN_OMARCHY_ROOT:-$(cd -- "$script_dir/.." && pwd)}"
 
-if [[ "${1:-}" == "--capture" ]]; then
-  exec node "$app_root/tools/capture-practice.mjs"
-fi
 if [[ "${1:-}" == "--watch-screenshots" ]]; then
   exec node "$app_root/tools/capture-practice.mjs" --watch-screenshots
 fi

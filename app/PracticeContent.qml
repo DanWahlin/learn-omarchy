@@ -36,7 +36,6 @@ Rectangle {
   property bool copiedFirst: false
   property bool copiedSecond: false
   property bool historyOpened: false
-  property bool clipboardPasteMismatch: false
   property string clipboardFeedback: ""
   property bool verified: false
   property bool busy: false
@@ -99,7 +98,6 @@ Rectangle {
   property int stage: 0
   property string artifact: ""
   property string original: ""
-  property string region: ""
   property string qrImage: ""
   property int originalBytes: 0
   property int outputBytes: 0
@@ -107,7 +105,6 @@ Rectangle {
   property bool consent: false
   property bool originalPlayed: false
   property bool outputPlayed: false
-  property bool nativeSamplePasted: false
   property bool simulatedQuiet: false
   property bool simulatedQuietSeen: false
   property bool correctionApplied: false
@@ -152,7 +149,6 @@ Rectangle {
     stage = 0
     artifact = ""
     original = ""
-    region = ""
     qrImage = ""
     originalBytes = 0
     outputBytes = 0
@@ -160,14 +156,12 @@ Rectangle {
     consent = false
     originalPlayed = false
     outputPlayed = false
-    nativeSamplePasted = false
     simulatedQuiet = false
     simulatedQuietSeen = false
     correctionApplied = false
     copiedFirst = false
     copiedSecond = false
     historyOpened = false
-    clipboardPasteMismatch = false
     clipboardFeedback = ""
     smile.text = ""
     heart.text = ""
@@ -200,12 +194,6 @@ Rectangle {
     busy = false
     if (result.error) {
       error = result.error
-      if (result.action === "stop") { recording = false; stage = 0; region = "" }
-      return
-    }
-    if (result.cancelled) {
-      if (result.action === "select") region = ""
-      status = "Selection cancelled. Nothing completed; try again."
       return
     }
     if (mode === "qr") {
@@ -285,9 +273,8 @@ Rectangle {
 
   function observeExercisePaste(text) {
     if (mode !== "ocr" && mode !== "qr") return
-    nativeSamplePasted = text.trim() === "OMARCHY SAFE SAMPLE"
-    verified = nativeSamplePasted
-    status = nativeSamplePasted
+    verified = text.trim() === "OMARCHY SAFE SAMPLE"
+    status = verified
       ? "The pasted text matches the sample. Choose Finish exercise."
       : "The pasted text doesn't match the sample. Try the native capture again and select only the card."
   }
@@ -296,10 +283,19 @@ Rectangle {
     if (mode === "compose") verified = smile.text.trim() === "😄" && heart.text.trim().replace(/\uFE0F/g, "") === "❤"
   }
 
+  function fileUrl(path) {
+    return path ? "file://" + path.split("/").map(encodeURIComponent).join("/") : ""
+  }
+
+  // Qt returns URLs partially decoded, so compare decoded forms.
+  function isFileUrl(url, path) {
+    return path !== "" && decodeURIComponent(url.toString()) === "file://" + path
+  }
+
   function playMedia(path) {
     error = ""
     player.stop()
-    player.source = "file://" + path
+    player.source = fileUrl(path)
     player.play()
     videoPreview.forceActiveFocus()
     scheduleReveal(videoPreview)
@@ -310,8 +306,8 @@ Rectangle {
     videoOutput: videoPreview
     onPositionChanged: {
       if (playbackState !== MediaPlayer.PlayingState || position < 250) return
-      if (source.toString() === "file://" + root.original) root.originalPlayed = true
-      if (source.toString() === "file://" + root.artifact) {
+      if (root.isFileUrl(source, root.original)) root.originalPlayed = true
+      if (root.isFileUrl(source, root.artifact)) {
         root.outputPlayed = true
         if (root.mode === "screen-recording" && root.stage === 2) root.verified = true
       }
@@ -324,7 +320,6 @@ Rectangle {
       copiedFirst = true
       copiedSecond = false
       historyOpened = false
-      clipboardPasteMismatch = false
       clipboardFeedback = ""
       verified = false
       Qt.callLater(function() {
@@ -336,7 +331,6 @@ Rectangle {
     if (!first && copiedFirst && selected === secondSample) {
       copiedSecond = true
       historyOpened = false
-      clipboardPasteMismatch = false
       clipboardFeedback = ""
       verified = false
       Qt.callLater(function() {
@@ -350,13 +344,11 @@ Rectangle {
   function observePaste(text) {
     if (!copiedFirst || !copiedSecond || !historyOpened) return
     if (text === sample) {
-      clipboardPasteMismatch = false
       clipboardFeedback = ""
       verified = true
       return
     }
 
-    clipboardPasteMismatch = true
     clipboardFeedback = text === secondSample
       ? "The newer note was pasted. Reopen clipboard history and choose \"" + sample + "\" instead."
       : "That isn't the complete original note. Use the three highlighted steps, then paste again."
@@ -562,7 +554,7 @@ Rectangle {
         visible: root.mode === "qr" && root.qrImage !== ""
         anchors.fill: parent
         anchors.margins: 8
-        source: root.qrImage ? "file://" + root.qrImage : ""
+        source: root.fileUrl(root.qrImage)
         fillMode: Image.PreserveAspectFit
         smooth: false
         Accessible.name: "Harmless sample QR code"
@@ -811,10 +803,7 @@ Rectangle {
           KeyNavigation.priority: KeyNavigation.BeforeItem
           KeyNavigation.tab: reviewRecognized.enabled ? reviewRecognized : cancelButton
           onTextChanged: {
-            if (root.mode === "ocr" || root.mode === "qr") {
-              root.nativeSamplePasted = false
-              root.verified = false
-            }
+            if (root.mode === "ocr" || root.mode === "qr") root.verified = false
           }
           Keys.priority: Keys.BeforeItem
           Keys.onPressed: function(event) {
@@ -1116,7 +1105,7 @@ Rectangle {
           visible: root.mode === "capture" && root.screenshot !== ""
           Layout.fillWidth: true
           Layout.preferredHeight: visible ? 160 : 0
-          source: root.screenshot ? "file://" + root.screenshot : ""
+          source: root.fileUrl(root.screenshot)
           fillMode: Image.PreserveAspectFit
           onStatusChanged: {
             if (status === Image.Ready && sourceSize.width > 0 && sourceSize.height > 0) {

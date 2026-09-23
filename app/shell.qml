@@ -3179,8 +3179,8 @@ ShellRoot {
           if (Array.isArray(parsed.courses[courseId])) {
             nextByCourse[courseId] = parsed.courses[courseId].map(function(id) { return String(id) })
           }
-          progressDetails = parsed.details && typeof parsed.details === "object" ? parsed.details : {}
         }
+        progressDetails = parsed.details && typeof parsed.details === "object" ? parsed.details : {}
       } else if (parsed && typeof parsed.courseId === "string" && Array.isArray(parsed.completedLessons)) {
         nextByCourse[parsed.courseId] = parsed.completedLessons.map(function(id) { return String(id) })
       }
@@ -3488,10 +3488,7 @@ ShellRoot {
       clients = JSON.parse(raw)
       if (!Array.isArray(clients)) throw new Error("Expected a window list")
     } catch (error) {
-      actionRunning = false
-      clearActiveKeys()
-      restoreActionKeyboard()
-      showRecovery("Couldn't read the practice windows before swapping. Try again.")
+      failWindowPreflight("Couldn't read the practice windows before swapping. Try again.", "")
       return
     }
     var first = clients.find(function(item) { return item && normalizedWindowAddress(item.address) === currentTutorialWindow() })
@@ -3502,11 +3499,8 @@ ShellRoot {
         !Array.isArray(first.at) || first.at.length !== 2 || !first.at.every(Number.isFinite) ||
         !Array.isArray(peer.at) || peer.at.length !== 2 || !peer.at.every(Number.isFinite) ||
         (first.at[0] === peer.at[0] && first.at[1] === peer.at[1])) {
-      actionRunning = false
-      clearActiveKeys()
-      restoreActionKeyboard()
-      var missingStep = !first ? currentStep.windowFromStep : !peer ? currentStep.swapWithStep : currentStep.windowFromStep
-      showRecovery("Both practice terminals must be tiled on the same workspace. Repeat their launch activities before swapping.", missingStep)
+      failWindowPreflight("Both practice terminals must be tiled on the same workspace. Repeat their launch activities before swapping.",
+        first && !peer ? currentStep.swapWithStep : currentStep.windowFromStep)
       return
     }
     swapBefore = { peer: currentPeerWindow(), firstAt: first.at.slice(), peerAt: peer.at.slice() }
@@ -3514,13 +3508,13 @@ ShellRoot {
     else helpProcess.running = true
   }
 
-  function failWindowPreflight(message) {
+  function failWindowPreflight(message, stepId) {
     windowChangeBaseline = null
     actionRunning = false
     actionStepId = ""
     clearActiveKeys()
     restoreActionKeyboard()
-    showRecovery(message, currentStep && currentStep.windowFromStep || "")
+    showRecovery(message, stepId !== undefined ? stepId : currentStep && currentStep.windowFromStep || "")
   }
 
   function parseWindowBaseline(raw, generation) {
@@ -4638,7 +4632,7 @@ ShellRoot {
       return root.refreshCharacters() ? "refreshing" : "busy"
     }
 
-    function target(): string {
+    function completeTarget(): string {
       if (root.phase !== "waiting" || !root.currentStep) return "not-waiting"
       root.completeCurrentStep()
       return "ok"
@@ -8010,7 +8004,7 @@ ShellRoot {
           }
           property int playbackGeneration: -1
           property bool handoffPinned: false
-          palette: ({
+          introColors: ({
             accent: root.accent,
             instruction: root.instruction,
             foreground: root.foreground,

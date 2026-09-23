@@ -64,7 +64,7 @@ test("CI requires native tools and executes all mandatory checks without cloud c
   assert.match(script, /unset DISPLAY WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE/);
   assert.match(script, /QT_QPA_PLATFORM=offscreen/);
   assert.match(script, /QT_QUICK_BACKEND=software/);
-  assert.match(script, /for tool in .*qs makepkg .*ffmpeg .*zbarimg qrencode/);
+  assert.match(script, /for tool in .*qs makepkg .*ffmpeg .*zbarimg qrencode lua/);
   assert.match(script, /vercmp "\$installed_qs" 0\.3/);
   assert.doesNotMatch(script, /audio:generate|AZURE|SPEECH_KEY/);
 });

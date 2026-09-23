@@ -629,7 +629,7 @@
   }
   function hideOutline() { outline.classList.remove('show'); }
 
-  async function say(text, place, id) {
+  async function say(text, centered, id) {
     caption.classList.remove('hidden');
     captionText.innerHTML = '';
     // Place the caption under the coach, or above him when there is no room, never on top of him
@@ -637,7 +637,7 @@
     const cw = pct(caption).width;
     const below = c.top + c.height + 5;
     const isBelow = below < 80;
-    const center = place.center ? 50 : c.left + c.width / 2;
+    const center = centered ? 50 : c.left + c.width / 2;
     const left = Math.max(1, Math.min(99 - cw, center - cw / 2));
     caption.style.top = (isBelow ? below : Math.max(2, c.top - 16)) + '%';
     caption.style.left = left + '%';
@@ -727,7 +727,7 @@
     coach.classList.add('thrust');
     await flyTo(50, 52, 'idle', false, { ms: 1200 });
     if (!alive(id)) return;
-    await say("Hi! I'm Ohm-1. Let's start with the desktop bar.", { center: true }, id);
+    await say("Hi! I'm Ohm-1. Let's start with the desktop bar.", true, id);
     if (!alive(id)) return;
 
     // 2. Workspaces
@@ -735,7 +735,7 @@
     showOutline(pills, 'Workspaces', 0.5);
     await flyTo(pp.left + pp.width * 0.5, pp.top + pp.height + 7, 'point-up');
     if (!alive(id)) return;
-    await say('These are your workspaces: separate desktops for different tasks. The active one is highlighted in the bar.', { top: 34 }, id);
+    await say('These are your workspaces: separate desktops for different tasks. The active one is highlighted in the bar.', false, id);
     if (!alive(id)) return;
 
     // 3. Clock and status
@@ -744,14 +744,14 @@
     showOutline(clock, 'Clock and calendar', 0.5);
     await flyTo(cp.left + cp.width * 0.5, cp.top + cp.height + 7, 'point-up', false);
     if (!alive(id)) return;
-    await say("Here's the date and time. Click it to open the calendar.", { top: 34 }, id);
+    await say("Here's the date and time. Click it to open the calendar.", false, id);
     if (!alive(id)) return;
     hideOutline();
     const sp = pct(status);
     showOutline(status, 'System status', 0.5);
     await flyTo(sp.left + sp.width * 0.5, sp.top + sp.height + 7, 'point-up', false);
     if (!alive(id)) return;
-    await say('Network, sound, and power live here. Select one to open its controls.', { top: 34, left: 40 }, id);
+    await say('Network, sound, and power live here. Select one to open its controls.', false, id);
     if (!alive(id)) return;
 
     // 4. Shortcut: Super + 2
@@ -784,7 +784,7 @@
     if (!alive(id)) return;
     await wait(500); if (!alive(id)) return;
     lesson.classList.add('hidden');
-    await say('Apps, capture, themes, setup, and updates all live in this one menu. You can also click the icon in the bar.', {}, id);
+    await say('Apps, capture, themes, setup, and updates all live in this one menu. You can also click the icon in the bar.', false, id);
     if (!alive(id)) return;
 
     // 6. Wrap
@@ -792,7 +792,7 @@
     omenu.classList.add('hidden');
     await flyTo(50, 50, 'idle', false);
     if (!alive(id)) return;
-    await say("That's the tour. Ready for the next lesson?", { center: true }, id);
+    await say("That's the tour. Ready for the next lesson?", true, id);
     if (!alive(id)) return;
     replay.hidden = false;
   }

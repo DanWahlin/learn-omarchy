@@ -29,7 +29,7 @@ jobs:
         run: |
           pacman -Syu --noconfirm --needed \
             base-devel git libarchive nodejs npm quickshell qt6-declarative \
-            qt6-multimedia qt6-multimedia-ffmpeg ffmpeg mpv zbar qrencode \
+            qt6-multimedia qt6-multimedia-ffmpeg ffmpeg mpv zbar qrencode lua \
             tesseract tesseract-data-eng ttf-liberation noto-fonts-emoji
           useradd --create-home --shell /bin/bash ci
       - name: Check out exact source without persisting credentials

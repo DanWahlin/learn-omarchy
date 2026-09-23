@@ -4250,8 +4250,8 @@ test("main rendering contains no coach-specific manifest paths or intro choreogr
   assert.doesNotMatch(renderer, /\b(?:assetRoot|config):/);
 });
 
-test("intro palette forwards the current application theme", () => {
-  const palette = shell.match(/palette: \(\{([\s\S]*?)\}\)/)?.[1];
+test("intro colors forward the current application theme", () => {
+  const palette = shell.match(/introColors: \(\{([\s\S]*?)\}\)/)?.[1];
   assert.ok(palette);
   for (const color of ["accent", "instruction", "foreground", "background", "muted", "urgent"])
     assert.match(palette, new RegExp(`${color}: root\\.${color}`));

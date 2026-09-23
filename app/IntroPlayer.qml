@@ -7,7 +7,7 @@ Item {
     property string assetRoot: ""
     property string displayName: ""
     property bool reducedMotion: false
-    property var palette: ({})
+    property var introColors: ({})
     readonly property var defaultPalette: ({
         accent: "#718cba", instruction: "#f1c27d", foreground: "#d9e2ef",
         background: "#182028", muted: "#8b97a8", urgent: "#e87979"
@@ -187,7 +187,7 @@ Item {
         if (typeof value === "string" && value.indexOf("theme:") === 0) {
             var key = value.substring(6)
             if (Timeline.THEME_COLORS.indexOf(key) >= 0) {
-                var candidate = String((palette || {})[key] || "")
+                var candidate = String((introColors || {})[key] || "")
                 return /^#[0-9a-fA-F]{6}([0-9a-fA-F]{2})?$/.test(candidate) ? candidate : defaultPalette[key]
             }
         }
@@ -225,25 +225,25 @@ Item {
             id: layerItem
             required property var modelData
             readonly property var definition: modelData
-            readonly property var state: player.layerStates[definition.id] || ({})
-            readonly property bool active: player.phase === "playing" && state.visible === true
+            readonly property var layerState: player.layerStates[definition.id] || ({})
+            readonly property bool active: player.phase === "playing" && layerState.visible === true
             readonly property real age: player.elapsed
-            x: state.x || 0
-            y: state.y || 0
-            width: state.width || 0
-            height: state.height || 0
+            x: layerState.x || 0
+            y: layerState.y || 0
+            width: layerState.width || 0
+            height: layerState.height || 0
             z: definition.z || 0
             visible: active
-            opacity: state.opacity === undefined ? 1 : state.opacity
-            scale: state.scale === undefined ? 1 : state.scale
-            rotation: state.rotation || 0
+            opacity: layerState.opacity === undefined ? 1 : layerState.opacity
+            scale: layerState.scale === undefined ? 1 : layerState.scale
+            rotation: layerState.rotation || 0
             transformOrigin: Item.Bottom
             Image {
                 objectName: "introImage-" + layerItem.definition.id
                 anchors.fill: parent
                 visible: layerItem.definition.type === "image"
                 source: visible && layerItem.definition.images
-                    ? player.assetUrl(layerItem.definition.images[layerItem.state.frame || 0]) : ""
+                    ? player.assetUrl(layerItem.definition.images[layerItem.layerState.frame || 0]) : ""
                 fillMode: Image.Stretch
                 smooth: false
                 mipmap: false
@@ -264,9 +264,9 @@ Item {
                 id: prompt
                 objectName: "introCueText"
                 visible: layerItem.definition.type === "text"
-                readonly property string fullText: player.substituted(layerItem.state.text)
+                readonly property string fullText: player.substituted(layerItem.layerState.text)
                 text: layerItem.definition.typewriter
-                    ? fullText.substring(0, Math.floor(Math.max(0, layerItem.age - (layerItem.state.textAt || 0)) / 34)) +
+                    ? fullText.substring(0, Math.floor(Math.max(0, layerItem.age - (layerItem.layerState.textAt || 0)) / 34)) +
                       (Math.floor(layerItem.age / 480) % 2 ? " " : "█")
                     : fullText
                 textFormat: Text.PlainText
@@ -286,7 +286,7 @@ Item {
                 period: layerItem.definition.period || 1600
                 amplitude: layerItem.definition.amplitude === undefined ? 18 : layerItem.definition.amplitude
                 elapsed: layerItem.age
-                progress: layerItem.state.progress || 0
+                progress: layerItem.layerState.progress || 0
             }
         }
     }
